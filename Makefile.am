@@ -11,3 +11,13 @@
 EXTRA_DIST = autogen.sh configure OSC top_marker
 SUBDIRS =  libs src
 
+mac: all
+	-mkdir -p SooperLooper.app
+	-mkdir -p SooperLooper.app/Contents
+	-mkdir -p SooperLooper.app/Contents/MacOS
+	-mkdir -p SooperLooper.app/Contents/Resources
+	`wx-config --rezflags` src/gui/slgui
+	strip src/gui/slgui
+	strip src/sooperlooper
+	cp src/gui/slgui SooperLooper.app/Contents/MacOS
+	cp src/sooperlooper SooperLooper.app/Contents/MacOS

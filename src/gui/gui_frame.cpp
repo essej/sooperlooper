@@ -134,6 +134,13 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 	
 	init();
 
+#ifdef __WXMAC__
+	wxApp::s_macAboutMenuItemId = ID_AboutMenu;
+	wxApp::s_macPreferencesMenuItemId = ID_PreferencesMenu;
+	wxApp::s_macExitMenuItemId = ID_QuitStop;
+//	wxApp::s_macHelpMenuTitleName = "Help";
+#endif
+
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
 	_update_timer->Start(100);
 
@@ -270,7 +277,10 @@ GuiFrame::init()
 
 	menuFile->AppendSeparator();
 	menuFile->Append(ID_PreferencesMenu, wxT("&Preferences...\tCtrl-P"), wxT("Preferences..."));
+
+#ifndef __WXMAC__
 	menuFile->AppendSeparator();
+#endif
 	
 	menuFile->Append(ID_Quit, wxT("Quit but Leave Engine Running\tCtrl-Shift-Q"), wxT("Exit from GUI and leave engine running"));
 	menuFile->Append(ID_QuitStop, wxT("Quit and Stop Engine\tCtrl-Q"), wxT("Exit from GUI and stop engine"));

@@ -1077,3 +1077,4 @@ LoopControl::post_remove_loop()
 	}
 	return true;
 }
+

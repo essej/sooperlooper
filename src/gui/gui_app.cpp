@@ -29,6 +29,11 @@
 #include <cstdio>
 #include <iostream>
 
+#ifdef __WXMAC__
+#include <wx/filename.h>
+wxString GetExecutablePath(wxString argv0);
+#endif
+
 //#include <wx/wx.h>
 
 // For compilers that support precompilation, includes "wx/wx.h".
@@ -334,6 +339,9 @@ bool GuiApp::OnInit()
 	// Create the main application window
 	_frame = new GuiFrame (wxT("SooperLooper"), wxPoint(100, 100), wxDefaultSize);
 
+#ifdef __WXMAC__
+	_exec_name = GetExecutablePath(argv[0]) + "sooperlooper";
+#endif
 	// override defaults
 	LoopControl & loopctrl = _frame->get_loop_control();
 	if (!_host.empty()) {
@@ -352,7 +360,6 @@ bool GuiApp::OnInit()
 	// connect
 	loopctrl.connect(_engine_argv);
 
-	
 	// Show it and tell the application that it's our main window
 	_frame->SetSize(790,181);
 	_frame->SetSizeHints(790, 181);
@@ -374,3 +381,28 @@ GuiApp::process_key_event (wxKeyEvent &ev)
 
 	_frame->process_key_event (ev);
 }
+
+#ifdef __WXMAC__
+wxString
+GetExecutablePath(wxString argv0)
+{
+    wxString path;
+
+    if (wxIsAbsolutePath(argv0))
+        path = argv0;
+    else {
+        wxPathList pathlist;
+        pathlist.AddEnvList(wxT("PATH"));
+        path = pathlist.FindAbsoluteValidPath(argv0);
+    }
+
+    wxFileName filename(path);
+    filename.Normalize();
+
+    path = filename.GetFullPath();
+    path = path.BeforeLast('/') + "/";
+
+    return path;
+}
+#endif // __WXMAC__
+
