@@ -115,6 +115,8 @@ void KeysDialog::init()
 	_listctrl->InsertColumn(0, wxT("Command"));
 	_listctrl->InsertColumn(1, wxT("Key Binding"));
 
+	_listctrl->SetColumnWidth(0, 120);
+	
 	topsizer->Add (_listctrl, 1, wxEXPAND|wxALL, 4);
 
 	wxBoxSizer * buttsizer = new wxBoxSizer(wxHORIZONTAL);

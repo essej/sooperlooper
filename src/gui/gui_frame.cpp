@@ -222,6 +222,7 @@ GuiFrame::init()
 	menuFile = new wxMenu(wxT(""));
 
 	menuFile->Append(ID_ConnectionMenu, wxT("Looper &Connection...\tCtrl-C"), wxT("Configure Looper Engine Connection"));
+	menuFile->Enable(ID_ConnectionMenu, false);
 	menuFile->Append(ID_KeybindingsMenu, wxT("&Key Bindings...\tCtrl-K"), wxT("Configure Keybindings"));
 	menuFile->Append(ID_MidiBindingsMenu, wxT("&Midi Bindings...\tCtrl-M"), wxT("Configure Midi bindings"));
 	

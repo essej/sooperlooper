@@ -249,8 +249,8 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 			else {
 				scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
 			}
-			cerr << "found binding: key: " << key << " val is " << (int) val << "  scaled: " << scaled_val << "  type: " << info.type << endl;
-			cerr << "ctrl: " << info.control << "  cmd: " << info.command << endl;
+			//cerr << "found binding: key: " << key << " val is " << (int) val << "  scaled: " << scaled_val << "  type: " << info.type << endl;
+			//cerr << "ctrl: " << info.control << "  cmd: " << info.command << endl;
 			
 			send_osc (info, scaled_val);
 		}
@@ -265,7 +265,7 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 		lo_send(_addr, "/sl/midi_tick", "");
 	}
 	else {
-		fprintf(stderr, "binding %x not found\n", key);
+		//fprintf(stderr, "binding %x not found\n", key);
 	}
 }
 

@@ -136,7 +136,7 @@ MidiBindings::add_binding (const MidiBindInfo & info, bool exclusive)
 
 	// check for others, and clear them if exclusive
 	if (exclusive && _bindings[key].size() > 0) {
-		cerr << "cleared existing" << endl;
+		//cerr << "cleared existing" << endl;
 		_bindings[key].clear();
 	}
 	
@@ -166,7 +166,7 @@ MidiBindings::remove_binding (const MidiBindInfo & info)
 	for (BindingList::iterator iter = blist.begin(); iter != blist.end(); ++iter) {
 		MidiBindInfo & binfo = (*iter);
 		if (binfo == info) {
-			cerr << "found match to remove" << endl;
+			// cerr << "found match to remove" << endl;
 			blist.erase(iter);
 			break;
 		}

@@ -106,6 +106,7 @@ LooperPanel::init()
 	// add selbar
 	_bgcolor.Set(0,0,0);
 	_selbgcolor.Set(244, 255, 158);
+	_learnbgcolor.Set(134, 80, 158);
 
 	_selbar = new wxPanel(this, -1, wxDefaultPosition, wxSize(4,-1));
 	_selbar->SetThemeEnabled(false);
@@ -322,6 +323,7 @@ LooperPanel::init()
 	slider->set_decimal_digits (3);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::slider_bind_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
 	
 	colsizer->Add (rowsizer, 0, wxEXPAND);
@@ -340,6 +342,7 @@ LooperPanel::init()
 	slider->set_decimal_digits (3);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::slider_bind_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
 	
 	colsizer->Add (rowsizer, 0, wxEXPAND);
@@ -447,7 +450,7 @@ LooperPanel::bind_events()
 	_load_button->clicked.connect (bind (slot (*this, &LooperPanel::clicked_events), wxString("load")));
 
 
-	//_loop_control.MidiBindingChanged.connect (slot (*this, &LooperPanel::got_binding_changed));
+	_loop_control->MidiBindingChanged.connect (slot (*this, &LooperPanel::got_binding_changed));
 	
 }
 
@@ -662,12 +665,15 @@ LooperPanel::button_bind_events (wxString cmd)
 {
 	MidiBindInfo info;
 
+	info.channel = 0;
+	info.type = "n";
 	info.control = cmd.c_str();
 	info.command = "down"; // should this be something else?
 	info.instance = _index;
 	info.lbound = 0.0;
 	info.ubound = 1.0;
-	_loop_control->learn_midi_binding(info, true);
+
+	start_learning (info);
 }
 
 
@@ -808,6 +814,8 @@ LooperPanel::slider_bind_events(int id)
 	MidiBindInfo info;
 	bool donothing = false;
 
+	info.channel = 0;
+	info.type = "cc";
 	info.command = "set";
 	info.instance = _index;
 	info.lbound = 0.0;
@@ -855,7 +863,32 @@ LooperPanel::slider_bind_events(int id)
 	}
 
 	if (!donothing) {
-		_loop_control->learn_midi_binding(info, true);
+		start_learning(info);
+	}
+}
+
+void LooperPanel::start_learning(MidiBindInfo & info)
+{
+	if (!_learning) {
+		_learning = true;
+
+		_selbar->SetBackgroundColour (_learnbgcolor);
+		_selbar->Refresh();
+		
+	}
+
+	_loop_control->learn_midi_binding(info, true);
+}
+
+
+void
+LooperPanel::got_binding_changed(SooperLooper::MidiBindInfo & info)
+{
+	if (_learning) {
+
+		_selbar->SetBackgroundColour (_bgcolor);
+		_selbar->Refresh();
+		_learning = false;
 	}
 }
 
@@ -880,3 +913,4 @@ LooperPanel::post_control_event (wxString ctrl, float val)
 {
 	_loop_control->post_ctrl_change (_index, ctrl, val);
 }
+

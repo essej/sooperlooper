@@ -58,7 +58,7 @@ class LooperPanel
 	void update_controls();
 
 	void set_selected (bool flag);
-	
+
   protected:
 
 	void init();
@@ -86,11 +86,12 @@ class LooperPanel
 	void on_quantize_change (int index, wxString strval);
 
 	void got_binding_changed(SooperLooper::MidiBindInfo & info);
+	void start_learning(SooperLooper::MidiBindInfo & info);
 	
 	wxPanel   * _selbar;
 	wxColour   _bgcolor;
 	wxColour   _selbgcolor;
-	
+	wxColour   _learnbgcolor;
 	
 	PixButton * _undo_button;
 	PixButton * _redo_button;
@@ -134,7 +135,8 @@ class LooperPanel
 
 	LooperState _last_state;
 	float _tap_val;
-	
+
+	bool _learning;
   private:
     // any class wishing to process wxWindows events must use this macro
     DECLARE_EVENT_TABLE()

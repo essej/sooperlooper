@@ -426,7 +426,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		_dragging = true;
 		_last_x = ev.GetX();
 
-		if (ev.MiddleDown()) {
+		if (ev.MiddleDown() && !ev.ControlDown()) {
 			// set immediately
 			float newval = (ev.GetX() * _val_scale) + _lower_bound;
 
