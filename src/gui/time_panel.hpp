@@ -59,7 +59,8 @@ class TimePanel
 	void normalize_font_size(wxFont & fnt, int width, int height, wxString fitstr);
 
 	void update_size();
-
+	void calc_text_extents();
+	
 	LoopControl * _loop_control;
 
 	int _index;
@@ -100,6 +101,8 @@ class TimePanel
 	wxMemoryDC _waitdc;
 	wxBitmap * _other_bm;
 	wxMemoryDC _otherdc;
+
+	wxCoord _sw, _sh, _tw, _th, _pw, _ph, _mh, _mw, _ww, _wh;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

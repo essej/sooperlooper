@@ -195,10 +195,10 @@ GuiFrame::init()
 	
 	rowsizer->Add (_sync_choice, 0, wxALL, 2);
 	
-	_tempo_bar = new SliderBar(toppanel, ID_TempoSlider, 0.0f, 300.0f, 110.0f, true, wxDefaultPosition, wxSize(150, 22));
+	_tempo_bar = new SpinBox(toppanel, ID_TempoSlider, 0.0f, 10000.0f, 110.0f, true, wxDefaultPosition, wxSize(120, 22));
 	_tempo_bar->set_units(wxT("bpm"));
 	_tempo_bar->set_label(wxT("tempo"));
-	_tempo_bar->set_snap_mode (SliderBar::IntegerSnap);
+	_tempo_bar->set_snap_mode (SpinBox::IntegerSnap);
 	_tempo_bar->set_allow_outside_bounds(true);
 	_tempo_bar->SetFont (sliderFont);
 	_tempo_bar->value_changed.connect (slot (*this,  &GuiFrame::on_tempo_change));
@@ -217,16 +217,7 @@ GuiFrame::init()
  	rowsizer->Add (_taptempo_button, 0, wxALL, 2);
 	
 
-// 	_eighth_cycle_bar = new SliderBar(toppanel, ID_EighthSlider, 1.0f, 128.0f, 16.0f, true, wxDefaultPosition, wxSize(110, 22));
-// 	_eighth_cycle_bar->set_units(wxT(""));
-// 	_eighth_cycle_bar->set_label(wxT("8th/cycle"));
-// 	_eighth_cycle_bar->set_snap_mode (SliderBar::IntegerSnap);
-// 	_eighth_cycle_bar->SetFont (sliderFont);
-// 	_eighth_cycle_bar->value_changed.connect (slot (*this,  &GuiFrame::on_eighth_change));
-// 	_eighth_cycle_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("eighth")));
-// 	rowsizer->Add (_eighth_cycle_bar, 0, wxALL, 2);
-
-	_eighth_cycle_bar = new SpinBox(toppanel, ID_EighthSlider, 1.0f, 1024.0f, 16.0f, true, wxDefaultPosition, wxSize(100, 22));
+	_eighth_cycle_bar = new SpinBox(toppanel, ID_EighthSlider, 1.0f, 1024.0f, 16.0f, true, wxDefaultPosition, wxSize(110, 22));
 	_eighth_cycle_bar->set_units(wxT(""));
 	_eighth_cycle_bar->set_label(wxT("8th/cycle"));
 	_eighth_cycle_bar->set_snap_mode (SpinBox::IntegerSnap);
@@ -679,6 +670,7 @@ GuiFrame::on_bind_request (wxString val)
 	info.lbound = 0.0;
 	info.ubound = 1.0;
 	info.style = MidiBindInfo::NormalStyle;
+
 	
 	if (val == wxT("tempo")) {
 		info.lbound = 20.0f;

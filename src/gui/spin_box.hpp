@@ -96,6 +96,8 @@ class SpinBox
 	void set_decimal_digits (int num);
 	int get_decimal_digits () { return _decimal_digits; }
 	
+	float get_increment () { return _increment; }
+	void set_increment (float val) { _increment = val; }
 	
 	SigC::Signal0<void> pressed;
 	SigC::Signal0<void> released;
@@ -111,6 +113,7 @@ class SpinBox
 
 	void draw_area (wxDC & dc);
 	void update_size();
+	void update_bar_shape();
 	
 	void show_text_ctrl ();
 	void hide_text_ctrl ();
@@ -145,7 +148,9 @@ class SpinBox
 	float _value;
 	float _default_val;
 	float _lower_bound, _upper_bound;
-
+	float _increment;
+	float _direction;
+	
 	wxString _value_str;
 	wxString _label_str;
 	wxString _units_str;
@@ -166,9 +171,8 @@ class SpinBox
 	HidingTextCtrl * _text_ctrl;
 	
 	bool _dragging;
-	int _last_y;
-	int _first_y;
 	bool _ignoretext;
+	long _press_time;
 	
 	float _val_scale;
 	ScaleMode  _scale_mode;
@@ -180,6 +184,9 @@ class SpinBox
 	wxTimer *_update_timer;
 	float   _curr_adjust;
 	long    _curr_timeout;
+
+	wxPoint _border_shape[8];
+	wxPoint _bar_shape[8];
 	
   private:
     // any class wishing to process wxWindows events must use this macro

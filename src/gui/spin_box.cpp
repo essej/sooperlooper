@@ -92,6 +92,8 @@ SpinBox::SpinBox(wxWindow * parent, wxWindowID id,  float lb, float ub, float va
 	_ignoretext = false;
 	_oob_flag = false;
 	_showval_flag = true;
+	_increment = 1.0f;
+	_direction = 0.0f;
 	
 	_bgcolor.Set(30,30,30);
 	_bgbrush.SetColour (_bgcolor);
@@ -101,10 +103,10 @@ SpinBox::SpinBox(wxWindow * parent, wxWindowID id,  float lb, float ub, float va
 	_valuecolor.Set(244, 255, 178);
 
 	_textcolor = *wxWHITE;
-	_barcolor.Set(14, 50, 89);
-	_overbarcolor.Set(20, 40, 50);
+	_barcolor.Set(14, 50, 100);
+	_overbarcolor.Set(20, 50, 80);
 
-	_barbrush.SetColour(_barcolor);
+	_barbrush.SetColour(_bgcolor);
 	
 	//_bgbordercolor.Set(30,30,30);
 	_bordercolor.Set(67, 83, 103);
@@ -327,6 +329,36 @@ SpinBox::update_size()
 		
 		_memdc.SelectObject(*_backing_store);
 		_memdc.SetFont(GetFont());
+
+		_border_shape[0].x = 0;  _border_shape[0].y = _height-3;
+		_border_shape[1].x = 0;  _border_shape[1].y = 2;
+		_border_shape[2].x = 2;  _border_shape[2].y = 0;
+		_border_shape[3].x = _width - 3;  _border_shape[3].y = 0;
+		_border_shape[4].x = _width -1;  _border_shape[4].y = 2;
+		_border_shape[5].x = _width -1;  _border_shape[5].y = _height - 3;
+		_border_shape[6].x = _width -3;  _border_shape[6].y = _height - 1;
+		_border_shape[7].x = 2;  _border_shape[7].y = _height - 1;
+
+		update_bar_shape();
+	}
+}
+
+void
+SpinBox::update_bar_shape()
+{
+	if (_direction < 0) {
+		_bar_shape[0].x = 1;   _bar_shape[0].y = 1;
+		_bar_shape[1].x = _width/2 - 1;   _bar_shape[1].y = 1;
+		_bar_shape[2].x = _width/2 - _height/2;   _bar_shape[2].y = _height/2;
+		_bar_shape[3].x = _width/2 - 1;   _bar_shape[3].y = _height - 1;
+		_bar_shape[4].x = 1;   _bar_shape[4].y = _height - 1;
+	}
+	else {
+		_bar_shape[0].x = _width - 1;   _bar_shape[0].y = 1;
+		_bar_shape[1].x = _width/2 ;   _bar_shape[1].y = 1;
+		_bar_shape[2].x = _width/2 + _height/2 - 1;   _bar_shape[2].y = _height/2;
+		_bar_shape[3].x = _width/2;   _bar_shape[3].y = _height - 1;
+		_bar_shape[4].x = _width - 1;   _bar_shape[4].y = _height - 1;
 	}
 }
 
@@ -355,8 +387,14 @@ SpinBox::on_update_timer (wxTimerEvent &ev)
 {
 	// update value with current adjust
 	float newval = _value;
+	long deltatime = ::wxGetLocalTime() - _press_time;
 	
-	newval += _curr_adjust;
+	if (deltatime > 2) {
+		newval += _curr_adjust * deltatime * deltatime * deltatime;
+	}
+	else {
+		newval += _curr_adjust;
+	}
 
 	if (_snap_mode == IntegerSnap) {
 		newval = nearbyintf (newval);
@@ -383,11 +421,13 @@ SpinBox::OnMouseEvents (wxMouseEvent &ev)
 	}
 
 	if (ev.Entering() && !_dragging) {
-		_borderbrush.SetColour(_overbarcolor);
+		//_borderbrush.SetColour(_overbarcolor);
+		_barbrush.SetColour(_overbarcolor);
 		Refresh(false);
 	}
 	else if (ev.Leaving() && !_dragging) {
-		_borderbrush.SetColour(_bgcolor);
+		_barbrush.SetColour(_bgcolor);
+		//_borderbrush.SetColour(_bgcolor);
 		Refresh(false);
 	}
 	
@@ -395,98 +435,30 @@ SpinBox::OnMouseEvents (wxMouseEvent &ev)
 	
 	if (ev.Dragging() && _dragging)
 	{
-		//int delta = ev.GetY() - _last_y;
-		int total_delta = ev.GetY() - _first_y;
-		int abs_delta = abs(total_delta);
-		int newtimeout = -1;
-		
-		// adjust this amount every timeout
-		_curr_adjust = total_delta > 0 ? -1.0f : 1.0f;
-
-		if (ev.ControlDown()) {
-			_curr_adjust *= 0.5f;
-			if (ev.ShiftDown()) {
-				_curr_adjust *= 0.5f;
-			}
-		}
-
-		
-		    
-		if (abs_delta < 2) {
-			newtimeout = 0;
-		}
-		else if (abs_delta < 8) {
-			//newtimeout = 400;
-			newtimeout = (long) (1000.0f / (3.0f * logf((float)abs_delta)));
-		}
-		else {
-			newtimeout = (long) (1000.0f / (4.2f * logf((float)abs_delta)));
-
-			if (abs_delta > 160) {
-				_curr_adjust *= 64 * logf(abs_delta);
-			}
-			else if (abs_delta > 120) {
-				_curr_adjust *= 32 * logf(abs_delta);
-			}
-			else if (abs_delta > 80) {
-				_curr_adjust *= 8 * logf(abs_delta);
-			}
-			else if (abs_delta > 40) {
-				_curr_adjust *= 4 * logf(abs_delta);
-			}
-			else if (abs_delta > 20) {
-				_curr_adjust *= 2 * logf(abs_delta);
-			}
-
-		}
-
-		
-// 		else if (abs_delta < 10) {
-// 			newtimeout = 300;
-// 		}
-// 		else if (abs_delta < 20) {
-// 			newtimeout = 200;
-// 		}
-// 		else if (abs_delta < 30) {
-// 			newtimeout = 50;
-// 		}
-// 		else {
-// 			_curr_adjust *= 2;
-// 			newtimeout = 50;
-// 		}
-
-
-		cerr << "new timeout " << newtimeout << "  adj: " << _curr_adjust << endl;
-		if (newtimeout == 0) {
-			_curr_timeout = -1;
-			_update_timer->Stop();
-		}
-		else {
-			if (_curr_timeout == -1) {
-				// reset timer
-				cerr << "reset timer" << endl;
-				_update_timer->Start (newtimeout, true);
-			}
-			
-			_curr_timeout = newtimeout;
-		}
-
-		
-		_last_y = ev.GetY();
+		ev.Skip();
 	}
 	else if (ev.Moving()) {
 		// do nothing
+		float dirct = ev.GetX() < _width/2 ? -1.0f : 1.0f; 
+
+		if (dirct != _direction) {
+			_direction = dirct;
+			update_bar_shape();
+			Refresh(false);
+		}
+		
 	}
 	else if (ev.GetEventType() == wxEVT_MOUSEWHEEL)
 	{
-		float fscale = 0.02f * (ev.ControlDown() ? 0.5f: 1.0f);
+		float fscale = (ev.ShiftDown() ? 10.0f : 1.0f) * (ev.ControlDown() ? 2.0f: 1.0f);
 		float newval;
 		
 		if (ev.GetWheelRotation() > 0) {
-			newval = _value + (_upper_bound - _lower_bound) * fscale;			
+			//newval = _value + (_upper_bound - _lower_bound) * fscale;
+			newval = _value + _increment * fscale;
 		}
 		else {
-			newval = _value - (_upper_bound - _lower_bound) * fscale;			
+			newval = _value - _increment * fscale;			
 		}
 
 
@@ -510,18 +482,15 @@ SpinBox::OnMouseEvents (wxMouseEvent &ev)
 	else if (ev.RightUp()) {
 		//this->PopupMenu ( _popup_menu, ev.GetX(), ev.GetY());
 	}
-	else if (ev.ButtonDown())
+	else if (ev.ButtonDown() || ev.LeftDClick())
 	{
-		SetCursor (wxCURSOR_SIZENS);
 		CaptureMouse();
 		_dragging = true;
-		_first_y = ev.GetY();
-		_last_y = ev.GetY();
 		_curr_timeout = -1;
-		_borderbrush.SetColour(_barcolor);
-		
+		_barbrush.SetColour(_barcolor);
+
 		pressed(); // emit
-		
+
 		if (ev.MiddleDown() && !ev.ControlDown()) {
 			// start editing
 			show_text_ctrl ();
@@ -532,7 +501,30 @@ SpinBox::OnMouseEvents (wxMouseEvent &ev)
 
 			value_changed(get_value());
 			update_value_str();
-			Refresh(false);
+		}
+		else {
+			float newval = _value;
+			
+			_direction = ev.GetX() < _width/2 ? -1.0f : 1.0f;
+			_curr_adjust = _increment * _direction;
+			
+			newval += _curr_adjust;
+			
+			if (_snap_mode == IntegerSnap) {
+				newval = nearbyintf (newval);
+			}
+			
+			newval = max (min (newval, _upper_bound), _lower_bound);
+			
+			_value = newval;
+			value_changed (get_value()); // emit
+			update_value_str();
+
+			_press_time = ::wxGetLocalTime(); // seconds
+			_curr_timeout = 20; // for now
+			_update_timer->Start(400, true); // oneshot
+
+			update_bar_shape();
 		}
 		
 		Refresh(false);
@@ -543,15 +535,16 @@ SpinBox::OnMouseEvents (wxMouseEvent &ev)
 		_update_timer->Stop();
 		_curr_timeout = -1;
 		ReleaseMouse();
-		SetCursor (*wxSTANDARD_CURSOR);
 
 		if (ev.GetX() >= _width || ev.GetX() < 0
 		    || ev.GetY() < 0 || ev.GetY() > _height) {
-			_borderbrush.SetColour(_bgcolor);
+			//_borderbrush.SetColour(_bgcolor);
+			_barbrush.SetColour(_bgcolor);
 			Refresh(false);
 		}
 		else {
-			_borderbrush.SetColour(_overbarcolor);
+			//_borderbrush.SetColour(_overbarcolor);
+			_barbrush.SetColour(_overbarcolor);
 			Refresh(false);
 		}
 
@@ -563,10 +556,6 @@ SpinBox::OnMouseEvents (wxMouseEvent &ev)
 
 		released(); // emit		
 	}
-	else if (ev.ButtonDClick()) {
-
-		show_text_ctrl ();
-	}
 	else {
 		ev.Skip();
 	}
@@ -577,6 +566,7 @@ void SpinBox::OnFocusEvent (wxFocusEvent &ev)
 	if (ev.GetEventType() == wxEVT_KILL_FOCUS) {
 		// focus kill
 		_borderbrush.SetColour(_bgcolor);
+		_barbrush.SetColour(_bgcolor);
 		Refresh(false);
 	}
 
@@ -605,8 +595,7 @@ void SpinBox::on_menu_events (wxCommandEvent &ev)
 void SpinBox::draw_area(wxDC & dc)
 {
 	wxCoord w,h;
-	wxPoint shape[8];
-
+	
 	dc.SetBackground(_bgbrush);
 	dc.Clear();
 
@@ -614,21 +603,13 @@ void SpinBox::draw_area(wxDC & dc)
 	dc.SetPen(_borderpen);
 	//dc.DrawRectangle (0, 0, _width, _height);
 
-	shape[0].x = 0;  shape[0].y = _height-3;
-	shape[1].x = 0;  shape[1].y = 2;
-	shape[2].x = 2;  shape[2].y = 0;
-	shape[3].x = _width - 3;  shape[3].y = 0;
-	shape[4].x = _width -1;  shape[4].y = 2;
-	shape[5].x = _width -1;  shape[5].y = _height - 3;
-	shape[6].x = _width -3;  shape[6].y = _height - 1;
-	shape[7].x = 2;  shape[7].y = _height - 1;
-
-	dc.DrawPolygon (8, shape);
+	dc.DrawPolygon (8, _border_shape);
 	
 	
 	dc.SetPen(*wxTRANSPARENT_PEN);
-	//dc.SetBrush(_barbrush);
+	dc.SetBrush(_barbrush);
 
+	dc.DrawPolygon (5, _bar_shape);
 	
 	dc.SetTextForeground(_textcolor);
 	dc.GetTextExtent(_label_str, &w, &h);

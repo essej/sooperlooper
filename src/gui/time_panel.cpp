@@ -76,7 +76,7 @@ TimePanel::init()
 	_state_font.SetWeight(wxBOLD);
 	_state_font.SetStyle(wxNORMAL);
 	_state_color.Set(154, 255, 168);
-	_state_str = "------";
+	_state_str = "plpppplpp";
 	_state_font.SetPointSize(10);
 	normalize_font_size(_state_font, 110, 30, wxT("ooooooooooo"));
 
@@ -96,7 +96,8 @@ TimePanel::init()
 	_cyc_str = "00:00.00";
 	_rem_str = "00:00.00";
 
-
+	_sw = _sh = _tw = _th = _pw = _ph = _mh = _mw = _ww = _wh = 0;
+	
 	_other_bm = new wxBitmap(90,60); 
 	_otherdc.SelectObject(*_other_bm);
 	_otherdc.SetFont(_time_font);
@@ -109,6 +110,8 @@ TimePanel::init()
 	_waitdc.SetBackground (_bgbrush);
 	_waitdc.SetTextForeground(_legend_color);
 
+	calc_text_extents();
+	
 	_waiting = false;
 }
 
@@ -189,6 +192,7 @@ TimePanel::update_time()
 	if (_loop_control->is_updated(_index, "state")) {
 		SooperLooper::LooperState tmpstate;
 		_loop_control->get_state(_index, tmpstate, _state_str);
+		calc_text_extents();
 		ret = true;
 	}
 	
@@ -234,9 +238,20 @@ TimePanel::OnPaint(wxPaintEvent &ev)
 }
 
 void
+TimePanel::calc_text_extents()
+{
+	_posdc.GetTextExtent(_pos_str, &_pw, &_ph);
+ 	_statedc.GetTextExtent(_state_str, &_sw, &_sh);
+ 	_otherdc.GetTextExtent(_tot_str, &_tw, &_th);
+	_tw += 3;
+ 	_otherdc.GetTextExtent(wxT("mem"), &_mw, &_mh);
+	_waitdc.GetTextExtent(wxT("waiting for sync"), &_ww, &_wh);
+}
+
+void
 TimePanel::draw_area(wxDC & dc)
 {
-	wxCoord sw=0, sh=0, tw=0, th=0, w=0, h=0;
+	//wxCoord sw=0, sh=0, tw=0, th=0, w=0, h=0;
 	// wxCoord cw=0, ch=0, rw=0, rh=0;
 
 	dc.SetBackground(_bgbrush);
@@ -248,7 +263,6 @@ TimePanel::draw_area(wxDC & dc)
 // 	dc.SetTextForeground(_pos_color);
 // 	dc.DrawText (_pos_str, 5, 3);
 	_posdc.Clear();
-	_posdc.GetTextExtent(_pos_str, &w, &h);
  	_posdc.DrawText (_pos_str, 0, 0);
 
 	dc.Blit (5,3, _pos_bm->GetWidth(), _pos_bm->GetHeight(), &_posdc, 0, 0);
@@ -259,9 +273,8 @@ TimePanel::draw_area(wxDC & dc)
 // 	dc.GetTextExtent(_state_str, &sw, &sh);
 // 	dc.DrawText (_state_str, 5, _height - sh - 5);
 	_statedc.Clear();
- 	_statedc.GetTextExtent(_state_str, &sw, &sh);
  	_statedc.DrawText (_state_str, 0, 0);
-	dc.Blit (5, _height - sh - 5, _state_bm->GetWidth(), _state_bm->GetHeight(), &_statedc, 0, 0);
+	dc.Blit (5, _height - _sh - 5, _state_bm->GetWidth(), _state_bm->GetHeight(), &_statedc, 0, 0);
 
 	
 	// waiting string
@@ -269,9 +282,8 @@ TimePanel::draw_area(wxDC & dc)
 		_waitdc.Clear();
 		//dc.SetFont(_legend_font);
 		//dc.DrawText (wxT("waiting for sync"), 5, _height - sh - 17);
-		_waitdc.GetTextExtent(wxT("waiting for sync"), &tw, &th);
 		_waitdc.DrawText (wxT("waiting for sync"), 0, 0);
-		dc.Blit (5, h , tw, th, &_waitdc, 0, 0);
+		dc.Blit (5, _ph , _ww, _wh, &_waitdc, 0, 0);
 	}
 	
 	// other times
@@ -283,21 +295,18 @@ TimePanel::draw_area(wxDC & dc)
 // 	dc.GetTextExtent(_tot_str, &tw, &th);
 // 	dc.DrawText (_tot_str, _width - tw - 5, 5);
 
- 	_otherdc.GetTextExtent(_tot_str, &tw, &th);
-	tw += 3;
-	
- 	_otherdc.DrawText (_tot_str, _other_bm->GetWidth() - tw, 0);
+ 	_otherdc.DrawText (_tot_str, _other_bm->GetWidth() - _tw, 0);
 	
 	
 // 	dc.GetTextExtent(_cyc_str, &cw, &ch);
 // 	dc.DrawText (_cyc_str, _width - cw - 5, 5 + th);
- 	_otherdc.DrawText (_cyc_str, _other_bm->GetWidth() - tw, 2 + th);
+ 	_otherdc.DrawText (_cyc_str, _other_bm->GetWidth() - _tw, 2 + _th);
 
 // 	// rem time
 // 	dc.GetTextExtent(_rem_str, &rw, &rh);
 // 	dc.DrawText (_rem_str, _width - rw - 5, _height - rh - 5);
  	//_otherdc.DrawText (_rem_str, _other_bm->GetWidth() - tw, 10 + th + th);
-	_otherdc.DrawText (_mem_str, _other_bm->GetWidth() - tw, 10 + th + th);
+	_otherdc.DrawText (_mem_str, _other_bm->GetWidth() - _tw, 10 + _th + _th);
 	
 	// legends
 // 	dc.SetFont(_legend_font);
@@ -306,17 +315,16 @@ TimePanel::draw_area(wxDC & dc)
 
 // 	dc.GetTextExtent(wxT("tot"), &w, &h);
 // 	dc.DrawText (wxT("tot"), _width - tw - w - 10, 5);
- 	_otherdc.GetTextExtent(wxT("mem"), &w, &h);
- 	_otherdc.DrawText (wxT("tot"), _other_bm->GetWidth() - tw - w - 5, 0);
+ 	_otherdc.DrawText (wxT("tot"), _other_bm->GetWidth() - _tw - _mw - 5, 0);
 	
 	
 // 	dc.GetTextExtent(wxT("cyc"), &w, &h);
 // 	dc.DrawText (wxT("cyc"), _width - cw - w - 10, 5 + th);
- 	_otherdc.DrawText (wxT("cyc"), _other_bm->GetWidth() - tw - w - 5, 2 + th);
+ 	_otherdc.DrawText (wxT("cyc"), _other_bm->GetWidth() - _tw - _mw - 5, 2 + _th);
 
 // 	dc.GetTextExtent(wxT("rem"), &w, &h);
 // 	dc.DrawText (wxT("rem"), _width - rw - w - 10, _height - rh - 5);
- 	_otherdc.DrawText (wxT("mem"), _other_bm->GetWidth() - tw - w - 5, 10 + th + th);
+ 	_otherdc.DrawText (wxT("mem"), _other_bm->GetWidth() - _tw - _mw - 5, 10 + _th + _th);
 
 	dc.Blit (120, 5, _other_bm->GetWidth(), _other_bm->GetHeight(), &_otherdc, 0, 0);
 	
