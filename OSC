@@ -101,6 +101,8 @@ GET PARAMETER VALUES
 		12 = OneShot
 		13 = Substitute
 
+  next_state  :: same as state
+
   loop_len  :: in seconds
   loop_pos  :: in seconds
   cycle_len :: in seconds
@@ -154,12 +156,63 @@ SHUTDOWN
 
 REGISTER FOR CONTROL CHANGES
 
-  ... to be included
+
+ The following messages register and unregister from update events
+ which will be sent the returl and retpath specified.  The update OSC message
+ has the following parameters:
+     i:loop#  s:ctrl  f:control_value
+
+ /sl/#/register_update  s:ctrl s:returl s:retpath
+ /sl/#/unregister_update  s:ctrl s:returl s:retpath
+
+     registers/unregisters to receive updates for a given input control when
+     any other client changes it.
+
+ /sl/#/register_auto_update  s:ctrl i:ms_interval s:returl s:retpath
+ /sl/#/unregister_auto_update  s:ctrl s:returl s:retpath
+
+    registers/unregisters for automatic repeated updates at the given
+    interval (currently ignored, and always at 100ms intervals).
+    This is handy for receiving updates for output controls such as state
+    and position.  The message is only sent if the control has changed since the
+    last send.
+
+ 
+ /register_update  s:ctrl s:returl s:retpath
+ /unregister_update  s:ctrl s:returl s:retpath
+ /register_auto_update  s:ctrl i:ms_interval s:returl s:retpath
+ /unregister_auto_update  s:ctrl s:returl s:retpath
+
+    These are the global control equivalents to the above.
+
 
 
 MIDI BINDING CONTROL
 
-  ... to be included
+ /get_all_midi_bindings  s:returl  s:retpath
+    
+
+ /remove_midi_binding  s:binding_serialization s:options
+
+	 
+ /add_midi_binding  s:binding_serialization s:options
+
+ /clear_midi_bindings
+		
+ /load_midi_bindings  s:binding_filename s:options
+
+ /save_midi_bindings  s:binding_filename s:options
+
+ /learn_midi_binding  s:binding_serialization s:options  s:returl s:retpath
+
+ /get_next_midi_event    s:returl  s:retpath
+    return next midi event in a binding serialization
+
+ /cancel_midi_learn    s:returl  s:retpath
+    cancel learn or get next midi event in a binding serialization
+
+ /cancel_get_next_midi  s:returl  s:retpath
+
 
 
 

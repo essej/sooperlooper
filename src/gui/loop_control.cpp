@@ -757,6 +757,7 @@ LoopControl::request_values(int index)
 	lo_send(_osc_addr, buf, "sss", "free_time", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "total_time", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "waiting", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "next_state", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "rate_output", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "channel_count", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "in_peak_meter", _our_url.c_str(), "/ctrl");
@@ -892,6 +893,7 @@ LoopControl::register_auto_updates(int index, bool unreg)
 	if (unreg) {
 		snprintf(buf, sizeof(buf), "/sl/%d/unregister_auto_update", index);
 		lo_send(_osc_addr, buf, "sss", "state", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "sss", "next_state", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "sss", "loop_pos", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "sss", "loop_len", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "sss", "cycle_len", _our_url.c_str(), "/ctrl");
@@ -906,6 +908,7 @@ LoopControl::register_auto_updates(int index, bool unreg)
 		snprintf(buf, sizeof(buf), "/sl/%d/register_auto_update", index);
 		// send request for auto updates
 		lo_send(_osc_addr, buf, "siss", "state",     100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "siss", "next_state",     100, _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "siss", "loop_pos",  100, _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "siss", "loop_len",  100, _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "siss", "cycle_len", 100, _our_url.c_str(), "/ctrl");
@@ -1219,6 +1222,27 @@ LoopControl::get_state (int index, LooperState & state, wxString & statestr)
 			statestr = state_map[state];
 			// set updated to false
 			_updated[index]["state"] = false;
+			ret = true;
+		}
+	}
+
+	return ret;
+}
+
+bool
+LoopControl::get_next_state (int index, LooperState & state, wxString & statestr)
+{
+	bool ret = false;
+
+	if (index >= 0 && index < (int) _params_val_map.size())
+	{
+		ControlValMap::iterator iter = _params_val_map[index].find ("next_state");
+
+		if (iter != _params_val_map[index].end()) {
+			state = (LooperState) (*iter).second;
+			statestr = state_map[state];
+			// set updated to false
+			_updated[index]["next_state"] = false;
 			ret = true;
 		}
 	}

@@ -94,6 +94,8 @@ class LooperPanel
 	
 	void on_quantize_change (int index, wxString strval);
 
+	void on_flash_timer (wxTimerEvent &ev);
+	
 	void got_binding_changed(SooperLooper::MidiBindInfo & info);
 	void start_learning(SooperLooper::MidiBindInfo & info);
 	void got_learn_canceled();
@@ -160,6 +162,11 @@ class LooperPanel
 	bool _learning;
 	bool _scratch_pressed;
 	bool _has_discrete_io;
+	bool _waiting;
+
+	PixButton * _flashing_button;
+	wxTimer * _flash_timer;
+	
 private:
     // any class wishing to process wxWindows events must use this macro
     DECLARE_EVENT_TABLE()

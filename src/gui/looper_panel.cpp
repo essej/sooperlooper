@@ -81,12 +81,20 @@ enum {
 	ID_UseFeedbackPlayCheck,
 	ID_PlaySyncCheck,
 	ID_UseMainInCheck,
-	ID_Panner
+	ID_Panner,
+
+	ID_FlashTimer
 
 };
 
+enum {
+	FlashRate = 200
+};
+
+
 BEGIN_EVENT_TABLE(LooperPanel, wxPanel)
 
+	EVT_TIMER(ID_FlashTimer, LooperPanel::on_flash_timer)
 	
 END_EVENT_TABLE()
 
@@ -99,6 +107,10 @@ LooperPanel::LooperPanel(LoopControl * control, wxWindow * parent, wxWindowID id
 	_chan_count = 0;
 	_panners = 0;
 	_has_discrete_io = false;
+	_waiting = 0;
+	_flashing_button = 0;
+
+	_flash_timer = new wxTimer(this, ID_FlashTimer);
 	
 	init();
 }
@@ -570,7 +582,7 @@ void LooperPanel::create_buttons()
  	_delay_button = new PixButton(this, ID_TapButton);
  	_insert_button = new PixButton(this, ID_InsertButton);
  	_reverse_button = new PixButton(this, ID_ReverseButton);
-	_reverse_button->SetToolTip(wxT("reverses direction"));
+	//_reverse_button->SetToolTip(wxT("reverses direction"));
  	_substitute_button = new PixButton(this, ID_SubstituteButton);
  	_load_button = new PixButton(this, ID_LoadButton, false);
  	_save_button = new PixButton(this, ID_SaveButton, false);
@@ -866,12 +878,13 @@ LooperPanel::update_controls()
 	
 	bool state_updated = _loop_control->is_updated(_index, wxT("state"));
 	bool pos_updated = _loop_control->is_updated(_index, wxT("loop_pos"));
-	
+	bool waiting_updated = _loop_control->is_updated(_index, wxT("waiting"));
+
 	if (_time_panel->update_time()) {
 		_time_panel->Refresh(false);
 	}
 
-	if (state_updated) {
+	if (state_updated || waiting_updated) {
 		update_state();
 	}
 
@@ -887,10 +900,15 @@ LooperPanel::update_controls()
 void
 LooperPanel::update_state()
 {
-	wxString statestr;
-	LooperState state;
+	wxString statestr, nstatestr;
+	LooperState state, nextstate;
+	float val;
 	
 	_loop_control->get_state(_index, state, statestr);
+	_loop_control->get_next_state(_index, nextstate, nstatestr);
+	_loop_control->get_value(_index, wxT("waiting"), val);
+	_waiting = (val > 0.0f) ? true : false;
+	
 
 	//_rate_button->Enable(false);
 	
@@ -933,24 +951,34 @@ LooperPanel::update_state()
 	case LooperStateRecording:
 	case LooperStateWaitStop:
 		_record_button->set_active(true);
+		_flashing_button = _record_button;
+		break;
+	case LooperStateWaitStart:
+		_flashing_button = _record_button;
 		break;
 	case LooperStateOverdubbing:
 		_overdub_button->set_active(true);
+		_flashing_button = _overdub_button;
 		break;
 	case LooperStateMultiplying:
 		_multiply_button->set_active(true);
+		_flashing_button = _multiply_button;
 		break;
 	case LooperStateReplacing:
 		_replace_button->set_active(true);
+		_flashing_button = _replace_button;
 		break;
 	case LooperStateSubstitute:
 		_substitute_button->set_active(true);
+		_flashing_button = _substitute_button;
 		break;
 	case LooperStateDelay:
 		_delay_button->set_active(true);
+		_flashing_button = _delay_button;
 		break;
 	case LooperStateInserting:
 		_insert_button->set_active(true);
+	        _flashing_button = _insert_button;
 		break;
 	case LooperStateScratching:
 		_scratch_button->set_active(true);
@@ -958,9 +986,76 @@ LooperPanel::update_state()
 		break;
 	case LooperStateMuted:
 		_mute_button->set_active(true);
+		_flashing_button = _mute_button;
 		break;
 	default:
 		break;
+	}
+
+	if (_waiting) {
+		if (nextstate != LooperStateUnknown) {
+			// reset flashing button to use
+			switch(nextstate) {
+			case LooperStateRecording:
+			case LooperStateWaitStart:
+			case LooperStateWaitStop:
+				_flashing_button = _record_button;
+				break;
+			case LooperStateOverdubbing:
+				_flashing_button = _overdub_button;
+				break;
+			case LooperStateMultiplying:
+				_flashing_button = _multiply_button;
+				break;
+			case LooperStateReplacing:
+				_flashing_button = _replace_button;
+				break;
+			case LooperStateSubstitute:
+				_flashing_button = _substitute_button;
+				break;
+			case LooperStateDelay:
+				_flashing_button = _delay_button;
+				break;
+			case LooperStateInserting:
+				_flashing_button = _insert_button;
+				break;
+			case LooperStateMuted:
+				_flashing_button = _mute_button;
+				break;
+			case LooperStatePlaying:
+				if (state == LooperStatePlaying || state == LooperStateMuted) {
+					_flashing_button = _reverse_button;
+				}
+				break;
+			default:
+				break;
+			}
+			      
+		}
+		else if (state == LooperStatePlaying || state == LooperStateMuted) {
+			// special case, we are pending reverse
+			_flashing_button = _reverse_button;
+		}
+		
+		// make sure flash time is going
+		if (!_flash_timer->IsRunning()) {
+			_flash_timer->Start ((int)FlashRate);
+		}
+	}
+	else {
+		_flashing_button = 0;
+
+		if (_flash_timer->IsRunning()) {
+			_flash_timer->Stop();
+
+			_loop_control->get_value(_index, wxT("rate_output"), val);
+			if (val < 0.0) {
+				_reverse_button->set_active(true);
+			}
+			else {
+				_reverse_button->set_active(false);
+			}
+		}
 	}
 	
 	_last_state = state;
@@ -990,6 +1085,17 @@ LooperPanel::update_rate_buttons(float val)
 		_halfx_button->set_active(false);
 	}
 }
+
+void
+LooperPanel::on_flash_timer (wxTimerEvent &ev)
+{
+	// toggle the active state of current flash button
+
+	if (_flashing_button) {
+		_flashing_button->set_active (!_flashing_button->get_active());
+	}
+}
+
 
 void
 LooperPanel::pressed_events (int button, wxString cmd)

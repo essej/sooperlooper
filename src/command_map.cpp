@@ -90,6 +90,7 @@ CommandMap::CommandMap()
 	// outputs
 	_output_controls["waiting"]  = Event::Waiting;
 	_output_controls["state"]  = Event::State;
+	_output_controls["next_state"]  = Event::NextState;
 	_output_controls["loop_len"]  = Event::LoopLength;
 	_output_controls["loop_pos"]  = Event::LoopPosition;
 	_output_controls["cycle_len"]  = Event::CycleLength;

@@ -134,6 +134,7 @@ class LoopControl
 	bool get_global_value (wxString ctrl, float &retval);
 	bool get_value (int index, wxString ctrl, float &retval);
 	bool get_state (int index, SooperLooper::LooperState & state, wxString & statestr);
+	bool get_next_state (int index, SooperLooper::LooperState & state, wxString & statestr);
 
 	void pingtimer_expired();
 

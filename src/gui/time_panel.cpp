@@ -178,17 +178,17 @@ TimePanel::update_cyc()
 {
 	float llen, lpos, clen;
 	
-	_loop_control->get_value(_index, "loop_len", llen);
-	_loop_control->get_value(_index, "loop_pos", lpos);
-	_loop_control->get_value(_index, "cycle_len", clen);
+	_loop_control->get_value(_index, wxT("loop_len"), llen);
+	_loop_control->get_value(_index, wxT("loop_pos"), lpos);
+	_loop_control->get_value(_index, wxT("cycle_len"), clen);
 	
 	if (clen > 0.0f) {
-		_cyc_cnt_str.Printf("%2d", (int) roundf (llen / clen));
-		_cyc_curr_str.Printf("%2d", (int) ceilf (lpos / (clen)));
+		_cyc_cnt_str.Printf(wxT("%2d"), (int) roundf (llen / clen));
+		_cyc_curr_str.Printf(wxT("%2d"), (int) ceilf (lpos / (clen)));
 	}
 	else {
-		_cyc_curr_str.Printf("-");
-		_cyc_cnt_str.Printf("-");
+		_cyc_curr_str.Printf(wxT("-"));
+		_cyc_cnt_str.Printf(wxT("-"));
 	}
 }
 
@@ -199,46 +199,46 @@ TimePanel::update_time()
 	bool ret = false;
 	bool up_cyc = false;
 
-	if (_loop_control->is_updated(_index, "loop_pos")) {
-		_loop_control->get_value(_index, "loop_pos", val);
+	if (_loop_control->is_updated(_index, wxT("loop_pos"))) {
+		_loop_control->get_value(_index, wxT("loop_pos"), val);
 		format_time (_pos_str, val);
 		ret = true;
 		up_cyc = true;
 	}
 
-	if (_loop_control->is_updated(_index, "loop_len")) {
-		_loop_control->get_value(_index, "loop_len", val);
+	if (_loop_control->is_updated(_index, wxT("loop_len"))) {
+		_loop_control->get_value(_index, wxT("loop_len"), val);
 		format_time (_tot_str, val);
 		up_cyc = true;
 		ret = true;
 	}
 
-	if (_loop_control->is_updated(_index, "cycle_len")) {
-		_loop_control->get_value(_index, "cycle_len", val);
+	if (_loop_control->is_updated(_index, wxT("cycle_len"))) {
+		_loop_control->get_value(_index, wxT("cycle_len"), val);
 		format_time (_cyc_str, val);
 		up_cyc = true;
 		ret = true;
 	}
 
-	if (_loop_control->is_updated(_index, "free_time")) {
-		_loop_control->get_value(_index, "free_time", val);
+	if (_loop_control->is_updated(_index, wxT("free_time"))) {
+		_loop_control->get_value(_index, wxT("free_time"), val);
 		format_time (_rem_str, val);
 		ret = true;
 	}
 
-	if (_loop_control->is_updated(_index, "total_time")) {
-		_loop_control->get_value(_index, "total_time", val);
+	if (_loop_control->is_updated(_index, wxT("total_time"))) {
+		_loop_control->get_value(_index, wxT("total_time"), val);
 		format_time (_mem_str, val);
 		ret = true;
 	}
 
-	if (_loop_control->is_updated(_index, "waiting")) {
-		_loop_control->get_value(_index, "waiting", val);
+	if (_loop_control->is_updated(_index, wxT("waiting"))) {
+		_loop_control->get_value(_index, wxT("waiting"), val);
 		_waiting = (val > 0.0f) ? true : false;
 		ret = true;
 	}
 	
-	if (_loop_control->is_updated(_index, "state")) {
+	if (_loop_control->is_updated(_index, wxT("state"))) {
 		SooperLooper::LooperState tmpstate;
 		_loop_control->get_state(_index, tmpstate, _state_str);
 		calc_text_extents();

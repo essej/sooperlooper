@@ -508,6 +508,7 @@ activateSooperLooper(LADSPA_Handle Instance) {
 
   pLS->waitingForSync = 0;
   pLS->donePlaySync = false;
+  pLS->rounding = false;
   
   pLS->fWetCurr = pLS->fWetTarget = *pLS->pfWet;
   pLS->fDryCurr = pLS->fDryTarget = *pLS->pfDry;
@@ -646,6 +647,9 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
 	 break;
       case TrueRate:
 	 pLS->pfRateOutput= DataLocation;
+	 break;
+      case NextState:
+	 pLS->pfNextStateOut = DataLocation;
 	 break;
 
 
@@ -936,6 +940,7 @@ static LoopChunk * endMultiply(SooperLooperI *pLS, LoopChunk *loop, int nextstat
 //	 loop->lMarkEndH = loop->lLoopLength + loop->lStartAdj - 1;
 	 loop->lMarkEndH = loop->lLoopLength - 1;
 	 pLS->nextState = nextstate;
+	 pLS->rounding = true;
       }
    }
 
@@ -1070,6 +1075,8 @@ static LoopChunk * endInsert(SooperLooperI *pLS, LoopChunk *loop, int nextstate)
 	   pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 	   pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
    }
+
+   pLS->rounding = true;
    
    return loop;
    
@@ -2651,6 +2658,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			      loop = endMultiply(pLS, loop, STATE_PLAY);
 		      }
 		      else {
+			      pLS->rounding = false;
 			      pLS->state = STATE_PLAY;
 			      undoLoop(pLS);
 			      goto passthrough;
@@ -2773,7 +2781,7 @@ runSooperLooper(LADSPA_Handle Instance,
 				 loop->dCurrPos = 0.0f;
 				 
 				 loop->lLoopLength = loop->lCycles * loop->lCycleLength;
-				 
+				 pLS->rounding = false;
 				 // fprintf(stderr, "mult is over with %d cyc\n", loop->lCycles);
 				 loop = transitionToNext(pLS, loop, pLS->nextState);
 				 break;
@@ -2904,7 +2912,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    loop->lMarkEndL = (unsigned long) loop->dCurrPos;
 		    loop->lMarkEndH = loop->lLoopLength - 1;
 		    backfill = loop->backfill = 1;
-
+		    pLS->rounding = false;
 		    loop->lLoopLength = loop->lCycles * loop->lCycleLength;
 		    
 		    DBG(fprintf(stderr, "Looplength = %lu   cycles=%lu\n", loop->lLoopLength, loop->lCycles));
@@ -2931,6 +2939,7 @@ runSooperLooper(LADSPA_Handle Instance,
 				 
 			 {
 				 // out of space! give up for now!
+				 pLS->rounding = false;
 				 pLS->state = STATE_PLAY;
 				 //undoLoop(pLS);
 				 DBG(fprintf(stderr,"Insert finish early! Out of memory!\n"));
@@ -3352,11 +3361,13 @@ runSooperLooper(LADSPA_Handle Instance,
   pLS->fScratchPosTarget = scratchTarget;
   
   // update output ports
-  if (pLS->pfStateOut) {
-     *pLS->pfStateOut = (LADSPA_Data) pLS->state;
-  }
+  *pLS->pfStateOut = (LADSPA_Data) pLS->state;
 
-  *pLS->pfWaiting = pLS->waitingForSync ? 1.0f: 0.0f;
+  *pLS->pfNextStateOut = (LADSPA_Data) pLS->nextState;
+  
+  // either waiting for sync, waiting for a reverse, or rounding a mult
+  *pLS->pfWaiting = (pLS->waitingForSync || pLS->state == STATE_TRIG_START || pLS->state == STATE_TRIG_STOP
+		     || pLS->fNextCurrRate != 0.0f || pLS->rounding)  ? 1.0f: 0.0f;
 
   *pLS->pfRateOutput = (LADSPA_Data) pLS->fCurrRate *  (*pLS->pfRate);
 
@@ -3516,6 +3527,8 @@ sl_init() {
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
     piPortDescriptors[TrueRate]
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
+    piPortDescriptors[NextState]
+      = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
 
 
     
@@ -3590,6 +3603,8 @@ sl_init() {
       = strdup("Waiting");
     pcPortNames[TrueRate]
       = strdup("True Rate");
+    pcPortNames[NextState] 
+      = strdup("Next State Output");
 
     
     psPortRangeHints = ((LADSPA_PortRangeHint *)
@@ -3732,6 +3747,11 @@ sl_init() {
 
     psPortRangeHints[Waiting].HintDescriptor
       = LADSPA_HINT_TOGGLED;
+
+    psPortRangeHints[NextState].HintDescriptor
+      = LADSPA_HINT_BOUNDED_BELOW;
+    psPortRangeHints[LoopPosition].LowerBound 
+      = 0.0;
     
     
     g_psDescriptor->instantiate

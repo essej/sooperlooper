@@ -57,11 +57,12 @@ enum OutputPort {
 	LoopMemory,
 	Waiting,
 	TrueRate,
+	NextState,
 	LASTPORT
 };
 
 enum AudioPort {
-	AudioInputPort=26,
+	AudioInputPort=27,
 	AudioOutputPort,
 	SyncInputPort,
 	SyncOutputPort,
@@ -188,6 +189,7 @@ typedef struct {
 	int bHoldMode;
 
 	bool donePlaySync;
+	bool rounding;
 	
 	unsigned long lTapTrigSamples;
 
@@ -323,6 +325,7 @@ typedef struct {
 
 	LADSPA_Data * pfWaiting;    
 	LADSPA_Data * pfRateOutput;
+	LADSPA_Data * pfNextStateOut;    
 	
 } SooperLooperI;
 

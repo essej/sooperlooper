@@ -670,7 +670,7 @@ int ControlOSC::ping_handler(const char *path, const char *types, lo_arg **argv,
 	string returl (&argv[0]->s);
 	string retpath (&argv[1]->s);
 	lo_message msg = (lo_message) data;
-	lo_address srcaddr = lo_message_get_source (msg);
+	//lo_address srcaddr = lo_message_get_source (msg);
 	//const char * sport = lo_address_get_port(srcaddr);
 	//int srcport = atoi(sport);
 	//cerr << "got ping from " <<  srcport << endl;
