@@ -37,7 +37,7 @@ class TimePanel
   public:
 	
 	// ctor(s)
-	TimePanel (LoopControl * control, wxWindow * parent, wxWindowID id=-1,  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+	TimePanel (LoopControl * control, wxWindow * parent, wxWindowID id=-1,  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(210, 60));
 	virtual ~TimePanel();
 
 	void set_index(int ind) { _index = ind; }
@@ -89,6 +89,15 @@ class TimePanel
 	wxBitmap * _backing_store;
 
  	wxMemoryDC _memdc;
+	// i have to use all these to workaround a memory leak in wxGTK-2.4 against gtk2
+	wxBitmap * _pos_bm;
+	wxMemoryDC _posdc;
+	wxBitmap * _state_bm;
+	wxMemoryDC _statedc;
+	wxBitmap * _wait_bm;
+	wxMemoryDC _waitdc;
+	wxBitmap * _other_bm;
+	wxMemoryDC _otherdc;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

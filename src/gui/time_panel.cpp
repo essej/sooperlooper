@@ -53,6 +53,10 @@ TimePanel::init()
 {
 	SetThemeEnabled(false);
 
+	_bgcolor.Set(34, 49, 71);
+	SetBackgroundColour(_bgcolor);
+	_bgbrush.SetColour(_bgcolor);
+	
 	_pos_font.SetFamily(wxSWISS);
 	_pos_font.SetStyle(wxNORMAL);
 	_pos_font.SetWeight(wxBOLD);
@@ -60,7 +64,13 @@ TimePanel::init()
 	_pos_str = "--:--.--";
 	_pos_font.SetPointSize(10);
 	normalize_font_size(_pos_font, 110, 40, wxT("00:00.00"));
-	
+
+	_pos_bm = new wxBitmap(110,40); 
+	_posdc.SelectObject(*_pos_bm);
+	_posdc.SetFont(_pos_font);
+ 	_posdc.SetTextForeground(_pos_color);
+	_posdc.SetBackground (_bgbrush);
+
 	_state_font.SetFamily(wxSWISS);
 	_state_font.SetWeight(wxBOLD);
 	_state_font.SetStyle(wxNORMAL);
@@ -69,6 +79,12 @@ TimePanel::init()
 	_state_font.SetPointSize(10);
 	normalize_font_size(_state_font, 110, 30, wxT("ooooooooooo"));
 
+	_state_bm = new wxBitmap(110,20); 
+	_statedc.SelectObject(*_state_bm);
+	_statedc.SetFont(_state_font);
+ 	_statedc.SetTextForeground(_state_color);
+	_statedc.SetBackground (_bgbrush);
+	
 	_time_font.SetFamily(wxSWISS);
 	_time_font.SetStyle(wxNORMAL);
 	_time_font.SetWeight(wxNORMAL);
@@ -76,15 +92,17 @@ TimePanel::init()
 	_time_font.SetPointSize(7);
 	normalize_font_size(_time_font, 45, 20, wxT("00:00.00"));
 
-	_legend_font.SetFamily(wxSWISS);
-	_legend_font.SetStyle(wxNORMAL);
-	_legend_font.SetWeight(wxNORMAL);
+	_other_bm = new wxBitmap(90,60); 
+	_otherdc.SelectObject(*_other_bm);
+	_otherdc.SetFont(_time_font);
+	_otherdc.SetBackground (_bgbrush);
 	_legend_color.Set(225, 225, 225);
-	_legend_font.SetPointSize(_time_font.GetPointSize());
 
-	_bgcolor.Set(34, 49, 71);
-	SetBackgroundColour(_bgcolor);
-	_bgbrush.SetColour(_bgcolor);
+	_wait_bm = new wxBitmap(110,20); 
+	_waitdc.SelectObject(*_wait_bm);
+	_waitdc.SetFont (_time_font);
+	_waitdc.SetBackground (_bgbrush);
+	_waitdc.SetTextForeground(_legend_color);
 
 	_waiting = false;
 }
@@ -215,48 +233,79 @@ TimePanel::draw_area(wxDC & dc)
 
 	// main pos
 
-	dc.SetFont(_pos_font);
-	dc.SetTextForeground(_pos_color);
-	dc.DrawText (_pos_str, 5, 3);
+// 	dc.SetFont(_pos_font);
+// 	dc.SetTextForeground(_pos_color);
+// 	dc.DrawText (_pos_str, 5, 3);
+	_posdc.Clear();
+	_posdc.GetTextExtent(_pos_str, &w, &h);
+ 	_posdc.DrawText (_pos_str, 0, 0);
 
+	dc.Blit (5,3, _pos_bm->GetWidth(), _pos_bm->GetHeight(), &_posdc, 0, 0);
+	
 	// state
-	dc.SetFont(_state_font);
-	dc.SetTextForeground(_state_color);
-	dc.GetTextExtent(_state_str, &sw, &sh);
-	dc.DrawText (_state_str, 5, _height - sh - 5);
+// 	dc.SetFont(_state_font);
+// 	dc.SetTextForeground(_state_color);
+// 	dc.GetTextExtent(_state_str, &sw, &sh);
+// 	dc.DrawText (_state_str, 5, _height - sh - 5);
+	_statedc.Clear();
+ 	_statedc.GetTextExtent(_state_str, &sw, &sh);
+ 	_statedc.DrawText (_state_str, 0, 0);
+	dc.Blit (5, _height - sh - 5, _state_bm->GetWidth(), _state_bm->GetHeight(), &_statedc, 0, 0);
 
+	
 	// waiting string
 	if (_waiting) {
-		dc.SetFont(_legend_font);
-		dc.DrawText (wxT("waiting for sync"), 5, _height - sh - 17);
+		_waitdc.Clear();
+		//dc.SetFont(_legend_font);
+		//dc.DrawText (wxT("waiting for sync"), 5, _height - sh - 17);
+		_waitdc.GetTextExtent(wxT("waiting for sync"), &tw, &th);
+		_waitdc.DrawText (wxT("waiting for sync"), 0, 0);
+		dc.Blit (5, h , tw, th, &_waitdc, 0, 0);
 	}
 	
 	// other times
-	dc.SetFont(_time_font);
-	dc.SetTextForeground(_time_color);
+// 	dc.SetFont(_time_font);
+// 	dc.SetTextForeground(_time_color);
+ 	_otherdc.SetTextForeground(_time_color);
+	_otherdc.Clear();
+	
+// 	dc.GetTextExtent(_tot_str, &tw, &th);
+// 	dc.DrawText (_tot_str, _width - tw - 5, 5);
 
-	dc.GetTextExtent(_tot_str, &tw, &th);
-	dc.DrawText (_tot_str, _width - tw - 5, 5);
+ 	_otherdc.GetTextExtent(_tot_str, &tw, &th);
+	tw += 3;
+	
+ 	_otherdc.DrawText (_tot_str, _other_bm->GetWidth() - tw, 0);
+	
+	
+// 	dc.GetTextExtent(_cyc_str, &cw, &ch);
+// 	dc.DrawText (_cyc_str, _width - cw - 5, 5 + th);
+ 	_otherdc.DrawText (_cyc_str, _other_bm->GetWidth() - tw, 2 + th);
 
-	dc.GetTextExtent(_cyc_str, &cw, &ch);
-	dc.DrawText (_cyc_str, _width - cw - 5, 5 + th);
-
-	// rem time
-	dc.GetTextExtent(_rem_str, &rw, &rh);
-	dc.DrawText (_rem_str, _width - rw - 5, _height - rh - 5);
+// 	// rem time
+// 	dc.GetTextExtent(_rem_str, &rw, &rh);
+// 	dc.DrawText (_rem_str, _width - rw - 5, _height - rh - 5);
+ 	_otherdc.DrawText (_rem_str, _other_bm->GetWidth() - tw, 10 + th + th);
 	
 	// legends
-	dc.SetFont(_legend_font);
-	dc.SetTextForeground(_legend_color);
+// 	dc.SetFont(_legend_font);
+// 	dc.SetTextForeground(_legend_color);
+ 	_otherdc.SetTextForeground(_legend_color);
 
-	dc.GetTextExtent(wxT("tot"), &w, &h);
-	dc.DrawText (wxT("tot"), _width - tw - w - 10, 5);
+// 	dc.GetTextExtent(wxT("tot"), &w, &h);
+// 	dc.DrawText (wxT("tot"), _width - tw - w - 10, 5);
+ 	_otherdc.GetTextExtent(wxT("rem"), &w, &h);
+ 	_otherdc.DrawText (wxT("tot"), _other_bm->GetWidth() - tw - w - 5, 0);
+	
+	
+// 	dc.GetTextExtent(wxT("cyc"), &w, &h);
+// 	dc.DrawText (wxT("cyc"), _width - cw - w - 10, 5 + th);
+ 	_otherdc.DrawText (wxT("cyc"), _other_bm->GetWidth() - tw - w - 5, 2 + th);
 
-	dc.GetTextExtent(wxT("cyc"), &w, &h);
-	dc.DrawText (wxT("cyc"), _width - cw - w - 10, 5 + th);
+// 	dc.GetTextExtent(wxT("rem"), &w, &h);
+// 	dc.DrawText (wxT("rem"), _width - rw - w - 10, _height - rh - 5);
+ 	_otherdc.DrawText (wxT("rem"), _other_bm->GetWidth() - tw - w - 5, 10 + th + th);
 
-	dc.GetTextExtent(wxT("rem"), &w, &h);
-	dc.DrawText (wxT("rem"), _width - rw - w - 10, _height - rh - 5);
-
+	dc.Blit (120, 5, _other_bm->GetWidth(), _other_bm->GetHeight(), &_otherdc, 0, 0);
 	
 }

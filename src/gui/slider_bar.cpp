@@ -104,6 +104,7 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_bar_style = FromLeftStyle;
 	_scale_mode = LinearMode;
 	_snap_mode = NoSnap;
+
 }
 
 SliderBar::~SliderBar()
@@ -471,7 +472,6 @@ void SliderBar::draw_area(wxDC & dc)
 	wxCoord w,h;
 	int pixw;
 
-	dc.SetFont(GetFont());
 	dc.SetBackground(_bgbrush);
 	dc.Clear();
 

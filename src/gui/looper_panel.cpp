@@ -191,7 +191,7 @@ LooperPanel::init()
 	// time area
 	colsizer = new wxBoxSizer(wxVERTICAL);
 
-	_time_panel = new TimePanel(_loop_control, this, -1, wxDefaultPosition, wxSize(210, 60));
+	_time_panel = new TimePanel(_loop_control, this, -1);
 	_time_panel->set_index (_index);
 	
 	colsizer->Add (_time_panel, 0, wxLEFT|wxTOP, 5);

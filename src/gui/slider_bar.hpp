@@ -55,6 +55,7 @@ class SliderBar
 		NoSnap = 0,
 		IntegerSnap
 	};
+
 	
 	void set_style (BarStyle md);
 	BarStyle get_style () { return _bar_style;}
