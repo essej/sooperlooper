@@ -23,10 +23,27 @@
 #include <stdint.h>
 #include <cmath>
 
+
 namespace SooperLooper
 {
 
 // from steve harris's ladspa plugin set
+
+/*
+// 32.32 fixpoint
+typedef union {
+	int64_t all;
+	struct {
+#ifdef WORDS_BIGENDIAN
+		int32_t in;
+		uint32_t fr;
+#else
+		uint32_t fr;
+		int32_t in;
+#endif
+	} part;
+} fixp32;
+*/
 
 /* 32 bit "pointer cast" union */
 typedef union {

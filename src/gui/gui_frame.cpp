@@ -154,6 +154,8 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 
 	_taptempo_button_timer = new wxTimer(this, ID_TapTempoTimer);
 
+	_loop_control->ConnectFailed.connect (slot (*this,  &GuiFrame::on_connect_failed));
+	_loop_control->LostConnection.connect (slot (*this,  &GuiFrame::on_connection_lost));
 }
 
 GuiFrame::~GuiFrame()
@@ -474,6 +476,23 @@ GuiFrame::osc_data_ready()
 	_got_new_data++;
 
 	::wxWakeUpIdle();
+}
+
+void 
+GuiFrame::on_connect_failed (const std::string & msg)
+{
+	wxMessageDialog dial(this, wxString::FromAscii(msg.c_str()), wxT("Connection Error"), wxOK);
+	dial.SetTitle(wxT("Connection Error"));
+	dial.ShowModal();
+}
+
+void 
+GuiFrame::on_connection_lost (const std::string & msg)
+{
+	wxMessageDialog dial(this, wxString::FromAscii(msg.c_str()), wxT("Lost Connection"), wxOK);
+	dial.SetTitle(wxT("Lost Connection"));
+
+	dial.ShowModal();
 }
 
 void

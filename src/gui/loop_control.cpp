@@ -149,6 +149,7 @@ LoopControl::LoopControl (const wxString & rcdir)
 	_osc_addr = 0;
 	_midi_bindings = new MidiBindings();
 	_rcdir = rcdir;
+	_sentinel = true;
 	
 	setup_param_map();
 	
@@ -346,7 +347,7 @@ LoopControl::osc_traffic()
 	// to send updates when new data comes in on the osc port
 	int oscfd = lo_server_get_socket_fd(_osc_server);
 	struct pollfd pfd[2];
-	int timeout = -1;
+	int timeout = -1; 
 	int nfds = 2;
 	struct timespec nsleep = { 0, 20000000 };
 
@@ -372,7 +373,7 @@ LoopControl::osc_traffic()
 				// goto again;
 			}
 			
-			//cerr << "OSC thread poll failed: " <<  strerror (errno) << endl;
+			cerr << "OSC thread poll failed: " <<  strerror (errno) << endl;
 			
 			continue;
 		}
@@ -380,12 +381,12 @@ LoopControl::osc_traffic()
 		if (_traffic_done) {
 			break;
 		}
-		
-		if (nfds > 1 && pfd[1].revents & POLLIN) 
+
+		if (nfds > 1 && (pfd[1].revents & POLLIN)) 
 		{
 			
 			// emit signal
-			//cerr << "got new data" << endl;
+			cerr << "got new data" << endl;
 			NewDataReady(); // emit
 		}
 
@@ -436,6 +437,7 @@ LoopControl::pingtimer_expired()
 			}
 			_osc_addr = 0;
 			_failed = true;
+			ConnectFailed("No response from SooperLooper engine process.\nPlease make sure the JACK server is running.\nAlso check that the system's hostname resolves properly."); // emit
 		}
 		else {
 			// cerr << "waiting" << endl;
@@ -459,6 +461,9 @@ LoopControl::pingtimer_expired()
 			}
 			_osc_addr = 0;
 			_failed = true;
+			if (!_spawn_config.never_spawn) {
+				ConnectFailed("Execution of SooperLooper engine process failed."); // emit
+			}
 		}
 			
 	}

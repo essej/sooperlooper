@@ -126,6 +126,8 @@ protected:
 	
 	void update_controls();
 
+	void on_connect_failed (const std::string & msg);
+	void on_connection_lost (const std::string & msg);
 	
 	LoopControl * _loop_control;
 	SigC::Connection  _loop_update_connection;

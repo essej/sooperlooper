@@ -3029,6 +3029,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      srcloop = loop->srcloop;
 
 	      bool recenter = true;
+
 	      
 	      for (;lSampleIndex < SampleCount;
 		   lSampleIndex++)
@@ -3130,6 +3131,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 fOutputSample =   tmpWet *  (*pLoopSample)
 		    + fDry * fInputSample;
+
 
 		 // we might add a bit from the input still during xfadeout
 		 *(pLoopSample) = ((*pLoopSample) * pLS->fFeedFadeAtten) +  pLS->fLoopFadeAtten * fInputSample;

@@ -137,6 +137,8 @@ class LoopControl
 	void pingtimer_expired();
 
 	SigC::Signal1<void,int> LooperConnected;
+	SigC::Signal1<void, const std::string&> ConnectFailed;
+	SigC::Signal1<void, const std::string&> LostConnection;
 	SigC::Signal0<void> Disconnected;
 	SigC::Signal0<void> NewDataReady;
 	SigC::Signal1<void, SooperLooper::MidiBindInfo&> MidiBindingChanged;
@@ -203,7 +205,8 @@ class LoopControl
 	void terminate_traffic_thread();
 	pthread_t _osc_traffic_thread;
 	int       _traffic_request_pipe[2];
-	bool      _traffic_done;
+	volatile bool      _traffic_done;
+	volatile bool      _sentinel;
 	
 	// midi bindings
 	SooperLooper::MidiBindings * _midi_bindings;
