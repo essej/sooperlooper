@@ -224,7 +224,7 @@ TimePanel::OnPaint(wxPaintEvent &ev)
 		return;
 	}
 	
-// 	draw_area(_memdc);
+ 	draw_area(_memdc);
 
  	pdc.Blit(0, 0, _width, _height, &_memdc, 0, 0);
 }
@@ -232,7 +232,7 @@ TimePanel::OnPaint(wxPaintEvent &ev)
 void
 TimePanel::draw_area(wxDC & dc)
 {
-	wxCoord sw=10, sh=10, tw=10, th=10, w=10, h=10;
+	wxCoord sw=0, sh=0, tw=0, th=0, w=0, h=0;
 	// wxCoord cw=0, ch=0, rw=0, rh=0;
 
 	dc.SetBackground(_bgbrush);
@@ -244,7 +244,7 @@ TimePanel::draw_area(wxDC & dc)
 // 	dc.SetTextForeground(_pos_color);
 // 	dc.DrawText (_pos_str, 5, 3);
 	_posdc.Clear();
-//	_posdc.GetTextExtent(_pos_str, &w, &h);
+	_posdc.GetTextExtent(_pos_str, &w, &h);
  	_posdc.DrawText (_pos_str, 0, 0);
 
 	dc.Blit (5,3, _pos_bm->GetWidth(), _pos_bm->GetHeight(), &_posdc, 0, 0);
