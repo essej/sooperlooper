@@ -343,6 +343,10 @@ bool GuiApp::OnInit()
 #ifdef __WXMAC__
 	_exec_name = GetExecutablePath(argv[0]) + "sooperlooper";
 #endif
+	// escape all spaces with
+	_exec_name.Replace (wxT(" "), wxT("\\ "), true);
+	
+	
 	// override defaults
 	LoopControl & loopctrl = _frame->get_loop_control();
 	if (!_host.empty()) {
@@ -403,9 +407,6 @@ GetExecutablePath(wxString argv0)
     path = filename.GetFullPath();
     path = path.BeforeLast('/') + "/";
 
-    // escape all spaces with
-    path.Replace (wxT(" "), wxT("\ "), true);
-    
     return path;
 }
 #endif // __WXMAC__
