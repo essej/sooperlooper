@@ -21,6 +21,8 @@
 
 #include <unistd.h>
 #include <pthread.h>
+#include <getopt.h>
+#include <time.h>
 
 #include <curses.h>
 
@@ -41,7 +43,75 @@ static pthread_t osc_thread = 0;
 map<string, float> params_val_map;
 map<int, string> state_map;
 volatile bool updated = false;
+volatile bool   _acked = false;
 volatile bool do_shutdown = false;
+
+const char *optstring = "H:P:h";
+struct option long_options[] = {
+	{ "help", 0, 0, 'h' },
+	{ "connect-host", 1, 0, 'H' },
+	{ "connect-port", 1, 0, 'P' },
+	{ 0, 0, 0, 0 }
+};
+
+
+char * _host = 0;
+int    _port=0;
+int    _show_usage=0;
+char ** _engine_argv = 0;
+
+#define DEFAULT_OSC_PORT 9951
+
+static void usage(char *argv0)
+{
+	fprintf(stderr, "Usage: %s [options...]\n", argv0);
+	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "  -H host,  --connect-host=host    connect to sooperlooper engine on given host (default is localhost)\n");
+	fprintf(stderr, "  -P <num>, --connect-port=<num>   connect to sooperlooper engine on given port (default is %d)\n", DEFAULT_OSC_PORT);
+	fprintf(stderr, "  -h , --help                  this usage output\n");
+	fprintf(stderr, "\nBy default, the gui will try to connect to an engine running\n"); 
+	fprintf(stderr, "at the given (or default) host and port.\n"); 
+
+}
+
+static void parse_options (int argc, char **argv)
+{
+	int longopt_index = 0;
+	int c;
+	bool stop_proc = false;
+	
+	while (!stop_proc && (c = getopt_long (argc, argv, optstring, long_options, &longopt_index)) >= 0) {
+		if (c >= 255) break;
+		
+		switch (c) {
+		case 1:
+			/* getopt signals end of '-' options */
+			stop_proc = true;
+			break;
+		case 'h':
+			_show_usage++;
+			break;
+		case 'H':
+			_host = optarg;
+			break;
+		case 'P':
+			sscanf(optarg, "%d", &_port);
+			break;
+		default:
+			fprintf (stderr, "argument error: %c\n", c);
+			_show_usage++;
+			break;
+		}
+
+		if (_show_usage > 0) {
+			break;
+		}
+		
+	}
+
+	_engine_argv = argv + optind;
+}
+
 
 static int do_control_change(char cmd)
 {
@@ -217,6 +287,20 @@ static int ctrl_handler(const char *path, const char *types, lo_arg **argv, int 
 	return 0;
 }
 
+static int pingack_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	// pingack expects: s:engine_url s:version i:loopcount
+	// 1st arg is instance, 2nd ctrl string, 3nd is float value
+	//int index = argv[0]->i;
+	//string eurl(&argv[0]->s);
+	//string vers (&argv[1]->s);
+	//int loops = argv[2]->i;
+	
+	_acked = true;
+	return 0;
+}
+
 
 static void setup_param_map()
 {
@@ -296,11 +380,22 @@ int main(int argc, char *argv[])
     int done = 0;
     char ch;
     int ret;
+    char tmpstr[30];
 
+    _engine_argv = &argv[1];
+    _port = DEFAULT_OSC_PORT;
+    
+    parse_options(argc, argv);
+
+    if (_show_usage > 0) {
+	    usage(argv[0]);
+	    exit(1);
+    }
     
     /* an address to send messages to. sometimes it is better to let the server
      * pick a port number for you by passing NULL as the last argument */
-    addr = lo_address_new(NULL, "9951");
+    snprintf(tmpstr, sizeof(tmpstr), "%d", _port);
+    addr = lo_address_new(_host, tmpstr);
 
       /* send a message to /foo/bar with two float arguments, report any
        * errors */
@@ -309,8 +404,8 @@ int main(int argc, char *argv[])
 /*       } */
 
 
-    if (argc > 1) {
-	    post_event (argv[1][0]);
+    if (_engine_argv[0]) {
+	    post_event (_engine_argv[0][0]);
 	    exit (0);
     }
 
@@ -325,8 +420,29 @@ int main(int argc, char *argv[])
     /* add handler for control param callbacks, first arg ctrl string, 2nd arg value */
     lo_server_add_method(osc_server, "/ctrl", "isf", ctrl_handler, NULL);
 
+    // pingack expects: s:engine_url s:version i:loopcount
+    lo_server_add_method(osc_server, "/pingack", "ssi", pingack_handler, NULL);
+    
     // start up our thread
     pthread_create (&osc_thread, NULL, osc_receiver, NULL);
+
+    // send ping
+    lo_send(addr, "/ping", "ss", our_url.c_str(), "/pingack");
+
+    // first make sure we are connected
+    
+    struct timespec ts = { 0, 100000000 };
+    
+    for (int i = 0; !_acked && i < 10; ++i) {
+	    nanosleep(&ts, NULL);
+    }
+
+    if (!_acked) {
+	    fprintf(stderr, "Error, no sooperlooper engine found\n");
+	    exit(2);
+    }
+    
+
     
     /* now do some basic curses stuff */
 
@@ -355,11 +471,10 @@ int main(int argc, char *argv[])
     refresh();
     
     /* status on line 5 */
+    timeout (100);
 
-    
     while (!done)
     {
-	    timeout (100);
 	    ch = getch();
 	    ret = 0;
 	    
@@ -368,15 +483,23 @@ int main(int argc, char *argv[])
 		    request_values();
 		    update_values();
 
+		    // normal timeout
+		    timeout (100);
+		    
 		    continue;
 	    }
 
 	    if ((ch >= '1' && ch <= '9') || ch == 'l' || ch == 'a') {
 
 		    do_control_change (ch);
+		    // normal timeout
+		    timeout (100);
 	    }
 	    else {
 		    ret = post_event (ch);
+
+		    // faster timeout
+		    timeout (50);
 	    }
 	    
 	    if (ret < 0) {

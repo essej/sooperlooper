@@ -2,6 +2,9 @@ SUBDIRS = . gui
 
 bin_PROGRAMS =  sooperlooper slconsole
 
+slpresetdir  = $(datadir)/sooperlooper/presets
+slpreset_DATA =  midiwizard.slb oxy8.slb edp4.slb bcf2000.slb
+
 AM_CXXFLAGS =  @JACK_CFLAGS@ @LOSC_CFLAGS@ @SIGCPP_CFLAGS@ @SNDFILE_CFLAGS@ @SAMPLERATE_CFLAGS@
 
 #SYSDEP_SRCS=
