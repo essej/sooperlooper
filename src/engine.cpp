@@ -834,6 +834,9 @@ void Engine::update_sync_source ()
 	{
 		(*i)->use_sync_buf (sync_buf);
 	}
+
+	_quarter_counter = 0;
+	
 }
 
 
@@ -863,13 +866,20 @@ Engine::calculate_tempo_frames ()
 			_tempo_frames = 0; // ???
 		}
 
-		_quarter_note_frames = _driver->get_samplerate() * (1.0/_tempo) * 60;
 		
 		// cerr << "tempo frames is " << _tempo_frames << endl;
 	}
 	else if (_sync_source == MidiClockSync) {
 		calculate_midi_tick ();
 	}
+
+	if (_tempo > 0.0) {
+		_quarter_note_frames = _driver->get_samplerate() * (1.0/_tempo) * 60;
+	}
+	else {
+		_quarter_note_frames = 0.0;
+	}
+
 }
 
 
@@ -1002,6 +1012,24 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 				if ((_midi_ticks % 24) == 0) {
 					// every quarter note
 					hit_at = (int) usedframes;
+					double tcount = _quarter_counter + (double) usedframes;
+
+					// calc new tempo
+					double ntempo = (_driver->get_samplerate() * 60.0 / tcount);
+					// lowpass it against
+					//ntempo = _tempo * 0.25 + ntempo * 0.75;
+
+					if (ntempo != _tempo) {
+						//cerr << "new tempo is: " << ntempo << endl;
+
+						_tempo = ntempo;
+						_quarter_counter = 0;
+						_tempo_changed = true;
+						// wake up mainloop safely
+						pthread_cond_signal (&_event_cond);
+					}
+					
+					_quarter_counter = (double) -usedframes;
 				}
 				
 				if ((_midi_ticks % _midi_loop_tick) == 0) {
@@ -1027,19 +1055,62 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			// zero the rest
 			memset (&(_internal_sync_buf[usedframes]), 0, (nframes - usedframes) * sizeof(float));
 			
+			_quarter_counter += (double) nframes;
 		}
 		else {
 			// no sync events... all zero
 			memset (_internal_sync_buf, 0, nframes * sizeof(float));
+			_quarter_counter += (double) nframes;
 		}
+
 	}
-	else {
+	else if (_sync_source == NoSync) {
 		for (nframes_t n=offset; n < nframes; ++n) {
 			_internal_sync_buf[n]  = 1.0;
 		}
 		//memset (_internal_sync_buf, 0, nframes * sizeof(float));
-	}
 
+	}
+	else if ((int)_sync_source > 0 && (size_t)_sync_source <= _instances.size()) {
+		// a loop
+		for (nframes_t n=offset; n < nframes; ++n) {
+			_internal_sync_buf[n]  = 1.0;
+		}
+
+		// calc new tempo
+		nframes_t cycleframes = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::CycleLength) * _driver->get_samplerate());
+		double ntempo = 0.0;
+		if (cycleframes > 0) {
+			ntempo = (_driver->get_samplerate() * 30.0 * _eighth_cycle / cycleframes);
+		}
+
+		if (ntempo != _tempo) {
+			//cerr << "new tempo is: " << ntempo << endl;
+			
+			_tempo = ntempo;
+			_quarter_counter = 0;
+			_tempo_counter = 0;
+			calculate_tempo_frames ();
+			_tempo_changed = true;
+			// wake up mainloop safely
+			pthread_cond_signal (&_event_cond);
+		}
+
+		// just calculate quarter note beats for update
+		if (_quarter_note_frames > 0.0) {
+			nframes_t currpos  = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::LoopPosition) * _driver->get_samplerate());
+			nframes_t loopframes = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::LoopLength) * _driver->get_samplerate());
+			nframes_t testval = (((currpos + nframes) % loopframes) % (nframes_t)_quarter_note_frames);
+			
+			if (testval <= nframes || testval == 0) {
+				// inaccurate
+				//cerr << "quarter hit" << endl;
+				hit_at = (int) 0;
+			}
+		}
+		
+	}
+		
 	if (hit_at >= 0) {
 		_beat_occurred = true;
 		// wake up mainloop safely
