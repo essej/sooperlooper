@@ -1,0 +1,6 @@
+#ifndef __sooperlooper_version_h__
+#define __sooperlooper_version_h__
+
+static const char *sooperlooper_version  = "@SOOP_VERSION@";
+
+#endif

@@ -7,7 +7,7 @@
 #include <iostream>
 #include <sigc++/bind.h>
 #include <gtkmm.h>
-#include <ladspa.h>
+#include "ladspa.h"
 
 using namespace std;
 using namespace SigC;
