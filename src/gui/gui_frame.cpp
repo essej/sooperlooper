@@ -37,6 +37,7 @@
 #include "choice_box.hpp"
 #include "pix_button.hpp"
 #include "keyboard_target.hpp"
+#include "keys_dialog.hpp"
 #include "xml++.hpp"
 
 using namespace SooperLooperGui;
@@ -75,6 +76,8 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 	EVT_MENU(ID_AddLoop, GuiFrame::on_add_loop)
 	EVT_MENU(ID_RemoveLoop, GuiFrame::on_remove_loop)
 
+	EVT_MENU(ID_KeybindingsMenu, GuiFrame::on_view_menu)
+	
 	EVT_CHECKBOX (ID_RoundCheck, GuiFrame::on_round_check)
 	
 END_EVENT_TABLE()
@@ -86,7 +89,8 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 	_keyboard = new KeyboardTarget (this, "gui_frame");
 	_curr_loop = -1;
 	_tapdelay_val = 1.0f;
-
+	_keys_dialog = 0;
+	
 	_rcdir = wxGetHomeDir() + wxFileName::GetPathSeparator() + wxT(".sooperlooper");
 
 	intialize_keybindings ();
@@ -568,6 +572,8 @@ GuiFrame::process_key_event (wxKeyEvent &ev)
 	// get their key events
 	static wxString textname = "KeyAware";
 
+	cerr << "got " << ev.GetKeyCode() << endl;
+	
 	wxWindow * focwin = wxWindow::FindFocus();
 	if (focwin && (focwin->GetName() == textname
 		       || (focwin->GetParent() && ((focwin->GetParent()->GetName() == textname)
@@ -622,6 +628,22 @@ void GuiFrame::intialize_keybindings ()
 	_keyboard->add_binding ("Control-s", "save");
 	_keyboard->add_binding ("Control-o", "load");
 	
+}
+
+void GuiFrame::on_view_menu (wxCommandEvent &ev)
+{
+	if (ev.GetId() == ID_KeybindingsMenu) {
+		if (!_keys_dialog) {
+			_keys_dialog = new KeysDialog(this, -1, wxT("SooperLooper Key bindings"));
+			_keys_dialog->SetSize (230,410);
+		}
+		else if (!_keys_dialog->IsShown()) {
+			_keys_dialog->refresh_state();
+		}
+
+		_keys_dialog->Show(true);
+		
+	}
 }
 
 
