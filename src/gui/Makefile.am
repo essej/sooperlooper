@@ -26,7 +26,8 @@ slgui_SOURCES = \
 	keys_dialog.cpp \
 	check_box.cpp \
 	midi_bind_dialog.cpp \
-	config_dialog.cpp
+	config_dialog.cpp \
+	help_window.cpp
 
 
 

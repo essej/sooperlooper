@@ -44,6 +44,7 @@ class KeyboardTarget;
 class KeysDialog;
 class MidiBindDialog;
 class ConfigDialog;
+class HelpWindow;
 	
 class GuiFrame
 	: public wxFrame,  public SigC::Object
@@ -110,6 +111,9 @@ protected:
 	void on_bind_request (wxString val);
 	
 	void on_view_menu (wxCommandEvent &ev);
+
+	void on_about (wxCommandEvent &ev);
+	void on_help (wxCommandEvent &ev);
 	
 	void on_taptempo_press (int button);
 	void on_taptempo_release (int button);
@@ -149,6 +153,8 @@ protected:
 	MidiBindDialog * _midi_bind_dialog;
 
 	ConfigDialog *  _config_dialog;
+
+	HelpWindow *  _help_window;
 	
 	int     _got_new_data;
 	wxString  _rcdir;

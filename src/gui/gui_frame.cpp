@@ -24,6 +24,7 @@
 #include <wx/utils.h>
 #include <wx/dir.h>
 #include <wx/spinctrl.h>
+#include <wx/splash.h>
 
 #include <iostream>
 #include <cstdio>
@@ -43,6 +44,7 @@
 #include "keys_dialog.hpp"
 #include "midi_bind_dialog.hpp"
 #include "config_dialog.hpp"
+#include "help_window.hpp"
 
 #include "pixmaps/sl_logo.xpm"
 #include "pixmaps/tap_tempo_active.xpm"
@@ -50,6 +52,7 @@
 #include "pixmaps/tap_tempo_focus.xpm"
 #include "pixmaps/tap_tempo_normal.xpm"
 #include "pixmaps/tap_tempo_selected.xpm"
+#include "pixmaps/sl_splash.xpm"
 
 #include <midi_bind.hpp>
 
@@ -92,6 +95,9 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 	EVT_MENU(ID_Quit, GuiFrame::OnQuit)
 	EVT_MENU(ID_QuitStop, GuiFrame::OnQuit)
 
+	EVT_MENU(ID_AboutMenu, GuiFrame::on_about)
+	EVT_MENU(ID_HelpTipsMenu, GuiFrame::on_help)
+
 	EVT_MENU(ID_AddLoop, GuiFrame::on_add_loop)
 	EVT_MENU(ID_AddCustomLoop, GuiFrame::on_add_custom_loop)
 	EVT_MENU(ID_RemoveLoop, GuiFrame::on_remove_loop)
@@ -113,6 +119,7 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 	_midi_bind_dialog = 0;
 	_config_dialog = 0;
 	_got_new_data = 0;
+	_help_window = 0;
 	
 	_rcdir = wxGetHomeDir() + wxFileName::GetPathSeparator() + wxT(".sooperlooper");
 
@@ -504,6 +511,7 @@ GuiFrame::OnHide(wxCommandEvent &event)
 
 }
 
+
 void
 GuiFrame::OnSize(wxSizeEvent & event)
 {
@@ -813,6 +821,41 @@ void GuiFrame::on_view_menu (wxCommandEvent &ev)
 	}
 }
 
+void GuiFrame::on_about (wxCommandEvent &ev)
+{
+	// construct splash
+	wxBitmap bitmap(sl_splash_xpm);
+	// add version info
+	wxMemoryDC mdc;
+	mdc.SelectObject(bitmap);
+	int w,h;
+	wxString vstr = wxString::Format("v %s", sooperlooper_version);
+	mdc.SetFont(*wxSWISS_FONT);
+	mdc.SetTextForeground(*wxWHITE);
+	mdc.GetTextExtent(vstr, &w, &h);
+	mdc.DrawText(vstr, bitmap.GetWidth() / 2 - (w/2), 148);
+	
+	
+	wxSplashScreen* splash = new wxSplashScreen(bitmap,
+						    wxSPLASH_CENTRE_ON_PARENT|wxSPLASH_NO_TIMEOUT,
+						    6000, this, -1, wxDefaultPosition, wxDefaultSize,
+						    wxSTAY_ON_TOP);
+	splash->SetTitle(wxT("About SooperLooper"));
+	
+}
+
+
+void GuiFrame::on_help (wxCommandEvent &ev)
+{
+	// for now just refer to website
+	if (!_help_window) {
+		_help_window = new HelpWindow(this, -1, wxT("Online Help"));
+	}
+	
+	_help_window->Show(true);
+	_help_window->Raise();
+
+}
 
 void GuiFrame::command_action (bool release, wxString cmd)
 {
