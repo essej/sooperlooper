@@ -92,6 +92,9 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 	EVT_TIMER(ID_UpdateTimer, GuiFrame::OnUpdateTimer)
 	EVT_TIMER(ID_TapTempoTimer, GuiFrame::on_taptempo_timer)
 
+	EVT_ACTIVATE (GuiFrame::OnActivate)
+	EVT_ACTIVATE_APP (GuiFrame::OnActivate)
+	
 	EVT_MENU(ID_Quit, GuiFrame::OnQuit)
 	EVT_MENU(ID_QuitStop, GuiFrame::OnQuit)
 
@@ -122,7 +125,7 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 	
 	_rcdir = wxGetHomeDir() + wxFileName::GetPathSeparator() + wxT(".sooperlooper");
 
-	_loop_control = new LoopControl();
+	_loop_control = new LoopControl(_rcdir);
 
 	
 	intialize_keybindings ();
@@ -405,6 +408,20 @@ GuiFrame::OnUpdateTimer(wxTimerEvent &ev)
 }
 
 void
+GuiFrame::OnActivate(wxActivateEvent &ev)
+{
+	if (ev.GetActive()) {
+		_keyboard->set_enabled (true);
+	}
+	else {
+		_keyboard->set_enabled (false);
+	}
+
+	ev.Skip();
+}
+
+
+void
 GuiFrame::on_taptempo_timer(wxTimerEvent &ev)
 {
 	_taptempo_button->set_active(false);
@@ -498,6 +515,8 @@ void
 GuiFrame::OnClose(wxCloseEvent &event)
 {
 	// send quit command to looper by default
+	save_default_midibindings();
+
 	_loop_control->send_quit();
 	
 	Destroy();
@@ -507,6 +526,8 @@ void
 GuiFrame::OnQuit(wxCommandEvent& event)
 {
 	int id = event.GetId();
+
+	save_default_midibindings();
 	
 	if (id == ID_Quit) {
 		Destroy();
@@ -556,6 +577,21 @@ GuiFrame::OnIdle(wxIdleEvent& event)
 	}
 	
 	event.Skip();
+}
+
+void
+GuiFrame::save_default_midibindings ()
+{
+	wxString dirname = _rcdir;
+
+	if ( ! wxDirExists(dirname) ) {
+		if (!wxMkdir ( dirname.fn_str(), 0755 )) {
+			printf ("Error creating %s\n", static_cast<const char *> (dirname.mb_str())); 
+			return;
+		}
+	}
+
+	_loop_control->save_midi_bindings ( (dirname + wxFileName::GetPathSeparator() + wxT("default_midi.slb")).fn_str());
 }
 
 void
@@ -895,6 +931,9 @@ void GuiFrame::misc_action (bool release, wxString cmd)
 		if (index < 0) {
 			index = 0;
 		}
+
+		::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
+		
 		// popup local file dialog if we are local
 		if (_loop_control->is_engine_local()) {
 
@@ -917,7 +956,7 @@ void GuiFrame::misc_action (bool release, wxString cmd)
 			}
 		}
 
-		
+		::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
 		
 	}
 	else if (cmd == wxT("load"))
@@ -926,6 +965,8 @@ void GuiFrame::misc_action (bool release, wxString cmd)
 			index = 0;
 		}
 
+		::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
+		
 		if (_loop_control->is_engine_local()) {
 
 			wxString filename = wxFileSelector(wxT("Choose file to open"), wxT(""), wxT(""), wxT(""), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
@@ -945,6 +986,8 @@ void GuiFrame::misc_action (bool release, wxString cmd)
 				_loop_control->post_load_loop (index, filename);
 			}
 		}
+		::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
+
 	}
 }
 

@@ -40,6 +40,7 @@
 
 namespace SooperLooper {
 
+class OnePoleFilter;	
 	
 class Looper 
 {
@@ -59,7 +60,7 @@ class Looper
 	}
 
 	bool load_loop (std::string fname);
-	bool save_loop (std::string fname, LoopFileEvent::FileFormat format = LoopFileEvent::FormatFloat);
+	bool save_loop (std::string fname = "", LoopFileEvent::FileFormat format = LoopFileEvent::FormatFloat);
 
 	void set_buffer_size (nframes_t bufsize);
 
@@ -118,6 +119,8 @@ class Looper
 	double                _src_out_ratio;
 	SRC_DATA              _src_data;
 #endif
+
+	OnePoleFilter  **     _lp_filter;
 	
 	bool _ok;
 	bool request_pending;

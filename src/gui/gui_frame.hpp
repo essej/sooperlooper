@@ -63,7 +63,8 @@ public:
 	
 	void OnIdle(wxIdleEvent& event);
 	void OnUpdateTimer(wxTimerEvent &ev);
-
+	void OnActivate(wxActivateEvent &ev);
+	
 	void process_key_event (wxKeyEvent &ev);
 
 
@@ -89,7 +90,7 @@ protected:
 
 	
 	void intialize_keybindings ();
-	
+	void save_default_midibindings ();
 
 	void osc_data_ready();
 	

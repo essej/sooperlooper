@@ -22,6 +22,8 @@
 #include <cerrno>
 #include "loop_control.hpp"
 
+#include <wx/filename.h>
+
 #include <sys/poll.h>
 #include <unistd.h>
 #include <time.h>
@@ -127,12 +129,13 @@ int LoopControl::SpawnConfig::set_state (const XMLNode& node)
 }
 
 
-LoopControl::LoopControl ()
+LoopControl::LoopControl (const wxString & rcdir)
 	: _spawn_config(wxT("current")), _default_spawn_config(wxT("default"))
 {
 	_osc_traffic_thread = 0;
 	_osc_addr = 0;
 	_midi_bindings = new MidiBindings();
+	_rcdir = rcdir;
 	
 	setup_param_map();
 	
@@ -460,6 +463,12 @@ bool LoopControl::spawn_looper()
 	if (!_spawn_config.midi_bind_path.empty()) {
 		cmdstr += wxString::Format(wxT(" -m \"%s\""), _spawn_config.midi_bind_path.c_str());
 	}
+	else {
+		// try default
+		wxString defpath = (_rcdir + wxFileName::GetPathSeparator() + wxT("default_midi.slb"));
+		cmdstr += wxString::Format(wxT(" -m \"%s\""), defpath.c_str());
+	}
+	
 	if (!_spawn_config.jack_name.empty()) {
 		cmdstr += wxString::Format(wxT(" -j \"%s\""), _spawn_config.jack_name.c_str());
 	}

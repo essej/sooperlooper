@@ -49,6 +49,11 @@ KeyboardTarget::set_enabled (bool flag)
 {
 	if (flag != _enabled) {
 		_enabled = flag;
+
+		if (_enabled) {
+			// clear state
+			_state.clear();
+		}
 	}
 }
 

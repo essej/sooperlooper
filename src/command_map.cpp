@@ -105,6 +105,7 @@ CommandMap::CommandMap()
 	_global_controls["eighth_per_cycle"] = Event::EighthPerCycle;
 	_global_controls["sync_source"] = Event::SyncTo;
 	_global_controls["tap_tempo"] = Event::TapTempo;
+	_global_controls["save_loop"] = Event::SaveLoop;
 
 	_str_ctrl_map.insert (_global_controls.begin(), _global_controls.end());
 

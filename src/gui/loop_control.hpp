@@ -71,7 +71,7 @@ class LoopControl
 	};
 	
 	// ctor(s)
-	LoopControl ();
+	LoopControl (const wxString & rcdir=wxT(""));
 	virtual ~LoopControl();
 
 	SpawnConfig & get_spawn_config() { return _spawn_config; }
@@ -187,7 +187,8 @@ class LoopControl
 	bool     _force_spawn;
 	wxString _exec_name;
 	char **  _engine_argv;
-
+	wxString _rcdir;
+	
 	LoopUpdateTimer * _updatetimer;
 	bool _pingack;
 	int  _waiting;

@@ -145,7 +145,8 @@ namespace SooperLooper {
 		    TapTempo,
 		    MidiStart,
 		    MidiStop,
-		    MidiTick
+		    MidiTick,
+		    SaveLoop
 	    } Control;
 	    
 	    int8_t  Instance;

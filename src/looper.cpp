@@ -26,7 +26,10 @@
 
 #include <iostream>
 #include <cstring>
+#include <cstdio>
 #include <cmath>
+#include <sys/time.h>
+#include <time.h>
 
 #ifdef HAVE_SNDFILE
 #include <sndfile.h>
@@ -34,6 +37,7 @@
 
 #include "ladspa.h"
 #include "plugin.hpp"
+#include "filter.hpp"
 
 using namespace std;
 using namespace SooperLooper;
@@ -95,7 +99,10 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	_src_in_ratio = 1.0;
 	_src_out_ratio = 1.0;
 #endif
+	_lp_filter = new OnePoleFilter*[_chan_count];
+	memset (_lp_filter, 0, sizeof(OnePoleFilter*) * _chan_count);
 	
+	nframes_t srate = _driver->get_samplerate();
 	
 	set_buffer_size(_driver->get_buffersize());
 	
@@ -106,7 +113,7 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 
 	memset(_down_stamps, 0, sizeof(nframes_t) * (Event::LAST_COMMAND+1));
 
-	_longpress_frames = (nframes_t) lrint (_driver->get_samplerate() * 2.0); // more than 2 secs is SUS
+	_longpress_frames = (nframes_t) lrint (srate * 2.0); // more than 2 secs is SUS
 	
 	// set some rational defaults
 	ports[DryLevel] = 1.0f;
@@ -117,7 +124,7 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	ports[Sync] = 0.0f;
 	ports[Quantize] = 0.0f;
 	ports[UseRate] = 0.0f;
-	ports[FadeSamples] = nearbyint(_driver->get_samplerate() * 0.001f); // 1ms
+	ports[FadeSamples] = nearbyint(srate * 0.001f); // 1ms
 	ports[PlaybackSync] = 0.0f;
 	
 	_slave_sync_port = 1.0f;
@@ -131,7 +138,7 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
 
-		if ((_instances[i] = descriptor->instantiate (descriptor, _driver->get_samplerate())) == 0) {
+		if ((_instances[i] = descriptor->instantiate (descriptor, srate)) == 0) {
 			return;
 		}
 
@@ -178,6 +185,9 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 		_in_src_states[i] = src_new (SrcAudioQuality, 1, &dummyerror);
 		_out_src_states[i] = src_new (SrcAudioQuality, 1, &dummyerror);
 #endif		
+
+		_lp_filter[i] = new OnePoleFilter(srate);
+		_lp_filter[i]->set_cutoff (_src_in_ratio * _lp_filter[i]->get_samplerate() * 0.48f);
 	}
 
 	
@@ -217,6 +227,10 @@ Looper::~Looper ()
 			src_delete (_in_src_states[i]);
 		}
 #endif
+
+		if (_lp_filter[i]) {
+			delete _lp_filter[i];
+		}
 	}
 
 	delete [] _instances;
@@ -232,6 +246,8 @@ Looper::~Looper ()
 	if (_dummy_buf)
 		delete [] _dummy_buf;
 
+	delete [] _lp_filter;
+	
 #ifdef HAVE_SAMPLERATE
 	delete [] _in_src_states;
 	delete [] _out_src_states;
@@ -395,6 +411,9 @@ Looper::do_event (Event *ev)
 				{
 					src_set_ratio (_in_src_states[i], _src_in_ratio);
 					src_set_ratio (_out_src_states[i], _src_out_ratio);
+
+					// set lp cutoff at adjusted SR/2
+					_lp_filter[i]->set_cutoff (_src_in_ratio * _lp_filter[i]->get_samplerate() * 0.48);
 				}
 			}
 #endif
@@ -509,7 +528,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 	// resample input audio and sync using Rate
 	_src_data.src_ratio = _src_in_ratio;
 	_src_data.input_frames = nframes;
-	_src_data.output_frames = (long) ceil (nframes * _src_in_ratio) + 1;
+	_src_data.output_frames = (long) ceil (nframes * _src_in_ratio);
 	
 	// sync input
 	_src_data.data_in = _use_sync_buf + offset;
@@ -526,13 +545,18 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 		// resample input
 		_src_data.src_ratio = _src_in_ratio;
 		_src_data.input_frames = nframes;
-		_src_data.output_frames = (long) ceil (nframes * _src_in_ratio) + 1;
+		_src_data.output_frames = (long) ceil (nframes * _src_in_ratio);
 		_src_data.data_in = (float *) _driver->get_input_port_buffer (_input_ports[i], _buffersize) + offset;
 		_src_data.data_out = _src_in_buffer;
 		src_process (_in_src_states[i], &_src_data);
-		// cerr << "nframes: " << nframes << "  output: " <<  _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << endl;
 
 		alt_frames = _src_data.output_frames_gen;
+
+//  		if (i==0 && _src_data.output_frames != alt_frames) {
+			
+// 			cerr << "nframes: " << nframes << "  output: " <<  _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << " delta: " << delta_frames << endl;
+// 		}
+		
 
 // 		if (i==0 && _src_data.output_frames != alt_frames) {
 // 			//cerr << "1 ---- sup out: " << _src_data.output_frames << "  gen: " << alt_frames << endl;
@@ -570,31 +594,40 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 		}
 		else {
 			//_src_data.output_frames = (long) ceil (ceil(nframes * _src_in_ratio) * _src_out_ratio);
-			_src_data.output_frames = nframes;
+			_src_data.output_frames = nframes ;
 		}
 		_src_data.data_in = _src_in_buffer;
 		_src_data.data_out = (float *) _driver->get_output_port_buffer (_output_ports[i], _buffersize) + offset;
 		src_process (_out_src_states[i], &_src_data);
 
-// 		if (i==0 && _src_data.input_frames != _src_data.input_frames_used) {
-// 			cerr << "3 out sup in: " << _src_data.input_frames << "  used: " << _src_data.input_frames_used << endl;
-// 		}
-		
-		if (_src_data.output_frames_gen < (long) nframes) {
-			//cerr << "4 oframes: " << _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << " nframes: " << nframes<< endl;
+//  		if (i==0 && _src_data.input_frames != _src_data.input_frames_used) {
+//  			cerr << "3 out sup in: " << _src_data.input_frames << "  used: " << _src_data.input_frames_used << endl;
+//  		}
+
+		if (_src_data.output_frames_gen != (long) nframes) {
+			//if (i==0) {
+			//	cerr << "4 oframes: " << _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << " nframes: " << nframes<< endl;
+			//}
+			
 			// reread
 			long leftover = nframes - _src_data.output_frames_gen;
 			_src_data.data_out = _src_data.data_out + _src_data.output_frames_gen;
 			_src_data.data_in = _src_data.data_in + _src_data.input_frames_used - 1;
-			_src_data.input_frames = 1;
+			_src_data.input_frames = alt_frames - _src_data.input_frames_used + 1;
 			_src_data.output_frames = leftover;
 			src_process (_out_src_states[i], &_src_data);
 
-			//cerr << "4.5 oframes: " << _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << " leftover: " << leftover << endl;
-			
+			//if (i==0) {
+			//	cerr << "4.5 oframes: " << _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << " leftover: " << leftover << endl;
+			//}
 		}
-		
+
 		//cerr << "out altframes: " << alt_frames << "  output: " <<  _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << endl;
+		// lowpass the output if rate < 1
+		if (_src_in_ratio < 1.0) {
+
+			_lp_filter[i]->run_lowpass (_src_data.data_out, nframes);
+		}
 		
 	}
 
@@ -666,9 +699,11 @@ Looper::load_loop (string fname)
 	// ok, first we need to store some current values
 	float old_recthresh = ports[TriggerThreshold];
 	float old_syncmode = ports[Sync];
+	float old_xfadesamples = ports[FadeSamples];
 	
 	ports[TriggerThreshold] = 0.0f;
 	ports[Sync] = 0.0f;
+	ports[FadeSamples] = 0.0f;
 	_slave_sync_port = 0.0;
 	
 	// now set it to mute just to make sure we weren't already recording
@@ -742,6 +777,7 @@ Looper::load_loop (string fname)
 
 	ports[TriggerThreshold] = old_recthresh;
 	ports[Sync] = old_syncmode;
+	ports[FadeSamples] = old_xfadesamples;
 	_slave_sync_port = 1.0;
 	
 	ret = true;
@@ -764,10 +800,25 @@ bool
 Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 {
 	bool ret = false;
-	
-#ifdef HAVE_SNDFILE
+	char tmpname[200];
 
-	// this is called from the man work thread which controls
+#ifdef HAVE_SNDFILE
+	
+	// if empty fname, generate name based on loop # and date
+	if (fname.empty()) {
+		struct tm * nowtime;
+		char tmpdate[200];
+		struct timeval tv = {0,0};
+		gettimeofday (&tv, NULL);
+		tmpdate[0] = '\0';
+		nowtime = localtime ((time_t *) &tv.tv_sec);
+		strftime (tmpdate, sizeof(tmpdate), "%Y%m%d-%H:%M:%S", nowtime);
+		snprintf (tmpname, sizeof(tmpname), "sl_%s_loop%02d.wav", tmpdate, _index);
+		
+		fname = tmpname;
+	}
+	
+	// this is called from the main work thread which controls
 	// the allocation of loops and jack ports
 	// thus, our readonly activity to the current loop does not
 	// need a lock to operate safely (because we know it will be safe :)
@@ -816,13 +867,15 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 	nframes_t bpos;
 	float * databuf;
 	nframes_t looppos = 0;
+
 	
 	while (frames_left > 0)
 	{
+		nframes = bufsize;
+		
 		if (nframes > frames_left) {
 			nframes = frames_left;
 		}
-
 
 		for (unsigned int i=0; i < _chan_count; ++i)
 		{
@@ -832,6 +885,7 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 
 		if (nframes == 0) {
 			// we're done, it shorted us somehow
+			cerr << "shorted" << endl;
 			break;
 		}
 		
@@ -853,6 +907,7 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 		frames_left -= nframes;
 		looppos += nframes;
 	}
+
 	
 	ret = true;
 

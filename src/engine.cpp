@@ -693,7 +693,16 @@ Engine::mainloop()
 			_nonrt_update_event_queue->get_read_vector(&vec);
 			evt = vec.buf[0];
 
-			if (evt->Type == Event::type_control_change) {
+			if (evt->Control == Event::SaveLoop) {
+				cerr << "got save: " << (int) evt->Instance <<  endl;
+				// save with no filename will autogenerate a unique name
+				for (unsigned int n=0; n < _instances.size(); ++n) {
+					if (evt->Instance < 0 || evt->Instance == (int)n) {
+						_instances[n]->save_loop ();
+					}
+				}
+			}
+			else if (evt->Type == Event::type_control_change) {
 				ConfigUpdateEvent cuev (ConfigUpdateEvent::Send, evt->Instance, evt->Control, "", "", evt->Value);
 				_osc->finish_update_event (cuev);
 			}
