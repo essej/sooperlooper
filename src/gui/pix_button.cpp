@@ -39,8 +39,6 @@ BEGIN_EVENT_TABLE(PixButton, wxWindow)
 	EVT_PAINT(PixButton::OnPaint)
 	EVT_MOUSE_EVENTS(PixButton::OnMouseEvents)
 
-	EVT_MENU (ID_EditMenuOp , PixButton::on_menu_events)
-	EVT_MENU (ID_DefaultMenuOp , PixButton::on_menu_events)
 	EVT_MENU (ID_BindMenuOp , PixButton::on_menu_events)
 	
 END_EVENT_TABLE()
@@ -268,7 +266,7 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 	ev.Skip();
 }
 
-void PixButton::on_menu_events (wxMenuEvent &ev)
+void PixButton::on_menu_events (wxCommandEvent &ev)
 {
 	if (ev.GetId() == ID_BindMenuOp) {
 		bind_request(); // emit

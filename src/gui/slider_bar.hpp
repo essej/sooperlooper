@@ -122,7 +122,7 @@ class SliderBar
 	void show_text_ctrl ();
 	void hide_text_ctrl ();
 	void on_text_event (wxCommandEvent &ev);
-	void on_menu_events (wxMenuEvent &ev);
+	void on_menu_events (wxCommandEvent &ev);
 	
 	void update_value_str();
 

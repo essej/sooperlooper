@@ -72,7 +72,7 @@ class CheckBox
 	void OnSize (wxSizeEvent &ev);
 	void OnMouseEvents (wxMouseEvent &ev);
 	void OnFocusEvent (wxFocusEvent &ev);
-	void on_menu_events (wxMenuEvent &ev);
+	void on_menu_events (wxCommandEvent &ev);
 	
 	void draw_area (wxDC & dc);
 

@@ -499,7 +499,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 }
 
 
-void SliderBar::on_menu_events (wxMenuEvent &ev)
+void SliderBar::on_menu_events (wxCommandEvent &ev)
 {
 	if (ev.GetId() == ID_BindMenuOp) {
 		bind_request(); // emit

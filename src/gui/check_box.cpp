@@ -251,7 +251,7 @@ void CheckBox::OnFocusEvent (wxFocusEvent &ev)
 	ev.Skip();
 }
 
-void CheckBox::on_menu_events (wxMenuEvent &ev)
+void CheckBox::on_menu_events (wxCommandEvent &ev)
 {
 	if (ev.GetId() == ID_BindMenuOp) {
 		bind_request(); // emit
