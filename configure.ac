@@ -1,0 +1,73 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(soop.cc)
+
+AC_CONFIG_AUX_DIR(.)
+
+SOOP_MAJOR_VERSION=0
+SOOP_MINOR_VERSION=1
+SOOP_MICRO_VERSION=0
+
+BETA=
+
+AC_SUBST(SOOP_MAJOR_VERSION)
+AC_SUBST(SOOP_MINOR_VERSION)
+AC_SUBST(SOOP_MICRO_VERSION)
+
+SOOP_SO_VERSION=${SOOP_MAJOR_VERSION}:${SOOP_MINOR_VERSION}:${SOOP_MICRO_VERSION}${BETA}
+SOOP_VERSION=$SOOP_MAJOR_VERSION.$SOOP_MINOR_VERSION.${SOOP_MICRO_VERSION}${BETA}
+SOOP_RELEASE=$SOOP_MAJOR_VERSION-$SOOP_MINOR_VERSION-${SOOP_MICRO_VERSION}${BETA}
+
+AC_SUBST(SOOP_SO_VERSION)
+AC_SUBST(SOOP_VERSION)
+AC_SUBST(SOOP_RELEASE)
+
+AM_INIT_AUTOMAKE(soop,$SOOP_VERSION)
+AM_CONFIG_HEADER(config.h)
+
+dnl ====================================================================
+dnl you do have C++, right ?
+dnl ====================================================================
+
+AC_PROG_CC
+AC_PROG_CXX
+if test "$ac_cv_prog_cxx" = "no" ; then
+   AC_MSG_ERROR([*** Ardour is written in C++. You don't appear to have a C++ compiler])
+fi
+
+CXXFLAGS="-g -D_REENTRANT"
+OPT_CXXFLAGS="-D_REENTRANT -O6 -fomit-frame-pointer -ffast-math -fstrength-reduce -funroll-loops -fmove-all-movables"
+if test x"$GXX" = xyes ; then
+   CXXFLAGS="$CXXFLAGS -Wall"
+fi
+if test x"$GXX" = xyes ; then
+   OPT_CXXFLAGS="$OPT_CXXFLAGS -Wall"
+fi
+
+AC_ARG_ENABLE(optimize,
+     [  --disable-optimize       avoid optimizations to allow gdb debugging.],
+     [ if test "x$enable_optimize" != "xno" ; then CXXFLAGS="$OPT_CXXFLAGS" ; fi ],
+     [ CXXFLAGS="$OPT_CXXFLAGS" ]
+)
+
+#AM_PATH_GTK(1.0.0, , [
+#   AC_MSG_ERROR([*** soop requires GTK+, but it doesn't appear to be installed])
+#])
+
+PKG_CHECK_MODULES(JACK, jack >= 0.66.0)
+PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.5)
+
+PKG_CHECK_MODULES(GTKMM, gtkmm-2.0 >= 2.0)
+
+EXTRA_LIBS="$JACK_LIBS $XML_LIBS $GTKMM_LIBS"
+
+AC_LANG_CPLUSPLUS
+
+CFLAGS="$CFLAGS -DSAMPLE_MEMORY=200 $GTKMM_CFLAGS $JACK_CFLAGS $XML_CFLAGS"
+CXXFLAGS=$CFLAGS
+LIBS="$LIBS $EXTRA_LIBS"
+
+#CFLAGS="$CFLAGS -DSAMPLE_MEMORY=200 -I../ardour/libs/sigc++/sigc++/config  -I../ardour/libs/sigc++ -I../ardour/libs/gtkmm -I../ardour/libs/gtkmm/gdk-- -I../ardour/libs/gtkmm/src $GTK_CFLAGS $JACK_CFLAGS $XML_CFLAGS"
+#CXXFLAGS="$CXXFLAGS -DSAMPLE_MEMORY=200 -I../ardour/libs/sigc++/sigc++/config -I../ardour/libs/sigc++ -I../ardour/libs/gtkmm -I../ardour/libs/gtkmm/gdk-- -I../ardour/libs/gtkmm/src $GTK_CFLAGS $JACK_CFLAGS $XML_CFLAGS"
+#LIBS="$LIBS -L../ardour/libs/gtkmm/gdk--/gdk--  -L../ardour/libs/sigc++/sigc++ -L../ardour/libs/gtkmm/src/gtk-- -lgtkmm -lgdkmm -lsigc $GTK_LIBS $JACK_LIBS $XML_LIBS $EXTRA_LIBS"
+
+AC_OUTPUT(Makefile)
