@@ -268,6 +268,7 @@ ChoiceBox::OnSize(wxSizeEvent & event)
 	}
 	_backing_store = new wxBitmap(_width, _height);
  	_memdc.SelectObject(*_backing_store);
+	_memdc.SetFont(GetFont());
 	
 	event.Skip();
 }
@@ -376,7 +377,6 @@ void ChoiceBox::draw_area(wxDC & dc)
 	wxCoord w,h;
 	wxPoint shape[6];
 	
-	dc.SetFont(GetFont());
 	dc.SetBackground(_bgbrush);
 	dc.Clear();
 

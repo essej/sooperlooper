@@ -155,6 +155,7 @@ CheckBox::OnSize(wxSizeEvent & event)
 	}
 	_backing_store = new wxBitmap(_width, _height);
 	_memdc.SelectObject(*_backing_store);
+	_memdc.SetFont(GetFont());
 	
 	event.Skip();
 }
@@ -237,7 +238,6 @@ void CheckBox::draw_area(wxDC & dc)
 {
 	wxCoord w,h, y;
 	
-	dc.SetFont(GetFont());
 	dc.SetBackground(_bgbrush);
 	dc.Clear();
 
