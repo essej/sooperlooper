@@ -684,7 +684,7 @@ GuiFrame::save_default_midibindings ()
 	wxString dirname = _rcdir;
 
 	if ( ! wxDirExists(dirname) ) {
-		if (!wxMkdir ( dirname.fn_str(), 0755 )) {
+		if (!wxMkdir ( dirname, 0755 )) {
 			printf ("Error creating %s\n", static_cast<const char *> (dirname.mb_str())); 
 			return;
 		}
@@ -1168,7 +1168,7 @@ bool GuiFrame::save_rc()
 	wxString dirname = _rcdir;
 	
 	if ( ! wxDirExists(dirname) ) {
-		if (!wxMkdir ( dirname.fn_str(), 0755 )) {
+		if (!wxMkdir ( dirname, 0755 )) {
 			printf ("Error creating %s\n", static_cast<const char *> (dirname.mb_str())); 
 			return false;
 		}
