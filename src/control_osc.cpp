@@ -146,6 +146,7 @@ ControlOSC::register_callbacks()
 
 		// add loop add handler:  i:channels  i:bytes_per_channel
 		lo_server_add_method(serv, "/loop_add", "if", ControlOSC::_loop_add_handler, this);
+		lo_server_add_method(serv, "/loop_add", "ifi", ControlOSC::_loop_add_handler, this);
 
 		// add loop del handler:  i:index 
 		lo_server_add_method(serv, "/loop_del", "i", ControlOSC::_loop_del_handler, this);
@@ -629,7 +630,12 @@ int ControlOSC::ping_handler(const char *path, const char *types, lo_arg **argv,
 {
 	string returl (&argv[0]->s);
 	string retpath (&argv[1]->s);
-	cerr << "got ping" << endl;
+	lo_message msg = (lo_message) data;
+	lo_address srcaddr = lo_message_get_source (msg);
+	const char * sport = lo_address_get_port(srcaddr);
+	int srcport = atoi(sport);
+	cerr << "got ping from " <<  srcport << endl;
+
 	_engine->push_nonrt_event ( new PingEvent (returl, retpath));
 	
 	return 0;
@@ -652,11 +658,15 @@ int ControlOSC::global_set_handler(const char *path, const char *types, lo_arg *
 	// s: param  f: val
 	string param(&argv[0]->s);
 	float val  = argv[1]->f;
+	lo_message msg = (lo_message) data;
+	lo_address srcaddr = lo_message_get_source (msg);
+	const char * sport = lo_address_get_port(srcaddr);
+	int srcport = atoi(sport);
 
 	_engine->push_nonrt_event ( new GlobalSetEvent (param, val));
 
 	// send out updates to registered in main event loop
-	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Send, -2, _cmd_map->to_control_t(param), "", "", val));
+	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Send, -2, _cmd_map->to_control_t(param), "", "", val, srcport));
 	
 	return 0;
 }
@@ -819,8 +829,13 @@ int ControlOSC::set_handler(const char *path, const char *types, lo_arg **argv, 
 
 	string ctrl(&argv[0]->s);
 	float val  = argv[1]->f;
+	lo_message msg = (lo_message) data;
+	lo_address srcaddr = lo_message_get_source (msg);
+	const char * sport = lo_address_get_port(srcaddr);
+	int srcport = atoi(sport);
+	//cerr << "source is " << srcport << endl;
 
-	_engine->push_control_event(info->type, _cmd_map->to_control_t(ctrl), val, info->instance);
+	_engine->push_control_event(info->type, _cmd_map->to_control_t(ctrl), val, info->instance, srcport);
 
 	
 	return 0;
@@ -834,8 +849,14 @@ int ControlOSC::loop_add_handler(const char *path, const char *types, lo_arg **a
 	
 	int channels = argv[0]->i;
 	float secs = argv[1]->f;
+	int discrete = 1;
 
-	_engine->push_nonrt_event ( new ConfigLoopEvent (ConfigLoopEvent::Add, channels, secs, 0));
+	if (argc > 2) {
+		cerr << "got discrete var" << endl;
+		discrete = argv[2]->i;
+	}
+
+	_engine->push_nonrt_event ( new ConfigLoopEvent (ConfigLoopEvent::Add, channels, secs, 0, discrete));
 	
 	return 0;
 }
@@ -1024,7 +1045,7 @@ ControlOSC::finish_global_get_event (GlobalGetEvent & event)
 		return;
 	}
 	
-	// cerr << "sending to " << returl << "  path: " << retpath << "  ctrl: " << param << "  val: " <<  event.ret_value << endl;
+	 cerr << "sending to " << returl << "  path: " << retpath << "  ctrl: " << param << "  val: " <<  event.ret_value << endl;
 
 	if (lo_send(addr, retpath.c_str(), "isf", -2, param.c_str(), event.ret_value) == -1) {
 		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
@@ -1041,15 +1062,16 @@ void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 	string retpath = event.ret_path;
 	string returl  = event.ret_url;
 	string ctrl    = _cmd_map->to_control_str (event.control);
-	
+	int source  = event.source;
+
 	if (event.type == ConfigUpdateEvent::Send)
 	{
 		if (event.instance == -1) {
 			for (unsigned int i = 0; i < _engine->loop_count_unsafe(); ++i) {
-				send_registered_updates (ctrl, event.value, (int) i);
+				send_registered_updates (ctrl, event.value, (int) i, source);
 			}
 		} else {
-			send_registered_updates (ctrl, event.value, event.instance);
+			send_registered_updates (ctrl, event.value, event.instance, source);
 		}
 
 	}
@@ -1158,7 +1180,7 @@ void ControlOSC::finish_midi_binding_event (MidiBindingEvent & event)
 }
 
 void
-ControlOSC::send_registered_updates(string ctrl, float val, int instance)
+ControlOSC::send_registered_updates(string ctrl, float val, int instance, int source)
 {
 	InstancePair ipair(instance, ctrl);
 	ControlRegistrationMap::iterator iter = _registration_map.find (ipair);
@@ -1170,7 +1192,15 @@ ControlOSC::send_registered_updates(string ctrl, float val, int instance)
 		for (UrlList::iterator url = ulist.begin(); url != ulist.end();)
 		{
 		        lo_address addr = (*url).first;
-			
+			const char * port = lo_address_get_port(addr);
+			int aport = atoi (port);
+
+			if (aport == source) {
+				// ignore if this was caused by a set from this addr
+				cerr << "ignoreing address to send update" << endl;
+				continue;
+			}
+
 			if (lo_send(addr, (*url).second.c_str(), "isf", instance, ctrl.c_str(), val) == -1) {
 #ifdef DEBUG
 				fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));

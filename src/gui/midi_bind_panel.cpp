@@ -194,7 +194,7 @@ void MidiBindPanel::init()
 	_control_combo = new wxChoice(_edit_panel, ID_ControlCombo,  wxDefaultPosition, wxSize(100, -1), 0, 0);
 	//_control_combo->SetToolTip(wxT("Choose control or command"));
 	populate_controls();
-	
+	//_control_combo->SetSelection(0);
 	colsizer->Add (_control_combo, 0, wxALL|wxALIGN_CENTRE|wxEXPAND, 2);
 
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -206,6 +206,7 @@ void MidiBindPanel::init()
 	for (int i=1; i <= 16; ++i) {
 		_loopnum_combo->Append (wxString::Format(wxT("%d"), i), (void *) i);
 	}
+	_loopnum_combo->SetSelection(0);
 	rowsizer->Add (_loopnum_combo, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
 
 	_sus_check = new wxCheckBox(_edit_panel, ID_SusCheck, wxT("SUS"));
@@ -236,6 +237,7 @@ void MidiBindPanel::init()
 	_type_combo->Append (NoteString);
 	_type_combo->Append (CcString);
 	_type_combo->Append (PcString);
+	_type_combo->SetSelection(0);
 	rowsizer->Add (_type_combo, 1, wxALL|wxALIGN_CENTRE_VERTICAL|wxEXPAND, 2);
 
 	_param_spin =  new wxSpinCtrl(_edit_panel, ID_ParamSpin, wxT("0"), wxDefaultPosition, wxSize(50,-1), wxSP_ARROW_KEYS, 0, 127, 0, wxT("KeyAware"));
@@ -264,6 +266,7 @@ void MidiBindPanel::init()
 	_style_combo->Append (wxT("Normal"), (void *) MidiBindInfo::NormalStyle);
 	_style_combo->Append (wxT("Gain"), (void *) MidiBindInfo::GainStyle);
 	_style_combo->SetToolTip(wxT("Choose a scaling type"));
+	_style_combo->SetSelection(0);
 	rowsizer->Add (_style_combo, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
 
 	_range_panel->SetAutoLayout( true );     // tell dialog to use sizer
@@ -543,11 +546,21 @@ void MidiBindPanel::update_curr_binding()
 {
 	double fval;
 	CommandMap & cmap = CommandMap::instance();
+
+	if (_control_combo->GetSelection() < 0) {
+		return;
+	}
 	
 	// take info from editpanel and set the MidiBindInfo
 	_currinfo.control = static_cast<const char *>(_control_combo->GetClientData(_control_combo->GetSelection()));
 	_currinfo.channel = _chan_spin->GetValue() - 1;
-	_currinfo.instance = (int) _loopnum_combo->GetClientData(_loopnum_combo->GetSelection()) - 1;
+
+	if (_loopnum_combo->GetSelection() >= 0) {
+		_currinfo.instance = (int) _loopnum_combo->GetClientData(_loopnum_combo->GetSelection()) - 1;
+	}
+	else {
+		_currinfo.instance = -1;
+	}
 
 	
 	wxString tsel = _type_combo->GetStringSelection();
@@ -611,6 +624,10 @@ void MidiBindPanel::update_curr_binding()
 
 void MidiBindPanel::on_combo (wxCommandEvent &ev)
 {
+	if (_control_combo->GetSelection() < 0) {
+		return;
+	}
+
 	string control = static_cast<const char *>(_control_combo->GetClientData(_control_combo->GetSelection()));
 
  	if (CommandMap::instance().is_command(control)) {

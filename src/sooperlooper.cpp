@@ -203,7 +203,7 @@ static void* watchdog_thread(void* arg)
 	  /* block until a signal received */
 	  sigwait(&signalset, &signalno);
 	  
-	  // fprintf (stderr, "recieved signal %d\n", signalno);
+	  fprintf (stderr, "recieved signal %d\n", signalno);
 	  
 	  if (signalno == SIGHUP) {
 		  exiting = 1;
@@ -265,7 +265,7 @@ int main(int argc, char** argv)
 {
 	OptionInfo option_info;
 
-	setup_signals();
+	//setup_signals();
 	
 	
 	parse_options (argc, argv, option_info);

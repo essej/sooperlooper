@@ -46,14 +46,15 @@ namespace SooperLooper {
 			Remove
 		} type;
 
-		ConfigLoopEvent(Type tp, int chans=1, float sec=0.0f, int ind=0)
-			: type(tp), channels(chans), secs(sec), index(ind) {}
+		ConfigLoopEvent(Type tp, int chans=1, float sec=0.0f, int ind=0, int dis=1)
+			: type(tp), channels(chans), secs(sec), index(ind), discrete(dis) {}
 
 		virtual ~ConfigLoopEvent() {}
 
 		int channels;
 		float secs;
 		int index;
+		int discrete;
 	};
 
 	class LoopFileEvent : public EventNonRT
@@ -119,7 +120,7 @@ namespace SooperLooper {
 			Send
 		} type;
 
-		ConfigUpdateEvent(Type tp, int8_t inst,  Event::control_t ctrl, std::string returl="", std::string retpath="", float val=0.0)
+		ConfigUpdateEvent(Type tp, int8_t inst,  Event::control_t ctrl, std::string returl="", std::string retpath="", float val=0.0, int source=0)
 			: type(tp), control(ctrl), instance(inst), ret_url(returl), ret_path(retpath), value(val) {}
 		virtual ~ConfigUpdateEvent() {}
 
@@ -129,6 +130,7 @@ namespace SooperLooper {
 		std::string      ret_url;
 		std::string      ret_path;
 		float            value;
+		int           source;
 	};
 
 	class PingEvent : public EventNonRT

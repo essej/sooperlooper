@@ -107,7 +107,7 @@ class ControlOSC
 	lo_address find_or_cache_addr(std::string returl);
 
 	
-	void send_registered_updates(std::string ctrl, float val, int instance);
+	void send_registered_updates(std::string ctrl, float val, int instance, int source=0);
 	
 	static int _quit_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _global_set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);

@@ -87,7 +87,7 @@ class LoopControl
 	bool post_ctrl_change (int index, wxString ctrl, float val);
 	bool post_global_ctrl_change (wxString ctrl, float val);
 
-	bool post_add_loop(int channels=0, float secs=0.0f);
+	bool post_add_loop(int channels=0, float secs=0.0f, bool discrete=true);
 	bool post_remove_loop();
 
 	bool post_save_loop(int index, wxString fname, wxString format=wxT("float"), wxString endian=wxT("little"));

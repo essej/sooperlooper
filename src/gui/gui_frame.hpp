@@ -107,7 +107,8 @@ protected:
 	void on_syncto_change (int index, wxString val);
 
 	void on_quantize_change (int index, wxString val);
-	//void on_round_check (wxCommandEvent &ev);
+	void on_dry_change (float value);
+	void on_wet_change (float value);
 	void on_round_check (bool val);
 
 	void on_bind_request (wxString val);
@@ -142,7 +143,8 @@ protected:
 	ChoiceBox * _sync_choice;
 	SpinBox * _eighth_cycle_bar;
 	ChoiceBox * _quantize_choice;
-	//wxCheckBox * _round_check;
+	SliderBar * _common_dry_bar;
+	SliderBar * _common_wet_bar;
 	SpinBox * _xfade_bar;
 	CheckBox * _round_check;
 	PixButton * _taptempo_button;
@@ -181,7 +183,7 @@ class AddCustomLoopDialog
 	static int num_loops;
 	static int num_channels;
 	static float secs_channel;
-	
+	static bool discrete;
 protected:
 
 	GuiFrame * _parent;
@@ -189,7 +191,7 @@ protected:
 	wxSpinCtrl * _num_loops_spin;
 	wxSpinCtrl * _num_channels_spin;
 	wxSpinCtrl * _secs_per_channel_spin;
-	
+	wxCheckBox * _discrete_check;
 };
 
 	

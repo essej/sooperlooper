@@ -154,6 +154,7 @@ LooperPanel::init()
 
 	SliderBar *slider;
 	wxFont sliderFont = *wxSMALL_FONT;
+	//cerr << "looper frame small: " << sliderFont.GetPointSize() << endl;
 	
 	_thresh_control = slider = new SliderBar(this, ID_ThreshControl, 0.0f, 1.0f, 0.0f);
 	slider->set_units(wxT("dB"));

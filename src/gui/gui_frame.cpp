@@ -81,7 +81,9 @@ enum {
 	ID_TapTempoButton,
 	ID_TapTempoTimer,
 	ID_AddCustomLoop,
-	ID_XfadeSlider
+	ID_XfadeSlider,
+	ID_DryControl,
+	ID_WetControl
 };
 
 
@@ -239,6 +241,17 @@ GuiFrame::init()
 	_quantize_choice->append_choice (wxT("loop"), 3);
 	rowsizer->Add (_quantize_choice, 0, wxALL, 2);
 
+	
+	rowsizer->Add (1, 1, 1);
+
+	wxStaticBitmap * logobit = new wxStaticBitmap(toppanel, -1, wxBitmap(sl_logo_xpm));
+	rowsizer->Add (logobit, 0, wxALIGN_BOTTOM);
+
+	topcolsizer->Add (rowsizer, 0, wxEXPAND|wxTOP, 3);
+
+	rowsizer = new wxBoxSizer(wxHORIZONTAL);
+	rowsizer->Add (1, 1, 1);
+
 	_xfade_bar = new SpinBox(toppanel, ID_XfadeSlider, 0.0f, 128000.0f, 64.0f, true, wxDefaultPosition, wxSize(100, 22));
 	_xfade_bar->set_units(wxT(""));
 	_xfade_bar->set_label(wxT("xfade"));
@@ -249,19 +262,36 @@ GuiFrame::init()
 	_xfade_bar->value_changed.connect (slot (*this,  &GuiFrame::on_xfade_change));
 	_xfade_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("fade_samples")));
 	rowsizer->Add (_xfade_bar, 0, wxALL, 2);
+
+	_common_dry_bar = new SliderBar(toppanel, ID_DryControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(200,22));
+	_common_dry_bar->set_units(wxT("dB"));
+	_common_dry_bar->set_label(wxT("main dry"));
+	_common_dry_bar->set_scale_mode(SliderBar::ZeroGainMode);
+	_common_dry_bar->SetFont(sliderFont);
+	_common_dry_bar->value_changed.connect (slot (*this, &GuiFrame::on_dry_change));
+	_common_dry_bar->bind_request.connect (bind (slot (*this, &GuiFrame::on_bind_request), wxT("dry")));
+	rowsizer->Add (_common_dry_bar, 0, wxALL, 2);
+
+	_common_wet_bar = new SliderBar(toppanel, ID_WetControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(200,22));
+	_common_wet_bar->set_units(wxT("dB"));
+	_common_wet_bar->set_label(wxT("main wet"));
+	_common_wet_bar->set_scale_mode(SliderBar::ZeroGainMode);
+	_common_wet_bar->SetFont(sliderFont);
+	_common_wet_bar->value_changed.connect (slot (*this, &GuiFrame::on_wet_change));
+	_common_wet_bar->bind_request.connect (bind (slot (*this, &GuiFrame::on_bind_request), wxT("wet")));
+	rowsizer->Add (_common_wet_bar, 0, wxALL, 2);
+	
+
 	
 	_round_check = new CheckBox (toppanel, ID_RoundCheck, wxT("round"), true, wxDefaultPosition, wxSize(80, 22));
 	_round_check->SetFont (sliderFont);
 	_round_check->value_changed.connect (slot (*this, &GuiFrame::on_round_check));
 	_round_check->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("round")));
 	rowsizer->Add (_round_check, 0, wxALL, 2);
-	
+
 	rowsizer->Add (1, 1, 1);
 
-	wxStaticBitmap * logobit = new wxStaticBitmap(toppanel, -1, wxBitmap(sl_logo_xpm));
-	rowsizer->Add (logobit, 0, wxALIGN_BOTTOM);
-
-	topcolsizer->Add (rowsizer, 0, wxEXPAND|wxTOP|wxBOTTOM, 3);
+	topcolsizer->Add (rowsizer, 0, wxEXPAND|wxBOTTOM, 3);
 
 	
 	toppanel->SetSizer( topcolsizer );      // actually set the sizer
@@ -515,6 +545,15 @@ GuiFrame::update_controls()
 		_xfade_bar->set_value (val);
 	}
 
+	if (_loop_control->is_global_updated("dry")) {
+		_loop_control->get_global_value("dry", val);
+		_common_dry_bar->set_value (val);
+	}
+	if (_loop_control->is_global_updated("wet")) {
+		_loop_control->get_global_value("wet", val);
+		_common_wet_bar->set_value (val);
+	}
+
 	
 }
 
@@ -661,7 +700,7 @@ GuiFrame::on_add_custom_loop (wxCommandEvent &ev)
 	if (dial->ShowModal() == wxID_OK) {
 		for (int i=0; i < dial->num_loops; ++i) {
 			cerr << "adding loop with " << dial->num_channels << "  secs: " << dial->secs_channel << endl;
-			_loop_control->post_add_loop (dial->num_channels, dial->secs_channel);
+			_loop_control->post_add_loop (dial->num_channels, dial->secs_channel, dial->discrete);
 		}
 	}
 
@@ -707,6 +746,14 @@ GuiFrame::on_bind_request (wxString val)
 		info.lbound = 0.0f;
 		info.ubound = 16384.0f;
 	}
+	else if (val == wxT("dry")) {
+		info.control = "dry";
+		info.style = MidiBindInfo::GainStyle;
+	}
+	else if (val == wxT("wet")) {
+		info.control = "wet";
+		info.style = MidiBindInfo::GainStyle;
+	}
 	else if (val == wxT("round")) {
 		info.instance = -1;
 		info.control = "round";
@@ -736,19 +783,31 @@ GuiFrame::on_bind_request (wxString val)
 void
 GuiFrame::on_tempo_change (float value)
 {
-	_loop_control->post_global_ctrl_change ("tempo", value);
+	_loop_control->post_global_ctrl_change (wxT("tempo"), value);
 }
 
 void
 GuiFrame::on_eighth_change (float value)
 {
-	_loop_control->post_global_ctrl_change ("eighth_per_cycle", value);
+	_loop_control->post_global_ctrl_change (wxT("eighth_per_cycle"), value);
 }
 
 void
 GuiFrame::on_xfade_change (float value)
 {
 	_loop_control->post_ctrl_change (-1, wxT("fade_samples"), value);
+}
+
+void
+GuiFrame::on_dry_change (float value)
+{
+	_loop_control->post_global_ctrl_change (wxT("dry"), value);
+}
+
+void
+GuiFrame::on_wet_change (float value)
+{
+	_loop_control->post_global_ctrl_change (wxT("wet"), value);
 }
 
 void
@@ -765,7 +824,7 @@ GuiFrame::on_syncto_change (int index, wxString val)
 
 	value = (float) _sync_choice->get_data_value();
 	
-	_loop_control->post_global_ctrl_change ("sync_source", value);
+	_loop_control->post_global_ctrl_change (wxT("sync_source"), value);
 }
 
 
@@ -1160,7 +1219,7 @@ void GuiFrame::set_curr_loop (int index)
 int AddCustomLoopDialog::num_loops = 1;
 int AddCustomLoopDialog::num_channels = 2;
 float AddCustomLoopDialog::secs_channel = 40.0f;
-
+bool AddCustomLoopDialog::discrete = true;
 
 AddCustomLoopDialog::AddCustomLoopDialog (GuiFrame * parent, wxWindowID id, const wxString& title,
 					  const wxPoint& pos, const wxSize& size)
@@ -1184,6 +1243,13 @@ AddCustomLoopDialog::AddCustomLoopDialog (GuiFrame * parent, wxWindowID id, cons
 	_num_channels_spin = new wxSpinCtrl(this, -1, wxT("2"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 16, num_channels);
 	_num_channels_spin->SetValue (num_channels);
 	setsizer->Add (_num_channels_spin, 0);
+
+	
+	_discrete_check = new wxCheckBox(this, -1, wxT("Individual Loop Ins/Outs"));
+	_discrete_check->SetValue(discrete);
+	setsizer->Add (_discrete_check, 0);
+	setsizer->Add (1,1,1);
+
 	
 	statText = new wxStaticText(this, -1, wxT("Loop time (secs minimum):"));
 	setsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL);
@@ -1224,7 +1290,7 @@ bool AddCustomLoopDialog::TransferDataFromWindow ()
 	num_loops = _num_loops_spin->GetValue();
 	num_channels = _num_channels_spin->GetValue();
 	secs_channel = (float) _secs_per_channel_spin->GetValue();
-		
+	discrete = _discrete_check->GetValue();
 	return true;
 }
 

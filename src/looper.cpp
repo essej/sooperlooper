@@ -38,6 +38,7 @@
 #include "ladspa.h"
 #include "plugin.hpp"
 #include "filter.hpp"
+#include "engine.hpp"
 
 using namespace std;
 using namespace SooperLooper;
@@ -54,7 +55,7 @@ static const double MaxResamplingRate = 4.0f;
 static const int SrcAudioQuality = SRC_LINEAR;
 #endif
 
-Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_count, float loopsecs)
+Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_count, float loopsecs, bool discrete)
 	: _driver (driver), _index(index), _chan_count(chan_count)
 {
 	char tmpstr[100];
@@ -72,7 +73,12 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	_our_syncin_buf = 0;
 	_our_syncout_buf = 0;
 	_dummy_buf = 0;
+	_tmp_io_buf = 0;
 	_running_frames = 0;
+	_use_common_io = true;
+	_have_discrete_io = discrete;
+	_curr_dry = 1.0f;
+	_target_dry = 1.0f;
 
 	if (!descriptor) {
 		descriptor = ladspa_descriptor (0);
@@ -116,7 +122,7 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	_longpress_frames = (nframes_t) lrint (srate * 2.0); // more than 2 secs is SUS
 	
 	// set some rational defaults
-	ports[DryLevel] = 1.0f;
+	ports[DryLevel] = 0.0f;
 	ports[WetLevel] = 1.0f;
 	ports[Feedback] = 1.0f;
 	ports[Rate] = 1.0f;
@@ -142,20 +148,23 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 			return;
 		}
 
-		snprintf(tmpstr, sizeof(tmpstr), "loop%d_in_%d", _index, i+1);
-
-		if (!_driver->create_input_port (tmpstr, _input_ports[i])) {
-					
-			cerr << "cannot register loop input port\n";
-			return;
-		}
-		
-		snprintf(tmpstr, sizeof(tmpstr), "loop%d_out_%d", _index, i+1);
-
-		if (!_driver->create_output_port (tmpstr, _output_ports[i]))
+		if (_have_discrete_io) 
 		{
-			cerr << "cannot register loop output port\n";
-			return;
+			snprintf(tmpstr, sizeof(tmpstr), "loop%d_in_%d", _index, i+1);
+			
+			if (!_driver->create_input_port (tmpstr, _input_ports[i])) {
+				
+				cerr << "cannot register loop input port\n";
+				_have_discrete_io = false;
+			}
+			
+			snprintf(tmpstr, sizeof(tmpstr), "loop%d_out_%d", _index, i+1);
+			
+			if (!_driver->create_output_port (tmpstr, _output_ports[i]))
+			{
+				cerr << "cannot register loop output port\n";
+				_have_discrete_io = false;
+			}
 		}
 
 		/* connect all scalar ports to data values */
@@ -246,6 +255,9 @@ Looper::~Looper ()
 	if (_dummy_buf)
 		delete [] _dummy_buf;
 
+	if (_tmp_io_buf)
+		delete [] _tmp_io_buf;
+
 	delete [] _lp_filter;
 	
 #ifdef HAVE_SAMPLERATE
@@ -259,6 +271,12 @@ Looper::~Looper ()
 #endif
 }
 
+
+void 
+Looper::set_use_common_io (bool val)
+{
+	_use_common_io = val;
+}
 
 void
 Looper::use_sync_buf(float * buf)
@@ -288,11 +306,14 @@ Looper::set_buffer_size (nframes_t bufsize)
 
 		if (_dummy_buf)
 			delete [] _dummy_buf;
+		if (_tmp_io_buf)
+			delete [] _tmp_io_buf;
 		
 		_buffersize = bufsize;
 		
 		_our_syncin_buf = new float[_buffersize];
 		_our_syncout_buf = new float[_buffersize];
+		_tmp_io_buf = new float[_buffersize];
 		// big enough for use with resampling too
 		_dummy_buf = new float[(nframes_t) ceil (_buffersize * MaxResamplingRate)];
 		
@@ -319,13 +340,25 @@ Looper::get_control_value (Event::control_t ctrl)
 {
 	int index = (int) ctrl;
 	
-	if (index >= 0 && index < LASTPORT) {
+	if (ctrl == Event::DryLevel) {
+		return _curr_dry;
+	}
+	else if (index >= 0 && index < LASTPORT) {
 		return ports[index];
 	}
 
 	return 0.0f;
 }
 
+void Looper::set_port (ControlPort n, float val)
+{
+	if (n == DryLevel) {
+		_target_dry = val;
+	}
+	else {
+		ports[n] = val;
+	}
+}
 
 
 void
@@ -395,8 +428,15 @@ Looper::do_event (Event *ev)
 				ev->Value = roundf(ev->Value);
 			}
 			
-			ports[ev->Control] = ev->Value;
-			//cerr << "set port " << ev->Control << "  to: " << ev->Value << endl;
+			if (ev->Control == Event::DryLevel)
+			{
+				_target_dry = ev->Value;
+			}
+			else 
+			{
+				ports[ev->Control] = ev->Value;
+				//cerr << "set port " << ev->Control << "  to: " << ev->Value << endl;
+			}
 
 			
 #ifdef HAVE_SAMPLERATE
@@ -434,13 +474,15 @@ Looper::run (nframes_t offset, nframes_t nframes)
 	if (!lm.locked()) {
 
 		// treat as bypassed
-		for (unsigned int i=0; i < _chan_count; ++i)
-		{
-			float * inbuf = _driver->get_input_port_buffer (_input_ports[i], _buffersize);
-			float * outbuf = _driver->get_output_port_buffer (_output_ports[i], _buffersize);
-			if (inbuf && outbuf) {
-				for (nframes_t n=0; n < nframes; ++n) {
-					outbuf[n] = inbuf[n] * ports[DryLevel];
+		if (_have_discrete_io) {
+			for (unsigned int i=0; i < _chan_count; ++i)
+			{
+				float * inbuf = _driver->get_input_port_buffer (_input_ports[i], _buffersize);
+				float * outbuf = _driver->get_output_port_buffer (_output_ports[i], _buffersize);
+				if (inbuf && outbuf) {
+					for (nframes_t n=0; n < nframes; ++n) {
+						outbuf[n] = inbuf[n] * ports[DryLevel];
+					}
 				}
 			}
 		}
@@ -490,12 +532,46 @@ Looper::run (nframes_t offset, nframes_t nframes)
 void
 Looper::run_loops (nframes_t offset, nframes_t nframes)
 {
+	LADSPA_Data * inbuf, *outbuf, *real_inbuf;
+
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
 		/* (re)connect audio ports */
-		
-		descriptor->connect_port (_instances[i], AudioInputPort, (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], _buffersize) + offset);
-		descriptor->connect_port (_instances[i], AudioOutputPort, (LADSPA_Data*) _driver->get_output_port_buffer (_output_ports[i], _buffersize) + offset);
+		if (_have_discrete_io) {
+			real_inbuf = (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], _buffersize) + offset;
+			inbuf = real_inbuf;
+
+			outbuf = (LADSPA_Data*) _driver->get_output_port_buffer (_output_ports[i], _buffersize) + offset;
+		}
+		else {
+			inbuf = 0;
+			outbuf = _tmp_io_buf;
+		}
+
+		if (_use_common_io || !_have_discrete_io) {
+			// mix common input into this buffer
+			port_id_t cominport;
+			if (_driver->get_engine()->get_common_input(i, cominport)) {
+				sample_t * comin = _driver->get_input_port_buffer (cominport, _buffersize) + offset;
+				
+				if (_have_discrete_io) {
+					for (nframes_t pos=0; pos < nframes; ++pos) {
+						_tmp_io_buf[pos] = real_inbuf[pos] + comin[pos];
+					}
+					inbuf = _tmp_io_buf;
+				}
+				else {
+					inbuf = comin;
+				}
+
+			}
+		}
+
+		if (inbuf == 0) continue;
+
+		descriptor->connect_port (_instances[i], AudioInputPort, inbuf);
+
+		descriptor->connect_port (_instances[i], AudioOutputPort, outbuf);
 
 
 		if (i == 0) {
@@ -512,6 +588,29 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		/* do it */
 		descriptor->run (_instances[i], nframes);
 
+		if (_use_common_io) {
+			// mix this output into common output
+			port_id_t comoutport;
+
+			if (_driver->get_engine()->get_common_output(i, comoutport)) {
+				sample_t * comout = _driver->get_output_port_buffer (comoutport, _buffersize) + offset;
+				for (nframes_t pos=0; pos < nframes; ++pos) {
+					comout[pos] += outbuf[pos];
+				}
+			}
+		} 
+		
+		if (_have_discrete_io) {
+			// just mix the dry into the outputs
+			float dry_delta = (_target_dry - _curr_dry) / max((nframes_t) 1, (nframes - 1));
+			
+			for (nframes_t pos=0; pos < nframes; ++pos) {
+				_curr_dry += dry_delta;
+				
+				outbuf[pos] += _curr_dry * real_inbuf[pos];
+			}
+		}
+
 	}
 
 
@@ -522,6 +621,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 {
 #ifdef HAVE_SAMPLERATE
 	nframes_t alt_frames;
+	LADSPA_Data * inbuf, *outbuf, *real_inbuf;
 	
 	_src_data.end_of_input = 0;
 	
@@ -542,11 +642,43 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 	// process
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
+		if (_have_discrete_io) {
+			real_inbuf = (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], _buffersize) + offset;
+			inbuf = real_inbuf;
+
+			outbuf = (LADSPA_Data*) _driver->get_output_port_buffer (_output_ports[i], _buffersize) + offset;
+		}
+		else {
+			inbuf = 0;
+			outbuf = _tmp_io_buf;
+		}
+
+		if (_use_common_io || !_have_discrete_io) {
+			// mix common input into this buffer
+			port_id_t cominport;
+			if (_driver->get_engine()->get_common_input(i, cominport)) {
+				sample_t * comin = _driver->get_input_port_buffer (cominport, _buffersize) + offset;
+				
+				if (_have_discrete_io) {
+					for (nframes_t pos=0; pos < nframes; ++pos) {
+						_tmp_io_buf[pos] = real_inbuf[pos] + comin[pos];
+					}
+					inbuf = _tmp_io_buf;
+				}
+				else {
+					inbuf = comin;
+				}
+
+			}
+		}
+
+		if (inbuf == 0) continue;
+
 		// resample input
 		_src_data.src_ratio = _src_in_ratio;
 		_src_data.input_frames = nframes;
 		_src_data.output_frames = (long) ceil (nframes * _src_in_ratio);
-		_src_data.data_in = (float *) _driver->get_input_port_buffer (_input_ports[i], _buffersize) + offset;
+		_src_data.data_in = (float *) inbuf;
 		_src_data.data_out = _src_in_buffer;
 		src_process (_in_src_states[i], &_src_data);
 
@@ -597,7 +729,8 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 			_src_data.output_frames = nframes ;
 		}
 		_src_data.data_in = _src_in_buffer;
-		_src_data.data_out = (float *) _driver->get_output_port_buffer (_output_ports[i], _buffersize) + offset;
+		outbuf = (float *) _driver->get_output_port_buffer (_output_ports[i], _buffersize) + offset;
+		_src_data.data_out = (float *) outbuf;
 		src_process (_out_src_states[i], &_src_data);
 
 //  		if (i==0 && _src_data.input_frames != _src_data.input_frames_used) {
@@ -628,6 +761,29 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 
 			_lp_filter[i]->run_lowpass (_src_data.data_out, nframes);
 		}
+
+		if (_use_common_io) {
+			// mix this output into common output
+			port_id_t comoutport;
+
+			if (_driver->get_engine()->get_common_output(i, comoutport)) {
+				sample_t * comout = _driver->get_output_port_buffer (comoutport, _buffersize) + offset;
+				for (nframes_t pos=0; pos < nframes; ++pos) {
+					comout[pos] += outbuf[pos];
+				}
+			}
+		} 
+		
+		if (_have_discrete_io) {
+			// just mix the dry into the outputs
+			float dry_delta = (_target_dry - _curr_dry) / max((nframes_t) 1, (nframes - 1));
+			
+			for (nframes_t pos=0; pos < nframes; ++pos) {
+				_curr_dry += dry_delta;
+				
+				outbuf[pos] += _curr_dry * real_inbuf[pos];
+			}
+		}
 		
 	}
 
@@ -639,6 +795,8 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 	_src_data.data_in =  _src_sync_buffer;
 	_src_data.data_out = _our_syncout_buf + offset;
 	src_process (_outsync_src_state, &_src_data);
+
+	// 
 
 #endif	
 }

@@ -158,6 +158,8 @@ namespace SooperLooper {
                 return (int) (iFragmentPos = pEventGenerator->toFragmentPos(TimeStamp));
             }
 
+	    int source;
+
     protected:
             typedef EventGenerator::time_stamp_t time_stamp_t;
             Event(EventGenerator* pGenerator, EventGenerator::time_stamp_t Time);

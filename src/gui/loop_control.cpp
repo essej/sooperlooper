@@ -301,6 +301,8 @@ LoopControl::disconnect (bool killit)
 		lo_send(_osc_addr, "/unregister_update", "sss", "sync_source", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/unregister_update", "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/unregister_update", "sss", "tap_tempo", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/unregister_update", "sss", "wet", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/unregister_update", "sss", "dry", _our_url.c_str(), "/ctrl");
 
 		if (killit) {
 			send_quit();
@@ -348,7 +350,7 @@ LoopControl::osc_traffic()
 		pfd[0].fd = _traffic_request_pipe[0];
 		pfd[0].events = POLLIN|POLLHUP|POLLERR;
 		pfd[1].fd = oscfd;
-		pfd[1].events = POLLIN|POLLHUP|POLLERR;
+		pfd[1].events = POLLIN|POLLHUP|POLLPRI|POLLERR;
 
 		pthread_testcancel();
 		
@@ -543,6 +545,8 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 		lo_send(_osc_addr, "/register_update", "sss", "sync_source", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_update", "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_update", "sss", "tap_tempo", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/register_update", "sss", "wet", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/register_update", "sss", "dry", _our_url.c_str(), "/ctrl");
 
 		lo_send(_osc_addr, "/get_all_midi_bindings", "ss", _our_url.c_str(), "/recv_midi_bindings");
 		
@@ -662,6 +666,8 @@ LoopControl::request_global_values()
 	lo_send(_osc_addr, buf, "sss", "sync_source", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
 	//lo_send(_osc_addr, buf, "sss", "tap_tempo", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "dry", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "wet", _our_url.c_str(), "/ctrl");
 
 }
 
@@ -1063,12 +1069,19 @@ LoopControl::get_state (int index, LooperState & state, wxString & statestr)
 }
 
 bool
-LoopControl::post_add_loop(int channels, float secs)
+LoopControl::post_add_loop(int channels, float secs, bool discrete)
 {
 	if (!_osc_addr) return false;
 
-	if (lo_send(_osc_addr, "/loop_add", "if", channels, secs) == -1) {
-		return false;
+	if (discrete) {
+		if (lo_send(_osc_addr, "/loop_add", "if", channels, secs) == -1) {
+			return false;
+		}
+	}
+	else {
+		if (lo_send(_osc_addr, "/loop_add", "ifi", channels, secs, 0) == -1) {
+			return false;
+		}
 	}
 
 	return true;

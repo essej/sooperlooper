@@ -23,6 +23,8 @@
 #include <sys/time.h>
 #include <pthread.h>
 
+#include <vector>
+
 #include "engine.hpp"
 #include "looper.hpp"
 #include "control_osc.hpp"
@@ -59,6 +61,10 @@ Engine::Engine ()
 	_midi_bridge = 0;
 	_learn_done = false;
 	_received_done = false;
+	_target_common_dry = 1.0f;
+	_curr_common_dry = 1.0f;
+	_target_common_wet = 1.0f;
+	_curr_common_wet = 1.0f;
 	
 	_running_frames = 0;
 	_last_tempo_frame = 0;
@@ -72,6 +78,8 @@ Engine::Engine ()
 
 bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 {
+	char tmpstr[100];
+	port_id_t tmpport;
 
 	_driver = driver;
 	_driver->set_engine(this);
@@ -81,6 +89,20 @@ bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 		return false;
 	}
 	
+	// create common io ports
+	for (int i=0; i < 2; ++i) 
+	{
+		snprintf(tmpstr, sizeof(tmpstr), "master_in_%d", i+1);
+		if (_driver->create_input_port (tmpstr, tmpport)) {
+			_common_inputs.push_back (tmpport);
+		}
+
+		snprintf(tmpstr, sizeof(tmpstr), "master_out_%d", i+1);
+		if (_driver->create_output_port (tmpstr, tmpport)) {
+			_common_outputs.push_back (tmpport);
+		}
+	}
+
 
 	_event_generator = new EventGenerator(_driver->get_samplerate());
 	_event_queue = new RingBuffer<Event> (MAX_EVENTS);
@@ -179,9 +201,71 @@ void Engine::quit()
 	pthread_cond_signal (&_event_cond);
 }
 
+bool
+Engine::get_common_input (unsigned int chan, port_id_t & port)
+{
+	if (chan < _common_inputs.size()) {
+		port = _common_inputs[chan];
+		return true;
+	}
+
+	return false;
+}
 
 bool
-Engine::add_loop (unsigned int chans, float loopsecs)
+Engine::get_common_output (unsigned int chan, port_id_t & port)
+{
+	if (chan < _common_outputs.size()) {
+		port = _common_outputs[chan];
+		return true;
+	}
+
+	return false;
+}
+
+void 
+Engine::fill_common_outs(nframes_t nframes)
+{
+	sample_t * outbuf;
+	sample_t * inbuf;
+	float dry_delta = (_target_common_dry - _curr_common_dry) / max((nframes_t) 1, (nframes - 1));
+	float wet_delta = (_target_common_wet - _curr_common_wet) / max((nframes_t) 1, (nframes - 1));
+	float currdry = 1.0f, currwet = 1.0f;
+
+	// assume ins and out count the same
+	for (size_t i=0; i < _common_outputs.size(); ++i) 
+	{
+		currdry = _curr_common_dry;
+		currwet = _curr_common_wet;
+		inbuf = _driver->get_input_port_buffer (_common_inputs[i], _driver->get_buffersize());
+		outbuf = _driver->get_output_port_buffer (_common_outputs[i], _driver->get_buffersize());
+
+		for (nframes_t n = 0; n < nframes; ++n) {
+			currdry += dry_delta;
+			currwet += wet_delta;
+			outbuf[n] = (outbuf[n] * currwet) + (inbuf[n] * currdry);
+		}
+	}
+
+	_curr_common_dry = currdry;
+	_curr_common_wet = currwet;
+}
+
+void 
+Engine::silence_common_outs(nframes_t nframes)
+{
+	sample_t * outbuf;
+
+	for (size_t i=0; i < _common_outputs.size(); ++i) 
+	{
+		outbuf = _driver->get_output_port_buffer (_common_outputs[i], _driver->get_buffersize());
+		memset (outbuf, 0, nframes * sizeof(sample_t));
+	}
+}
+
+
+bool
+Engine::add_loop (unsigned int chans, float loopsecs, bool discrete)
 {
 	int n;
 	
@@ -191,7 +275,7 @@ Engine::add_loop (unsigned int chans, float loopsecs)
 
 		Looper * instance;
 
-		instance = new Looper (_driver, (unsigned int) n, chans, loopsecs);
+		instance = new Looper (_driver, (unsigned int) n, chans, loopsecs, discrete);
 		
 		if (!(*instance)()) {
 			cerr << "can't create a new loop!\n";
@@ -353,6 +437,8 @@ Engine::process (nframes_t nframes)
 	calculate_tempo_frames ();
 	generate_sync (0, nframes);
 	
+	// clear common output buffers
+	silence_common_outs(nframes);
 
 	nframes_t usedframes = 0;
 	nframes_t doframes;
@@ -460,6 +546,9 @@ Engine::process (nframes_t nframes)
 
 	}
 
+	// scales output and mixes common dry
+	fill_common_outs (nframes);
+
 	_running_frames += nframes;
 	
 	return 0;
@@ -494,6 +583,14 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 		
 		_last_tempo_frame = thisframe;
 	}
+	else if (ev->Control == Event::DryLevel)
+	{
+		_target_common_dry = ev->Value;
+	}
+	else if (ev->Control == Event::WetLevel)
+	{
+		_target_common_wet = ev->Value;
+	}
 }
 
 
@@ -526,7 +623,7 @@ Engine::do_push_command_event (RingBuffer<Event> * evqueue, Event::type_t type, 
 
 
 bool
-Engine::do_push_control_event (RingBuffer<Event> * evqueue, Event::type_t type, Event::control_t ctrl, float val, int8_t instance)
+Engine::do_push_control_event (RingBuffer<Event> * evqueue, Event::type_t type, Event::control_t ctrl, float val, int8_t instance, int src)
 {
 	// todo support more than one simulataneous pusher safely
 
@@ -548,6 +645,7 @@ Engine::do_push_control_event (RingBuffer<Event> * evqueue, Event::type_t type, 
 	evt->Control = ctrl;
 	evt->Value = val;
 	evt->Instance = instance;
+	evt->source = src;
 
 	evqueue->increment_write_ptr (1);
 	
@@ -555,16 +653,16 @@ Engine::do_push_control_event (RingBuffer<Event> * evqueue, Event::type_t type, 
 }
 
 void
-Engine::push_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance)
+Engine::push_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance, int src)
 {
 	do_push_control_event (_event_queue, type, ctrl, val, instance);
 
 	// this is a known race condition, if the midi thread is changing controls
 	// simultaneously.  it's just an update :)
-	do_push_control_event (_nonrt_update_event_queue, type, ctrl, val, instance);
+	do_push_control_event (_nonrt_update_event_queue, type, ctrl, val, instance, src);
 
 	// wakeup nonrt loop... this lock should really not block... but still
-	LockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
+	TentativeLockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
 	pthread_cond_signal (&_event_cond);
 	
 }
@@ -579,7 +677,7 @@ Engine::push_midi_control_event (Event::type_t type, Event::control_t ctrl, floa
 	do_push_control_event (_nonrt_update_event_queue, type, ctrl, val, instance);
 
 	// wakeup nonrt loop... this lock should really not block... but still
-	LockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
+	TentativeLockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
 	pthread_cond_signal (&_event_cond);
 }
 
@@ -627,6 +725,14 @@ Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 	if (instance >= 0 && instance < (int) _instances.size()) {
 
 		return _instances[instance]->get_control_value (ctrl);
+	}
+	else if (instance == -2) {
+		if (ctrl == Event::DryLevel) {
+			return _curr_common_dry;
+		}
+		else if (ctrl == Event::WetLevel) {
+			return _curr_common_wet;
+		}
 	}
 
 	return 0.0f;
@@ -704,6 +810,7 @@ Engine::mainloop()
 			}
 			else if (evt->Type == Event::type_control_change) {
 				ConfigUpdateEvent cuev (ConfigUpdateEvent::Send, evt->Instance, evt->Control, "", "", evt->Value);
+				cuev.source = evt->source;
 				_osc->finish_update_event (cuev);
 			}
 			
@@ -781,7 +888,13 @@ Engine::process_nonrt_event (EventNonRT * event)
 	}
 	else if ((gg_event = dynamic_cast<GlobalGetEvent*> (event)) != 0)
 	{
-		if (gg_event->param == "sync_source") {
+		if (gg_event->param == "dry") {
+			gg_event->ret_value = (float) _curr_common_dry;
+		}
+		else if (gg_event->param == "wet") {
+			gg_event->ret_value = (float) _curr_common_wet;
+		}
+		else if (gg_event->param == "sync_source") {
 			gg_event->ret_value = (float) _sync_source;
 		}
 		else if (gg_event->param == "tempo") {
@@ -790,12 +903,18 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (gg_event->param == "eighth_per_cycle") {
 			gg_event->ret_value = _eighth_cycle;
 		}
-
+		
 		_osc->finish_global_get_event (*gg_event);
 	}
 	else if ((gs_event = dynamic_cast<GlobalSetEvent*> (event)) != 0)
 	{
-		if (gs_event->param == "sync_source") {
+		if (gs_event->param == "dry") {
+			_target_common_dry = gs_event->value;
+		}
+		else if (gs_event->param == "wet") {
+			_target_common_wet = gs_event->value;
+		}
+		else if (gs_event->param == "sync_source") {
 			if ((int) gs_event->value > (int) FIRST_SYNC_SOURCE
 			    && gs_event->value <= _instances.size())
 			{
@@ -836,7 +955,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 				cl_event->secs = _def_loop_secs;
 			}
 			
-			add_loop (cl_event->channels, cl_event->secs);
+			add_loop (cl_event->channels, cl_event->secs, cl_event->discrete);
 		}
 		else if (cl_event->type == ConfigLoopEvent::Remove)
 		{

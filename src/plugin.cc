@@ -437,16 +437,22 @@ instantiateSooperLooper(const LADSPA_Descriptor * Descriptor,
    pLS->fTotalSecs = pLS->lBufferSize / (float) SampleRate;
    pLS->lBufferSizeMask = pLS->lBufferSize - 1;
    
-   pLS->pSampleBuf = (LADSPA_Data *) calloc(pLS->lBufferSize * sizeof(LADSPA_Data), 1);
+   // not using calloc to force touching all memory ahead of time 
+   // this could be bad if you try to allocate too much for your system
+   pLS->pSampleBuf = (LADSPA_Data *) malloc(pLS->lBufferSize * sizeof(LADSPA_Data));
    if (pLS->pSampleBuf == NULL) {
 	   goto cleanup;
    }
+   memset (pLS->pSampleBuf, 0, pLS->lBufferSize * sizeof(LADSPA_Data));
 
    pLS->lLoopChunkCount = MAX_LOOPS;
-   pLS->pLoopChunks = (LoopChunk *) calloc(pLS->lLoopChunkCount * sizeof(LoopChunk), 1);
+
+   // not using calloc to force touching all memory ahead of time 
+   pLS->pLoopChunks = (LoopChunk *) malloc(pLS->lLoopChunkCount * sizeof(LoopChunk));
    if (pLS->pLoopChunks == NULL) {
 	   goto cleanup;
    }
+   memset (pLS->pLoopChunks, 0, pLS->lLoopChunkCount * sizeof(LoopChunk));
 
    pLS->lastLoopChunk = pLS->pLoopChunks + pLS->lLoopChunkCount - 1;
    

@@ -45,7 +45,7 @@ class OnePoleFilter;
 class Looper 
 {
   public:
-	Looper (AudioDriver * driver, unsigned int index, unsigned int channel_count=1, float loopsecs=40.0);
+	Looper (AudioDriver * driver, unsigned int index, unsigned int channel_count=1, float loopsecs=40.0, bool discrete=true);
 	~Looper ();
 	
 	bool operator() () const { return _ok; }
@@ -55,9 +55,7 @@ class Looper
 
 	float get_control_value (Event::control_t ctrl);
 	
-	void set_port (ControlPort n, LADSPA_Data val) {
-		ports[n] = val;
-	}
+	void set_port (ControlPort n, LADSPA_Data val);
 
 	bool load_loop (std::string fname);
 	bool save_loop (std::string fname = "", LoopFileEvent::FileFormat format = LoopFileEvent::FormatFloat);
@@ -68,6 +66,11 @@ class Looper
 	float * get_sync_out_buf() { return _our_syncout_buf; }
 
 	void use_sync_buf(float * buf);
+
+	void set_use_common_io (bool val);
+	bool get_use_common_io () { return _use_common_io; }
+
+	bool get_have_discrete_io () { return _have_discrete_io; }
 	
   protected:
 
@@ -91,6 +94,9 @@ class Looper
 
 	LADSPA_Data        ports[LASTPORT];
 
+	float              _curr_dry;
+	float              _target_dry;
+
 	// keeps track of down/up commands for SUS purposes
 	nframes_t          _down_stamps[Event::LAST_COMMAND+1];
 	nframes_t          _longpress_frames;
@@ -102,8 +108,14 @@ class Looper
 	LADSPA_Data        * _use_sync_buf;
 	LADSPA_Data        * _dummy_buf;
 
+	LADSPA_Data        * _tmp_io_buf;
+
+
 	LADSPA_Data         _slave_sync_port;
 	LADSPA_Data         _slave_dummy_port;
+
+	bool                _use_common_io;
+	bool                _have_discrete_io;
 
 	// SRC stuff
 #ifdef HAVE_SAMPLERATE

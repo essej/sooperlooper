@@ -64,7 +64,7 @@ class Engine
 
 	void quit();
 
-	bool add_loop (unsigned int chans, float loopsecs=40.0f);
+	bool add_loop (unsigned int chans, float loopsecs=40.0f, bool discrete = true);
 	bool remove_loop (unsigned int index);
 	
 	unsigned int loop_count() { PBD::LockMonitor lm(_instance_lock, __LINE__, __FILE__); return _instances.size(); }
@@ -73,13 +73,15 @@ class Engine
 	int process (nframes_t);
 
 	//RingBuffer<Event> & get_event_queue() { return *_event_queue; }
-	
+
+	bool get_common_input (unsigned int chan, port_id_t & port);
+	bool get_common_output (unsigned int chan, port_id_t & port);
 
 	EventGenerator & get_event_generator() { return *_event_generator;}
 
 	bool push_command_event (Event::type_t type, Event::command_t cmd, int8_t instance)
 		{ return do_push_command_event (_event_queue, type, cmd, instance); }
-	void push_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance);
+	void push_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance, int src=0);
 
 	void push_midi_command_event (Event::type_t type, Event::command_t cmd, int8_t instance)
 		{ do_push_command_event (_midi_event_queue, type, cmd, instance); }
@@ -119,13 +121,16 @@ class Engine
 	void do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes);
 
 	bool do_push_command_event (RingBuffer<Event> * rb, Event::type_t type, Event::command_t cmd, int8_t instance);
-	bool do_push_control_event (RingBuffer<Event> * rb, Event::type_t type, Event::control_t ctrl, float val, int8_t instance);
+	bool do_push_control_event (RingBuffer<Event> * rb, Event::type_t type, Event::control_t ctrl, float val, int8_t instance, int src=0);
 
 	
 	void set_tempo (double tempo);
 
 	inline double avg_tempo(double tempo);
 	inline void reset_avg_tempo(double tempo=0.0);
+
+	void fill_common_outs(nframes_t nframes);
+	void silence_common_outs(nframes_t nframes);
 	
 	AudioDriver * _driver;
 	
@@ -156,7 +161,7 @@ class Engine
 
 	RingBuffer<EventNonRT *> * _nonrt_event_queue;
 	
-	PBD::Lock _event_loop_lock;
+	PBD::NonBlockingLock _event_loop_lock;
 	pthread_cond_t  _event_cond;
 
 	int _def_channel_cnt;
@@ -178,6 +183,15 @@ class Engine
 
 	double    _tempo;        // bpm
 	float    _eighth_cycle; // eighth notes per loop cycle
+
+	std::vector<port_id_t>  _common_inputs;
+	std::vector<port_id_t>  _common_outputs;
+	
+	float              _curr_common_dry;
+	float              _target_common_dry;
+
+	float              _curr_common_wet;
+	float              _target_common_wet;
 
    private:
 
