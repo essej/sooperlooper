@@ -416,7 +416,7 @@ LoopControl::pingtimer_expired()
 	{
 		if (_waiting > 80) {
 			// give up
-			cerr << "gave up on spawned engine" << endl;
+			cerr << "slgui: gave up on spawned engine" << endl;
 			if (_osc_addr) {
 				lo_address_free(_osc_addr);
 			}
@@ -433,8 +433,8 @@ LoopControl::pingtimer_expired()
 	else
 	{
 		// lets try to spawn our own
-		cerr << "spawning now" << endl;
 		if (!_spawn_config.never_spawn && spawn_looper()) {
+			cerr << "slgui: spawned new engine" << endl;
 			_updatetimer->Start(100, true);
 			_waiting = 1;
 		}

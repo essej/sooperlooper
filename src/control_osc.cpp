@@ -377,7 +377,8 @@ ControlOSC::osc_receiver()
 	lo_server srvs[3];
 	int nfds = 0;
 	int timeout = -1;
-
+	int ret;
+	
 	fds[0] = _request_pipe[0];
 	nfds++;
 	
@@ -398,14 +399,16 @@ ControlOSC::osc_receiver()
 
 		for (int i=0; i < nfds; ++i) {
 			pfd[i].fd = fds[i];
-			pfd[i].events = POLLIN|POLLHUP|POLLERR;
+			pfd[i].events = POLLIN|POLLPRI|POLLHUP|POLLERR;
+			pfd[i].revents = 0;
 		}
 		
 	again:
-		// cerr << "poll on " << nfds << " for " << timeout << endl;
-		if (poll (pfd, nfds, timeout) < 0) {
+		//cerr << "poll on " << nfds << " for " << timeout << endl;
+		if ((ret = poll (pfd, nfds, timeout)) < 0) {
 			if (errno == EINTR) {
 				/* gdb at work, perhaps */
+				//cerr << "EINTR hit " << endl;
 				goto again;
 			}
 			
@@ -414,6 +417,8 @@ ControlOSC::osc_receiver()
 			break;
 		}
 
+		//cerr << "poll returned " << ret << "  pfd[0].revents = " << pfd[0].revents << "  pfd[1].revents = " << pfd[1].revents << endl;
+		
 		if (_shutdown) {
 			break;
 		}
@@ -422,11 +427,12 @@ ControlOSC::osc_receiver()
 			cerr << "OSC: error polling extra port" << endl;
 			break;
 		}
-
+		
 		for (int i=1; i < nfds; ++i) {
 			if (pfd[i].revents & POLLIN)
 			{
 				// this invokes callbacks
+				//cerr << "invoking recv on " << pfd[i].fd << endl;
 				lo_server_recv (srvs[i]);
 			}
 		}
@@ -623,7 +629,7 @@ int ControlOSC::ping_handler(const char *path, const char *types, lo_arg **argv,
 {
 	string returl (&argv[0]->s);
 	string retpath (&argv[1]->s);
-
+	cerr << "got ping" << endl;
 	_engine->push_nonrt_event ( new PingEvent (returl, retpath));
 	
 	return 0;
@@ -1233,8 +1239,8 @@ void ControlOSC::send_pingack (bool useudp, string returl, string retpath)
 		oururl = get_server_url();
 	}
 	
-	// cerr << "sending to " << returl << "  path: " << retpath  << endl;
-	if (lo_send(addr, retpath.c_str(), "ssi", oururl.c_str(), sooperlooper_version, _engine->loop_count_unsafe()) == -1) {
+	cerr << "sending to " << returl << "  path: " << retpath  << endl;
+	if (lo_send(addr, retpath.c_str(), "ssi", oururl.c_str(), sooperlooper_version, _engine->loop_count_unsafe()) < 0) {
 		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
 	}
 }

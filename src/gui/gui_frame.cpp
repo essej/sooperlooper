@@ -1009,7 +1009,7 @@ void GuiFrame::misc_action (bool release, wxString cmd)
 		}
 		else {
 			// popup basic filename text entry
-			wxString filename = ::wxGetTextFromUser(wxString::Format("Choose file to save on remote host '%s'",
+			wxString filename = ::wxGetTextFromUser(wxString::Format(wxT("Choose file to save on remote host '%s'"),
 										 _loop_control->get_engine_host().c_str())
 								, wxT("Save Loop"));
 
@@ -1173,21 +1173,21 @@ AddCustomLoopDialog::AddCustomLoopDialog (GuiFrame * parent, wxWindowID id, cons
 	wxFlexGridSizer * setsizer = new wxFlexGridSizer(-1, 2, 4, 4);
 
 
-	wxStaticText * statText = new wxStaticText(this, -1, "# Loops to add:");
+	wxStaticText * statText = new wxStaticText(this, -1, wxT("# Loops to add:"));
 	setsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL);
-	_num_loops_spin = new wxSpinCtrl(this, -1, "1", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 16, num_loops);
+	_num_loops_spin = new wxSpinCtrl(this, -1, wxT("1"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 16, num_loops);
 	_num_loops_spin->SetValue (num_loops);
 	setsizer->Add (_num_loops_spin, 0);
 
-	statText = new wxStaticText(this, -1, "# Channels per loop:");
+	statText = new wxStaticText(this, -1, wxT("# Channels per loop:"));
 	setsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL);
-	_num_channels_spin = new wxSpinCtrl(this, -1, "2", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 16, num_channels);
+	_num_channels_spin = new wxSpinCtrl(this, -1, wxT("2"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 16, num_channels);
 	_num_channels_spin->SetValue (num_channels);
 	setsizer->Add (_num_channels_spin, 0);
 	
-	statText = new wxStaticText(this, -1, "Loop time (secs minimum):");
+	statText = new wxStaticText(this, -1, wxT("Loop time (secs minimum):"));
 	setsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL);
-	_secs_per_channel_spin = new wxSpinCtrl(this, -1, "20", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 4, 1000, (int)secs_channel);
+	_secs_per_channel_spin = new wxSpinCtrl(this, -1, wxT("20"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 4, 1000, (int)secs_channel);
 	_secs_per_channel_spin->SetValue ((int)secs_channel);
 	setsizer->Add (_secs_per_channel_spin, 0);
 
@@ -1198,10 +1198,10 @@ AddCustomLoopDialog::AddCustomLoopDialog (GuiFrame * parent, wxWindowID id, cons
 
 	buttsizer->Add (1,1,1);
 	
-	wxButton * butt = new wxButton(this, wxID_CANCEL, "Cancel");
+	wxButton * butt = new wxButton(this, wxID_CANCEL, wxT("Cancel"));
 	buttsizer->Add (butt, 0, wxALL, 5);
 
-	butt = new wxButton(this, wxID_OK, "OK");
+	butt = new wxButton(this, wxID_OK, wxT("OK"));
 	buttsizer->Add (butt, 0, wxALL, 5);
 	
 	

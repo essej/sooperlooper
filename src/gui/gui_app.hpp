@@ -52,7 +52,7 @@ class GuiApp : public wxApp
 
 	bool get_force_spawn() { return _force_spawn; }
 	wxString get_exec_name() { return _exec_name; }
-	char ** get_engine_args () { return _engine_argv; }
+	wxChar ** get_engine_args () { return _engine_argv; }
 	
   protected:
 	
