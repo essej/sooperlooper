@@ -74,7 +74,7 @@ BEGIN_EVENT_TABLE(SooperLooperGui::MidiBindDialog, wxFrame)
 	EVT_BUTTON (ID_LoadButton, SooperLooperGui::MidiBindDialog::on_button)
 	EVT_BUTTON (ID_SaveButton, SooperLooperGui::MidiBindDialog::on_button)
 
-	EVT_COMBOBOX(ID_ControlCombo, SooperLooperGui::MidiBindDialog::on_combo)
+	EVT_CHOICE(ID_ControlCombo, SooperLooperGui::MidiBindDialog::on_combo)
 	
 	EVT_SIZE (SooperLooperGui::MidiBindDialog::onSize)
 	EVT_PAINT (SooperLooperGui::MidiBindDialog::onPaint)
@@ -187,7 +187,7 @@ void MidiBindDialog::init()
 	wxStaticText * staticText;
 	//colsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE, 2);
 
-	_control_combo = new wxComboBox(_edit_panel, ID_ControlCombo, wxT(""),  wxDefaultPosition, wxSize(100, -1), 0, 0, wxCB_DROPDOWN|wxCB_READONLY);
+	_control_combo = new wxChoice(_edit_panel, ID_ControlCombo,  wxDefaultPosition, wxSize(100, -1), 0, 0);
 	//_control_combo->SetToolTip(wxT("Choose control or command"));
 	populate_controls();
 	
@@ -197,7 +197,7 @@ void MidiBindDialog::init()
 	staticText = new wxStaticText(_edit_panel, -1, "Loop #", wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
 	rowsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
-	_loopnum_combo =  new wxComboBox(_edit_panel, ID_LoopNumCombo, wxT(""),  wxDefaultPosition, wxSize(100, -1), 0, 0, wxCB_DROPDOWN|wxCB_READONLY);
+	_loopnum_combo =  new wxChoice(_edit_panel, ID_LoopNumCombo, wxDefaultPosition, wxSize(100, -1), 0, 0);
 	_loopnum_combo->Append (wxT("All"), (void *) 0);
 	for (int i=1; i <= 16; ++i) {
 		_loopnum_combo->Append (wxString::Format("%d", i), (void *) i);
@@ -224,7 +224,7 @@ void MidiBindDialog::init()
 	_chan_spin =  new wxSpinCtrl(_edit_panel, ID_ChanSpin, "1", wxDefaultPosition, wxSize(50,-1), wxSP_ARROW_KEYS, 1, 16, 1, wxT("KeyAware"));
 	rowsizer->Add (_chan_spin, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 	
-	_type_combo = new wxComboBox(_edit_panel, ID_TypeCombo, wxT(""),  wxDefaultPosition, wxSize(100, -1), 0, 0, wxCB_DROPDOWN|wxCB_READONLY);
+	_type_combo = new wxChoice(_edit_panel, ID_TypeCombo,  wxDefaultPosition, wxSize(100, -1), 0, 0);
 	//_control_combo->SetToolTip(wxT("Choose control or command"));
 	_type_combo->Append (NoteString);
 	_type_combo->Append (CcString);
@@ -253,7 +253,7 @@ void MidiBindDialog::init()
 	_ubound_ctrl = new wxTextCtrl(_range_panel, ID_UBoundCtrl, "", wxDefaultPosition, wxSize(40, -1), 0, wxDefaultValidator, wxT("KeyAware"));
 	rowsizer->Add (_ubound_ctrl, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
 
-	_style_combo =  new wxComboBox(_range_panel, ID_StyleCombo, wxT(""),  wxDefaultPosition, wxSize(30, -1), 0, 0, wxCB_DROPDOWN|wxCB_READONLY);
+	_style_combo =  new wxChoice(_range_panel, ID_StyleCombo,  wxDefaultPosition, wxSize(30, -1), 0, 0);
 	_style_combo->Append (wxT("Normal"), (void *) MidiBindInfo::NormalStyle);
 	_style_combo->Append (wxT("Gain"), (void *) MidiBindInfo::GainStyle);
 	_style_combo->SetToolTip(wxT("Choose a scaling type"));
@@ -477,7 +477,7 @@ void MidiBindDialog::update_entry_area(MidiBindInfo * usethis)
 	}
 
 	for (int i=0; i < _control_combo->GetCount(); ++i) {
-		if (static_cast<const char *>((void *)_control_combo->GetClientData(i)) == info->control) {
+		if (static_cast<const char *>(_control_combo->GetClientData(i)) == info->control) {
 			_control_combo->SetSelection(i);
 			break;
 		}
@@ -524,9 +524,9 @@ void MidiBindDialog::update_curr_binding()
 	CommandMap & cmap = CommandMap::instance();
 	
 	// take info from editpanel and set the MidiBindInfo
-	_currinfo.control = static_cast<const char *>((void *) _control_combo->GetClientData(_control_combo->GetSelection()));
+	_currinfo.control = static_cast<const char *>(_control_combo->GetClientData(_control_combo->GetSelection()));
 	_currinfo.channel = _chan_spin->GetValue() - 1;
-	_currinfo.instance = (int)(long) _loopnum_combo->GetClientData(_loopnum_combo->GetSelection()) - 1;
+	_currinfo.instance = (int) _loopnum_combo->GetClientData(_loopnum_combo->GetSelection()) - 1;
 
 	
 	wxString tsel = _type_combo->GetStringSelection();
@@ -581,7 +581,7 @@ void MidiBindDialog::update_curr_binding()
 
 void MidiBindDialog::on_combo (wxCommandEvent &ev)
 {
-	string control = static_cast<const char *>((void *)_control_combo->GetClientData(_control_combo->GetSelection()));
+	string control = static_cast<const char *>(_control_combo->GetClientData(_control_combo->GetSelection()));
 
  	if (CommandMap::instance().is_input_control(control)) {
  		_range_panel->Enable(true);

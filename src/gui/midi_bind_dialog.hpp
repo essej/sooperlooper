@@ -82,15 +82,15 @@ class MidiBindDialog
 	wxButton * _learn_button;
 
 	wxPanel *   _edit_panel;
-	wxComboBox * _control_combo;
-	wxComboBox * _loopnum_combo;
+	wxChoice * _control_combo;
+	wxChoice * _loopnum_combo;
 	wxSpinCtrl * _chan_spin;
-	wxComboBox * _type_combo;
+	wxChoice * _type_combo;
 	wxSpinCtrl * _param_spin;
 	wxPanel   * _range_panel;
 	wxTextCtrl * _lbound_ctrl;
 	wxTextCtrl * _ubound_ctrl;
-	wxComboBox * _style_combo;
+	wxChoice * _style_combo;
 	
 	
 	GuiFrame * _parent;
