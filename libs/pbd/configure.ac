@@ -34,8 +34,9 @@ fi
 AM_OPT_FLAGS
 
 AC_ARG_ENABLE(optimize,
-     [  --enable-optimize       ask the compiler for its best optimizations.],
-     [ if test "x$enable_optimize" != "xno" ; then CXXFLAGS="$OPT_CXXFLAGS" ; fi ])
+     [  --disable-optimize       avoid optimizations to allow for gdb debugging.],
+     [ if test "x$enable_optimize" != "xno" ; then CXXFLAGS="$OPT_CXXFLAGS" ; fi ],
+     [ CXXFLAGS="$OPT_CXXFLAGS" ])
 
 AC_ARG_ENABLE(profiling,
      [  --enable-profiling       build for profiling using gprof.],

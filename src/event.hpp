@@ -104,6 +104,7 @@ namespace SooperLooper {
 		    ROUND_TOG,
 		    ONESHOT,
 		    TRIGGER,
+		    SUBSTITUTE,
 		    LAST_COMMAND
 	    } Command;
 

@@ -53,6 +53,7 @@ enum {
 	ID_ReplaceButton,
 	ID_TapButton,
 	ID_ReverseButton,
+	ID_SubstituteButton,
 	ID_MuteButton,
 	ID_RateButton,
 	ID_ScratchButton,
@@ -174,15 +175,16 @@ LooperPanel::init()
 	
  	rowsizer->Add (_replace_button, 0, wxTOP|wxLEFT, 5);
 
- 	rowsizer->Add (_delay_button, 0, wxTOP|wxLEFT, 5);
+ 	rowsizer->Add (_insert_button, 0, wxTOP|wxLEFT, 5);
 
 	colsizer->Add (rowsizer, 0);
 
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	
- 	rowsizer->Add (_insert_button, 0, wxTOP|wxLEFT, 5);
+ 	rowsizer->Add (_substitute_button, 0, wxTOP|wxLEFT, 5);
 
- 	rowsizer->Add (_reverse_button, 0, wxTOP|wxLEFT, 5);
+	//_reverse_button->Show(false);
+ 	rowsizer->Add (_delay_button, 0, wxTOP|wxLEFT, 5);
 
 	colsizer->Add (rowsizer, 0);
 	
@@ -298,7 +300,10 @@ LooperPanel::init()
 
 	// scratch stuff
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
- 	rowsizer->Add (_scratch_button, 0, wxTOP|wxLEFT, 3);
+
+ 	rowsizer->Add (_reverse_button, 0, wxTOP|wxLEFT, 3);
+
+	rowsizer->Add (_scratch_button, 0, wxTOP|wxLEFT, 3);
 
 	// scratch control
 	_scratch_control = slider = new SliderBar(this, ID_ScratchControl, 0.0f, 1.0f, 0.0f);
@@ -424,6 +429,10 @@ LooperPanel::bind_events()
 	_reverse_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("reverse")));
 	_reverse_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("reverse")));
 
+	_substitute_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("substitute")));
+	_substitute_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("substitute")));
+	_substitute_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("substitute")));
+	
 	_mute_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("mute")));
 	_mute_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("mute")));
 	_mute_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("mute")));
@@ -460,6 +469,8 @@ void LooperPanel::create_buttons()
  	_delay_button = new PixButton(this, ID_TapButton);
  	_insert_button = new PixButton(this, ID_InsertButton);
  	_reverse_button = new PixButton(this, ID_ReverseButton);
+	_reverse_button->SetToolTip(wxT("reverses direction"));
+ 	_substitute_button = new PixButton(this, ID_SubstituteButton);
  	_load_button = new PixButton(this, ID_LoadButton, false);
  	_save_button = new PixButton(this, ID_SaveButton, false);
  	_trig_button = new PixButton(this, ID_TrigButton);
@@ -526,6 +537,12 @@ void LooperPanel::create_buttons()
 	_reverse_button->set_disabled_bitmap (wxBitmap(reverse_disabled));
 	_reverse_button->set_active_bitmap (wxBitmap(reverse_active));
 
+	_substitute_button->set_normal_bitmap (wxBitmap(substitute_normal));
+	_substitute_button->set_selected_bitmap (wxBitmap(substitute_selected));
+	_substitute_button->set_focus_bitmap (wxBitmap(substitute_focus));
+	_substitute_button->set_disabled_bitmap (wxBitmap(substitute_disabled));
+	_substitute_button->set_active_bitmap (wxBitmap(substitute_active));
+	
 	_mute_button->set_normal_bitmap (wxBitmap(mute_normal));
 	_mute_button->set_selected_bitmap (wxBitmap(mute_selected));
 	_mute_button->set_focus_bitmap (wxBitmap(mute_focus));
@@ -744,6 +761,9 @@ LooperPanel::update_state()
 	case LooperStateReplacing:
 		_replace_button->set_active(false);
 		break;
+	case LooperStateSubstitute:
+		_substitute_button->set_active(false);
+		break;
 	case LooperStateDelay:
 		_delay_button->set_active(false);
 		break;
@@ -774,6 +794,9 @@ LooperPanel::update_state()
 		break;
 	case LooperStateReplacing:
 		_replace_button->set_active(true);
+		break;
+	case LooperStateSubstitute:
+		_substitute_button->set_active(true);
 		break;
 	case LooperStateDelay:
 		_delay_button->set_active(true);

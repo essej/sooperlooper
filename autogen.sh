@@ -229,7 +229,7 @@ elif echo \$target_cpu | grep "i*86" >/dev/null; then
   fi
 fi
 
-OPT_FLAGS="$OPT_FLAGS -pipe"
+OPT_FLAGS="\$OPT_FLAGS -pipe"
 
 # LARGEFILE_FLAGS="\`getconf LFS_CFLAGS\`"
 LARGEFILE_FLAGS="-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE"

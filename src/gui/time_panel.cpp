@@ -182,7 +182,7 @@ TimePanel::update_time()
 	}
 	
 	if (_loop_control->is_updated(_index, "state")) {
-		LooperState tmpstate;
+		SooperLooper::LooperState tmpstate;
 		_loop_control->get_state(_index, tmpstate, _state_str);
 		ret = true;
 	}

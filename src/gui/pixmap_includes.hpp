@@ -112,6 +112,11 @@
 #include "pixmaps/undo_focus.xpm"
 #include "pixmaps/undo_normal.xpm"
 #include "pixmaps/undo_selected.xpm"
+#include "pixmaps/substitute_active.xpm"
+#include "pixmaps/substitute_disabled.xpm"
+#include "pixmaps/substitute_focus.xpm"
+#include "pixmaps/substitute_normal.xpm"
+#include "pixmaps/substitute_selected.xpm"
 
 
 #endif

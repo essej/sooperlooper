@@ -57,7 +57,8 @@ enum {
 	ID_ClearAllButton,
 	ID_LoadButton,
 	ID_SaveButton,
-	ID_SusCheck
+	ID_SusCheck,
+	ID_AppendCheck
 
 };
 
@@ -74,7 +75,7 @@ BEGIN_EVENT_TABLE(SooperLooperGui::MidiBindDialog, wxFrame)
 	EVT_BUTTON (ID_ClearAllButton, SooperLooperGui::MidiBindDialog::on_button)
 	EVT_BUTTON (ID_LoadButton, SooperLooperGui::MidiBindDialog::on_button)
 	EVT_BUTTON (ID_SaveButton, SooperLooperGui::MidiBindDialog::on_button)
-
+	
 	EVT_CHOICE(ID_ControlCombo, SooperLooperGui::MidiBindDialog::on_combo)
 	
 	EVT_SIZE (SooperLooperGui::MidiBindDialog::onSize)
@@ -159,11 +160,14 @@ void MidiBindDialog::init()
 
 	wxBoxSizer * buttsizer = new wxBoxSizer(wxHORIZONTAL);
 
-	wxButton *butt = new wxButton (this, ID_LoadButton, wxT("Load..."));
+	wxButton * butt = new wxButton (this, ID_SaveButton, wxT("Save..."));
+	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
+	
+	butt = new wxButton (this, ID_LoadButton, wxT("Load..."));
 	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
 
-	butt = new wxButton (this, ID_SaveButton, wxT("Save..."));
-	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
+	_append_check = new wxCheckBox (this, ID_AppendCheck, wxT("load adds to existing"));
+	buttsizer->Add (_append_check, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 3);
 
 	buttsizer->Add (1,-1,1, wxALL, 0);
 	
@@ -677,7 +681,7 @@ void MidiBindDialog::on_button (wxCommandEvent &ev)
 
 			if ( !filename.empty() )
 			{
-				_parent->get_loop_control().load_midi_bindings(filename.c_str());
+				_parent->get_loop_control().load_midi_bindings(filename.c_str(),  _append_check->GetValue());
 			}
 		}
 		else {
@@ -691,7 +695,7 @@ void MidiBindDialog::on_button (wxCommandEvent &ev)
 			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
 
 			if (!filename.empty()) {
-				_parent->get_loop_control().load_midi_bindings(filename.c_str());
+				_parent->get_loop_control().load_midi_bindings(filename.c_str(), _append_check->GetValue());
 			}
 		}
 			

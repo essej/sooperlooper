@@ -92,6 +92,8 @@ class MidiBindDialog
 	wxTextCtrl * _ubound_ctrl;
 	wxChoice *   _style_combo;
 	wxCheckBox * _sus_check;
+
+	wxCheckBox * _append_check;
 	
 	GuiFrame * _parent;
 	bool       _justResized;

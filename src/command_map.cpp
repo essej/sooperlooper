@@ -40,6 +40,7 @@ CommandMap::CommandMap()
 	_str_cmd_map["scratch"]  = Event::SCRATCH;
 	_str_cmd_map["trigger"]  = Event::TRIGGER;
 	_str_cmd_map["oneshot"]  = Event::ONESHOT;
+	_str_cmd_map["substitute"]  = Event::SUBSTITUTE;
 	
 	for (StringCommandMap::iterator iter = _str_cmd_map.begin(); iter != _str_cmd_map.end(); ++iter) {
 		_cmd_str_map[(*iter).second] = (*iter).first;

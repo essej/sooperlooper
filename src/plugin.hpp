@@ -89,7 +89,8 @@ enum LooperState
 	LooperStateDelay,
 	LooperStateMuted,
 	LooperStateScratching,
-	LooperStateOneShot
+	LooperStateOneShot,
+	LooperStateSubstitute
 };
 
 	
@@ -230,6 +231,9 @@ typedef struct {
 
 	LADSPA_Data fPlayFadeAtten;
 	LADSPA_Data fPlayFadeDelta;
+
+	LADSPA_Data fFeedFadeAtten;
+	LADSPA_Data fFeedFadeDelta;
 	
 	LADSPA_Data fLoopXfadeTime;
 	

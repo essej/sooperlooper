@@ -27,6 +27,7 @@
 #include <time.h>
 
 #include <midi_bind.hpp>
+#include "plugin.hpp"
 
 using namespace std;
 using namespace SooperLooperGui;
@@ -200,6 +201,7 @@ LoopControl::setup_param_map()
 	state_map[LooperStateMuted] = "muted";
 	state_map[LooperStateScratching] = "scratching";
 	state_map[LooperStateOneShot] = "one shot";
+	state_map[LooperStateSubstitute] = "substituting";
 }
 
 
@@ -362,7 +364,7 @@ LoopControl::pingtimer_expired()
 			_failed = true;
 		}
 		else {
-			cerr << "waiting" << endl;
+			//cerr << "waiting" << endl;
 			_waiting++;
 			// lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
 			_updatetimer->Start(100, true);

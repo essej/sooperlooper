@@ -117,7 +117,7 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	ports[Sync] = 0.0f;
 	ports[Quantize] = 0.0f;
 	ports[UseRate] = 0.0f;
-	ports[FadeSamples] = nearbyint(_driver->get_samplerate() * 0.002f); // 2ms
+	ports[FadeSamples] = nearbyint(_driver->get_samplerate() * 0.001f); // 1ms
 	ports[PlaybackSync] = 0.0f;
 	
 	_slave_sync_port = 1.0f;
@@ -334,15 +334,38 @@ Looper::do_event (Event *ev)
 		// do if release after long press, but not if already in Play
 		
 		Event::command_t cmd = ev->Command;
-		if ((int) cmd >= 0 && (int) cmd < (int) Event::LAST_COMMAND
-		    && ports[State] != LooperStatePlaying
-		    && (ev->Type == Event::type_cmd_upforce
-			|| (_running_frames > (_down_stamps[cmd] + _longpress_frames))))
+		if ((int) cmd >= 0 && (int) cmd < (int) Event::LAST_COMMAND)
 		{
-			//cerr << "long up or force" << endl;
-			requested_cmd = cmd;
-			request_pending = true;
+			
+			if (ports[State] != LooperStatePlaying || cmd == Event::REVERSE || cmd == Event::DELAY)
+			{
+				
+				if (ev->Type == Event::type_cmd_upforce) {
+					// special case if current state is mult or insert
+					// and the cmd is mult or insert and we're not quantized
+					// a SUS action here really means an unrounded action
+					if (ports[Quantize] == 0.0f
+					    && ((ports[State] == LooperStateMultiplying && cmd == Event::MULTIPLY)
+						|| (ports[State] == LooperStateInserting && cmd == Event::INSERT)))
+					{
+						// this really should be handled down in the plugin
+						cmd = Event::RECORD;
+					}
+					
+					//cerr << "force up" << endl;
+					
+					requested_cmd = cmd;
+					request_pending = true;
 
+				}
+				else if (_running_frames > (_down_stamps[cmd] + _longpress_frames))
+				{
+					//cerr << "long up" << endl;
+					requested_cmd = cmd;
+					request_pending = true;
+				}
+			}
+			
 			_down_stamps[cmd] = 0;
 		}
 	}

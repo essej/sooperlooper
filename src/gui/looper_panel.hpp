@@ -108,7 +108,7 @@ class LooperPanel
 	PixButton * _delay_button;
 	PixButton * _insert_button;
 	PixButton * _reverse_button;
-	PixButton * _rate_button;
+	PixButton * _substitute_button;
 	PixButton * _mute_button;
 	PixButton * _scratch_button;
 	PixButton * _load_button;
@@ -142,7 +142,7 @@ class LooperPanel
 
 	int _index;
 
-	LooperState _last_state;
+	SooperLooper::LooperState _last_state;
 	float _tap_val;
 
 	bool _learning;

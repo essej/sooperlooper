@@ -29,7 +29,7 @@
 #include <lo/lo.h>
 
 #include <pbd/xml++.h>
-
+#include "plugin.hpp"
 
 namespace SooperLooper {
 	class MidiBindings;
@@ -42,25 +42,6 @@ namespace SooperLooperGui {
 class LoopUpdateTimer;	
 
 
-enum LooperState
-{
-	LooperStateUnknown = -1,
-	LooperStateOff = 0,
-	LooperStateWaitStart,
-	LooperStateRecording,
-	LooperStateWaitStop,
-	LooperStatePlaying,
-	LooperStateOverdubbing,
-	LooperStateMultiplying,
-	LooperStateInserting,
-	LooperStateReplacing,
-	LooperStateDelay,
-	LooperStateMuted,
-	LooperStateScratching,
-	LooperStateOneShot
-
-};
-	
 class LoopControl
 	: public SigC::Object
 {
@@ -146,7 +127,7 @@ class LoopControl
 	
 	bool get_global_value (wxString ctrl, float &retval);
 	bool get_value (int index, wxString ctrl, float &retval);
-	bool get_state (int index, LooperState & state, wxString & statestr);
+	bool get_state (int index, SooperLooper::LooperState & state, wxString & statestr);
 
 	void pingtimer_expired();
 
@@ -193,7 +174,7 @@ class LoopControl
         ControlValMapList _params_val_map;
 	ControlValMap     _global_val_map;
 	
-	std::map<LooperState, wxString> state_map;
+	std::map<SooperLooper::LooperState, wxString> state_map;
 
 	typedef std::map<wxString, bool> UpdatedCtrlMap;
 	typedef std::vector<ControlValMap> UpdatedCtrlMapList;

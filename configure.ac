@@ -2,6 +2,9 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/engine.cpp)
 
 AC_CONFIG_AUX_DIR(.)
+AC_CANONICAL_HOST
+AC_CANONICAL_TARGET
+AC_VALIDATE_CACHED_SYSTEM_TUPLE()
 
 SOOP_MAJOR_VERSION=1
 SOOP_MINOR_VERSION=0
@@ -34,19 +37,35 @@ if test "$ac_cv_prog_cxx" = "no" ; then
    AC_MSG_ERROR([*** SooperLooper is written in C++. You don't appear to have a C++ compiler])
 fi
 
-AC_PROG_RANLIB
 
-if test x"$GXX" = xyes ; then
-   CXXFLAGS="$CXXFLAGS -Wall"
-fi
+#if test x"$GXX" = xyes ; then
+#   CXXFLAGS="$CXXFLAGS -Wall"
+#fi
 
-OPT_CXXFLAGS="-D_REENTRANT -O6 -fomit-frame-pointer -ffast-math -fstrength-reduce -funroll-loops -fmove-all-movables"
+#OPT_CXXFLAGS="-D_REENTRANT -O6 -fomit-frame-pointer -ffast-math -fstrength-reduce -funroll-loops -fmove-all-movables"
+
+ORIG_CXXFLAGS=$CXXFLAGS
+
+AM_OPT_FLAGS
+
+CXXFLAGS=$ORIG_CXXFLAGS
 
 AC_ARG_ENABLE(optimize,
-     [  --enable-optimize       enable optimizations.],
-     [ if test "x$enable_optimize" != "xno" ; then OPT_CXXFLAGS="$OPT_CXXFLAGS" ; fi ],
-     [ OPT_CXXFLAGS="" ]
-)
+     [  --disable-optimize       avoid optimizations to allow for gdb debugging.],
+     [ if test "x$enable_optimize" = "xno" ; then OPT_CXXFLAGS="" ; fi ],
+     [ OPT_CXXFLAGS="$OPT_CXXFLAGS" ])
+
+
+AC_MSG_RESULT([OPT_CXXFLAGS is set based on $OPT_CXXFLAGS])
+
+
+AC_PROG_RANLIB
+AC_LANG_CPLUSPLUS
+
+#[  --enable-optimize       enable optimizations.],
+#     [ if test "x$enable_optimize" != "xno" ; then OPT_CXXFLAGS="$OPT_CXXFLAGS" ; fi ],
+#     [ OPT_CXXFLAGS="" ]
+#)
 
 #AM_PATH_GTK(1.0.0, , [
 #   AC_MSG_ERROR([*** soop requires GTK+, but it doesn't appear to be installed])
