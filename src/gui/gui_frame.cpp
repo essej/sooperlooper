@@ -23,6 +23,7 @@
 #include <wx/image.h>
 #include <wx/utils.h>
 #include <wx/dir.h>
+#include <wx/spinctrl.h>
 
 #include <iostream>
 #include <cstdio>
@@ -41,6 +42,7 @@
 #include "keyboard_target.hpp"
 #include "keys_dialog.hpp"
 #include "midi_bind_dialog.hpp"
+#include "config_dialog.hpp"
 
 #include "pixmaps/sl_logo.xpm"
 
@@ -66,7 +68,8 @@ enum {
 	ID_QuantizeChoice,
 	ID_RoundCheck,
 	ID_TapTempoButton,
-	ID_TapTempoTimer
+	ID_TapTempoTimer,
+	ID_AddCustomLoop
 };
 
 
@@ -82,10 +85,12 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 	EVT_MENU(ID_QuitStop, GuiFrame::OnQuit)
 
 	EVT_MENU(ID_AddLoop, GuiFrame::on_add_loop)
+	EVT_MENU(ID_AddCustomLoop, GuiFrame::on_add_custom_loop)
 	EVT_MENU(ID_RemoveLoop, GuiFrame::on_remove_loop)
 
 	EVT_MENU(ID_KeybindingsMenu, GuiFrame::on_view_menu)
 	EVT_MENU(ID_MidiBindingsMenu, GuiFrame::on_view_menu)
+	EVT_MENU(ID_ConnectionMenu, GuiFrame::on_view_menu)
 	
 END_EVENT_TABLE()
 
@@ -98,10 +103,14 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 	_tapdelay_val = 1.0f;
 	_keys_dialog = 0;
 	_midi_bind_dialog = 0;
+	_config_dialog = 0;
 	_got_new_data = 0;
 	
 	_rcdir = wxGetHomeDir() + wxFileName::GetPathSeparator() + wxT(".sooperlooper");
 
+	_loop_control = new LoopControl();
+
+	
 	intialize_keybindings ();
 		
 	load_rc();
@@ -141,8 +150,6 @@ GuiFrame::init()
 	SetBackgroundColour(*wxBLACK);
 	SetThemeEnabled(false);
 	
-	GuiApp & guiapp = ::wxGetApp();
-
 	wxFont sliderFont = *wxSMALL_FONT;
 	
 	wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -207,11 +214,10 @@ GuiFrame::init()
 	_scroller = new wxScrolledWindow(this, -1, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
 	_scroller->SetBackgroundColour(*wxBLACK);
 	
-	_loop_control = new LoopControl(guiapp.get_host(), guiapp.get_port(), guiapp.get_force_spawn(),
-					guiapp.get_exec_name(), guiapp.get_engine_args());
 
 	// todo request how many loopers to construct based on connection
 	_loop_control->LooperConnected.connect (slot (*this, &GuiFrame::init_loopers));
+	_loop_control->Disconnected.connect (bind (slot (*this, &GuiFrame::init_loopers), 0));
 	_loop_control->NewDataReady.connect (slot (*this, &GuiFrame::osc_data_ready));
 
 
@@ -219,8 +225,9 @@ GuiFrame::init()
 
 	wxMenu *menuFile = new wxMenu(wxT(""));
 
-	menuFile->Append(ID_AddLoop, wxT("Add Loop"), wxT("Add one default loop"));
-	menuFile->Append(ID_RemoveLoop, wxT("Remove Loop"), wxT("Remove last loop"));
+	menuFile->Append(ID_AddLoop, wxT("Add New Default Loop"), wxT("Add one default loop"));
+	menuFile->Append(ID_AddCustomLoop, wxT("Add Custom Loop(s)..."), wxT("Add one or more custom loops"));
+	menuFile->Append(ID_RemoveLoop, wxT("Remove Last Loop"), wxT("Remove last loop"));
 
 	menuFile->AppendSeparator();
 	
@@ -232,7 +239,6 @@ GuiFrame::init()
 	menuFile = new wxMenu(wxT(""));
 
 	menuFile->Append(ID_ConnectionMenu, wxT("Looper &Connection...\tCtrl-C"), wxT("Configure Looper Engine Connection"));
-	menuFile->Enable(ID_ConnectionMenu, false);
 	menuFile->Append(ID_KeybindingsMenu, wxT("&Key Bindings...\tCtrl-K"), wxT("Configure Keybindings"));
 	menuFile->Append(ID_MidiBindingsMenu, wxT("&Midi Bindings...\tCtrl-M"), wxT("Configure Midi bindings"));
 	
@@ -518,6 +524,22 @@ GuiFrame::on_add_loop (wxCommandEvent &ev)
 }
 
 void
+GuiFrame::on_add_custom_loop (wxCommandEvent &ev)
+{
+	AddCustomLoopDialog * dial = new AddCustomLoopDialog(this);
+	dial->CentreOnParent();
+	// it takes care of itself
+	if (dial->ShowModal() == wxID_OK) {
+		for (int i=0; i < dial->num_loops; ++i) {
+			cerr << "adding loop with " << dial->num_channels << "  secs: " << dial->secs_channel << endl;
+			_loop_control->post_add_loop (dial->num_channels, dial->secs_channel);
+		}
+	}
+
+	delete dial;
+}
+
+void
 GuiFrame::on_remove_loop (wxCommandEvent &ev)
 {
 	_loop_control->post_remove_loop();
@@ -731,6 +753,7 @@ void GuiFrame::on_view_menu (wxCommandEvent &ev)
 		}
 
 		_keys_dialog->Show(true);
+		_keys_dialog->Raise();
 		
 	}
 	else if (ev.GetId() == ID_MidiBindingsMenu) {
@@ -743,6 +766,20 @@ void GuiFrame::on_view_menu (wxCommandEvent &ev)
 		}
 
 		_midi_bind_dialog->Show(true);
+		_midi_bind_dialog->Raise();
+		
+	}
+	else if (ev.GetId() == ID_ConnectionMenu) {
+		if (!_config_dialog) {
+			_config_dialog = new ConfigDialog(this, -1, wxT("SooperLooper Connection Configuration"));
+			// _config_dialog->SetSize (380,500);
+		}
+		else if (!_config_dialog->IsShown()) {
+			_config_dialog->refresh_state();
+		}
+
+		_config_dialog->Show(true);
+		_config_dialog->Raise();
 		
 	}
 }
@@ -871,10 +908,22 @@ bool GuiFrame::load_rc()
 	XMLNode * bindingsNode = rootNode->find_named_node ("KeyBindings");
 	if (!bindingsNode ) {
 		fprintf(stderr, "Preset Channels node not found in %s!\n", configfname.c_str()); 
-		return false;
+		//return false;
+	}
+	else {
+		_keyboard->set_binding_state (*bindingsNode);
 	}
 
-	_keyboard->set_binding_state (*bindingsNode);
+	bindingsNode = rootNode->find_named_node ("SpawnConfig");
+	if (!bindingsNode ) {
+		fprintf(stderr, "SpawnConfig node not found in %s!\n", configfname.c_str()); 
+		//return false;
+	}
+	else {
+		_loop_control->get_spawn_config().set_state (*bindingsNode);
+		_loop_control->get_default_spawn_config().set_state (*bindingsNode);
+	}
+
 
 	return true;
 }
@@ -897,10 +946,12 @@ bool GuiFrame::save_rc()
 	configdoc.set_root (rootNode);
 	
 	XMLNode * bindingsNode = rootNode->add_child ("KeyBindings");
-
 	bindingsNode->add_child_nocopy (_keyboard->get_binding_state());
 
+	bindingsNode = rootNode->add_child ("SpawnConfig");
+	bindingsNode->add_child_nocopy (_loop_control->get_default_spawn_config().get_state());
 
+	
 	// write doc to file
 	
 	if (configdoc.write (static_cast<const char *> ((dirname + wxFileName::GetPathSeparator() + wxT("gui_config.xml")).fn_str())))
@@ -935,3 +986,78 @@ void GuiFrame::set_curr_loop (int index)
 		}
 	}
 }
+
+
+// @@@@@@@@@@@@@@@@@@@2
+
+int AddCustomLoopDialog::num_loops = 1;
+int AddCustomLoopDialog::num_channels = 2;
+float AddCustomLoopDialog::secs_channel = 40.0f;
+
+
+AddCustomLoopDialog::AddCustomLoopDialog (GuiFrame * parent, wxWindowID id, const wxString& title,
+					  const wxPoint& pos, const wxSize& size)
+	: wxDialog ((wxWindow *)parent, id, title, pos, size, wxCAPTION)
+{
+	_parent = parent;
+       
+	wxBoxSizer *mainsizer = new wxBoxSizer(wxVERTICAL);
+
+	wxFlexGridSizer * setsizer = new wxFlexGridSizer(-1, 2, 4, 4);
+
+
+	wxStaticText * statText = new wxStaticText(this, -1, "# Loops to add:");
+	setsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL);
+	_num_loops_spin = new wxSpinCtrl(this, -1, "1", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 16, num_loops);
+	_num_loops_spin->SetValue (num_loops);
+	setsizer->Add (_num_loops_spin, 0);
+
+	statText = new wxStaticText(this, -1, "# Channels per loop:");
+	setsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL);
+	_num_channels_spin = new wxSpinCtrl(this, -1, "2", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 16, num_channels);
+	_num_channels_spin->SetValue (num_channels);
+	setsizer->Add (_num_channels_spin, 0);
+	
+	statText = new wxStaticText(this, -1, "Loop time (secs minimum):");
+	setsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL);
+	_secs_per_channel_spin = new wxSpinCtrl(this, -1, "20", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 4, 1000, (int)secs_channel);
+	_secs_per_channel_spin->SetValue ((int)secs_channel);
+	setsizer->Add (_secs_per_channel_spin, 0);
+
+	mainsizer->Add (setsizer, 1, wxEXPAND|wxALL, 6);
+
+
+	wxBoxSizer * buttsizer = new wxBoxSizer(wxHORIZONTAL);
+
+	buttsizer->Add (1,1,1);
+	
+	wxButton * butt = new wxButton(this, wxID_CANCEL, "Cancel");
+	buttsizer->Add (butt, 0, wxALL, 5);
+
+	butt = new wxButton(this, wxID_OK, "OK");
+	buttsizer->Add (butt, 0, wxALL, 5);
+	
+	
+	mainsizer->Add (buttsizer, 0, wxEXPAND|wxALL, 8);
+	
+
+	this->SetAutoLayout( true );     // tell dialog to use sizer
+	this->SetSizer( mainsizer );      // actually set the sizer
+	mainsizer->Fit( this );            // set size to minimum size as calculated by the sizer
+	mainsizer->SetSizeHints( this );   // set size hints to honour mininum size
+	
+}
+
+
+// called by wxOK
+bool AddCustomLoopDialog::TransferDataFromWindow ()
+{
+	// set them
+
+	num_loops = _num_loops_spin->GetValue();
+	num_channels = _num_channels_spin->GetValue();
+	secs_channel = (float) _secs_per_channel_spin->GetValue();
+		
+	return true;
+}
+

@@ -290,11 +290,6 @@ int main(int argc, char** argv)
 	}
 
 
-	// HACK, set envvar for looptime
-	char looptimestr[20];
-	snprintf(looptimestr, sizeof(looptimestr), "%f", option_info.loopsecs);
-	setenv("SL_SAMPLE_TIME", looptimestr, 1);
-	
 	sl_init ();
 
 	// create audio driver
@@ -321,7 +316,7 @@ int main(int argc, char** argv)
 
  	for (int i=0; i < option_info.loop_count; ++i)
 	{
-		engine->add_loop ((unsigned int) option_info.channels);
+		engine->add_loop ((unsigned int) option_info.channels, option_info.loopsecs);
 	}
 	// set default sync source
 	if (option_info.loop_count > 0) {

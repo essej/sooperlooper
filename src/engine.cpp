@@ -156,7 +156,7 @@ void Engine::quit()
 
 
 bool
-Engine::add_loop (unsigned int chans)
+Engine::add_loop (unsigned int chans, float loopsecs)
 {
 	int n;
 	
@@ -165,8 +165,8 @@ Engine::add_loop (unsigned int chans)
 		n = _instances.size();
 
 		Looper * instance;
-		
-		instance = new Looper (_driver, (unsigned int) n, chans);
+
+		instance = new Looper (_driver, (unsigned int) n, chans, loopsecs);
 		
 		if (!(*instance)()) {
 			cerr << "can't create a new loop!\n";
@@ -705,8 +705,11 @@ Engine::process_nonrt_event (EventNonRT * event)
 			if (cl_event->channels == 0) {
 				cl_event->channels = _def_channel_cnt;
 			}
-					
-			add_loop (cl_event->channels);
+			if (cl_event->secs == 0.0f) {
+				cl_event->secs = _def_loop_secs;
+			}
+			
+			add_loop (cl_event->channels, cl_event->secs);
 		}
 		else if (cl_event->type == ConfigLoopEvent::Remove)
 		{

@@ -32,15 +32,104 @@ using namespace std;
 using namespace SooperLooperGui;
 using namespace SooperLooper;
 
+#define DEFAULT_OSC_PORT 9951
 
-LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString execname, char **engine_argv)
+LoopControl::SpawnConfig::SpawnConfig(const wxString & nm)
+	: name(nm), host(wxT("")), port(DEFAULT_OSC_PORT), num_loops(1), num_channels(2),
+	  mem_secs(40.0f), exec_name(wxT("sooperlooper")), midi_bind_path(wxT("")), force_spawn(false), never_spawn(false),
+	  jack_name(wxT(""))
 {
-	_host = host;
-	_port = port;
-	_force_spawn = force_spawn;
-	_exec_name = execname;
-	_engine_argv = engine_argv;
+}
 
+
+XMLNode& LoopControl::SpawnConfig::get_state () const
+{
+	XMLNode *node = new XMLNode ("context");
+
+	node->add_property ("name", name.c_str());
+
+	node->add_property ("host", host.c_str());
+	node->add_property ("port", wxString::Format(wxT("%ld"), port).c_str());
+	node->add_property ("num_loops", wxString::Format(wxT("%ld"), num_loops).c_str());
+	node->add_property ("num_channels", wxString::Format(wxT("%ld"), num_channels).c_str());
+	node->add_property ("mem_secs", wxString::Format(wxT("%f"), mem_secs).c_str());
+
+	node->add_property ("exec_name", exec_name.c_str());
+	node->add_property ("jack_name", jack_name.c_str());
+	node->add_property ("midi_bind_path", midi_bind_path.c_str());
+
+	node->add_property ("force_spawn", force_spawn ? "yes": "no");
+	
+	return *node;
+}
+
+int LoopControl::SpawnConfig::set_state (const XMLNode& node)
+{
+	XMLNodeList nlist = node.children();
+	XMLNodeConstIterator niter;
+	XMLNode *child_node;
+
+	wxString tmpstr;
+	
+	for (niter = nlist.begin(); niter != nlist.end(); ++niter) {
+		child_node = *niter;
+
+		if (child_node->name() == "context") {
+			XMLProperty *prop;
+			
+			if ((prop = child_node->property ("name")) != 0) {
+				name.Printf(wxT("%s"), prop->value().c_str());
+			}
+			if ((prop = child_node->property ("host")) != 0) {
+				host.Printf(wxT("%s"), prop->value().c_str());
+			}
+			if ((prop = child_node->property ("port")) != 0) {
+				tmpstr.Printf(wxT("%s"), prop->value().c_str());
+				tmpstr.ToLong(&port);
+			}
+			if ((prop = child_node->property ("num_loops")) != 0) {
+				tmpstr.Printf(wxT("%s"), prop->value().c_str());
+				tmpstr.ToLong(&num_loops);
+			}
+			if ((prop = child_node->property ("num_channels")) != 0) {
+				tmpstr.Printf(wxT("%s"), prop->value().c_str());
+				tmpstr.ToLong(&num_channels);
+			}
+			if ((prop = child_node->property ("mem_secs")) != 0) {
+				tmpstr.Printf(wxT("%s"), prop->value().c_str());
+				tmpstr.ToDouble(&mem_secs);
+			}
+			if ((prop = child_node->property ("exec_name")) != 0) {
+				exec_name.Printf(wxT("%s"), prop->value().c_str());
+			}
+			if ((prop = child_node->property ("jack_name")) != 0) {
+				jack_name.Printf(wxT("%s"), prop->value().c_str());
+			}
+			if ((prop = child_node->property ("midi_bind_path")) != 0) {
+			        midi_bind_path.Printf(wxT("%s"), prop->value().c_str());
+			}
+			if ((prop = child_node->property ("force_spawn")) != 0) {
+				if (prop->value() == "yes") {
+					force_spawn = true;
+				}
+				else {
+					force_spawn = false;
+				}
+			}
+
+			break;
+		}
+	}
+
+	return 0;
+}
+
+
+LoopControl::LoopControl ()
+	: _spawn_config(wxT("current")), _default_spawn_config(wxT("default"))
+{
+	_osc_traffic_thread = 0;
+	_osc_addr = 0;
 	_midi_bindings = new MidiBindings();
 	
 	setup_param_map();
@@ -62,14 +151,6 @@ LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString ex
 	/* add handler for recving midi bindings, s:status s:serialized binding */
 	lo_server_add_method(_osc_server, "/recv_midi_bindings", "ss", LoopControl::_midi_binding_handler, this);
 	
-	if (host.empty()) {
-		_osc_addr = lo_address_new(NULL, wxString::Format(wxT("%d"), port).c_str());
-	}
-	else {
-		_osc_addr = lo_address_new(host.c_str(), wxString::Format(wxT("%d"), port).c_str());
-	}
-	//cerr << "osc errstr: " << lo_address_errstr(_osc_addr) << endl;
-
 	_pingack = false;
 	_waiting = 0;
 	_failed = false;
@@ -77,18 +158,6 @@ LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString ex
 
 	_updatetimer = new LoopUpdateTimer(this);
 	
-	if (!_force_spawn) {
-		// send off a ping.  set a timer, if we don't have a response, we'll start our own locally
-		lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
-		_updatetimer->Start(200, true);
-	}
-	// spawn now
-	else if (spawn_looper()) {
-		cerr << "immediate spawn" << endl;
-		_waiting = 1;
-		_updatetimer->Start(100, true);
-	}
-
 	// thread for watching for new osc traffic
 	pthread_create (&_osc_traffic_thread, NULL, &LoopControl::_osc_traffic, this);
 	if (!_osc_traffic_thread) {
@@ -101,15 +170,16 @@ LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString ex
 
 LoopControl::~LoopControl()
 {
-	lo_send(_osc_addr, "/unregister", "ss", _our_url.c_str(), "/pingack");
-	lo_send(_osc_addr, "/unregister_update", "sss", "tempo", _our_url.c_str(), "/ctrl");
-	lo_send(_osc_addr, "/unregister_update", "sss", "sync_source", _our_url.c_str(), "/ctrl");
-	lo_send(_osc_addr, "/unregister_update", "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
-	lo_send(_osc_addr, "/unregister_update", "sss", "tap_tempo", _our_url.c_str(), "/ctrl");
+	if (_osc_traffic_thread) {
+		pthread_cancel(_osc_traffic_thread);
+	}
 
-	lo_server_free (_osc_server);
-	lo_address_free (_osc_addr);
+	disconnect(false);
 
+	if (_osc_server) {
+		lo_server_free (_osc_server);
+	}
+	
 	delete _updatetimer;
 	delete _midi_bindings;
 }
@@ -132,6 +202,71 @@ LoopControl::setup_param_map()
 	state_map[LooperStateOneShot] = "one shot";
 }
 
+
+bool
+LoopControl::connect(char **engine_argv)
+{
+	_engine_argv = engine_argv;
+
+	if (_osc_addr) {
+		lo_address_free (_osc_addr);
+	}
+
+	if (_spawn_config.host.empty()) {
+		_osc_addr = lo_address_new(NULL, wxString::Format(wxT("%ld"), _spawn_config.port).c_str());
+	}
+	else {
+		_osc_addr = lo_address_new(_spawn_config.host.c_str(), wxString::Format(wxT("%ld"), _spawn_config.port).c_str());
+	}
+	//cerr << "osc errstr: " << lo_address_errstr(_osc_addr) << endl;
+
+	_pingack = false;
+	
+	if (!_spawn_config.force_spawn) {
+		// send off a ping.  set a timer, if we don't have a response, we'll start our own locally
+		_waiting = 0;
+		lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
+		_updatetimer->Start(200, true);
+	}
+	// spawn now
+	else if (!_spawn_config.never_spawn && spawn_looper()) {
+		//cerr << "immediate spawn" << endl;
+		_waiting = 1;
+		_updatetimer->Start(100, true);
+	}
+	else {
+		return false;
+	}
+	
+	return true;
+}
+
+bool
+LoopControl::disconnect (bool killit)
+{
+
+	if (_osc_addr) {
+		lo_send(_osc_addr, "/unregister", "ss", _our_url.c_str(), "/pingack");
+		lo_send(_osc_addr, "/unregister_update", "sss", "tempo", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/unregister_update", "sss", "sync_source", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/unregister_update", "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/unregister_update", "sss", "tap_tempo", _our_url.c_str(), "/ctrl");
+
+		if (killit) {
+			send_quit();
+		}
+		
+		lo_address_free (_osc_addr);
+		_osc_addr = 0;
+	}
+	_osc_url = wxT("");
+
+	Disconnected(); // emit
+	
+	return true;
+}
+
+
 void *
 LoopControl::_osc_traffic (void *arg)
 {
@@ -150,6 +285,8 @@ LoopControl::osc_traffic()
 	int timeout = -1;
 	int nfds = 1;
 	struct timespec nsleep = { 0, 20000000 };
+
+	pthread_setcanceltype (PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 	
 	pfd[0].fd = oscfd;
 	pfd[0].events = POLLIN|POLLHUP|POLLERR;
@@ -159,6 +296,8 @@ LoopControl::osc_traffic()
 		pfd[0].fd = oscfd;
 		pfd[0].events = POLLIN|POLLHUP|POLLERR;
 
+		pthread_testcancel();
+		
 		if (poll (pfd, nfds, timeout) < 0) {
 			if (errno == EINTR) {
 				/* gdb at work, perhaps */
@@ -216,9 +355,14 @@ LoopControl::pingtimer_expired()
 		if (_waiting > 40) {
 			// give up
 			cerr << "gave up" << endl;
+			if (_osc_addr) {
+				lo_address_free(_osc_addr);
+			}
+			_osc_addr = 0;
 			_failed = true;
 		}
 		else {
+			cerr << "waiting" << endl;
 			_waiting++;
 			// lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
 			_updatetimer->Start(100, true);
@@ -226,13 +370,18 @@ LoopControl::pingtimer_expired()
 	}
 	else
 	{
+		
 		// lets try to spawn our own
-		if (spawn_looper()) {
+		if (!_spawn_config.never_spawn && spawn_looper()) {
 			_updatetimer->Start(100, true);
 			_waiting = 1;
 		}
 		else {
-			cerr << "execute failed" << endl;
+			//cerr << "execute failed" << endl;
+			if (_osc_addr) {
+				lo_address_free(_osc_addr);
+			}
+			_osc_addr = 0;
 			_failed = true;
 		}
 			
@@ -242,15 +391,35 @@ LoopControl::pingtimer_expired()
 bool LoopControl::spawn_looper()
 {
 	// use wxExecute
-	wxString cmdstr = _exec_name;
+	wxString cmdstr = _spawn_config.exec_name;
 	char ** argv  = _engine_argv;
 
-	cmdstr += wxString::Format(" -q -U %s", _our_url.c_str());
-	
-	while (*argv) {
-		cmdstr += wxT(" ") + wxString(*argv);
-		argv++;
+	if (cmdstr.empty()) {
+		cmdstr = wxT("sooperlooper"); // always force something
 	}
+	
+	cmdstr += wxString::Format(wxT(" -q -U %s -p %ld -l %ld -c %ld -t %d"),
+				   _our_url.c_str(),
+				   _spawn_config.port,
+				   _spawn_config.num_loops,
+				   _spawn_config.num_channels,
+				   (int) _spawn_config.mem_secs
+				   );
+
+	if (!_spawn_config.midi_bind_path.empty()) {
+		cmdstr += wxString::Format(wxT(" -m \"%s\""), _spawn_config.midi_bind_path.c_str());
+	}
+	if (!_spawn_config.jack_name.empty()) {
+		cmdstr += wxString::Format(wxT(" -j \"%s\""), _spawn_config.jack_name.c_str());
+	}
+
+	if (argv) {
+		while (*argv) {
+			cmdstr += wxT(" ") + wxString(*argv);
+			argv++;
+		}
+	}
+
 
 #ifdef DEBUG
 	cerr << "execing: '" << cmdstr << "'" << endl;
@@ -286,8 +455,18 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 	char * remhost = lo_url_get_hostname(_osc_url.c_str());
 	_host = remhost;
 	free(remhost);
+	_spawn_config.host = _host;
+	
+	char * remport = lo_url_get_port(_osc_url.c_str());
+	wxString tmpstr(remport);
+	tmpstr.ToLong(&_spawn_config.port);
+	free(remport);
 
-	lo_address_free(_osc_addr);
+	_port = (int) _spawn_config.port;
+
+	if (_osc_addr) {
+		lo_address_free(_osc_addr);
+	}
 	_osc_addr = lo_address_new_from_url (hosturl.c_str());
 
 	if (!_pingack) {
@@ -408,6 +587,7 @@ LoopControl::midi_binding_handler(const char *path, const char *types, lo_arg **
 void
 LoopControl::request_global_values()
 {
+	if (!_osc_addr) return;
 	char buf[20];
 
 	snprintf(buf, sizeof(buf), "/get");
@@ -423,6 +603,7 @@ LoopControl::request_global_values()
 void
 LoopControl::request_values(int index)
 {
+	if (!_osc_addr) return;
 	char buf[20];
 
 	snprintf(buf, sizeof(buf), "/sl/%d/get", index);
@@ -442,6 +623,7 @@ LoopControl::request_values(int index)
 void
 LoopControl::request_all_values(int index)
 {
+	if (!_osc_addr) return;
 	char buf[20];
 
 	snprintf(buf, sizeof(buf), "/sl/%d/get", index);
@@ -468,6 +650,8 @@ LoopControl::request_all_values(int index)
 void
 LoopControl::request_all_midi_bindings()
 {
+	if (!_osc_addr) return;
+
 	_midi_bindings->clear_bindings();
 	lo_send(_osc_addr, "/get_all_midi_bindings", "ss", _our_url.c_str(), "/recv_midi_bindings");
 }
@@ -475,12 +659,16 @@ LoopControl::request_all_midi_bindings()
 void
 LoopControl::learn_midi_binding(const MidiBindInfo & info, bool exclusive)
 {
+	if (!_osc_addr) return;
+
 	lo_send(_osc_addr, "/learn_midi_binding", "ssss", info.serialize().c_str(), exclusive?"exclusive":"",_our_url.c_str(), "/recv_midi_bindings" );
 }
 
 void
 LoopControl::request_next_midi_event ()
 {
+	if (!_osc_addr) return;
+
 	lo_send(_osc_addr, "/get_next_midi_event", "ss", _our_url.c_str(), "/recv_midi_bindings" );
 }
 
@@ -488,18 +676,24 @@ LoopControl::request_next_midi_event ()
 void
 LoopControl::add_midi_binding(const MidiBindInfo & info, bool exclusive)
 {
+	if (!_osc_addr) return;
+
 	lo_send(_osc_addr, "/add_midi_binding", "ss", info.serialize().c_str(), exclusive?"exclusive":"");
 }
 
 void
 LoopControl::remove_midi_binding(const MidiBindInfo & info)
 {
+	if (!_osc_addr) return;
+
 	lo_send(_osc_addr, "/remove_midi_binding", "ss", info.serialize().c_str(),"");
 }
 
 void
 LoopControl::clear_midi_bindings()
 {
+	if (!_osc_addr) return;
+
 	lo_send(_osc_addr, "/clear_midi_bindings", "");
 	request_all_midi_bindings();
 }
@@ -507,12 +701,16 @@ LoopControl::clear_midi_bindings()
 void
 LoopControl::cancel_next_midi_event()
 {
+	if (!_osc_addr) return;
+
 	lo_send(_osc_addr, "/cancel_get_next_midi", "ss", _our_url.c_str(), "/recv_midi_bindings" );
 }
 
 void
 LoopControl::cancel_midi_learn()
 {
+	if (!_osc_addr) return;
+
 	lo_send(_osc_addr, "/cancel_midi_learn", "ss", _our_url.c_str(), "/recv_midi_bindings" );
 }
 
@@ -527,12 +725,15 @@ LoopControl::load_midi_bindings(string filename, bool append)
 void
 LoopControl::save_midi_bindings(string filename)
 {
+	if (!_osc_addr) return;
+
 	lo_send(_osc_addr, "/save_midi_bindings", "ss", filename.c_str(), "");
 }
 
 void
 LoopControl::register_input_controls(int index, bool unreg)
 {
+	if (!_osc_addr) return;
 	char buf[30];
 
 	if ((int)_params_val_map.size() > index) {
@@ -566,6 +767,8 @@ LoopControl::register_input_controls(int index, bool unreg)
 void
 LoopControl::register_control (int index, wxString ctrl, bool unreg)
 {
+	if (!_osc_addr) return;
+
 	char buf[30];
 
 	if ((int)_params_val_map.size() > index) {
@@ -589,6 +792,7 @@ LoopControl::register_control (int index, wxString ctrl, bool unreg)
 bool
 LoopControl::post_down_event(int index, wxString cmd)
 {
+	if (!_osc_addr) return false;
 	char buf[30];
 
 	snprintf(buf, sizeof(buf), "/sl/%d/down", index);
@@ -603,6 +807,7 @@ LoopControl::post_down_event(int index, wxString cmd)
 bool
 LoopControl::post_up_event(int index, wxString cmd, bool force)
 {
+	if (!_osc_addr) return false;
 	char buf[30];
 
 	if (force) {
@@ -622,6 +827,7 @@ LoopControl::post_up_event(int index, wxString cmd, bool force)
 bool
 LoopControl::post_ctrl_change (int index, wxString ctrl, float val)
 {
+	if (!_osc_addr) return false;
 	char buf[30];
 
 	snprintf(buf, sizeof(buf), "/sl/%d/set", index);
@@ -636,6 +842,7 @@ LoopControl::post_ctrl_change (int index, wxString ctrl, float val)
 bool
 LoopControl::post_global_ctrl_change (wxString ctrl, float val)
 {
+	if (!_osc_addr) return false;
 
 	if (lo_send(_osc_addr, "/set", "sf", ctrl.c_str(), val) == -1) {
 		return false;
@@ -647,6 +854,7 @@ LoopControl::post_global_ctrl_change (wxString ctrl, float val)
 bool
 LoopControl::post_save_loop(int index, wxString fname, wxString format, wxString endian)
 {
+	if (!_osc_addr) return false;
 	char buf[30];
 
 	snprintf(buf, sizeof(buf), "/sl/%d/save_loop", index);
@@ -662,6 +870,7 @@ LoopControl::post_save_loop(int index, wxString fname, wxString format, wxString
 bool
 LoopControl::post_load_loop(int index, wxString fname)
 {
+	if (!_osc_addr) return false;
 	char buf[30];
 
 	snprintf(buf, sizeof(buf), "/sl/%d/load_loop", index);
@@ -678,6 +887,7 @@ LoopControl::post_load_loop(int index, wxString fname)
 void
 LoopControl::send_quit()
 {
+	if (!_osc_addr) return;
 	lo_send(_osc_addr, "/quit", NULL);
 }
 
@@ -685,6 +895,7 @@ LoopControl::send_quit()
 void
 LoopControl::update_values()
 {
+	if (!_osc_server) return;
 	// recv commands nonblocking, until none left
 
 	while (lo_server_recv_noblock (_osc_server, 0) > 0)
@@ -783,12 +994,10 @@ LoopControl::get_state (int index, LooperState & state, wxString & statestr)
 }
 
 bool
-LoopControl::post_add_loop()
+LoopControl::post_add_loop(int channels, float secs)
 {
-	// todo specify loop channels etc
-	int channels = 0;
-	float secs = 0.0;
-	
+	if (!_osc_addr) return false;
+
 	if (lo_send(_osc_addr, "/loop_add", "if", channels, secs) == -1) {
 		return false;
 	}
@@ -799,6 +1008,7 @@ LoopControl::post_add_loop()
 bool
 LoopControl::post_remove_loop()
 {
+	if (!_osc_addr) return false;
 	// todo specify loop channels etc
 	int index = -1;
 	

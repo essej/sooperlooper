@@ -63,7 +63,7 @@ class Engine
 
 	void quit();
 
-	bool add_loop (unsigned int chans);
+	bool add_loop (unsigned int chans, float loopsecs=40.0f);
 	bool remove_loop (unsigned int index);
 	
 	unsigned int loop_count() { PBD::LockMonitor lm(_instance_lock, __LINE__, __FILE__); return _instances.size(); }

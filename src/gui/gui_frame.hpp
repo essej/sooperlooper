@@ -29,6 +29,9 @@
 #include <sigc++/object.h>
 #include <sigc++/signal.h>
 
+
+class wxSpinCtrl;
+
 namespace SooperLooperGui {
 
 class LoopControl;
@@ -40,6 +43,7 @@ class PixButton;
 class KeyboardTarget;
 class KeysDialog;
 class MidiBindDialog;
+class ConfigDialog;
 	
 class GuiFrame
 	: public wxFrame,  public SigC::Object
@@ -73,7 +77,9 @@ public:
 
 	void set_curr_loop (int index);
 
-	
+
+	void init_loopers (int count);
+
 protected:
 
 	void init();
@@ -83,11 +89,11 @@ protected:
 	
 	void intialize_keybindings ();
 	
-	void init_loopers (int count);
 
 	void osc_data_ready();
 	
 	void on_add_loop (wxCommandEvent &ev);
+	void on_add_custom_loop (wxCommandEvent &ev);
 	void on_remove_loop (wxCommandEvent &ev);
 
 	void on_taptempo_timer(wxTimerEvent &ev);
@@ -144,6 +150,7 @@ protected:
 
 	MidiBindDialog * _midi_bind_dialog;
 
+	ConfigDialog *  _config_dialog;
 	
 	int     _got_new_data;
 	wxString  _rcdir;
@@ -153,6 +160,34 @@ private:
     DECLARE_EVENT_TABLE()
 	
 };
+
+
+	
+class AddCustomLoopDialog
+	: public wxDialog
+{
+  public:
+	AddCustomLoopDialog (GuiFrame * parent=NULL, wxWindowID id=-1, const wxString& title=wxT("Add Custom Loop(s)"),
+		       const wxPoint& pos=wxDefaultPosition, const wxSize& size=wxDefaultSize);
+
+
+	// called by wxOK
+	bool TransferDataFromWindow ();
+
+	static int num_loops;
+	static int num_channels;
+	static float secs_channel;
+	
+protected:
+
+	GuiFrame * _parent;
+	
+	wxSpinCtrl * _num_loops_spin;
+	wxSpinCtrl * _num_channels_spin;
+	wxSpinCtrl * _secs_per_channel_spin;
+	
+};
+
 	
 };
 

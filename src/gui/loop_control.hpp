@@ -28,6 +28,9 @@
 
 #include <lo/lo.h>
 
+#include <pbd/xml++.h>
+
+
 namespace SooperLooper {
 	class MidiBindings;
 	class MidiBindInfo;
@@ -62,18 +65,46 @@ class LoopControl
 	: public SigC::Object
 {
   public:
+
+	struct SpawnConfig
+	{
+		SpawnConfig(const wxString & nm = wxT("default"));
+
+		XMLNode& get_state () const;
+		int set_state (const XMLNode&);
+
+		wxString name;
+		
+		wxString   host;
+		long        port;
+		long        num_loops; 
+		long        num_channels;
+		double      mem_secs;
+
+		wxString   exec_name;
+		wxString   midi_bind_path;
+		bool       force_spawn;
+		bool       never_spawn;
+		wxString   jack_name;
+	};
 	
 	// ctor(s)
-	LoopControl (wxString host, int port, bool force_spawn=false, wxString execname=wxT("sooperlooper"), char **engine_argv=0);
+	LoopControl ();
 	virtual ~LoopControl();
 
+	SpawnConfig & get_spawn_config() { return _spawn_config; }
+	SpawnConfig & get_default_spawn_config() { return _default_spawn_config; }
+
+	bool connect(char **engine_argv=0);
+	bool disconnect(bool killit=false);
+	
 	bool post_down_event (int index, wxString cmd);
 	bool post_up_event (int index, wxString cmd, bool force=false);
 
 	bool post_ctrl_change (int index, wxString ctrl, float val);
 	bool post_global_ctrl_change (wxString ctrl, float val);
 
-	bool post_add_loop();
+	bool post_add_loop(int channels=0, float secs=0.0f);
 	bool post_remove_loop();
 
 	bool post_save_loop(int index, wxString fname, wxString format=wxT("float"), wxString endian=wxT("little"));
@@ -81,6 +112,8 @@ class LoopControl
 	
 	bool is_engine_local();
 	wxString get_engine_host() { return _host; }
+	int get_engine_port() { return _port; }
+	bool connected() { return _osc_addr != 0; }
 	
 	void request_values (int index);
 	void request_all_values (int index);
@@ -118,6 +151,7 @@ class LoopControl
 	void pingtimer_expired();
 
 	SigC::Signal1<void,int> LooperConnected;
+	SigC::Signal0<void> Disconnected;
 	SigC::Signal0<void> NewDataReady;
 	SigC::Signal1<void, SooperLooper::MidiBindInfo&> MidiBindingChanged;
 	SigC::Signal1<void, SooperLooper::MidiBindInfo&> ReceivedNextMidi;
@@ -182,7 +216,9 @@ class LoopControl
 
 	// midi bindings
 	SooperLooper::MidiBindings * _midi_bindings;
-	
+
+	SpawnConfig  _spawn_config;
+	SpawnConfig  _default_spawn_config;
 	
 };
 

@@ -50,7 +50,7 @@ static const double MaxResamplingRate = 4.0f;
 static const int SrcAudioQuality = SRC_LINEAR;
 #endif
 
-Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_count)
+Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_count, float loopsecs)
 	: _driver (driver), _index(index), _chan_count(chan_count)
 {
 	char tmpstr[100];
@@ -121,6 +121,12 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	ports[PlaybackSync] = 0.0f;
 	
 	_slave_sync_port = 1.0f;
+
+	// TODO: fix hack to specify loop length
+	char looptimestr[20];
+	snprintf(looptimestr, sizeof(looptimestr), "%f", loopsecs);
+	setenv("SL_SAMPLE_TIME", looptimestr, 1);
+
 	
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{

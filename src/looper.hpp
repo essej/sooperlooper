@@ -88,7 +88,7 @@ enum {
 class Looper 
 {
   public:
-	Looper (AudioDriver * driver, unsigned int index, unsigned int channel_count=1);
+	Looper (AudioDriver * driver, unsigned int index, unsigned int channel_count=1, float loopsecs=40.0);
 	~Looper ();
 	
 	bool operator() () const { return _ok; }

@@ -44,6 +44,7 @@
 
 #include "gui_app.hpp"
 #include "gui_frame.hpp"
+#include "loop_control.hpp"
 
 using namespace SooperLooperGui;
 using namespace std;
@@ -174,11 +175,11 @@ GuiApp::parse_options (int argc, char **argv)
 	
 	
 GuiApp::GuiApp()
-	: _frame(0), _host(wxT("")), _port(DEFAULT_OSC_PORT)
+	: _frame(0), _host(wxT("")), _port(0)
 {
 	_show_usage = 0;
 	_show_version = 0;
-	_exec_name = wxT("sooperlooper");
+	_exec_name = wxT("");
 	_force_spawn = false;
 }
 
@@ -328,6 +329,24 @@ bool GuiApp::OnInit()
 	
 	// Create the main application window
 	_frame = new GuiFrame (wxT("SooperLooper"), wxPoint(100, 100), wxDefaultSize);
+
+	// override defaults
+	LoopControl & loopctrl = _frame->get_loop_control();
+	if (!_host.empty()) {
+		loopctrl.get_spawn_config().host = _host;
+	}
+	if (_port != 0) {
+		loopctrl.get_spawn_config().port = _port;
+	}
+	if (_force_spawn) {
+		loopctrl.get_spawn_config().force_spawn = _force_spawn;
+	}
+	if (!_exec_name.empty()) {
+		loopctrl.get_spawn_config().exec_name = _exec_name;
+	}
+	
+	// connect
+	loopctrl.connect(_engine_argv);
 
 	
 	// Show it and tell the application that it's our main window
