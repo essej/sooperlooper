@@ -1,0 +1,60 @@
+OSC interface to SooperLooper engine
+
+
+/base/loopnum
+  /sl/0
+
+Commands:
+
+/down s:cmdname timestamp
+ command press
+
+/up s:cmdname timestamp
+command release
+
+  commands are:
+
+  record
+  overdub
+  multiply
+  insert
+  replace
+  reverse
+  mute
+  undo
+  redo
+  oneshot
+  tap
+  unmute
+  unmutestart
+
+/set/param f:value
+  params are:
+
+  rec_thresh
+  feedback
+  dry
+  wet
+  rate
+  scratch_pos
+  tap_trigger
+  quantize
+  round
+  redo_is_tap
+
+/get/param uri:callback
+  params are:
+
+[all of the above controls, plus]:
+
+  state  - returns a string
+  looplen - f secs
+  looppos - f secs
+  cyclelen - f secs
+  freemem  - f secs
+  totalmem - f secs
+
+
+
+  
+
