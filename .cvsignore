@@ -3,6 +3,7 @@ Makefile.in
 aclocal.m4
 autom4te.cache
 build
+config.h.in
 config.h
 config.log
 config.status
