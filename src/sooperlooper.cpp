@@ -31,7 +31,12 @@
 #include "engine.hpp"
 #include "event_nonrt.hpp"
 
+#if WITH_ALSA
 #include "alsa_midi_bridge.hpp"
+#elif WITH_COREMIDI
+#include "coremidi_bridge.hpp"
+#endif
+
 #include "jack_audio_driver.hpp"
 
 using namespace SooperLooper;
@@ -314,26 +319,28 @@ int main(int argc, char** argv)
 		engine->push_nonrt_event ( new GlobalSetEvent ("sync_source", 1.0f));
 	}
 	
-	
 	if (!driver->activate()) {
 		exit(1);
 	}
-
-	
 
 	if (!option_info.pingurl.empty()) {
 		// notify whoever asked as to
 		engine->get_control_osc()->send_pingack (option_info.pingurl);
 	}
 	
+#if WITH_ALSA
 	// start up alsamidi bridge
 	// todo: a factory or optional other type
 	MidiBridge * midibridge = new AlsaMidiBridge(driver->get_name(), engine->get_osc_url());
+#elif WITH_COREMIDI
+	MidiBridge * midibridge = new CoreMidiBridge(driver->get_name(), engine->get_osc_url());
+#else
+#fatal No MidiBridge compiled in!
+#endif
 
 	if (!option_info.bindfile.empty()) {
 		midibridge->load_bindings (option_info.bindfile);
 	}
-	
 	// go into engine's non-rt event loop
 	// this returns when we quit or signal handler causes it to
 	engine->mainloop();

@@ -54,14 +54,6 @@ PKG_CHECK_MODULES(JACK, jack >= 0.80.0)
 AC_SUBST(JACK_LIBS)
 AC_SUBST(JACK_CFLAGS)
 
-
-#PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.5)
-
-
-#PKG_CHECK_MODULES(GTKMM, gtkmm-2.0 >= 2.0)
-#AC_SUBST(GTKMM_LIBS)
-#AC_SUBST(GTKMM_CFLAGS)
-
 PKG_CHECK_MODULES(LOSC, liblo >= 0.10)
 AC_SUBST(LOSC_LIBS)
 AC_SUBST(LOSC_CFLAGS)
@@ -133,12 +125,25 @@ fi
 AC_SUBST(WX_CFLAGS)
 AC_SUBST(WX_LIBS)
 
+AUDIO_LIBS=
+AC_CHECK_HEADER(alsa/asoundlib.h,
+                [use_alsa_midi=yes
+                AUDIO_LIBS=-lasound
+                AC_DEFINE([WITH_ALSA], 1, [Have ALSA Headers])],
+        use_alsa_midi=no)
+AM_CONDITIONAL(WITH_ALSA, test x$use_alsa_midi = xyes)
 
-EXTRA_LIBS="$JACK_LIBS $XML_LIBS $GTKMM_LIBS $LOSC_LIBS $SIGCPP_LIBS"
+AC_CHECK_HEADER(/System/Library/Frameworks/CoreMIDI.framework/Headers/CoreMIDI.h, 
+                [use_coremidi=yes
+                AUDIO_LIBS="-framework CoreMIDI"
+                AC_DEFINE([WITH_COREMIDI], 1, [Have CoreMIDI Headers])],
+        use_coremidi=no)
+AM_CONDITIONAL(WITH_COREMIDI, test x$use_coremidi = xyes)
+AC_SUBST(AUDIO_LIBS)
+
+EXTRA_LIBS="$JACK_LIBS $XML_LIBS $GTKMM_LIBS $LOSC_LIBS $SIGCPP_LIBS $AUDIO_LIBS"
 
 AC_LANG_CPLUSPLUS
-
-
 
 AC_ARG_ENABLE(debug,
       [  --enable-debug    not optimized and includes debug symbols],

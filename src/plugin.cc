@@ -37,12 +37,12 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
    
 /*****************************************************************************/
 
-#include <values.h>
-#include <string.h>
-
+#include <climits>
+#include <cstring>
 #include <cstdio>
 #include <cmath>
 #include <cstdlib>
+#include <cfloat>
 
 using namespace std;
 
@@ -695,7 +695,7 @@ static void fillLoops(SooperLooperI *pLS, LoopChunk *mloop, unsigned long lCurrP
 		      DBG(fprintf(stderr,"front segment filled for %08x for %08x in at %lu\n",
 				  (unsigned)loop, (unsigned) srcloop, loop->lMarkL);)
 			      loop->frontfill = 0;
-		      loop->lMarkL = loop->lMarkH = MAXLONG;
+		      loop->lMarkL = loop->lMarkH = LONG_MAX;
 	      }
       }
       else if (loop->backfill && lCurrPos<=loop->lMarkEndH && lCurrPos>=loop->lMarkEndL)		
@@ -727,7 +727,7 @@ static void fillLoops(SooperLooperI *pLS, LoopChunk *mloop, unsigned long lCurrP
 		      DBG(fprintf(stderr,"back segment filled in for %08x from %08x at %lu\n",
 				  (unsigned)loop, (unsigned)srcloop, loop->lMarkEndL);)
 			      loop->backfill = 0;
-		      loop->lMarkEndL = loop->lMarkEndH = MAXLONG;
+		      loop->lMarkEndL = loop->lMarkEndH = LONG_MAX;
 	      }
 	      
       }
@@ -820,10 +820,10 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
       else {
 	 // no need to frontfill
 	 loop->frontfill = 0;
-	 loop->lMarkL = loop->lMarkH = MAXLONG;
+	 loop->lMarkL = loop->lMarkH = LONG_MAX;
       }
       
-      loop->lMarkEndL = loop->lMarkEndH = MAXLONG;
+      loop->lMarkEndL = loop->lMarkEndH = LONG_MAX;
 
       
       DBG(fprintf(stderr,"Mark at L:%lu  h:%lu\n",loop->lMarkL, loop->lMarkH);
@@ -972,10 +972,10 @@ static LoopChunk * beginInsert(SooperLooperI *pLS, LoopChunk *loop)
       }
       else {
 	 loop->frontfill = 0; 
-	 loop->lMarkL = loop->lMarkH = MAXLONG;
+	 loop->lMarkL = loop->lMarkH = LONG_MAX;
       }
       
-      loop->lMarkEndL = loop->lMarkEndH = MAXLONG;
+      loop->lMarkEndL = loop->lMarkEndH = LONG_MAX;
 		       
       DBG(fprintf(stderr, "InsPos=%lu  RemLen=%lu\n", loop->lInsPos, loop->lRemLen));
       DBG(fprintf(stderr,"Total cycles now=%lu\n", loop->lCycles));
@@ -2176,7 +2176,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    loop->lEndAdj = 0;
 		    loop->dCurrPos = 0.0;
 		    loop->firsttime = 0;
-		    loop->lMarkL = loop->lMarkEndL = MAXLONG;
+		    loop->lMarkL = loop->lMarkEndL = LONG_MAX;
 		    loop->frontfill = loop->backfill = 0;
 		    loop->lCycles = 1; // at first just one		 
 		    loop->srcloop = NULL;
@@ -2581,7 +2581,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    if (loop->dCurrPos >= loop->lMarkEndH) {
 		       // we be done this only happens in round mode
 		       // adjust curr position
-		       loop->lMarkEndH = MAXLONG;
+		       loop->lMarkEndH = LONG_MAX;
 		       backfill = loop->backfill = 0;
 		       // do adjust it for our new length
 		       loop->dCurrPos = 0.0f;
