@@ -44,6 +44,8 @@ public:
 	inline Event::control_t  to_control_t (std::string cmd);
 	inline std::string       to_control_str (Event::control_t cmd);
 
+	inline Event::type_t  to_type_t (std::string cmd);
+	inline std::string       to_type_str (Event::type_t cmd);
 
 	void get_commands (std::list<std::string> & cmdlist);
 	void get_controls (std::list<std::string> & ctrllist);
@@ -64,17 +66,23 @@ protected:
 
 	typedef std::map<std::string, Event::command_t> StringCommandMap;
 	StringCommandMap _str_cmd_map;
-
+	
 	typedef std::map<Event::command_t, std::string> CommandStringMap;
 	CommandStringMap _cmd_str_map;
-
+	
 	typedef std::map<std::string, Event::control_t> StringControlMap;
 	StringControlMap _str_ctrl_map;
 
 	typedef std::map<Event::control_t, std::string> ControlStringMap;
 	ControlStringMap _ctrl_str_map;
 
-
+	typedef	std::map<std::string,Event::type_t> StringTypeMap;
+	StringTypeMap _str_type_map;
+	
+	typedef	std::map<Event::type_t,std::string> TypeStringMap;
+	TypeStringMap _type_str_map;
+	
+	
 	StringControlMap _input_controls;
 	StringControlMap _output_controls;
 	StringControlMap _event_controls;
@@ -115,8 +123,6 @@ CommandMap::to_control_t (std::string cmd)
 	}
 
 	return (*result).second;
-
-	
 }
 
 inline std::string
@@ -131,6 +137,30 @@ CommandMap::to_control_str (Event::control_t cmd)
 	return (*result).second;
 }
 
+inline Event::type_t
+CommandMap::to_type_t (std::string tp)
+{
+	StringTypeMap::iterator result = _str_type_map.find(tp);
+
+	if (result == _str_type_map.end()) {
+		return Event::type_cmd_hit; // arbitrary
+	}
+
+	return (*result).second;
+}
+	
+inline std::string
+CommandMap::to_type_str (Event::type_t tp)
+{
+	TypeStringMap::iterator result = _type_str_map.find(tp);
+
+	if (result == _type_str_map.end()) {
+		return "unknown";
+	}
+
+	return (*result).second;
+}
+	
 
 	
 };

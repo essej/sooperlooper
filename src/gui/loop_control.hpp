@@ -194,8 +194,13 @@ class LoopControl
 	bool _failed;
 
 	long _engine_pid;
-	pthread_t _osc_traffic_thread;
 
+	bool init_traffic_thread();
+	void terminate_traffic_thread();
+	pthread_t _osc_traffic_thread;
+	int       _traffic_request_pipe[2];
+	bool      _traffic_done;
+	
 	// midi bindings
 	SooperLooper::MidiBindings * _midi_bindings;
 

@@ -77,10 +77,16 @@ class Engine
 
 	EventGenerator & get_event_generator() { return *_event_generator;}
 
-	bool push_command_event (Event::type_t type, Event::command_t cmd, int8_t instance);
-	bool push_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance);
+	bool push_command_event (Event::type_t type, Event::command_t cmd, int8_t instance)
+		{ return do_push_command_event (_event_queue, type, cmd, instance); }
+	bool push_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance)
+		{ return do_push_control_event (_event_queue, type, ctrl, val, instance); }
 
-	bool push_sync_event (Event::control_t ctrl);
+	void push_midi_command_event (Event::type_t type, Event::command_t cmd, int8_t instance)
+		{ do_push_command_event (_midi_event_queue, type, cmd, instance); }
+	void push_midi_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance);
+	
+	void push_sync_event (Event::control_t ctrl);
 	
 	std::string get_osc_url (bool udp=true);
 	int get_osc_port ();
@@ -113,6 +119,10 @@ class Engine
 
 	void do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes);
 
+	bool do_push_command_event (RingBuffer<Event> * rb, Event::type_t type, Event::command_t cmd, int8_t instance);
+	bool do_push_control_event (RingBuffer<Event> * rb, Event::type_t type, Event::control_t ctrl, float val, int8_t instance);
+
+	
 	void set_tempo (double tempo);
 
 	inline double avg_tempo(double tempo);
@@ -137,6 +147,7 @@ class Engine
 	
 	// RT event queue
 	RingBuffer<Event> * _event_queue;
+	RingBuffer<Event> * _midi_event_queue;
 	RingBuffer<Event> * _sync_queue;
 
 	EventGenerator * _event_generator;

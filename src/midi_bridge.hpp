@@ -35,6 +35,7 @@
 #include <midi++/port.h>
 #include <midi++/port_request.h>
 
+#include "event.hpp"
 #include "midi_bind.hpp"
 #include "lockmonitor.hpp"
 
@@ -45,6 +46,7 @@ class MidiBridge
 {
   public:
 
+	MidiBridge (std::string name, MIDI::PortRequest & req);
 	MidiBridge (std::string name, std::string oscurl, MIDI::PortRequest & req);
 	virtual ~MidiBridge();			
 
@@ -61,6 +63,12 @@ class MidiBridge
 	
 	SigC::Signal1<void, MidiBindInfo> BindingLearned;
 	SigC::Signal1<void, MidiBindInfo> NextMidiReceived;
+
+	SigC::Signal3<void, Event::type_t, Event::command_t, int8_t> MidiCommandEvent;
+	SigC::Signal4<void, Event::type_t, Event::control_t, float, int8_t> MidiControlEvent;
+
+	SigC::Signal1<void, Event::control_t> MidiSyncEvent;
+	
 	
   protected:
 	bool init_thread();
@@ -84,7 +92,7 @@ class MidiBridge
 
   private:
 
-	void send_osc (const MidiBindInfo & info, float val);
+	void send_event (const MidiBindInfo & info, float val);
 	
 
 	MidiBindings _midi_bindings;
@@ -98,11 +106,12 @@ class MidiBridge
 
 	PBD::NonBlockingLock _bindings_lock;
 
-	
+	bool _use_osc;
 	bool _done;
 	bool _learning;
 	bool _getnext;
 	MidiBindInfo _learninfo;
+
 	
 };
 

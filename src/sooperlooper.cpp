@@ -197,7 +197,7 @@ static void* watchdog_thread(void* arg)
 	  /* block until a signal received */
 	  sigwait(&signalset, &signalno);
 	  
-	   fprintf (stderr, "recieved signal %d\n", signalno);
+	  // fprintf (stderr, "recieved signal %d\n", signalno);
 	  
 	  if (signalno == SIGHUP) {
 		  exiting = 1;
@@ -337,18 +337,20 @@ int main(int argc, char** argv)
 #if WITH_ALSA
 	// start up alsamidi bridge
 	MIDI::PortRequest portreq (driver->get_name(), "sooperlooper", "duplex", "alsa/sequencer");
-	midibridge = new MidiBridge(driver->get_name(), engine->get_osc_url(), portreq);
+	midibridge = new MidiBridge(driver->get_name(), portreq);
 
 #elif WITH_COREMIDI
 	MIDI::PortRequest portreq (driver->get_name(), driver->get_name(),  "duplex", "coremidi");
-	midibridge = new MidiBridge(driver->get_name(), engine->get_osc_url(), portreq);
+	midibridge = new MidiBridge(driver->get_name(), portreq);
 #endif
 
-	if (midibridge && midibridge->is_ok() && !option_info.bindfile.empty()) {
-		midibridge->bindings().load_bindings (option_info.bindfile);
+	if (midibridge && midibridge->is_ok()) {
+		if (!option_info.bindfile.empty()) {
+			midibridge->bindings().load_bindings (option_info.bindfile);
+		}
+		engine->set_midi_bridge(midibridge);
 	}
 
-	engine->set_midi_bridge(midibridge);
 	
 	// go into engine's non-rt event loop
 	// this returns when we quit or signal handler causes it to

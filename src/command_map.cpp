@@ -28,6 +28,20 @@ CommandMap * CommandMap::_instance = 0;
 CommandMap::CommandMap()
 {
 	// initialize string maps
+
+	_str_type_map["down"]  = Event::type_cmd_down;
+	_str_type_map["up"]  = Event::type_cmd_up;
+	_str_type_map["upforce"]  = Event::type_cmd_upforce;
+	_str_type_map["hit"]  = Event::type_cmd_hit;
+	_str_type_map["set"]  = Event::type_control_change;
+	_str_type_map["get"]  = Event::type_control_request;
+	_str_type_map["g_set"]  = Event::type_global_control_change;
+	_str_type_map["sync"]  = Event::type_sync;
+	
+	for (StringTypeMap::iterator iter = _str_type_map.begin(); iter != _str_type_map.end(); ++iter) {
+		_type_str_map[(*iter).second] = (*iter).first;
+	}
+
 	_str_cmd_map["record"]  = Event::RECORD;
 	_str_cmd_map["overdub"]  = Event::OVERDUB;
 	_str_cmd_map["multiply"]  = Event::MULTIPLY;

@@ -433,7 +433,7 @@ ControlOSC::osc_receiver()
 
 	}
 
-	cerr << "got shutdown" << endl;
+	cerr << "SL engine shutdown" << endl;
 	
 	if (_osc_server) {
 		lo_server_free (_osc_server);
@@ -720,7 +720,6 @@ ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **a
 		string options (&argv[1]->s);
 		string returl (&argv[2]->s);
 		string retpath (&argv[3]->s);
-		cerr << "got learn" << endl;
 		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::Learn, bindstr, options, returl, retpath));
 	}
 	else if (info->command == MidiBindCommand::GetNextMidi)
@@ -728,7 +727,6 @@ ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **a
 		// add a specific midi binding:  s:returl s:retpath
 		string returl (&argv[0]->s);
 		string retpath (&argv[1]->s);
-		cerr << "got get" << endl;
 		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::GetNextMidi, "", "", returl, retpath));
 	}
 	else if (info->command == MidiBindCommand::CancelLearn)
@@ -736,7 +734,6 @@ ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **a
 		// add a specific midi binding:  s:returl s:retpath
 		string returl (&argv[0]->s);
 		string retpath (&argv[1]->s);
-		cerr << "got cancel learn" << endl;
 		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::CancelLearn, "", "", returl, retpath));
 	}
 	else if (info->command == MidiBindCommand::CancelGetNext)
@@ -744,7 +741,6 @@ ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **a
 		// add a specific midi binding:  s:returl s:retpath
 		string returl (&argv[0]->s);
 		string retpath (&argv[1]->s);
-		cerr << "got cancel next" << endl;
 		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::CancelGetNext, "", "", returl, retpath));
 	}
 	else if (info->command == MidiBindCommand::LoadBindings)
@@ -1143,11 +1139,9 @@ void ControlOSC::finish_midi_binding_event (MidiBindingEvent & event)
 			return;
 		}
 		
-		cerr << "sending done" << endl;
 		lo_send(addr, event.ret_path.c_str(), "ss", "done", event.bind_str.c_str());
 	}
 	else if (event.type == MidiBindingEvent::GetNextMidi) {
-		cerr << "sending recv" << endl;
 		lo_send(addr, event.ret_path.c_str(), "ss", "recv", event.bind_str.c_str());
 	}
 	else if (event.type == MidiBindingEvent::CancelLearn)
@@ -1165,17 +1159,32 @@ ControlOSC::send_registered_updates(string ctrl, float val, int instance)
 {
 	InstancePair ipair(instance, ctrl);
 	ControlRegistrationMap::iterator iter = _registration_map.find (ipair);
-
+	UrlList::iterator tmpurl;
+	
 	if (iter != _registration_map.end()) {
 		UrlList & ulist = (*iter).second;
 
-		for (UrlList::iterator url = ulist.begin(); url != ulist.end(); ++url)
+		for (UrlList::iterator url = ulist.begin(); url != ulist.end();)
 		{
 		        lo_address addr = (*url).first;
 			
 			if (lo_send(addr, (*url).second.c_str(), "isf", instance, ctrl.c_str(), val) == -1) {
+#ifdef DEBUG
 				fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
+#endif
+				// auto-unregister
+				tmpurl = url;
+				++url;
+
+				ulist.erase(tmpurl);
+				continue;
 			}
+
+			++url;
+		}
+		
+		if (ulist.empty()) {
+			_registration_map.erase(ipair);
 		}
 	}
 	else {

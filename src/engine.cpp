@@ -84,6 +84,7 @@ bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 
 	_event_generator = new EventGenerator(_driver->get_samplerate());
 	_event_queue = new RingBuffer<Event> (MAX_EVENTS);
+	_midi_event_queue = new RingBuffer<Event> (MAX_EVENTS);
 	_sync_queue = new RingBuffer<Event> (MAX_SYNC_EVENTS);
 
 	_nonrt_event_queue = new RingBuffer<EventNonRT *> (MAX_EVENTS);
@@ -117,6 +118,11 @@ Engine::cleanup()
 		_event_queue = 0;
 	}
 
+	if (_midi_event_queue) {
+		delete _midi_event_queue;
+		_midi_event_queue = 0;
+	}
+	
 	if (_sync_queue) {
 		delete _sync_queue;
 		_sync_queue = 0;
@@ -142,6 +148,10 @@ void Engine::set_midi_bridge (MidiBridge * bridge)
 	if (_midi_bridge) {
 		_midi_bridge->BindingLearned.connect(slot(*this, &Engine::binding_learned));
 		_midi_bridge->NextMidiReceived.connect(slot(*this, &Engine::next_midi_received));
+
+		_midi_bridge->MidiCommandEvent.connect (slot(*this, &Engine::push_midi_command_event));
+		_midi_bridge->MidiControlEvent.connect (slot(*this, &Engine::push_midi_control_event));
+		_midi_bridge->MidiSyncEvent.connect (slot(*this, &Engine::push_sync_event));
 	}
 }
 
@@ -249,6 +259,52 @@ Engine::get_osc_port ()
 	return 0;
 }
 
+
+static inline Event * next_rt_event (RingBuffer<Event>::rw_vector & vec, size_t & pos,
+				     RingBuffer<Event>::rw_vector & midivec, size_t & midipos)
+{
+	Event * e1 = 0;
+	Event * e2 = 0;
+	
+	if (pos < vec.len[0]) {
+		e1 = &vec.buf[0][pos];
+	}
+	else if (pos < (vec.len[0] + vec.len[1])) {
+		e1 = &vec.buf[1][pos - vec.len[0]];
+	}
+
+	if (midipos < midivec.len[0]) {
+		e2 = &midivec.buf[0][midipos];
+	}
+	else if (midipos < (midivec.len[0] + midivec.len[1])) {
+		e2 = &midivec.buf[1][midipos - midivec.len[0]];
+	}
+
+	// pick the earliest fragpos
+
+	if (e1 && e2) {
+		if (e1->FragmentPos() < e2->FragmentPos()) {
+			++pos;
+			return e1;
+		}
+		else {
+			++midipos;
+			return e2;
+		}
+	}
+	else if (e1) {
+		++pos;
+		return e1;
+	}
+	else if (e2) {
+		++midipos;
+		return e2;
+	}
+
+	return 0;
+}
+	
+
 int
 Engine::process (nframes_t nframes)
 {
@@ -268,14 +324,15 @@ Engine::process (nframes_t nframes)
 
 	Event * evt;
 	RingBuffer<Event>::rw_vector vec;
+	RingBuffer<Event>::rw_vector midivec;
 
 	// get available events
 	_event_queue->get_read_vector (&vec);
+	_midi_event_queue->get_read_vector (&midivec);
 		
 	// update event generator
 	_event_generator->updateFragmentTime (nframes);
 
-	
 	
 	// update internal sync
 	calculate_tempo_frames ();
@@ -284,29 +341,20 @@ Engine::process (nframes_t nframes)
 
 	nframes_t usedframes = 0;
 	nframes_t doframes;
-	size_t num = vec.len[0];
+	size_t num = vec.len[0] + midivec.len[0];
 	size_t n = 0;
-	size_t vecn = 0;
+	size_t midi_n = 0;
 	int fragpos;
 	int m, syncm;
 	
 	if (num > 0) {
+
+		evt = next_rt_event (vec, n, midivec, midi_n);
 		
-		while (n < num)
+		while (evt)
 		{ 
-			evt = vec.buf[vecn] + n;
 			fragpos = (nframes_t) evt->FragmentPos();
 
-			++n;
-			// to avoid code copying
-			if (n == num) {
-				if (vecn == 0) {
-					++vecn;
-					n = 0;
-					num = vec.len[1];
-				}
-			}
-				
 			if (fragpos < (int) usedframes || fragpos >= (int) nframes) {
 				// bad fragment pos
 #ifdef DEBUG
@@ -351,10 +399,13 @@ Engine::process (nframes_t nframes)
 			}
 
 			usedframes += doframes;
+
+			evt = next_rt_event (vec, n, midivec, midi_n);
 		}
 
 		// advance events
 		_event_queue->increment_read_ptr (vec.len[0] + vec.len[1]);
+		_midi_event_queue->increment_read_ptr (midivec.len[0] + midivec.len[1]);
 
 
 		m = 0;
@@ -430,13 +481,14 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 	}
 }
 
+
 bool
-Engine::push_command_event (Event::type_t type, Event::command_t cmd, int8_t instance)
+Engine::do_push_command_event (RingBuffer<Event> * evqueue, Event::type_t type, Event::command_t cmd, int8_t instance)
 {
 	// todo support more than one simulataneous pusher safely
 	RingBuffer<Event>::rw_vector vec;
 
-	_event_queue->get_write_vector (&vec);
+	evqueue->get_write_vector (&vec);
 
 	if (vec.len[0] == 0) {
 #ifdef DEBUG
@@ -452,20 +504,20 @@ Engine::push_command_event (Event::type_t type, Event::command_t cmd, int8_t ins
 	evt->Command = cmd;
 	evt->Instance = instance;
 
-	_event_queue->increment_write_ptr (1);
+	evqueue->increment_write_ptr (1);
 
 	return true;
 }
 
 
 bool
-Engine::push_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance)
+Engine::do_push_control_event (RingBuffer<Event> * evqueue, Event::type_t type, Event::control_t ctrl, float val, int8_t instance)
 {
 	// todo support more than one simulataneous pusher safely
-	
+
 	RingBuffer<Event>::rw_vector vec;
 
-	_event_queue->get_write_vector (&vec);
+	evqueue->get_write_vector (&vec);
 
 	if (vec.len[0] == 0) {
 #ifdef DEBUG
@@ -482,19 +534,29 @@ Engine::push_control_event (Event::type_t type, Event::control_t ctrl, float val
 	evt->Value = val;
 	evt->Instance = instance;
 
-	_event_queue->increment_write_ptr (1);
-
+	evqueue->increment_write_ptr (1);
 	
 	return true;
 }
 
-bool
+void
+Engine::push_midi_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance)
+{
+	do_push_control_event (_midi_event_queue, type, ctrl, val, instance);
+
+	// now push non-rt event for ui updates
+	// XXX: this mem allocation may not be ideal
+	push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Send, instance, ctrl, "", "", val));
+	
+}
+
+void
 Engine::push_sync_event (Event::control_t ctrl)
 {
 	// todo support more than one simulataneous pusher safely
 
 	if (_sync_source != MidiClockSync) {
-		return false;
+		return;
 	}
 	
 	RingBuffer<Event>::rw_vector vec;
@@ -505,7 +567,7 @@ Engine::push_sync_event (Event::control_t ctrl)
 #ifdef DEBUG
 		cerr << "sync event queue full, dropping event" << endl;
 #endif
-		return false;
+		return;
 	}
 	
 	Event * evt = vec.buf[0];
@@ -516,7 +578,7 @@ Engine::push_sync_event (Event::control_t ctrl)
 
 	_sync_queue->increment_write_ptr (1);
 	
-	return true;
+	return;
 }
 
 
@@ -756,7 +818,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 			_osc->finish_midi_binding_event(*mb_event);
 		}
 		else if (mb_event->type == MidiBindingEvent::CancelGetNext) {
-			cerr << "gcancel get next" << endl;
+			//cerr << "gcancel get next" << endl;
 			_received_done = false;
 			_midi_bridge->cancel_get_next();
 			_osc->finish_midi_binding_event(*mb_event);
@@ -791,7 +853,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 		}
 		else if (mb_event->type == MidiBindingEvent::GetNextMidi)
 		{
-			cerr << "get next" << endl;
+			//cerr << "get next" << endl;
 			_received_done = false;
 			_learn_event = *mb_event;
 			_midi_bridge->start_get_next();

@@ -25,6 +25,7 @@
 #include <sys/poll.h>
 #include <unistd.h>
 #include <time.h>
+#include <fcntl.h>
 
 #include <midi_bind.hpp>
 #include "plugin.hpp"
@@ -158,22 +159,14 @@ LoopControl::LoopControl ()
 	_engine_pid = 0;
 
 	_updatetimer = new LoopUpdateTimer(this);
-	
-	// thread for watching for new osc traffic
-	pthread_create (&_osc_traffic_thread, NULL, &LoopControl::_osc_traffic, this);
-	if (!_osc_traffic_thread) {
-		return;
-	}
-	pthread_detach(_osc_traffic_thread);
-	
+
+	init_traffic_thread();
 }
 
 
 LoopControl::~LoopControl()
 {
-	if (_osc_traffic_thread) {
-		pthread_cancel(_osc_traffic_thread);
-	}
+	terminate_traffic_thread();
 
 	disconnect(false);
 
@@ -183,6 +176,54 @@ LoopControl::~LoopControl()
 	
 	delete _updatetimer;
 	delete _midi_bindings;
+}
+
+bool
+LoopControl::init_traffic_thread()
+{
+	// thread for watching for new osc traffic
+
+	_traffic_done = false;
+	
+	if (pipe (_traffic_request_pipe)) {
+		cerr << "Cannot create midi request signal pipe" <<  strerror (errno) << endl;
+		return false;
+	}
+
+	if (fcntl (_traffic_request_pipe[0], F_SETFL, O_NONBLOCK)) {
+		cerr << "UI: cannot set O_NONBLOCK on signal read pipe " << strerror (errno) << endl;
+		return false;
+	}
+
+	if (fcntl (_traffic_request_pipe[1], F_SETFL, O_NONBLOCK)) {
+		cerr << "UI: cannot set O_NONBLOCK on signal write pipe " << strerror (errno) << endl;
+		return false;
+	}
+	
+	pthread_create (&_osc_traffic_thread, NULL, &LoopControl::_osc_traffic, this);
+	if (!_osc_traffic_thread) {
+		return false;
+	}
+
+	return true;
+}
+
+void
+LoopControl::terminate_traffic_thread ()
+{
+	void* status;
+	char c;
+
+	_traffic_done = true;
+
+	if (write (_traffic_request_pipe[1], &c, 1) != 1) {
+		cerr << "cannot send signal to traffic thread! " <<  strerror (errno) << endl;
+	}
+
+	pthread_join (_osc_traffic_thread, &status);
+
+	close(_traffic_request_pipe[0]);
+	close(_traffic_request_pipe[1]);
 }
 
 void
@@ -285,18 +326,22 @@ LoopControl::osc_traffic()
 	int oscfd = lo_server_get_socket_fd(_osc_server);
 	struct pollfd pfd[2];
 	int timeout = -1;
-	int nfds = 1;
+	int nfds = 2;
 	struct timespec nsleep = { 0, 20000000 };
 
 	pthread_setcanceltype (PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-	
-	pfd[0].fd = oscfd;
+
+	pfd[0].fd = _traffic_request_pipe[0];
 	pfd[0].events = POLLIN|POLLHUP|POLLERR;
+	pfd[1].fd = oscfd;
+	pfd[1].events = POLLIN|POLLHUP|POLLERR;
 	
-	while (1)
+	while (!_traffic_done)
 	{
-		pfd[0].fd = oscfd;
+		pfd[0].fd = _traffic_request_pipe[0];
 		pfd[0].events = POLLIN|POLLHUP|POLLERR;
+		pfd[1].fd = oscfd;
+		pfd[1].events = POLLIN|POLLHUP|POLLERR;
 
 		pthread_testcancel();
 		
@@ -311,6 +356,10 @@ LoopControl::osc_traffic()
 			continue;
 		}
 		else {
+			if (_traffic_done) {
+				break;
+			}
+			
 			// emit signal
 			NewDataReady(); // emit
 		}

@@ -76,10 +76,13 @@ MidiBridge::MidiBridge (string name, string oscurl, PortRequest & req)
 	_port = 0;
 	_done = false;
 	_learning = false;
+	_use_osc = true;
+	_addr = 0;
 	
 	_addr = lo_address_new_from_url (_oscurl.c_str());
 	if (lo_address_errno (_addr) < 0) {
 		fprintf(stderr, "MidiBridge:: addr error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
+		_use_osc = false;
 	}
 
 
@@ -96,9 +99,33 @@ MidiBridge::MidiBridge (string name, string oscurl, PortRequest & req)
 	
 }
 
+MidiBridge::MidiBridge (string name,  PortRequest & req)
+	: _name (name)
+{
+	_port = 0;
+	_done = false;
+	_learning = false;
+	_use_osc = false;
+	_addr = 0;
+
+	PortFactory factory;
+	
+	if ((_port = factory.create_port (req)) == 0) {
+		return;
+	}
+
+	// this is a callback that will be made from the parser
+	_port->input()->any.connect (slot (*this, &MidiBridge::incoming_midi));
+
+	init_thread();
+	
+}
+
 MidiBridge::~MidiBridge()
 {
-	lo_address_free (_addr);
+	if (_addr) {
+		lo_address_free (_addr);
+	}
 
 	// the port will be freed by the work thread
 	
@@ -160,7 +187,7 @@ MidiBridge::poke_midi_thread ()
 void
 MidiBridge::start_learn (MidiBindInfo & info, bool exclus)
 {
-	cerr << "starting learn" << endl;
+	//cerr << "starting learn" << endl;
 	_learninfo = info;
 	_learning = true;
 }
@@ -168,7 +195,7 @@ MidiBridge::start_learn (MidiBindInfo & info, bool exclus)
 void
 MidiBridge::start_get_next ()
 {
-	cerr << "starting getnext" << endl;
+	//cerr << "starting getnext" << endl;
 	_getnext = true;
 }
 
@@ -310,64 +337,93 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 			}
 			//cerr << "found binding: key: " << key << " val is " << (int) val << "  scaled: " << scaled_val << "  type: " << info.type << endl;
 			//cerr << "ctrl: " << info.control << "  cmd: " << info.command << endl;
+
 			
-			send_osc (info, scaled_val);
+			send_event (info, scaled_val);
 		}
 	}
 	else if (chcmd == MIDI::start) {  // MIDI start
-		lo_send(_addr, "/sl/midi_start", "");
+		if (_use_osc) {
+			lo_send(_addr, "/sl/midi_start", "");
+		}
+		MidiSyncEvent (Event::MidiStart); // emit
 	}
 	else if (chcmd == MIDI::stop) { // MIDI stop
-		lo_send(_addr, "/sl/midi_stop", "");
+		if (_use_osc) {
+			lo_send(_addr, "/sl/midi_stop", "");
+		}
+		MidiSyncEvent (Event::MidiStop); // emit
 	}
 	else if (chcmd == MIDI::timing) {  // MIDI clock tick
-		lo_send(_addr, "/sl/midi_tick", "");
+		if (_use_osc) {
+			lo_send(_addr, "/sl/midi_tick", "");
+		}
+		MidiSyncEvent (Event::MidiTick); // emit
 	}
 	else {
 		//fprintf(stderr, "binding %x not found\n", key);
 	}
 }
 
-
 void
-MidiBridge::send_osc (const MidiBindInfo & info, float val)
+MidiBridge::send_event (const MidiBindInfo & info, float val)
 {
 	static char tmpbuf[100];
 
 
 	string cmd = info.command;
+	CommandMap & cmdmap = CommandMap::instance();
+	
+	Event::type_t optype = cmdmap.to_type_t (cmd);
+	Event::control_t ctrltype = cmdmap.to_control_t (info.control);
+	Event::command_t cmdtype = cmdmap.to_command_t (info.control);
 	
 	if (cmd == "set") {
-		snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, cmd.c_str());
-
-		if (lo_send(_addr, tmpbuf, "sf", info.control.c_str(), val) < 0) {
-			fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
+		if (_use_osc) {
+			snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, cmd.c_str());
+			
+			if (lo_send(_addr, tmpbuf, "sf", info.control.c_str(), val) < 0) {
+				fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
+			}
 		}
+
+		MidiControlEvent (optype, ctrltype, val, (int8_t) info.instance); // emit
+		
 	}
 	else {
+		
 		if (cmd == "note") {
 			if (val > 0.0f) {
 				//cerr << "val is " << val << endl;
 				cmd = "down";
+				optype = Event::type_cmd_down;
 			}
 			else {
 				cmd = "up";
+				optype = Event::type_cmd_up;
 			}
 		}
 		else if (cmd == "susnote") {
 			if (val > 0.0f) {
 				cmd = "down";
+				optype = Event::type_cmd_down;
 			}
 			else {
 				cmd = "upforce";
+				optype = Event::type_cmd_upforce;
 			}
 		}
 
-		snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, cmd.c_str());
-		
-		if (lo_send(_addr, tmpbuf, "s", info.control.c_str()) < 0) {
-			fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
+		if (_use_osc) {
+			snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, cmd.c_str());
+			
+			if (lo_send(_addr, tmpbuf, "s", info.control.c_str()) < 0) {
+				fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
+			}
 		}
+
+		MidiCommandEvent (optype, cmdtype, (int8_t) info.instance); // emit
+
 	}
 }
 
