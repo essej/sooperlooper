@@ -326,7 +326,7 @@ LooperPanel::init()
  	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 3);
 
 	// rate control
-	_rate_control = slider = new SliderBar(this, ID_RateControl, -4.0f, 4.0f, 1.0f);
+	_rate_control = slider = new SliderBar(this, ID_RateControl, 0.25f, 4.0f, 1.0f);
 	slider->set_units(wxT(""));
 	slider->set_label(wxT(""));
 	slider->set_style (SliderBar::CenterStyle);

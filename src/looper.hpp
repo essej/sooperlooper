@@ -22,6 +22,14 @@
 
 #include <string>
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifdef HAVE_SAMPLERATE
+#include <samplerate.h>
+#endif
+
 #include "audio_driver.hpp"
 #include "lockmonitor.hpp"
 #include "ladspa.h"
@@ -108,6 +116,10 @@ class Looper
 	
   protected:
 
+	void run_loops (nframes_t offset, nframes_t nframes);
+	void run_loops_resampled (nframes_t offset, nframes_t nframes);
+
+	
 	int requested_cmd;
 	int last_requested_cmd;
 	
@@ -132,7 +144,21 @@ class Looper
 
 	LADSPA_Data         _slave_sync_port;
 	LADSPA_Data         _slave_dummy_port;
-	
+
+	// SRC stuff
+#ifdef HAVE_SAMPLERATE
+	SRC_STATE**            _in_src_states;
+	SRC_STATE**            _out_src_states;
+	SRC_STATE*            _insync_src_state;
+	SRC_STATE*            _outsync_src_state;
+	float  *              _src_in_buffer;
+	float  *              _src_sync_buffer;
+	nframes_t             _src_buffer_len;
+
+	double                _src_in_ratio;
+	double                _src_out_ratio;
+	SRC_DATA              _src_data;
+#endif
 	
 	bool _ok;
 	bool request_pending;

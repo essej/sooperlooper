@@ -7,7 +7,7 @@ SOOP_MAJOR_VERSION=1
 SOOP_MINOR_VERSION=0
 SOOP_MICRO_VERSION=0
 
-BETA=dev20
+BETA=dev21
 
 AC_SUBST(SOOP_MAJOR_VERSION)
 AC_SUBST(SOOP_MINOR_VERSION)
@@ -88,6 +88,13 @@ PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.2, ac_cv_sndfile=1, ac_cv_sndfile=0)
 AC_DEFINE_UNQUOTED([HAVE_SNDFILE],${ac_cv_sndfile},[Set to 1 if you have libsndfile.])
 AC_SUBST(SNDFILE_CFLAGS)
 AC_SUBST(SNDFILE_LIBS)
+
+dnl libsamplerate
+PKG_CHECK_MODULES(SAMPLERATE, samplerate >= 0.0.13, ac_cv_samplerate=1, ac_cv_samplerate=0)
+AC_DEFINE_UNQUOTED([HAVE_SAMPLERATE],${ac_cv_samplerate},[Set to 1 if you have libsamplerate.])
+AC_SUBST(SAMPLERATE_CFLAGS)
+AC_SUBST(SAMPLERATE_LIBS)
+
 
 dnl wxwindows
 AC_PATH_PROG(WX_CONFIG1, wxgtk2-2.5-config, no, $PATH:/usr/local/bin )

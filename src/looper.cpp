@@ -28,7 +28,9 @@
 #include <cstring>
 #include <cmath>
 
+#ifdef HAVE_SNDFILE
 #include <sndfile.h>
+#endif
 
 #include "ladspa.h"
 #include "plugin.hpp"
@@ -42,11 +44,14 @@ extern	const LADSPA_Descriptor* ladspa_descriptor (unsigned long);
 
 const LADSPA_Descriptor* Looper::descriptor = 0;
 
+static const double MaxResamplingRate = 8.0f;
+
 
 Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_count)
 	: _driver (driver), _index(index), _chan_count(chan_count)
 {
 	char tmpstr[100];
+	int dummyerror;
 	
 	_ok = false;
 	requested_cmd = 0;
@@ -70,12 +75,31 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	_input_ports = new port_id_t[_chan_count];
 	_output_ports = new port_id_t[_chan_count];
 
+	// SRC stuff
+#ifdef HAVE_SAMPLERATE
+	_in_src_states = new SRC_STATE*[_chan_count];
+	_out_src_states = new SRC_STATE*[_chan_count];
+	memset (_in_src_states, 0, sizeof(SRC_STATE*) * _chan_count);
+	memset (_out_src_states, 0, sizeof(SRC_STATE*) * _chan_count);
+
+	_insync_src_state = src_new (SRC_ZERO_ORDER_HOLD, 1, &dummyerror);
+	_outsync_src_state = src_new (SRC_ZERO_ORDER_HOLD, 1, &dummyerror);
+
+	_src_sync_buffer = 0;
+	_src_in_buffer = 0;
+	_src_buffer_len = 0;
+	_src_in_ratio = 1.0;
+	_src_out_ratio = 1.0;
+#endif
+	
+	
 	set_buffer_size(_driver->get_buffersize());
 	
 	memset (_instances, 0, sizeof(LADSPA_Handle) * _chan_count);
 	memset (_input_ports, 0, sizeof(port_id_t) * _chan_count);
 	memset (_output_ports, 0, sizeof(port_id_t) * _chan_count);
 	memset (ports, 0, sizeof(float) * 20);
+
 	
 	// set some rational defaults
 	ports[DryLevel] = 1.0f;
@@ -133,6 +157,12 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 		}
 		
 		descriptor->activate (_instances[i]);
+
+#ifdef HAVE_SAMPLERATE
+		// SRC stuff
+		_in_src_states[i] = src_new (SRC_SINC_FASTEST, 1, &dummyerror);
+		_out_src_states[i] = src_new (SRC_SINC_FASTEST, 1, &dummyerror);
+#endif		
 	}
 
 	
@@ -163,6 +193,15 @@ Looper::~Looper ()
 			_driver->destroy_output_port (_output_ports[i]);
 			_output_ports[i] = 0;
 		}
+
+#ifdef HAVE_SAMPLERATE
+		if (_out_src_states[i]) {
+			src_delete (_out_src_states[i]);
+		}
+		if (_in_src_states[i]) {
+			src_delete (_in_src_states[i]);
+		}
+#endif
 	}
 
 	delete [] _instances;
@@ -178,6 +217,15 @@ Looper::~Looper ()
 	if (_dummy_buf)
 		delete [] _dummy_buf;
 
+	delete [] _in_src_states;
+	delete [] _out_src_states;
+
+#ifdef HAVE_SAMPLERATE
+	if (_insync_src_state)
+		src_delete (_insync_src_state);
+	if (_outsync_src_state)
+		src_delete (_outsync_src_state);
+#endif
 }
 
 
@@ -212,13 +260,25 @@ Looper::set_buffer_size (nframes_t bufsize)
 		
 		_buffersize = bufsize;
 		
-		_our_syncin_buf = new LADSPA_Data[_buffersize];
-		_our_syncout_buf = new LADSPA_Data[_buffersize];
-		_dummy_buf = new LADSPA_Data[_buffersize];
+		_our_syncin_buf = new float[_buffersize];
+		_our_syncout_buf = new float[_buffersize];
+		// big enough for use with resampling too
+		_dummy_buf = new float[(nframes_t) ceil (_buffersize * MaxResamplingRate)];
 		
 		if (_use_sync_buf == 0) {
 			_use_sync_buf = _our_syncin_buf;
 		}
+
+#ifdef HAVE_SAMPLERATE
+		if (_src_sync_buffer) 
+			delete [] _src_sync_buffer;
+		if (_src_in_buffer) 
+			delete [] _src_in_buffer;
+		_src_buffer_len = (nframes_t) ceil (_buffersize * MaxResamplingRate);
+		_src_sync_buffer = new float[_src_buffer_len];
+		_src_in_buffer = new float[_src_buffer_len];
+#endif
+		
 	}
 }
 
@@ -253,11 +313,27 @@ Looper::do_event (Event *ev)
 	else if (ev->Type == Event::type_control_change)
 	{
 		// todo: specially handle TriggerThreshold to work across all channels
-		
+
 		if ((int)ev->Control >= (int)Event::TriggerThreshold && (int)ev->Control <= (int) Event::FadeSamples) {
 			
 			ports[ev->Control] = ev->Value;
 			//cerr << "set port " << ev->Control << "  to: " << ev->Value << endl;
+
+#ifdef HAVE_SAMPLERATE
+			if (ev->Control == Event::Rate) {
+				// uses
+				_src_in_ratio = (double) max (0.0, min ((double)ev->Value, MaxResamplingRate));
+				_src_out_ratio = (double) max (0.0, min (1.0 / (double) ev->Value, MaxResamplingRate));
+				src_set_ratio (_insync_src_state, _src_in_ratio);
+				src_set_ratio (_outsync_src_state, _src_out_ratio);
+
+				for (unsigned int i=0; i < _chan_count; ++i)
+				{
+					src_set_ratio (_out_src_states[i], _src_out_ratio);
+					src_set_ratio (_in_src_states[i], _src_in_ratio);
+				}
+			}
+#endif
 		}
 	}
 	
@@ -310,7 +386,21 @@ Looper::run (nframes_t offset, nframes_t nframes)
 	if (_use_sync_buf == _our_syncin_buf || _use_sync_buf == _our_syncout_buf) {
 		ports[Sync] = 0.0f;
 	}
+
+	if (ports[Rate] == 1.0f) {
+		run_loops (offset, nframes);
+	}
+	else {
+		run_loops_resampled (offset, nframes);
+	}
 	
+	ports[Sync] = oldsync;
+}
+
+
+void
+Looper::run_loops (nframes_t offset, nframes_t nframes)
+{
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
 		/* (re)connect audio ports */
@@ -335,9 +425,86 @@ Looper::run (nframes_t offset, nframes_t nframes)
 
 	}
 
-	ports[Sync] = oldsync;
+
 }
 
+void
+Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
+{
+	nframes_t alt_frames;
+	
+	_src_data.end_of_input = 0;
+	
+	// resample input audio and sync using Rate
+	_src_data.src_ratio = _src_in_ratio;
+	_src_data.input_frames = nframes;
+	_src_data.output_frames = (long) ceil (nframes * _src_in_ratio);
+	
+	// sync input
+	_src_data.data_in = _use_sync_buf + offset;
+	_src_data.data_out = _src_sync_buffer;
+	src_process (_insync_src_state, &_src_data);
+
+	alt_frames = _src_data.output_frames_gen;
+	// cerr << "nframes: " << nframes << "  output: " <<  _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << endl;
+	
+	// process
+	for (unsigned int i=0; i < _chan_count; ++i)
+	{
+		// resample input
+		_src_data.src_ratio = _src_in_ratio;
+		_src_data.input_frames = nframes;
+		_src_data.output_frames = (long) ceil (nframes * _src_in_ratio);
+		_src_data.data_in = (float *) _driver->get_input_port_buffer (_input_ports[i], nframes) + offset;
+		_src_data.data_out = _src_in_buffer;
+		src_process (_in_src_states[i], &_src_data);
+		// cerr << "nframes: " << nframes << "  output: " <<  _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << endl;
+
+		alt_frames = _src_data.output_frames_gen;
+		
+		/* (re)connect audio ports */
+		
+		descriptor->connect_port (_instances[i], AudioInputPort, (LADSPA_Data*) _src_in_buffer);
+		descriptor->connect_port (_instances[i], AudioOutputPort, (LADSPA_Data*) _src_in_buffer);
+
+
+		if (i == 0) {
+			descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _src_sync_buffer);
+			descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _src_sync_buffer);
+		}
+		else {
+			// all others get the first channel's sync-out as input
+			descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _src_sync_buffer);
+			descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _dummy_buf);
+		}
+		
+		
+		/* do it */
+		descriptor->run (_instances[i], alt_frames);
+
+
+		// resample output
+		_src_data.src_ratio = _src_out_ratio;
+		_src_data.input_frames = alt_frames;
+		_src_data.output_frames = nframes;
+		_src_data.data_in = _src_in_buffer;
+		_src_data.data_out = (float *) _driver->get_output_port_buffer (_output_ports[i], nframes) + offset;
+		src_process (_out_src_states[i], &_src_data);
+
+		//cerr << "out altframes: " << alt_frames << "  output: " <<  _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << endl;
+		
+	}
+
+
+	// resample out sync
+	_src_data.src_ratio = _src_out_ratio;
+	_src_data.input_frames = alt_frames;
+	_src_data.output_frames = nframes;
+	_src_data.data_in =  _src_sync_buffer;
+	_src_data.data_out = _use_sync_buf + offset;
+	src_process (_outsync_src_state, &_src_data);
+	
+}
 
 bool
 Looper::load_loop (string fname)
