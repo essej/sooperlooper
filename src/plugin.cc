@@ -2597,11 +2597,12 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // increment and wrap at the proper loop end
 		 loop->dCurrPos = loop->dCurrPos + fRate;
 
-		 if (fSyncMode != 0.0 && pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
+		 //if (fSyncMode != 0.0 && pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
+		 if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
 		       // commit the new rate at boundary (quantized)
 		       pLS->fCurrRate = pLS->fNextCurrRate;
 		       pLS->fNextCurrRate = 0.0f;
-		       DBG(fprintf(stderr, "Starting quantized rate change\n"));
+		       DBG(fprintf(stderr, "%08x Starting quantized rate change ovr at %d\n", (unsigned) pLS, lCurrPos));
 		 }
 
 		 
