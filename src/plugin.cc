@@ -835,6 +835,7 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 	      if (*pLS->pfQuantMode == QUANT_CYCLE) {
 		      loop->lStartAdj = ((int)floor(fabs((srcloop->dCurrPos-1) / srcloop->lCycleLength))
 					 + 1) * srcloop->lCycleLength; 
+		      loop->frontfill = 0; // no need.
 	      }
 	      else {
 		      loop->lStartAdj = ((int)floor(fabs((srcloop->dCurrPos) / srcloop->lCycleLength))) * srcloop->lCycleLength; 
@@ -849,7 +850,6 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 	      loop->lCycles = 1;
 	      loop->lLoopLength = srcloop->lCycleLength;
 	      //loop->lLoopLength = 0;
-	      loop->frontfill = 0; // no need.
 	      DBG(fprintf(stderr,"Quantize ignoring first %d cycles.  Orig length %lu\n",
 			  ((int)floor(srcloop->dCurrPos / srcloop->lCycleLength)+ 1),
 			  srcloop->lLoopLength));
