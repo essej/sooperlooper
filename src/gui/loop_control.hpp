@@ -96,7 +96,6 @@ class LoopControl
 	void pingtimer_expired();
 
 	SigC::Signal1<void,int> LooperConnected;
-
 	
   protected:
 	

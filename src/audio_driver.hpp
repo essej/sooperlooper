@@ -41,7 +41,7 @@ class AudioDriver
 	AudioDriver(std::string client_name="");
 	virtual ~AudioDriver();
 
-	virtual bool initialize() = 0;
+	virtual bool initialize(std::string client_name="") = 0;
 	virtual bool activate() = 0;
 	virtual bool deactivate() = 0;
 
@@ -57,8 +57,6 @@ class AudioDriver
 	virtual unsigned int get_input_port_count () = 0;
 	virtual unsigned int get_output_port_count () = 0;
 
-	virtual void process_silence (nframes_t frames) = 0; // called from audio callback
-	
 	virtual std::string get_name() { return _client_name; }
 
 	virtual void set_engine (Engine * engine) { _engine = engine; }

@@ -52,8 +52,9 @@ ChoiceBox::ChoiceBox(wxWindow * parent, wxWindowID id, const wxPoint& pos, const
 	_backing_store = 0;
 	_dragging = false;
 	_popup_menu = 0;
+	_data_value = 0;
 	
-	_bgcolor.Set(30,30,30);
+	_bgcolor.Set(0,0,0);
 	_bgbrush.SetColour (_bgcolor);
 	SetBackgroundColour (_bgcolor);
 	SetThemeEnabled(false);
@@ -65,10 +66,11 @@ ChoiceBox::ChoiceBox(wxWindow * parent, wxWindowID id, const wxPoint& pos, const
 	_overbarcolor.Set(20, 40, 50);
 	_barbrush.SetColour(_bgcolor);
 	
+	_bgbordercolor.Set(30,30,30);
 	_bordercolor.Set(67, 83, 103);
 	_borderpen.SetColour(_bordercolor);
 	_borderpen.SetWidth(1);
-	_borderbrush.SetColour(_bgcolor);
+	_borderbrush.SetColour(_bgbordercolor);
 
 	_linebrush.SetColour(wxColour(154, 245, 168));
 	
@@ -81,9 +83,9 @@ ChoiceBox::~ChoiceBox()
 
 
 void
-ChoiceBox::append_choice (const wxString & val)
+ChoiceBox::append_choice (const wxString & item, long data)
 {
-	_choices.push_back(val);
+	_choices.push_back(ChoiceItem(item, data));
 
 	if (_choices.size() == 1) {
 		// first one
@@ -128,14 +130,14 @@ void ChoiceBox::ensure_popup (bool force_build)
 	
 	for (ChoiceList::iterator iter =  _choices.begin(); iter != _choices.end(); ++iter) {
 		if (building) {
-			_popup_menu->AppendCheckItem (id, *iter);
+			_popup_menu->AppendCheckItem (id, (*iter).first);
 
 			this->Connect( id,  wxEVT_COMMAND_MENU_SELECTED,
 				       (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)
 				       &ChoiceBox::on_menu_item, 0);
 		}
 		
-		if (_value_str == *iter) {
+		if (_value_str == (*iter).first) {
 			_popup_menu->Check (id, true);
 		}
 		else {
@@ -171,7 +173,7 @@ ChoiceBox::set_string_value (const wxString &val)
 	// search through
 	int n = 0;
 	for (ChoiceList::iterator iter =  _choices.begin(); iter != _choices.end(); ++iter, n++) {
-		if ((*iter) == val) {
+		if ((*iter).first == val) {
 			if (_curr_index != n) {
 				_curr_index = n;
 				update_value_str();
@@ -190,6 +192,13 @@ ChoiceBox::get_string_value ()
 	
 }
 
+long
+ChoiceBox::get_data_value ()
+{
+	return _data_value;
+}
+
+
 void
 ChoiceBox::set_index_value (int ind)
 {
@@ -207,10 +216,12 @@ void
 ChoiceBox::update_value_str()
 {
 	if (_curr_index >= 0 && _curr_index < (int) _choices.size()) {
-		_value_str = _choices[_curr_index];
+		_value_str = _choices[_curr_index].first;
+		_data_value = _choices[_curr_index].second;
 	}
 	else {
 		_value_str = wxT("");
+		_data_value = 0;
 	}
 }
 
@@ -219,7 +230,6 @@ void ChoiceBox::set_bg_color (const wxColour & col)
 {
 	_bgcolor = col;
 	_bgbrush.SetColour (col);
-	_borderbrush.SetColour (col);
 	SetBackgroundColour (col);
 	Refresh(false);
 }
@@ -234,6 +244,13 @@ void ChoiceBox::set_border_color (const wxColour & col)
 {
 	_bordercolor = col;
 	_borderpen.SetColour (col);
+	Refresh(false);
+}
+
+void ChoiceBox::set_bg_border_color (const wxColour & col)
+{
+	_bgbordercolor = col;
+	_borderbrush.SetColour (col);
 	Refresh(false);
 }
 
@@ -282,7 +299,7 @@ ChoiceBox::OnMouseEvents (wxMouseEvent &ev)
 		Refresh(false);
 	}
 	else if (ev.Leaving() && !_dragging) {
-		_borderbrush.SetColour(_bgcolor);
+		_borderbrush.SetColour(_bgbordercolor);
 		Refresh(false);
 	}
 	
@@ -345,7 +362,7 @@ void ChoiceBox::OnFocusEvent (wxFocusEvent &ev)
 {
 	if (ev.GetEventType() == wxEVT_KILL_FOCUS) {
 		// focus kill
-		_borderbrush.SetColour(_bgcolor);
+		_borderbrush.SetColour(_bgbordercolor);
 		Refresh(false);
 	}
 
@@ -357,6 +374,7 @@ void ChoiceBox::OnFocusEvent (wxFocusEvent &ev)
 void ChoiceBox::draw_area(wxDC & dc)
 {
 	wxCoord w,h;
+	wxPoint shape[6];
 	
 	dc.SetFont(GetFont());
 	dc.SetBackground(_bgbrush);
@@ -364,7 +382,16 @@ void ChoiceBox::draw_area(wxDC & dc)
 
 	dc.SetBrush(_borderbrush);
 	dc.SetPen(_borderpen);
-	dc.DrawRectangle (0, 0, _width, _height);
+//	dc.DrawRectangle (0, 0, _width, _height);
+
+	shape[0].x = 0;  shape[0].y = _height-1;
+	shape[1].x = 0;  shape[1].y = 2;
+	shape[2].x = 2;  shape[2].y = 0;
+	shape[3].x = _width - 3;  shape[3].y = 0;
+	shape[4].x = _width -1;  shape[4].y = 2;
+	shape[5].x = _width -1;  shape[5].y = _height -1;
+
+	dc.DrawPolygon (6, shape);
 	
 	dc.SetPen(*wxTRANSPARENT_PEN);
 

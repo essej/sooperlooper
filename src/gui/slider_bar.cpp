@@ -563,6 +563,7 @@ void SliderBar::on_text_event (wxCommandEvent &ev)
 			}
 			
 			set_value ((float) newval);
+			value_changed (get_value()); // emit
 		}
 		
 		hide_text_ctrl();

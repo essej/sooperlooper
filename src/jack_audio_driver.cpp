@@ -45,9 +45,12 @@ JackAudioDriver::~JackAudioDriver()
 
 
 bool
-JackAudioDriver::initialize()
+JackAudioDriver::initialize(string client_name)
 {
-
+	if (!client_name.empty()) {
+		_client_name = client_name;
+	}
+	
 	if (connect_to_jack ()) {
 		cerr << "cannot connect to jack" << endl;
 		return false;
@@ -172,30 +175,6 @@ JackAudioDriver::process_callback (jack_nframes_t nframes)
 	}
 	return 0;
 }
-
-void
-JackAudioDriver::process_silence (nframes_t nframes)
-{
-	unsigned int cnt = _output_ports.size();
-
-	// size never decreases
-	
-	for (unsigned int i=0; i < cnt; ++i)
-	{
-		jack_port_t * jport = _output_ports[i];
-		if (jport) {
-			// this really is a race, should take the port lock, but eh
-			sample_t * outbuf = (sample_t*) jack_port_get_buffer (jport, nframes);	
-
-			if (outbuf) {
-				for (nframes_t n=0; n < nframes; ++n) {
-					outbuf[n] = 0.0;
-				}
-			}
-		}
-	}
-}
-
 
 
 bool

@@ -140,8 +140,8 @@ class Engine
 
    private:
 
-	nframes_t _tempo_counter;
-	nframes_t _tempo_frames;
+	float _tempo_counter;
+	float _tempo_frames;
 	
 };
 

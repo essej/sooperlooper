@@ -46,6 +46,7 @@ Engine::Engine ()
 	_eighth_cycle = 16.0f;
 	_sync_source = NoSync;
 	_tempo_counter = 0;
+	_tempo_frames = 0;
 	
 	pthread_cond_init (&_event_cond, NULL);
 
@@ -221,7 +222,9 @@ Engine::process (nframes_t nframes)
 	// update event generator
 	_event_generator->updateFragmentTime (nframes);
 
+	
 	// update internal sync
+	calculate_tempo_frames ();
 	generate_sync (nframes);
 	
 
@@ -458,20 +461,17 @@ Engine::process_nonrt_event (EventNonRT * event)
 			{
 				_sync_source = (SyncSourceType) (int) gs_event->value;
 				update_sync_source();
-				calculate_tempo_frames();
 			}
 		}
 		else if (gs_event->param == "tempo") {
 			if (gs_event->value > 0.0f) {
 				_tempo = gs_event->value;
-				_tempo_counter = 0;
-				calculate_tempo_frames();
+				// _tempo_counter = 0;
 			}
 		}
 		else if (gs_event->param == "eighth_per_cycle") {
 			if (gs_event->value > 0.0f) {
 				_eighth_cycle = gs_event->value;
-				calculate_tempo_frames();
 			}
 		}
 	}
@@ -556,7 +556,6 @@ void Engine::update_sync_source ()
 void
 Engine::calculate_tempo_frames ()
 {
-	// TODO: use floats!
 	float quantize_value = (float) QUANT_8TH;
 		
 	if (!_instances.empty()) {
@@ -568,19 +567,19 @@ Engine::calculate_tempo_frames ()
 		if (quantize_value == QUANT_8TH) {
 			// calculate number of samples per eighth-note (assuming 2 8ths per beat)
 			// samples / 8th = samplerate * (1 / tempo) * 60/2; 
-			_tempo_frames = (nframes_t) lrint(_driver->get_samplerate() * (1/_tempo) * 30.0);
+			_tempo_frames = _driver->get_samplerate() * (1/_tempo) * 30.0;
 		}
 		else if (quantize_value == QUANT_CYCLE) {
 			// calculate number of samples per cycle given the current eighths per cycle
 			// samples / 8th = samplerate * (1 / tempo) * 60/2; 
 			// samples / cycle = samples / 8th  *  eighth_per_cycle
-			_tempo_frames = (nframes_t) (lrint(_driver->get_samplerate() * (1/_tempo) * 30.0) * _eighth_cycle);
+			_tempo_frames = _driver->get_samplerate() * (1/_tempo) * 30.0 * _eighth_cycle;
 		}
 		else {
 			_tempo_frames = 0; // ???
 		}
 
-		cerr << "tempo frames is " << _tempo_frames << endl;
+		// cerr << "tempo frames is " << _tempo_frames << endl;
 	}
 
 }
@@ -590,20 +589,20 @@ Engine::generate_sync (nframes_t nframes)
 {
 	if (_sync_source == InternalTempoSync && _tempo_frames != 0) {
 		nframes_t npos = 0;
-		nframes_t curr = _tempo_counter;
+		float curr = _tempo_counter;
 		
 		while (npos < nframes) {
 			
 			while (curr < _tempo_frames && npos < nframes) {
 				_internal_sync_buf[npos++] = 0.0f;
-				curr++;
+				curr += 1.0f;
 			}
 
-			if (npos < nframes) {
-				//cerr << "tempo hit" << endl;
+			if (curr >= _tempo_frames) {
+				// cerr << "tempo hit" << endl;
 				_internal_sync_buf[npos++] = 1.0f;
 				// reset curr counter
-				curr = 1;
+				curr = ((curr - _tempo_frames) - truncf(curr - _tempo_frames)) + 1.0f;
 			}
 		}
 

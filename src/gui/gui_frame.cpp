@@ -137,10 +137,10 @@ GuiFrame::init()
 	_quantize_choice->set_label (wxT("quantize"));
 	_quantize_choice->SetFont (sliderFont);
 	_quantize_choice->value_changed.connect (slot (*this,  &GuiFrame::on_quantize_change));
-	_quantize_choice->append_choice (wxT("off"));
-	_quantize_choice->append_choice (wxT("cycle"));
-	_quantize_choice->append_choice (wxT("8th"));
-	_quantize_choice->append_choice (wxT("loop"));
+	_quantize_choice->append_choice (wxT("off"), 0);
+	_quantize_choice->append_choice (wxT("cycle"), 1);
+	_quantize_choice->append_choice (wxT("8th"), 2);
+	_quantize_choice->append_choice (wxT("loop"), 3);
 	rowsizer->Add (_quantize_choice, 0, wxALL, 2);
 
 	_round_check = new wxCheckBox(this, ID_RoundCheck, wxT("round"));
@@ -218,16 +218,22 @@ GuiFrame::init()
 void
 GuiFrame::init_syncto_choice()
 {
+	// 		BrotherSync = -4,
+	// 		InternalTempoSync = -3,
+	// 		MidiClockSync = -2,
+	// 		JackSync = -1,
+	// 		NoSync = 0
+		
 	_sync_choice->clear_choices ();
-	_sync_choice->append_choice (wxT("None"));
-	_sync_choice->append_choice (wxT("Internal"));
-	_sync_choice->append_choice (wxT("MidiClock"));
-	_sync_choice->append_choice (wxT("Jack"));
-	_sync_choice->append_choice (wxT("BrotherSync"));
+	_sync_choice->append_choice (wxT("None"), 0);
+	_sync_choice->append_choice (wxT("Internal"), -3);
+//	_sync_choice->append_choice (wxT("MidiClock"), -2);
+//	_sync_choice->append_choice (wxT("Jack"), -1);
+//	_sync_choice->append_choice (wxT("BrotherSync"), -4);
 
 	// the remaining choices are loops
 	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
-		_sync_choice->append_choice (wxString::Format(wxT("Loop %d"), i+1));
+		_sync_choice->append_choice (wxString::Format(wxT("Loop %d"), i+1), i+1);
 	}
 	
 }
@@ -325,28 +331,25 @@ GuiFrame::update_controls()
 	if (_loop_control->is_global_updated("sync_source")) {
 		_loop_control->get_global_value("sync_source", val);
 
+		long data = (long) val;
 		int index = -1;
 // 		BrotherSync = -4,
 // 		InternalTempoSync = -3,
 // 		MidiClockSync = -2,
 // 		JackSync = -1,
 // 		NoSync = 0
-
-	        if (val == 0.0f) {
-			index = 0;
-		}
-		if (val == -3.0f) {
-			index = 1;
-		} else if (val == -2.0f) {
-			index = 2;
-		} else if (val == -1.0f) {
-			index = 3;
-		} else if (val == -4.0f) {
-			index = 4;
-		}
-		else if (val > 0.0f) {
-			// the loop instances
-			index = (int) (val + 4);
+		
+		wxString sval;
+		ChoiceBox::ChoiceList chlist;
+		_sync_choice->get_choices(chlist);
+		int i=0;
+		
+		for (ChoiceBox::ChoiceList::iterator iter = chlist.begin(); iter != chlist.end(); ++iter, ++i)
+		{
+			if ((*iter).second == data) {
+				index = i;
+				break;
+			}
 		}
 
 		_sync_choice->set_index_value (index);
@@ -444,24 +447,9 @@ GuiFrame::on_syncto_change (int index, wxString val)
 //            >0 is loop number
 	
 	float value = 0.0f;
-	
-	if (index == 0) {
-		value = 0;
-	}
-	else if (index == 1) {
-		value = -3;
-	} else if (index == 2) {
-		value = -2;
-	} else if (index == 3) {
-		value = -1;
-	} else if (index == 4) {
-		value = -4;
-	}
-	else if (index > 4) {
-		// the loop instances
-		value = (float) (index - 4);
-	}
 
+	value = (float) _sync_choice->get_data_value();
+	
 	_loop_control->post_global_ctrl_change ("sync_source", value);
 }
 

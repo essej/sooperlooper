@@ -39,7 +39,7 @@ class JackAudioDriver
 	JackAudioDriver(std::string client_name="");
 	virtual ~JackAudioDriver();
 
-	bool initialize();
+	bool initialize(std::string client_name="");
 	bool activate();
 	bool deactivate();
 
@@ -55,7 +55,6 @@ class JackAudioDriver
 	unsigned int get_input_port_count () { return _input_ports.size(); }
 	unsigned int get_output_port_count () { return _output_ports.size(); }
 
-	void process_silence (nframes_t frames); // called from audio callback
 	
   protected:
 

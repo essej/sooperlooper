@@ -40,9 +40,11 @@ class ChoiceBox
 		  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 	virtual ~ChoiceBox();
 
-	typedef std::vector<wxString> ChoiceList;
+	typedef std::pair<wxString, long> ChoiceItem;
 	
-	void append_choice (const wxString & val);
+	typedef std::vector<ChoiceItem> ChoiceList;
+	
+	void append_choice (const wxString & item, long data=0);
 	void clear_choices ();
 	void get_choices (ChoiceList & clist);
 	
@@ -52,6 +54,7 @@ class ChoiceBox
 
 	void set_string_value (const wxString &val);
 	wxString get_string_value ();
+	long get_data_value ();
 	
 	void set_index_value (int ind);
         int get_index_value () { return _curr_index; }
@@ -59,6 +62,9 @@ class ChoiceBox
  	void set_bg_color (const wxColour & col);
 	wxColour & get_bg_color () { return _bgcolor; }
 
+ 	void set_bg_border_color (const wxColour & col);
+	wxColour & get_bg_border_color () { return _bgbordercolor; }
+	
  	void set_label_color (const wxColour & col);
 	wxColour & get_label_color () { return _textcolor; }
 
@@ -97,6 +103,7 @@ class ChoiceBox
 	wxColour _overbarcolor;
 	wxBrush  _barbrush;
 	wxColour _bordercolor;
+	wxColour _bgbordercolor;
 	wxBrush  _borderbrush;
 	wxPen    _borderpen;  
 	wxBrush    _linebrush;  
@@ -110,7 +117,8 @@ class ChoiceBox
 	int _curr_index;
 	wxString _value_str;
 	wxString _label_str;
-
+	long  _data_value;
+	
 	ChoiceList _choices;
 	wxMenu * _popup_menu;
 	
