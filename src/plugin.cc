@@ -55,7 +55,7 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 #define DBG(x)
 #endif
 
-#define VERSION "0.93"
+#define VERSION "1.0"
 
 /* The maximum sample memory  (in seconds). */
 
@@ -74,7 +74,7 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 
 /* The port numbers for the plugin: */
 
-#define PORT_COUNT  24
+#define PORT_COUNT  25
 
 #define SDL_THRESH       0
 #define SDL_DRY          1
@@ -90,21 +90,22 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 #define SDL_REDOTAPMODE  11
 #define SDL_SYNCMODE     12
 #define SDL_USERATE      13
+#define SDL_XFADESAMPLES 14
 
 
 // control outs
-#define SDL_STATE_OUT     14
-#define SDL_LOOPLEN_OUT   15
-#define SDL_LOOPPOS_OUT   16
-#define SDL_CYCLELEN_OUT  17
-#define SDL_SECSFREE_OUT  18
-#define SDL_SECSTOTAL_OUT 19
+#define SDL_STATE_OUT     15
+#define SDL_LOOPLEN_OUT   16
+#define SDL_LOOPPOS_OUT   17
+#define SDL_CYCLELEN_OUT  18
+#define SDL_SECSFREE_OUT  19
+#define SDL_SECSTOTAL_OUT 20
 
 /* audio */
-#define SDL_INPUT        20
-#define SDL_OUTPUT       21
-#define SDL_SYNC_INPUT        22
-#define SDL_SYNC_OUTPUT       23
+#define SDL_INPUT        21
+#define SDL_OUTPUT       22
+#define SDL_SYNC_INPUT        23
+#define SDL_SYNC_OUTPUT       24
 
 
 
@@ -349,6 +350,8 @@ typedef struct {
     LADSPA_Data *pfSyncMode;    
     LADSPA_Data *pfRateCtrlActive;
 
+    LADSPA_Data *pfXfadeSamples;
+	
     /* if non zero, the redo command is treated like a tap trigger */
     LADSPA_Data *pfRedoTapMode;
     
@@ -671,6 +674,9 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
 	 break;
       case SDL_USERATE:
 	 pLS->pfRateCtrlActive = DataLocation;
+	 break;
+      case SDL_XFADESAMPLES:
+	 pLS->pfXfadeSamples = DataLocation;
 	 break;
       case SDL_ROUNDMODE:
 	 pLS->pfRoundMode = DataLocation;
@@ -1197,6 +1203,8 @@ runSooperLooper(LADSPA_Handle Instance,
   LADSPA_Data * pfBuffer;
   LADSPA_Data * pfInput;
   LADSPA_Data * pfOutput;
+  LADSPA_Data * pfSyncInput;
+  LADSPA_Data * pfSyncOutput;
   LADSPA_Data fDry=1.0f, fWet=1.0f, tmpWet;
   LADSPA_Data dryDelta=0.0f, wetDelta=0.0f, dryTarget=1.0f, wetTarget=1.0f;
   LADSPA_Data fInputSample;
@@ -1220,10 +1228,12 @@ runSooperLooper(LADSPA_Handle Instance,
   int useDelay = 0;
   
   float fPosRatio;
+  int xfadeSamples = XFADE_SAMPLES;
   
   SooperLooper * pLS;
   LoopChunk *loop, *srcloop;
 
+  LADSPA_Data fSyncMode = 0.0f;
 
   unsigned long lSampleIndex;
 
@@ -1238,7 +1248,9 @@ runSooperLooper(LADSPA_Handle Instance,
   pfInput = pLS->pfInput;
   pfOutput = pLS->pfOutput;
   pfBuffer = (LADSPA_Data *)pLS->pSampleBuf;
-
+  pfSyncOutput = pLS->pfSyncOutput;
+  pfSyncInput = pLS->pfSyncInput;
+  
   // we set up default bindings in case the host hasn't
   if (!pLS->pfQuantMode)
      pLS->pfQuantMode = &pLS->fQuantizeMode;
@@ -1247,12 +1259,17 @@ runSooperLooper(LADSPA_Handle Instance,
   if (!pLS->pfRedoTapMode)
      pLS->pfRedoTapMode = &pLS->fRedoTapMode;
 
+  xfadeSamples = (int) (*pLS->pfXfadeSamples);
+
   if (pLS->pfTrigThresh) {
      fTrigThresh = *pLS->pfTrigThresh;
   }
 
   if (pLS->pfRateCtrlActive) {
      pLS->bRateCtrlActive = (int) *pLS->pfRateCtrlActive;
+  }
+  if (pLS->pfSyncMode) {
+	  fSyncMode = *pLS->pfSyncMode;
   }
   
   if (pLS->pfMultiCtrl && pLS->pfMultiTens) {
@@ -1384,10 +1401,17 @@ runSooperLooper(LADSPA_Handle Instance,
 	   
 	   switch(pLS->state) {
 	      case STATE_RECORD:
-		 pLS->state = STATE_TRIG_STOP;
-		 pLS->nextState = STATE_PLAY;
-		 DBG(fprintf(stderr,"Entering TRIG_STOP state\n"));
-		 break;
+		      
+		      if (fSyncMode == 0.0f && (fTrigThresh==0.0)) {
+			      // skip trig stop
+			      pLS->state = STATE_PLAY;
+		      }
+		      else {
+			      pLS->state = STATE_TRIG_STOP;
+			      pLS->nextState = STATE_PLAY;
+			      DBG(fprintf(stderr,"Entering TRIG_STOP state\n"));
+		      }
+		      break;
 
 	      case STATE_MULTIPLY:
 		 // special ending for multiply
@@ -1613,7 +1637,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	   switch(pLS->state) {
 	      case STATE_MUTE:
 		 // reset for audio ramp
-		 pLS->lRampSamples = XFADE_SAMPLES;
+		 pLS->lRampSamples = xfadeSamples;
 	      case STATE_ONESHOT:
 		 // this enters play mode but from the continuous position
 		 pLS->state = STATE_PLAY;
@@ -1647,7 +1671,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 pLS->state = STATE_MUTE;
 		 DBG(fprintf(stderr,"Entering MUTE state\n"));
 		 // reset for audio ramp
-		 pLS->lRampSamples = XFADE_SAMPLES;
+		 pLS->lRampSamples = xfadeSamples;
 
 	   }
 
@@ -1916,6 +1940,9 @@ runSooperLooper(LADSPA_Handle Instance,
   //fprintf(stderr,"before play\n");  
   //fprintf(stderr, "fRateSwitch: %f\n", fRateSwitch);
 
+  // clear sync out
+  memset(pfSyncOutput, 0, SampleCount * sizeof(LADSPA_Data));
+  
   // the run loop
   
   lSampleIndex = 0;
@@ -1943,8 +1970,8 @@ runSooperLooper(LADSPA_Handle Instance,
 	      fScratchPos += scratchDelta;
 	      
 	      fInputSample = pfInput[lSampleIndex];
-	      if (fInputSample > fTrigThresh
-		  || fTrigThresh==0.0)
+	      if ((fSyncMode == 0.0f && ((fInputSample > fTrigThresh) || (fTrigThresh==0.0)))
+		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0))
 	      {
 		 
 		 loop = pushNewLoopChunk(pLS, 0);
@@ -1966,16 +1993,15 @@ runSooperLooper(LADSPA_Handle Instance,
 		    loop->srcloop = NULL;
 		    pLS->nextState = -1;
 		    loop->dOrigFeedback = fFeedback;
-		    break;
 		 }
 		 else {
 		    DBG(fprintf(stderr, "out of memory! back to PLAY mode\n"));
 		    pLS->state = STATE_PLAY;
-		    break;
 		 }
 
+		 break;
 	      }
-	      
+
 	      pfOutput[lSampleIndex] = fDry * fInputSample;
 	   }
      
@@ -2006,6 +2032,11 @@ runSooperLooper(LADSPA_Handle Instance,
 		 pLS->state = STATE_PLAY;
 		 break;
 	      }
+
+	      if (lCurrPos == 0) {
+		      pfSyncOutput[lSampleIndex] = 1.0f;
+	      }
+		      
 	      
 	      fInputSample = pfInput[lSampleIndex];
 	      
@@ -2046,12 +2077,13 @@ runSooperLooper(LADSPA_Handle Instance,
 	      fInputSample = pfInput[lSampleIndex];
 	      
 	      
-	      if ( fInputSample > fTrigThresh
-		  || fTrigThresh == 0.0) {
+	      if ((fSyncMode == 0.0f && ((fInputSample > fTrigThresh) || (fTrigThresh==0.0)))
+		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0))
+	      {
 		 DBG(fprintf(stderr,"Entering %d state\n", pLS->nextState));
 		 pLS->state = pLS->nextState;
 		 // reset for audio ramp
-		 pLS->lRampSamples = XFADE_SAMPLES;
+		 pLS->lRampSamples = xfadeSamples;
 		 loop->pLoopStop = loop->pLoopStart + lCurrPos;
 		 loop->lLoopLength = (unsigned long) (loop->pLoopStop - loop->pLoopStart);
 		 loop->lCycles = 1;
@@ -2059,6 +2091,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 loop->dCurrPos = 0.0f;
 		 break;
 	      }
+
 	      
 	      *(loop->pLoopStart + lCurrPos) = fInputSample;
 	      
@@ -2080,7 +2113,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      
 	      pfOutput[lSampleIndex] = fDry * fInputSample;
 
-
+	      
 	   }
 
 	   // update loop values (in case we get stopped by an event)
@@ -2133,7 +2166,11 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 		 
 		 pfOutput[lSampleIndex] = fOutputSample;
-	      
+		 
+		 if ((lCurrPos % loop->lCycleLength) == 0) {
+			 pfSyncOutput[lSampleIndex] = 1.0f;
+		 }
+
 		 // increment and wrap at the proper loop end
 		 loop->dCurrPos = loop->dCurrPos + fRate;
 	      
@@ -2230,7 +2267,11 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 		 
 		 pfOutput[lSampleIndex] = fOutputSample;
-	      
+
+		 if ((lCurrPos % loop->lCycleLength) == 0) {
+			 pfSyncOutput[lSampleIndex] = 1.0f;
+		 }
+		 
 		 // increment 
 		 loop->dCurrPos = loop->dCurrPos + fRate;
 	      
@@ -2338,7 +2379,12 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 
 		 pfOutput[lSampleIndex] = fOutputSample;
-	      
+
+		 if ((lCurrPos % loop->lCycleLength) == 0) {
+			 pfSyncOutput[lSampleIndex] = 1.0f;
+		 }
+		 
+		 
 		 // increment 
 		 loop->dCurrPos = loop->dCurrPos + fRate;
 	      
@@ -2492,12 +2538,12 @@ runSooperLooper(LADSPA_Handle Instance,
 		 if (pLS->lRampSamples > 0) {
 		    if (pLS->state == STATE_MUTE) {
 		       //negative linear ramp
-		       tmpWet = fWet * (pLS->lRampSamples * 1.0f) / XFADE_SAMPLES;
+		       tmpWet = fWet * (pLS->lRampSamples * 1.0f) / xfadeSamples;
 		    }
 		    else {
 		       // positive linear ramp
-		       tmpWet = fWet * (XFADE_SAMPLES - pLS->lRampSamples)
-			  * 1.0f / XFADE_SAMPLES;
+		       tmpWet = fWet * (xfadeSamples - pLS->lRampSamples)
+			  * 1.0f / xfadeSamples;
 		    }
 
 		    pLS->lRampSamples -= 1;
@@ -2511,6 +2557,12 @@ runSooperLooper(LADSPA_Handle Instance,
 		 fInputSample = pfInput[lSampleIndex];
 		 fOutputSample =   tmpWet *  *(loop->pLoopStart + lCurrPos)
 		    + fDry * fInputSample;
+
+		 
+		 if ((lCurrPos % loop->lCycleLength) == 0) {
+			 pfSyncOutput[lSampleIndex] = 1.0f;
+		 }
+
 		 
 		 // increment and wrap at the proper loop end
 		 loop->dCurrPos = loop->dCurrPos + fRate;
@@ -2523,7 +2575,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		       // done with one shot
 		       DBG(fprintf(stderr, "finished ONESHOT\n"));
 		       pLS->state = STATE_MUTE;
-		       pLS->lRampSamples = XFADE_SAMPLES;
+		       pLS->lRampSamples = xfadeSamples;
 		       //fWet = 0.0;
 		    }
 
@@ -2545,7 +2597,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		       DBG(fprintf(stderr, "finished ONESHOT neg\n"));
 		       pLS->state = STATE_MUTE;
 		       //fWet = 0.0;
-		       pLS->lRampSamples = XFADE_SAMPLES;
+		       pLS->lRampSamples = xfadeSamples;
 		    }
 
 		    if (pLS->fNextCurrRate != 0) {
@@ -2616,6 +2668,11 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 		 
 		 pfOutput[lSampleIndex] = fOutputSample;
+
+		 if ((lCurrPos % loop->lCycleLength) == 0) {
+			 pfSyncOutput[lSampleIndex] = 1.0f;
+		 }
+
 		 
 		 // increment 
 		 loop->dCurrPos = loop->dCurrPos + fRate;
@@ -2671,6 +2728,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	fScratchPos += scratchDelta;
 	     
 	pfOutput[lSampleIndex] = fDry * pfInput[lSampleIndex];
+
      }
      
   }
@@ -2817,6 +2875,8 @@ sl_init() {
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
     piPortDescriptors[SDL_USERATE]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
+    piPortDescriptors[SDL_XFADESAMPLES]
+      = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
     
     piPortDescriptors[SDL_REDOTAPMODE]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
@@ -2882,6 +2942,8 @@ sl_init() {
       = strdup("Sync Mode");
     pcPortNames[SDL_USERATE] 
       = strdup("Use Rate Ctrl");
+    pcPortNames[SDL_XFADESAMPLES] 
+      = strdup("Fade samples");
 
     
     pcPortNames[SDL_INPUT] 
@@ -2980,6 +3042,13 @@ sl_init() {
     psPortRangeHints[SDL_QUANTMODE].UpperBound
       = 3.0f;
 
+    psPortRangeHints[SDL_XFADESAMPLES].HintDescriptor
+      = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_INTEGER;
+    psPortRangeHints[SDL_XFADESAMPLES].LowerBound 
+      = 0.0f;
+    psPortRangeHints[SDL_XFADESAMPLES].UpperBound
+      = 8192.0f;
+    
     
     psPortRangeHints[SDL_ROUNDMODE].HintDescriptor
       = LADSPA_HINT_TOGGLED;

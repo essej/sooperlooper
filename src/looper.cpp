@@ -83,6 +83,9 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	ports[Sync] = 0.0f;
 	ports[Quantize] = 0.0f;
 	ports[UseRate] = 0.0f;
+	ports[FadeSamples] = nearbyint(_driver->get_samplerate() * 0.01f); // 10ms
+	
+	_slave_sync_port = 1.0f;
 	
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
@@ -109,10 +112,22 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 
 		/* connect all scalar ports to data values */
 		
-		for (unsigned long n = 0; n < 19; ++n) {
+		for (unsigned long n = 0; n < LASTPORT; ++n) {
 			descriptor->connect_port (_instances[i], n, &ports[n]);
 		}
 
+		// connect dedicated Sync port to all other channels
+		if (i > 0) {
+			descriptor->connect_port (_instances[i], Sync, &_slave_sync_port);
+
+			descriptor->connect_port (_instances[i], State, &_slave_dummy_port);
+			descriptor->connect_port (_instances[i], LoopLength, &_slave_dummy_port);
+			descriptor->connect_port (_instances[i], LoopPosition, &_slave_dummy_port);
+			descriptor->connect_port (_instances[i], CycleLength, &_slave_dummy_port);
+			descriptor->connect_port (_instances[i], LoopFreeMemory, &_slave_dummy_port);
+			descriptor->connect_port (_instances[i], LoopMemory, &_slave_dummy_port);
+		}
+		
 		descriptor->activate (_instances[i]);
 	}
 
@@ -184,11 +199,15 @@ Looper::set_buffer_size (nframes_t bufsize)
 		if (_our_syncout_buf)
 			delete [] _our_syncout_buf;
 
+		if (_dummy_buf)
+			delete [] _dummy_buf;
+		
 		_buffersize = bufsize;
 		
 		_our_syncin_buf = new LADSPA_Data[_buffersize];
 		_our_syncout_buf = new LADSPA_Data[_buffersize];
-
+		_dummy_buf = new LADSPA_Data[_buffersize];
+		
 		if (_use_sync_buf == 0) {
 			_use_sync_buf = _our_syncin_buf;
 		}
@@ -283,9 +302,18 @@ Looper::run (nframes_t offset, nframes_t nframes)
 		
 		descriptor->connect_port (_instances[i], AudioInputPort, (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], nframes) + offset);
 		descriptor->connect_port (_instances[i], AudioOutputPort, (LADSPA_Data*) _driver->get_output_port_buffer (_output_ports[i], nframes) + offset);
-		descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _use_sync_buf + offset);
-		descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _our_syncout_buf + offset);
 
+
+		if (i == 0) {
+			descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _use_sync_buf + offset);
+			descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _our_syncout_buf + offset);
+		}
+		else {
+			// all others get the first channel's sync-out as input
+			descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _our_syncout_buf + offset);
+			descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _dummy_buf + offset);
+		}
+		
 		
 		/* do it */
 		descriptor->run (_instances[i], nframes);
@@ -343,13 +371,18 @@ Looper::load_loop (string fname)
 		/* connect audio ports */
 		descriptor->connect_port (_instances[i], AudioInputPort, (LADSPA_Data*) inbufs[i]);
 		descriptor->connect_port (_instances[i], AudioOutputPort, (LADSPA_Data*) dummyout);
+		descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) dummyout);
+		descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) dummyout);
 	}
 	
 	// ok, first we need to store some current values
 	float old_recthresh = ports[TriggerThreshold];
-
+	float old_syncmode = ports[Sync];
+	
 	ports[TriggerThreshold] = 0.0f;
-
+	ports[Sync] = 0.0f;
+	_slave_sync_port = 0.0;
+	
 	// now set it to mute just to make sure we weren't already recording
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
@@ -417,6 +450,8 @@ Looper::load_loop (string fname)
 	}
 
 	ports[TriggerThreshold] = old_recthresh;
+	ports[Sync] = old_syncmode;
+	_slave_sync_port = 1.0;
 	
 	ret = true;
 
@@ -494,15 +529,19 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 		/* connect audio ports */
 		descriptor->connect_port (_instances[i], AudioInputPort, (LADSPA_Data*) dummyin);
 		descriptor->connect_port (_instances[i], AudioOutputPort, (LADSPA_Data*) outbufs[i]);
+		descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) dummyin);
+		descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) dummyin);
 	}
 	
 	// ok, first we need to store some current values
 	float old_wet = ports[WetLevel];
 	float old_dry = ports[DryLevel];
-
+	float old_xfade = ports[FadeSamples];
+	
 	ports[WetLevel] = 1.0f;
 	ports[DryLevel] = 0.0f;
-
+	ports[FadeSamples] = 0.0f;
+	
 	// now set it to mute then scratch (to start from beginning)
 	//   just to make sure we weren't already recording
 	
@@ -517,7 +556,7 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 
 	// now start recording and run for loop length total
 	nframes_t nframes = bufsize;
-	nframes_t frames_left = (nframes_t) (ports[LoopLength] * _driver->get_samplerate());
+	nframes_t frames_left = (nframes_t) lrintf(ports[LoopLength] * _driver->get_samplerate());
 
 	nframes_t bpos;
 	float * databuf;
@@ -556,6 +595,7 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 
 	ports[DryLevel] = old_dry;
 	ports[WetLevel] = old_wet;
+	ports[FadeSamples] = old_xfade;
 	
 	// change state to unknown, then the end record
 	for (unsigned int i=0; i < _chan_count; ++i)

@@ -45,11 +45,12 @@ enum ControlPort {
 	Round,
 	RedoTap,
 	Sync,
-	UseRate
+	UseRate,
+	FadeSamples,
 };
 
 enum OutputPort {
-	State = 14,
+	State = 15,
 	LoopLength,
 	LoopPosition,
 	CycleLength,
@@ -59,7 +60,7 @@ enum OutputPort {
 };
 
 enum AudioPort {
-	AudioInputPort=20,
+	AudioInputPort=21,
 	AudioOutputPort,
 	SyncInputPort,
 	SyncOutputPort
@@ -116,6 +117,11 @@ class Looper
 	LADSPA_Data        * _our_syncin_buf;
 	LADSPA_Data        * _our_syncout_buf;
 	LADSPA_Data        * _use_sync_buf;
+	LADSPA_Data        * _dummy_buf;
+
+	LADSPA_Data         _slave_sync_port;
+	LADSPA_Data         _slave_dummy_port;
+	
 	
 	bool _ok;
 	bool request_pending;

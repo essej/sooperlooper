@@ -117,6 +117,7 @@ namespace SooperLooper {
 		    RedoTap,
 		    SyncMode,
 		    UseRate,
+		    FadeSamples,
 		    // read only
 		    State,
 		    LoopLength,
