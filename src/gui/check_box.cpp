@@ -18,6 +18,7 @@
 */
 
 #include <wx/wx.h>
+#include <wx/tooltip.h>
 
 #include <iostream>
 #include <cmath>

@@ -257,6 +257,7 @@ static LoopChunk * ensureLoopSpace(SooperLooperI* pLS, LoopChunk *loop, unsigned
 		if (loop->prev) {
 			loop->prev->next = loop;
 			// do this to help out the overdub fail case
+			loop->lCycles = loop->prev->lCycles;
 			loop->lCycleLength = loop->prev->lCycleLength;
 			loop->lLoopLength = loop->prev->lLoopLength;
 			loop->dCurrPos = loop->prev->dCurrPos;
@@ -807,11 +808,14 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
       //pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 
       // start out with the single cycle as our length as a marker
-      loop->lLoopLength = srcloop->lCycleLength;
+//      loop->lLoopLength = srcloop->lCycleLength;
+      loop->lLoopLength = srcloop->lLoopLength;
 
       // start out at same pos
       loop->dCurrPos = srcloop->dCurrPos;
-      loop->lCycles = 1; // start with 1 by default
+//      loop->lCycles = 1; // start with 1 by default
+      loop->lCycles = srcloop->lCycles; 
+
       loop->lCycleLength = srcloop->lCycleLength;
 		       
       // force rate to +1
@@ -826,7 +830,7 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 		       
       // handle the case where the src loop
       // is already multiplied
-      if (*pLS->pfQuantMode != 0 && srcloop->lCycles > 1) {
+      if (*pLS->pfQuantMode == QUANT_CYCLE && srcloop->lCycles > 1) {
 	      // we effectively remove the first cycles from our new one
 	      loop->lStartAdj = ((int)floor(fabs((srcloop->dCurrPos-1) / srcloop->lCycleLength))
 				 + 1) * srcloop->lCycleLength; 
@@ -838,6 +842,7 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 	      // start with 1 because we could end up with none!
 	      // which will be subtracted at the end
 	      loop->lCycles = 1;
+	      loop->lLoopLength = srcloop->lCycleLength;
 	      //loop->lLoopLength = 0;
 	      loop->frontfill = 0; // no need.
 	      DBG(fprintf(stderr,"Quantize ignoring first %d cycles.  Orig length %lu\n",
@@ -989,7 +994,7 @@ static LoopChunk * beginInsert(SooperLooperI *pLS, LoopChunk *loop)
       loop->lStartAdj = 0;
       loop->lEndAdj = 0;
 		       
-      if (*pLS->pfQuantMode != 0) {
+      if (*pLS->pfQuantMode == QUANT_CYCLE) {
 	 // the next cycle boundary
 	 loop->lInsPos =
 	    ((int)floor(fabs(srcloop->dCurrPos-1) / srcloop->lCycleLength)
@@ -1096,7 +1101,8 @@ static LoopChunk * beginOverdub(SooperLooperI *pLS, LoopChunk *loop)
       else {
 	      loop->srcloop = srcloop = loop->prev;
       }
-      
+
+      loop->lCycles = srcloop->lCycles;
       loop->lCycleLength = srcloop->lCycleLength;
       loop->lLoopLength = srcloop->lLoopLength;
       loop->dCurrPos = srcloop->dCurrPos;
@@ -1655,9 +1661,22 @@ runSooperLooper(LADSPA_Handle Instance,
 			      pfSyncOutput[0] = 1.0f;
 			      
 		      } else {
-			      DBG(fprintf(stderr, "waiting for sync multi end\n"));
-			      pLS->nextState = STATE_PLAY;
-			      pLS->waitingForSync = 1;
+			      if (loop) {
+				      if (loop->mult_out > 0) {
+					      // we're in a multiincrease
+					      loop->mult_out += 1;
+					      //fprintf(stderr, "mult out added for %d\n", loop->mult_out);
+				      }
+				      else {
+					      loop->mult_out = loop->lCycles;
+					      //fprintf(stderr, "mult out initiated\n");
+					      // loop = endMultiply(pLS, loop, STATE_PLAY);
+					      
+					      DBG(fprintf(stderr, "waiting for sync multi end\n"));
+					      pLS->nextState = STATE_PLAY;
+					      pLS->waitingForSync = 1;
+				      }
+			      }
 		      }
 		      break;
 
