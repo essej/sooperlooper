@@ -154,7 +154,7 @@ LooperPanel::init()
 
 
 	colsizer = new wxBoxSizer(wxVERTICAL);
-	rowsizer = new wxBoxSizer(wxHORIZONTAL);
+	_maininsizer = new wxBoxSizer(wxHORIZONTAL);
 
 	SliderBar *slider;
 	wxFont sliderFont = *wxSMALL_FONT;
@@ -168,16 +168,12 @@ LooperPanel::init()
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
-	rowsizer->Add (slider, 1, wxALL|wxEXPAND, 0);
+	_maininsizer->Add (slider, 1, wxALL|wxEXPAND, 0);
 
-	_use_main_in_check = new CheckBox(this, ID_UseMainInCheck, wxT("main in"), true, wxDefaultPosition, wxSize(65, 18));
-	_use_main_in_check->SetFont(sliderFont);
-	_use_main_in_check->SetToolTip(wxT("mix input from Main inputs"));
-	_use_main_in_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("use_common_ins")));
-	_use_main_in_check->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) _use_main_in_check->GetId()));
-	rowsizer->Add (_use_main_in_check, 0, wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL ,0);
+	// mainin check added later
+	_use_main_in_check = 0;
 	
-	colsizer->Add (rowsizer, 1, wxEXPAND|wxTOP|wxLEFT, 5);
+	colsizer->Add (_maininsizer, 1, wxEXPAND|wxTOP|wxLEFT, 5);
 
 	_feedback_control = slider = new SliderBar(this, ID_FeedbackControl, 0.0f, 100.0f, 100.0f);
 	slider->set_units(wxT("%"));
@@ -430,6 +426,20 @@ LooperPanel::post_init()
 
 	}
 
+	// without discrete i/o mains are the only option
+	float val;
+	if (_loop_control->get_value(_index, wxT("has_discrete_io"), val) && val != 0.0f)
+	{
+		_use_main_in_check = new CheckBox(this, ID_UseMainInCheck, wxT("main in"), true, wxDefaultPosition, wxSize(65, 18));
+		_use_main_in_check->SetFont(sliderFont);
+		_use_main_in_check->SetToolTip(wxT("mix input from Main inputs"));
+		_use_main_in_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("use_common_ins")));
+		_use_main_in_check->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) _use_main_in_check->GetId()));
+		_maininsizer->Add (_use_main_in_check, 0, wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL ,0);
+		_maininsizer->Layout();
+	}
+
+	
 	_toppansizer->Layout();
 	_botpansizer->Layout();
 	Refresh(false);
@@ -734,7 +744,8 @@ LooperPanel::update_controls()
 	float val;
 
 	// first see if we have channel count yet
-	if (_chan_count == 0 && _loop_control->is_updated(_index, wxT("channel_count")))
+	if (_chan_count == 0 && _loop_control->is_updated(_index, wxT("channel_count"))
+	    && _loop_control->is_updated(_index, wxT("has_discrete_io")))
 	{
 		_loop_control->get_value(_index, wxT("channel_count"), val);
 		_chan_count = (int) val;

@@ -72,6 +72,8 @@ enum {
 	ID_Quit,
 	ID_QuitStop,
 	ID_AddLoop,
+	ID_AddMonoLoop,
+	ID_AddStereoLoop,
 	ID_RemoveLoop,
 	ID_TempoSlider,
 	ID_SyncChoice,
@@ -106,6 +108,8 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 	EVT_MENU(ID_HelpTipsMenu, GuiFrame::on_help)
 
 	EVT_MENU(ID_AddLoop, GuiFrame::on_add_loop)
+	EVT_MENU(ID_AddMonoLoop, GuiFrame::on_add_loop)
+	EVT_MENU(ID_AddStereoLoop, GuiFrame::on_add_loop)
 	EVT_MENU(ID_AddCustomLoop, GuiFrame::on_add_custom_loop)
 	EVT_MENU(ID_RemoveLoop, GuiFrame::on_remove_loop)
 
@@ -316,8 +320,10 @@ GuiFrame::init()
 
 	wxMenu *menuFile = new wxMenu(wxT(""));
 
-	menuFile->Append(ID_AddLoop, wxT("Add New Default Loop"), wxT("Add one default loop"));
-	menuFile->Append(ID_AddCustomLoop, wxT("Add Custom Loop(s)..."), wxT("Add one or more custom loops"));
+	//menuFile->Append(ID_AddLoop, wxT("Add Default Loop"), wxT("Add one default loop"));
+	menuFile->Append(ID_AddMonoLoop, wxT("Add Mono Loop"), wxT("Add one default mono loop"));
+	menuFile->Append(ID_AddStereoLoop, wxT("Add Stereo Loop"), wxT("Add one default stereo loop"));
+	menuFile->Append(ID_AddCustomLoop, wxT("Add Custom Loop(s)..."), wxT("Add one or more custom loops, where loop memory can be specified"));
 	menuFile->Append(ID_RemoveLoop, wxT("Remove Last Loop"), wxT("Remove last loop"));
 
 	menuFile->AppendSeparator();
@@ -698,7 +704,19 @@ GuiFrame::save_default_midibindings ()
 void
 GuiFrame::on_add_loop (wxCommandEvent &ev)
 {
-	_loop_control->post_add_loop();
+	int id = ev.GetId();
+
+	LoopControl::SpawnConfig & sconf = _loop_control->get_spawn_config();
+	
+	if (id == ID_AddLoop) {
+		_loop_control->post_add_loop();
+	}
+	else if (id == ID_AddMonoLoop) {
+		_loop_control->post_add_loop (1, sconf.mem_secs, sconf.discrete_io);
+	}
+	else if (id == ID_AddStereoLoop) {
+		_loop_control->post_add_loop (2, sconf.mem_secs, sconf.discrete_io);
+	}
 }
 
 void

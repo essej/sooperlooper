@@ -61,7 +61,7 @@ Transmitter  error (Transmitter::Error);
 #define DEFAULT_LOOP_TIME 40.0f
 
 
-char *optstring = "c:l:j:p:m:t:U:S:qVh";
+char *optstring = "c:l:j:p:m:t:U:S:D:qVh";
 
 struct option long_options[] = {
 	{ "help", 0, 0, 'h' },
@@ -69,6 +69,7 @@ struct option long_options[] = {
 	{ "channels", 1, 0, 'c' },
 	{ "loopcount", 1, 0, 'l' },
 	{ "looptime", 1, 0, 't' },
+	{ "discrete-io", 1, 0, 'D' },
 	{ "osc-port", 1, 0, 'p' },
 	{ "jack-name", 1, 0, 'j' },
 	{ "jack-server-name", 1, 0, 'S' },
@@ -83,7 +84,7 @@ struct OptionInfo
 {
 	OptionInfo() :
 		loop_count(1), channels(2), quiet(false), jack_name(""),
-		oscport(DEFAULT_OSC_PORT), loopsecs(DEFAULT_LOOP_TIME),
+		oscport(DEFAULT_OSC_PORT), loopsecs(DEFAULT_LOOP_TIME), discrete_io(true),
 		show_usage(0), show_version(0), pingurl() {} 
 		
 	int loop_count;
@@ -94,6 +95,7 @@ struct OptionInfo
 	int oscport;
 	string bindfile;
 	float loopsecs;
+	bool  discrete_io;
 	
 	int show_usage;
 	int show_version;
@@ -112,6 +114,7 @@ static void usage(char *argv0)
 	fprintf(stderr, "  -l <num> , --loopcount=<num> number of loopers to create (default is 1)\n");
 	fprintf(stderr, "  -c <num> , --channels=<num>  channel count for each looper (default is 2)\n");
 	fprintf(stderr, "  -t <numsecs> , --looptime=<num>  number of seconds of loop memory per channel (default is %g), at least\n", DEFAULT_LOOP_TIME);
+	fprintf(stderr, "  -D <yes/no>, --discrete-io=[yes]  initial loops should have discrete input and output ports (default yes)\n");
 	fprintf(stderr, "  -p <num> , --osc-port=<num>  udp port number for OSC server (default is %d)\n", DEFAULT_OSC_PORT);
 	fprintf(stderr, "  -j <str> , --jack-name=<str> jack client name, default is sooperlooper_1\n");
 	fprintf(stderr, "  -S <str> , --jack-server-name=<str> specify jack server name\n");
@@ -166,6 +169,9 @@ static void parse_options (int argc, char **argv, OptionInfo & option_info)
 			break;
 		case 'p':
 			option_info.oscport = atoi(optarg);
+			break;
+		case 'D':
+			option_info.discrete_io = (string("no").compare(optarg) != 0);
 			break;
 		case 'U':
 			option_info.pingurl = optarg;
@@ -322,7 +328,7 @@ int main(int argc, char** argv)
 
  	for (int i=0; i < option_info.loop_count; ++i)
 	{
-		engine->add_loop ((unsigned int) option_info.channels, option_info.loopsecs);
+		engine->add_loop ((unsigned int) option_info.channels, option_info.loopsecs, option_info.discrete_io);
 	}
 	// set default sync source
 	if (option_info.loop_count > 0) {

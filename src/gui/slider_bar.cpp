@@ -510,8 +510,8 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		released(); // emit		
 	}
 	else if (ev.ButtonDClick()) {
-
-		show_text_ctrl ();
+		// this got annoying
+		//show_text_ctrl ();
 	}
 	else {
 		ev.Skip();

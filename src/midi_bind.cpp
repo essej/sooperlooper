@@ -197,7 +197,7 @@ MidiBindings::load_bindings (string filename, bool append)
 	bindfile.open(filename.c_str(), ios::in);
 	
 	if (!bindfile.is_open()) {
-		cerr << "error: could not open for reading: " << filename << endl;
+		cerr << "sooperlooper warning: could not open for reading: " << filename << endl;
 		return false;
 	}
 	// todo: look for is in systemwide and ~/.sooperlooper/bindings/

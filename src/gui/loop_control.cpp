@@ -40,7 +40,7 @@ using namespace SooperLooper;
 
 LoopControl::SpawnConfig::SpawnConfig(const wxString & nm)
 	: name(nm), host(wxT("")), port(DEFAULT_OSC_PORT), num_loops(1), num_channels(2),
-	  mem_secs(40.0f), exec_name(wxT("sooperlooper")), midi_bind_path(wxT("")), force_spawn(false), never_spawn(false),
+	  mem_secs(40.0f), discrete_io(true), exec_name(wxT("sooperlooper")), midi_bind_path(wxT("")), force_spawn(false), never_spawn(false),
 	  jack_name(wxT(""))
 {
 }
@@ -57,6 +57,7 @@ XMLNode& LoopControl::SpawnConfig::get_state () const
 	node->add_property ("num_loops", wxString::Format(wxT("%ld"), num_loops).c_str());
 	node->add_property ("num_channels", wxString::Format(wxT("%ld"), num_channels).c_str());
 	node->add_property ("mem_secs", wxString::Format(wxT("%f"), mem_secs).c_str());
+	node->add_property ("discrete_io", discrete_io ? "yes": "no");
 
 	node->add_property ("exec_name", exec_name.c_str());
 	node->add_property ("jack_name", jack_name.c_str());
@@ -103,6 +104,14 @@ int LoopControl::SpawnConfig::set_state (const XMLNode& node)
 			if ((prop = child_node->property ("mem_secs")) != 0) {
 				tmpstr.Printf(wxT("%s"), prop->value().c_str());
 				tmpstr.ToDouble(&mem_secs);
+			}
+			if ((prop = child_node->property ("discrete_io")) != 0) {
+				if (prop->value() == "yes") {
+				        discrete_io = true;
+				}
+				else {
+					discrete_io = false;
+				}
 			}
 			if ((prop = child_node->property ("exec_name")) != 0) {
 				exec_name.Printf(wxT("%s"), prop->value().c_str());
@@ -485,6 +494,10 @@ bool LoopControl::spawn_looper()
 	if (!_spawn_config.jack_serv_name.empty()) {
 		cmdstr += wxString::Format(wxT(" -S \"%s\""), _spawn_config.jack_serv_name.c_str());
 	}
+
+	if (!_spawn_config.discrete_io) {
+		cmdstr += wxString::Format(wxT(" -D \"no\""));
+	}
 	
 
 
@@ -516,7 +529,7 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 	wxString version(&argv[1]->s);
 	int loopcount = argv[2]->i;
 
-	cerr << "remote looper is at " << hosturl << " version=" << version << "   loopcount=" << loopcount << endl;
+	cerr << "slgui: remote looper is at " << hosturl << " version=" << version << "   loopcount=" << loopcount << endl;
 
 	_osc_url = hosturl;
 	char * remhost = lo_url_get_hostname(_osc_url.c_str());

@@ -1096,7 +1096,7 @@ ControlOSC::finish_global_get_event (GlobalGetEvent & event)
 		return;
 	}
 	
-	 cerr << "sending to " << returl << "  path: " << retpath << "  ctrl: " << param << "  val: " <<  event.ret_value << endl;
+	// cerr << "sending to " << returl << "  path: " << retpath << "  ctrl: " << param << "  val: " <<  event.ret_value << endl;
 
 	if (lo_send(addr, retpath.c_str(), "isf", -2, param.c_str(), event.ret_value) == -1) {
 		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
@@ -1396,7 +1396,7 @@ void ControlOSC::send_pingack (bool useudp, string returl, string retpath)
 		oururl = get_server_url();
 	}
 	
-	cerr << "sending to " << returl << "  path: " << retpath  << endl;
+	cerr << "sooperlooper: sending ping response to " << returl << endl;
 	if (lo_send(addr, retpath.c_str(), "ssi", oururl.c_str(), sooperlooper_version, _engine->loop_count_unsafe()) < 0) {
 		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
 	}

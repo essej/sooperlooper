@@ -85,7 +85,8 @@ class ConfigPanel
 	wxSpinCtrl * _num_loops_spin;
 	wxSpinCtrl * _num_channels_spin;
 	wxSpinCtrl * _secs_per_channel_spin;
-
+	wxCheckBox * _discrete_io_check;
+	
 	wxButton   * _commit_button;
 	
 	GuiFrame * _parent;

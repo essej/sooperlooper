@@ -173,9 +173,14 @@ void ConfigPanel::init()
 
 	statText = new wxStaticText(this, -1, wxT("# Channels per loop:"));
 	setsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL);
+
+	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	_num_channels_spin = new wxSpinCtrl(this, -1, wxT("2"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 16, config.num_channels, wxT("KeyAware"));
 	_num_channels_spin->SetValue (config.num_channels);
-	setsizer->Add (_num_channels_spin, 0);
+	rowsizer->Add (_num_channels_spin, 0, wxRIGHT, 3);
+	_discrete_io_check = new wxCheckBox(this, -1, wxT("Separate I/O ports"));
+	rowsizer->Add (_discrete_io_check, 0, wxALIGN_CENTRE_VERTICAL);
+	setsizer->Add (rowsizer, 0);
 	
 	statText = new wxStaticText(this, -1, wxT("Loop time (secs minimum):"));
 	setsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL);
@@ -260,6 +265,7 @@ void ConfigPanel::refresh_defaults()
 	_def_force_spawn->SetValue (def_config.force_spawn);
 	_num_loops_spin->SetValue( (int) def_config.num_loops);
 	_num_channels_spin->SetValue( (int) def_config.num_channels);
+	_discrete_io_check->SetValue (def_config.discrete_io);
 	_secs_per_channel_spin->SetValue( (int) def_config.mem_secs);
 	_def_jack_name_text->SetValue (def_config.jack_name);
 	_def_midi_bind_text->SetValue (def_config.midi_bind_path);
@@ -281,6 +287,7 @@ void ConfigPanel::commit_changes()
 	_def_port_text->GetValue().ToLong(&config.port);
 	config.num_loops = (long) _num_loops_spin->GetValue();
 	config.num_channels = (long) _num_channels_spin->GetValue();
+	config.discrete_io = (bool) _discrete_io_check->GetValue();
 	config.mem_secs = (double) _secs_per_channel_spin->GetValue();
 	config.jack_name = _def_jack_name_text->GetValue();
 	config.midi_bind_path = _def_midi_bind_text->GetValue();

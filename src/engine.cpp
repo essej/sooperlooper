@@ -248,8 +248,8 @@ Engine::fill_common_outs(nframes_t nframes)
 		}
 	}
 
-	_curr_common_dry = currdry;
-	_curr_common_wet = currwet;
+	_curr_common_dry = flush_to_zero (currdry);
+	_curr_common_wet = flush_to_zero (currwet);
 }
 
 void 

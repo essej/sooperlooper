@@ -62,7 +62,8 @@ class LoopControl
 		long        num_loops; 
 		long        num_channels;
 		double      mem_secs;
-
+		bool        discrete_io;
+		
 		wxString   exec_name;
 		wxString   midi_bind_path;
 		bool       force_spawn;
