@@ -137,6 +137,8 @@ void KeysPanel::init()
 
 void KeysPanel::refresh_state()
 {
+	int selitem = _listctrl->GetNextItem(-1, wxLIST_NEXT_ALL,  wxLIST_STATE_SELECTED);
+
 	_listctrl->DeleteAllItems();
 
 	wxListItem item;
@@ -169,7 +171,11 @@ void KeysPanel::refresh_state()
 	}
 
 	_listctrl->SortItems (list_sort_callback, (unsigned) _listctrl);
-	
+
+	if (selitem >= 0) {
+		_listctrl->EnsureVisible(selitem);
+		_listctrl->SetItemState (selitem, wxLIST_STATE_SELECTED, wxLIST_MASK_STATE);
+	}
 }
 
 
@@ -180,6 +186,7 @@ void KeysPanel::on_button (wxCommandEvent &ev)
 		if (_parent->get_keyboard().is_learning()) {
 			// cancel learn
 			_parent->get_keyboard().stop_learning (true);
+			_parent->get_keyboard().set_enabled(false);
 		}
 		else {
 			// start learn selected
@@ -189,7 +196,7 @@ void KeysPanel::on_button (wxCommandEvent &ev)
 				_learn_button->SetLabel (wxT("Cancel Learn"));
 				_learn_button->SetForegroundColour (*wxRED);
 				
-			
+				_parent->get_keyboard().set_enabled(true);
 				_parent->get_keyboard().start_learning (string(_listctrl->GetItemText(item).c_str()));
 				//cerr << "start learning" << endl;
 			}
@@ -209,6 +216,7 @@ void KeysPanel::item_activated (wxListEvent & ev)
 	_learn_button->SetLabel (wxT("Cancel Learn"));
 	_learn_button->SetForegroundColour (*wxRED);
 
+	keyb.set_enabled(true);
 	keyb.start_learning (ev.GetText().c_str());
 
 }
@@ -219,6 +227,9 @@ void KeysPanel::learning_stopped ()
 	_learn_button->SetLabel (wxT("Learn Selected"));
 	_learn_button->SetForegroundColour (*wxBLACK);
 
+	KeyboardTarget & keyb = _parent->get_keyboard();
+	keyb.set_enabled(false);
+	
 	refresh_state();
 
 	_listctrl->SetFocus();
