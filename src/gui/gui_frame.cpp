@@ -86,6 +86,7 @@ enum {
 BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 
 	EVT_IDLE(GuiFrame::OnIdle)
+	EVT_CLOSE(GuiFrame::OnClose)
 	EVT_SIZE(GuiFrame::OnSize)
 	EVT_PAINT(GuiFrame::OnPaint)
 	EVT_TIMER(ID_UpdateTimer, GuiFrame::OnUpdateTimer)
@@ -493,6 +494,14 @@ GuiFrame::update_syncto_choice()
 	_sync_choice->set_index_value (index);
 }
 
+void
+GuiFrame::OnClose(wxCloseEvent &event)
+{
+	// send quit command to looper by default
+	_loop_control->send_quit();
+	
+	Destroy();
+}
 
 void
 GuiFrame::OnQuit(wxCommandEvent& event)
@@ -500,12 +509,12 @@ GuiFrame::OnQuit(wxCommandEvent& event)
 	int id = event.GetId();
 	
 	if (id == ID_Quit) {
-		Close();
+		Destroy();
 	}
 	else if (id == ID_QuitStop) {
 		// send quit command to looper
 		_loop_control->send_quit();
-		Close();
+		Destroy();
 	}
 }
 
