@@ -34,6 +34,7 @@ BEGIN_EVENT_TABLE(SliderBar, wxWindow)
 	EVT_SIZE(SliderBar::OnSize)
 	EVT_PAINT(SliderBar::OnPaint)
 	EVT_MOUSE_EVENTS(SliderBar::OnMouseEvents)
+	EVT_MOUSEWHEEL (SliderBar::OnMouseEvents)
 	
 END_EVENT_TABLE()
 
@@ -255,6 +256,23 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 	}
 	else if (ev.Moving()) {
 		// do nothing
+	}
+	else if (ev.GetEventType() == wxEVT_MOUSEWHEEL)
+	{
+		// don't get the events right now
+		
+		float fscale = 0.05f * (ev.ControlDown() ? 0.5f: 1.0f);
+		float newval;
+		
+		if (ev.GetWheelRotation() > 0) {
+			newval = _value + (_upper_bound - _lower_bound) * fscale;			
+		}
+		else {
+			newval = _value - (_upper_bound - _lower_bound) * fscale;			
+		}
+			     
+		set_value (newval);
+		value_changed (_value); //emit
 	}
 	else if (ev.ButtonDown())
 	{

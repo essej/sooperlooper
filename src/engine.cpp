@@ -69,7 +69,7 @@ void
 Engine::cleanup()
 {
 	if (_osc) {
-		cerr << "deleting osc" << endl;
+		//cerr << "deleting osc" << endl;
 		delete _osc;
 	}
 

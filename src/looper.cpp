@@ -58,6 +58,15 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	memset (_instances, 0, sizeof(LADSPA_Handle) * _chan_count);
 	memset (_input_ports, 0, sizeof(port_id_t) * _chan_count);
 	memset (_output_ports, 0, sizeof(port_id_t) * _chan_count);
+	memset (ports, 0, sizeof(float) * 18);
+	
+	// set some rational defaults
+	ports[DryLevel] = 1.0f;
+	ports[WetLevel] = 1.0f;
+	ports[Feedback] = 1.0f;
+	ports[Rate] = 1.0f;
+	ports[Multi] = -1.0f;
+
 	
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
@@ -85,17 +94,14 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 		/* connect all scalar ports to data values */
 		
 		for (unsigned long n = 0; n < 18; ++n) {
-			ports[n] = 0.0f;
 			descriptor->connect_port (_instances[i], n, &ports[n]);
 		}
+
+		descriptor->activate (_instances[i]);
 	}
 
-	// set some rational defaults
-	ports[DryLevel] = 1.0;
-	ports[WetLevel] = 1.0;
-	ports[Feedback] = 1.0;
-	ports[Multi] = -1.0;
-
+	
+	
 	_ok = true;
 }
 

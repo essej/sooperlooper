@@ -157,6 +157,14 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 #define LIMIT_BETWEEN_0_AND_MAX_DELAY(x)  \
 (((x) < 0) ? 0 : (((x) > MAX_DELAY) ? MAX_DELAY : (x)))
 
+// lininterp the target, and 	LP the value
+//wetTarget += wetDelta;
+//fWet = fWet * 0.1f + wetTarget * 0.9f;
+
+#define LOWPASS_AND_LIN_INTERP(targ, val, delta) \
+( (val) = (val)*0.1f + ((targ+=delta))*0.9f)
+
+
 /*****************************************************************************/
 
 // defines all a loop needs to know to cycle properly in memory
@@ -259,14 +267,28 @@ typedef struct {
     LoopChunk * tailLoopChunk;    
 
     
-    
+    LADSPA_Data fWetCurr;
+    LADSPA_Data fWetTarget;
+
+    LADSPA_Data fDryCurr;
+    LADSPA_Data fDryTarget;
+
+    LADSPA_Data fRateCurr;
+    LADSPA_Data fRateTarget;
+
+    LADSPA_Data fScratchPosCurr;
+    LADSPA_Data fScratchPosTarget;
+
+    LADSPA_Data fFeedbackCurr;
+    LADSPA_Data fFeedbackTarget;
+
+	
     /* Ports:
        ------ */
 
     
 
     LADSPA_Data * pfWet;
-
     
     LADSPA_Data * pfDry;
 
@@ -562,7 +584,13 @@ activateSooperLooper(LADSPA_Handle Instance) {
   pLS->bHoldMode = 0;
   pLS->fRedoTapMode = 1;
   pLS->bRateCtrlActive = 0;
-  
+
+  pLS->fWetCurr = pLS->fWetTarget = *pLS->pfWet;
+  pLS->fDryCurr = pLS->fDryTarget = *pLS->pfDry;
+  pLS->fFeedbackCurr = pLS->fFeedbackTarget = *pLS->pfFeedback;
+  pLS->fRateCurr = pLS->fRateTarget = *pLS->pfRate;
+  pLS->fScratchPosCurr = pLS->fScratchPosTarget = *pLS->pfScratchPos;
+
   pLS->state = STATE_PLAY;
 
   clearLoopChunks(pLS);
@@ -1142,17 +1170,20 @@ runSooperLooper(LADSPA_Handle Instance,
   LADSPA_Data * pfInput;
   LADSPA_Data * pfOutput;
   LADSPA_Data fDry=1.0f, fWet=1.0f, tmpWet;
+  LADSPA_Data dryDelta=0.0f, wetDelta=0.0f, dryTarget=1.0f, wetTarget=1.0f;
   LADSPA_Data fInputSample;
   LADSPA_Data fOutputSample;
 
   LADSPA_Data fRate = 1.0f;
   LADSPA_Data fScratchPos = 0.0f;
+  LADSPA_Data rateDelta=0.0f, scratchDelta=0.0f, rateTarget=1.0f, scratchTarget=0.0f;
   LADSPA_Data fTrigThresh = 0.0f;
   
   int lMultiCtrl=-1, lMultiTens=0;  
   LADSPA_Data fTapTrig = 0.0f;
   
   LADSPA_Data fFeedback = 1.0f;
+  LADSPA_Data feedbackDelta=0.0f, feedbackTarget=1.0f;
   unsigned int lCurrPos = 0;
   unsigned int lpCurrPos = 0;  
   long slCurrPos;
@@ -1240,9 +1271,11 @@ runSooperLooper(LADSPA_Handle Instance,
   //fRateSwitch = *(pLS->pfRateSwitch);
 
 
-  if (pLS->pfScratchPos)
-     fScratchPos = LIMIT_BETWEEN_0_AND_1(*(pLS->pfScratchPos));
-
+  if (pLS->pfScratchPos) {
+	  scratchTarget = LIMIT_BETWEEN_0_AND_1(*(pLS->pfScratchPos));
+	  fScratchPos =  LIMIT_BETWEEN_0_AND_1(pLS->fScratchPosCurr);
+	  scratchDelta = (scratchTarget - fScratchPos) / (SampleCount - 1);
+  }
   
   // the rate switch is ON if it is below 1 but not 0
   // rate is 1 if rate switch is off
@@ -1253,18 +1286,29 @@ runSooperLooper(LADSPA_Handle Instance,
      //fprintf(stderr, "rateswitch is 1.0: %f!\n", fRate);
   //}
 
-  if (pLS->pfWet)
-     fWet = LIMIT_BETWEEN_0_AND_1(*(pLS->pfWet));
+  if (pLS->pfWet) {
+	  wetTarget = LIMIT_BETWEEN_0_AND_1(*(pLS->pfWet));
+	  fWet =  LIMIT_BETWEEN_0_AND_1(pLS->fWetCurr);
+	  wetDelta = (wetTarget - fWet) / (SampleCount - 1);
 
-  if (pLS->pfDry)
-     fDry = LIMIT_BETWEEN_0_AND_1(*(pLS->pfDry));  
+// 	  wetTarget += wetDelta;
+// 	  fWet = fWet * 0.1f + wetTarget * 0.9f;
 
+  }
+  
+  if (pLS->pfDry) {
+	  dryTarget = LIMIT_BETWEEN_0_AND_1(*(pLS->pfDry));
+	  fDry =  LIMIT_BETWEEN_0_AND_1(pLS->fDryCurr);
+	  dryDelta = (dryTarget - fDry) / (SampleCount - 1);
+  }
 
   if (pLS->pfFeedback) {
-     fFeedback = LIMIT_BETWEEN_0_AND_1(*(pLS->pfFeedback));
-
-     // probably against the rules, but I'm doing it anyway
-     *pLS->pfFeedback = fFeedback;
+	  feedbackTarget = LIMIT_BETWEEN_0_AND_1(*(pLS->pfFeedback));
+	  fFeedback =  LIMIT_BETWEEN_0_AND_1(pLS->fFeedbackCurr);
+	  feedbackDelta = (feedbackTarget - fFeedback) / (SampleCount - 1);
+	  
+	  // probably against the rules, but I'm doing it anyway
+	  *pLS->pfFeedback = feedbackTarget;
   }
 
 
@@ -1861,6 +1905,11 @@ runSooperLooper(LADSPA_Handle Instance,
 	   for (;lSampleIndex < SampleCount;
 		lSampleIndex++)
 	   {
+	      fWet += wetDelta;
+              fDry += dryDelta;
+	      fFeedback += feedbackDelta;
+	      fScratchPos += scratchDelta;
+	      
 	      fInputSample = pfInput[lSampleIndex];
 	      if (fInputSample > fTrigThresh
 		  || fTrigThresh==0.0)
@@ -1908,6 +1957,12 @@ runSooperLooper(LADSPA_Handle Instance,
 	   for (;lSampleIndex < SampleCount;
 		lSampleIndex++)
 	   {
+	      fWet += wetDelta;
+              fDry += dryDelta;
+	      fFeedback += feedbackDelta;
+	      fScratchPos += scratchDelta;
+		   
+		   
 	      // wrap at the proper loop end
 	      lCurrPos = (unsigned int)loop->dCurrPos;
 	      if ((char *)(lCurrPos + loop->pLoopStart) >= (pLS->pSampleBuf + pLS->lBufferSize)) {
@@ -1949,6 +2004,11 @@ runSooperLooper(LADSPA_Handle Instance,
 	   for (;lSampleIndex < SampleCount;
 		lSampleIndex++)
 	   {
+	      fWet += wetDelta;
+              fDry += dryDelta;
+	      fFeedback += feedbackDelta;
+	      fScratchPos += scratchDelta;
+		   
 	      lCurrPos = (unsigned int) loop->dCurrPos;
 	      
 	      fInputSample = pfInput[lSampleIndex];
@@ -2011,7 +2071,11 @@ runSooperLooper(LADSPA_Handle Instance,
 	      for (;lSampleIndex < SampleCount;
 		   lSampleIndex++)
 	      {
-	      
+	         fWet += wetDelta;
+                 fDry += dryDelta;
+	         fFeedback += feedbackDelta;
+	         fScratchPos += scratchDelta;
+
 		 lCurrPos =(unsigned int) fmod(loop->dCurrPos, loop->lLoopLength);
 		 
 		 fInputSample = pfInput[lSampleIndex];
@@ -2090,12 +2154,18 @@ runSooperLooper(LADSPA_Handle Instance,
 	      if (pLS->nextState == STATE_MUTE) {
 		 // no loop output
 		 fWet = 0.0f;
+		 wetDelta = 0.0f;
 	      }
 	      
 
 	      for (;lSampleIndex < SampleCount;
 		   lSampleIndex++)
 	      {
+	         fWet += wetDelta;
+                 fDry += dryDelta;
+	         fFeedback += feedbackDelta;
+	         fScratchPos += scratchDelta;
+
 
 		 lpCurrPos =(unsigned int) fmod(loop->dCurrPos + loop->lStartAdj, srcloop->lLoopLength);
 		 slCurrPos =(long) loop->dCurrPos;
@@ -2187,13 +2257,18 @@ runSooperLooper(LADSPA_Handle Instance,
 
 	      if (pLS->nextState == STATE_MUTE) {
 		 // no loop output
-		 fWet = 0.0;
+		 fWet = 0.0f;
+		 wetDelta = 0.0f;
 	      }
 	      
 
 	      for (;lSampleIndex < SampleCount;
 		   lSampleIndex++)
 	      {
+	         fWet += wetDelta;
+                 fDry += dryDelta;
+	         fFeedback += feedbackDelta;
+	         fScratchPos += scratchDelta;
 
 		 lpCurrPos =(unsigned int) fmod(loop->dCurrPos, srcloop->lLoopLength);
 		 lCurrPos =(unsigned int) loop->dCurrPos;
@@ -2371,6 +2446,11 @@ runSooperLooper(LADSPA_Handle Instance,
 	      for (;lSampleIndex < SampleCount;
 		   lSampleIndex++)
 	      {
+	         fWet += wetDelta;
+                 fDry += dryDelta;
+     	         fFeedback += feedbackDelta;
+	         fScratchPos += scratchDelta;
+		 
 		 lCurrPos =(unsigned int) fmod(loop->dCurrPos, loop->lLoopLength);
 		 //fprintf(stderr, "curr = %u\n", lCurrPos);
 
@@ -2470,6 +2550,11 @@ runSooperLooper(LADSPA_Handle Instance,
 	      for (;lSampleIndex < SampleCount;
 		   lSampleIndex++)
 	      {
+	         fWet += wetDelta;
+                 fDry += dryDelta;
+     	         fFeedback += feedbackDelta;
+	         fScratchPos += scratchDelta;
+		      
 		 // wrap properly
 		 lCurrPos =(unsigned int) fmod(loop->dCurrPos, loop->lLoopLength);
 
@@ -2548,6 +2633,11 @@ runSooperLooper(LADSPA_Handle Instance,
      for (;lSampleIndex < SampleCount;
 	  lSampleIndex++)
      {
+        fWet += wetDelta;
+        fDry += dryDelta;
+        fFeedback += feedbackDelta;
+	fScratchPos += scratchDelta;
+	     
 	pfOutput[lSampleIndex] = fDry * pfInput[lSampleIndex];
      }
      
@@ -2558,7 +2648,21 @@ runSooperLooper(LADSPA_Handle Instance,
   pLS->lScratchSamples += SampleCount;  
   pLS->lTapTrigSamples += SampleCount;
 
+  // printf ("wet is %g    targ was %g\n", fWet, *(pLS->pfWet));
+  pLS->fWetCurr = wetTarget;
+  pLS->fWetTarget = wetTarget;
 
+  pLS->fDryCurr = dryTarget;
+  pLS->fDryTarget = dryTarget;
+  
+  pLS->fFeedbackCurr = feedbackTarget;
+  pLS->fFeedbackTarget = feedbackTarget;
+
+
+  pLS->fScratchPosCurr = scratchTarget;
+  pLS->fScratchPosTarget = scratchTarget;
+  
+  
   // update output ports
   if (pLS->pfStateOut) {
      *pLS->pfStateOut = (LADSPA_Data) pLS->state;
