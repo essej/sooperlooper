@@ -6,14 +6,17 @@ body {
 	font-size: 78%;/* font sizing in ems, baby. if you want to change anything, just change this.*/
 	/*funny thing happens at 75% and lower. opera goes to a nice small size, but moz and ie pc change almost not at all. seems 76% is as small as you can go and stay the same across browsers. poop.*/
 	color: #000;
-	background-color: #ccd;
-/*	background-image: url(_.gif);
+	background-color: #bcd;
+	/*background-color: #6385b9;*/
+  
+	background-image: url(_.gif);
 	background-repeat: no-repeat;
-	background-position: top left; */
+	background-position: top left;
+/*  
   	background-image: url('head_gradient_bg.png');
 	background-repeat: repeat-y;
 	background-position: top left;
-
+*/
 
 }
 #content {
@@ -84,11 +87,12 @@ ol, ul, li {/*
 	line-height: 1.8em;
 	margin-top: 0.2em;
 	margin-bottom: 0.1em; 
-	}
+  list-style-type: circle
+}
 p {
 	font-size: 1.0em;
-	line-height: 1.6em;
-	margin: 1.2em 0em 1.2em 0em;
+	line-height: 1.5em;
+	margin: 1.2em 0em 0.7em 0em;
 	}
 li > p {
 	margin-top: 0.2em;
@@ -103,10 +107,10 @@ strong, b {
 
 HR {
   height:3px;
-  width:70%;
+  width:90%;
   border: 1px solid #999;
   background:#aaa;
-  margin: 10px 0px 10px 0px;  
+  margin: 10px 20px 10px 30px;  
 }
 
 
@@ -146,10 +150,11 @@ a "be nice to Opera 5" rule every time you use the Tantek Celik hack (above). */
 body>#Header {height:72px;}
 
 #Content {
-	margin:0px 171px 6px 5px;
-	padding:10px;
-	background-color: #fff;
-	}
+  margin:0px 171px 6px 5px;
+  padding:10px;
+  background-color: #fff;
+  min-height: 300px;
+}
 
 #Menu {
 	position:absolute;
@@ -180,15 +185,16 @@ DIV.textbox {
 
 DIV.textbox_head {
   margin: 0px 0px 0px 0px;
-  border: solid 1px #99b;
+  border: solid 1px #9ac;
   padding: 2px 10px 2px 10px;
-  background-color:#aac;
+  /*background-color:#aac; */
+  background-color:#abd;
  /* width: 600px; */
 }
 
 DIV.textbox_indent {
   margin: 20px 20px 15px 40px;
-  border: none 1px #003000;
+  border: solid 1px #ddd;
   padding: 5px 10px 5px 10px;
   background-color:#eee;
   width: 500px;
@@ -200,7 +206,7 @@ DIV.newsbox {
   border: solid 1px #e0e0e0;
   padding: 5px 10px 5px 10px;
   background-color:#eee;
-  /* width: 591px; */
+  /*width: 591px; */
 }
 
 DIV.newsbox_head {
@@ -221,9 +227,9 @@ DIV.commandbox {
 
 DIV.commandbox_head {
   margin: 0px 0px 0px 0px;
-  border: solid 1px #99b;
+  border: solid 1px #9ac;
   padding: 2px 10px 2px 10px;
-  background-color:#aac;
+  background-color:#abd;
  /* width: 600px; */
 }
 
@@ -235,7 +241,7 @@ UL.smaller {
 
 .flowimage {
   float: left;
-  clear: left;
+  clear: left bottom;
   margin: 5px 5px 5px 5px;
 }
 
@@ -273,7 +279,7 @@ clear: left;
 
 #headertitle {
   position:absolute;
-  top:20px;
+  top:12px;
   left:210px;
   color: #ffc;
  /* width:172px; */
@@ -286,7 +292,7 @@ clear: left;
 #pagetitle {
   position:absolute;
   top: 38px;
-  right: 200px;
+  right: 175px;
   
   color: #ffc;
   margin: 0px 0px 0px 0px;
@@ -305,9 +311,20 @@ clear: left;
 /*  font-family: monospace;
   font-size: 1.0em;
    */
-  margin: 0px 100px 15px 20px;
-  border: solid 1px #ddd;
+  margin: 0px 40px 15px 20px;
+  border: solid 1px #ccc;
   padding: 5px 10px 5px 10px;
-  background-color:#eee;
+  background-color:#ddd;
+  
+}
+
+.ending_box {
+/*  font-family: monospace; */
+  font-size: 0.8em;
+   
+  margin: 10px 10px 10px 10px;
+  border: solid 1px #ccc;
+  padding: 5px 10px 5px 10px;
+  background-color:#ddd;
   
 }

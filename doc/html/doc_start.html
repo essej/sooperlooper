@@ -27,45 +27,84 @@
       
       <div id="Content">
 
-		    To install, do the normal ritual after unpacking
-		    the tarball: <p>
-		      <div class="cmdbox">
-<pre>./configure [--prefix=prefix]
-make<br></pre>
-<i>[probably need to become root]</i> <br>
-	  <pre>
-make install </pre>
-</div>
-		    <p>
-		    
-		    Once the software is installed, you must have JACK
-		    running, then you can run <p>
-		    <div class="cmdbox">
-		      slgui  &
-		    </div>
-		    to start the GUI, which will also start an engine
-		    in the background.  If there is already an engine
-		    running at the default port on the local machine,
-		    it will connect to this one.  Note that the GUI
-		    has two Quit commands, one of which will not stop
-		    the engine.  The audio ports may now be connected
-		    with your favorite JACK patchbay. 
-		    <p>
-		      Alternatively you can run the engine separately,
-		     if not in a graphical setting, or in a headless
-		     computer system. <br>
-		      <div class="cmdbox">
-		      sooperlooper &
-		      </div>
-		      
-		      
-		      See the MIDI control section
+	<p>
+	  
+	  Assuming the software is already installed (see <a href="download.html">Download</a> page for details),
+	  you must first start the JACK audio server.  Please see the <a href="http://jackit.sf.net">JACK documentation</a> for details.
+	</p>
+	
+	<p>
+	  Run the following in a terminal (or by running it from an application menu or icon):
+	<div class="cmdbox">
+	  slgui  &
+	</div>
+	to start the GUI, which will also start an engine
+	in the background.  If there is already an engine
+	running at the default port on the local machine,
+	it will connect to this one.  Note that the GUI
+	has two Quit commands, one of which will not stop
+	the engine.  The audio ports may now be connected
+	with your favorite JACK patchbay. 
+	</p>
+	<p>
+	  Use the Add and Remove Loop
+	  menu items to control the loop count.  Note that
+	  the default maximum loop memory is around 40 seconds,
+	  so you might want to either use the -t engine command line option or the <b>Add Custom Loop</b> GUI command
+	  to choose the maximum time used per channel of each loop.
+	</p>
+	
+<hr>
+
+	<p>
+	  Alternatively you can run the engine separately,
+	  if not in a graphical setting, or in a headless
+	  computer system. <br>
+	<div class="cmdbox">
+	  sooperlooper &
+	</div>
+	</p>
+	
+	
+	See the <a href="doc_midi.html">MIDI control</a> section
 		      for specifying MIDI bindings that allow you to
-		      control the looper.  Giving -h as an option will
-		    show you the commandline usage for both.
+		      control the looper.  Command line options are listed below.
 
 
 
+	<h4>Command Line Options</h4>
+
+	<div class="cmdbox">
+	  <b> GUI options</b>
+	  <pre>
+Usage: slgui [gui_options...] [ --  engine_options... ] 
+GUI Options:
+  -H host,  --connect-host=host    connect to sooperlooper engine on given host (default is localhost)
+  -P <num>, --connect-port=<num>   connect to sooperlooper engine on given port (default is 9951)
+  -S , --spawn-engine              force the execution of a new sooperlooper engine.
+  -E name,  --exec-name=name       use name as binary to execute as sooperlooper engine (default is sooperlooper)
+  -h , --help                      this usage output
+  -V , --version                   show version only
+</pre>
+	  
+<p>
+	  <b> Engine options</b>
+
+	  <pre>
+Usage: sooperlooper [options...]
+Options:
+  -l <num> , --loopcount=<num> number of loopers to create (default is 1)
+  -c <num> , --channels=<num>  channel count for each looper (default is 2)
+  -t <numsecs> , --looptime=<num>  number of seconds of loop memory per channel (default is 40), at least
+  -p <num> , --osc-port=<num>  udp port number for OSC server (default is 9951)
+  -j <str> , --jack-name=<str> jack client name, default is sooperlooper_1
+  -m <str> , --load-midi-binding=<str> loads midi binding from file or preset
+  -q , --quiet                 do not output status to stderr
+  -h , --help                  this usage output
+  -V , --version               show version only
+</pre>
+
+	</div>
       </div>
 
 

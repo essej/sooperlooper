@@ -91,14 +91,19 @@
 			configure.
 
 	      <li><a href="http://libsigc.sourceforge.net/">libsigc++
-			  = 1.2</a>
+			  1.2</a>
 			-- this library is usually already on recent
-			systems, but if not get it and install it.
+			systems, but if not get it and install it. Note that you might have v 2.x installed,
+	      but you must additionally install v1.2.x, which coexists peacefully with the newer version.
 
 	      <li><a
 			  href="http://www.mega-nerd.com/libsndfile/">libsndfile
 			  </a> --
 			sound file format reading/writing
+	      <li><a
+			  href="http://www.mega-nerd.com/SRC/">libsamplerate
+			  </a> --
+			audio sample rate conversion.  <i>This is optional, but rate changing is disabled without it</i>
 			
 	      <li><a href="http://plugin.org.uk/liblo/">liblo &ge; 0.10</a>
 			--
@@ -114,6 +119,19 @@
 	
 	</div>
 
+	<div class="textbox_head"><strong> Build and Install </strong></div>
+	<div class="textbox">
+		    To install from source code, first make sure you have all the prerequisites mentioned above.  Then do the normal ritual after unpacking
+		    the tarball: <p>
+		      <div class="cmdbox">
+<pre>./configure [--prefix=prefix]
+make<br></pre>
+<small><i>[probably need to become root]</i></small> <br>
+	  <pre>
+make install </pre>
+	  </div>
+	</div>
+	
       </div>
       
       <div class="copyright">

@@ -23,32 +23,38 @@
       <div id="Content">
 	
 	<p>
-	    <strong>SooperLooper</strong> is a realtime software looping sampler in the spirit of
-	     Gibson's Echoplex Digital Pro.  If used with a
-	    low-latency kernel and the proper audio buffer
-	    configuration it is capable of truly realtime live looping
-	    performance.
+	  <strong>SooperLooper</strong> is a live looping sampler capable of
+	  immediate loop recording, overdubbing, multiplying, reversing and more.
+	  It allows for multiple simultaneous multi-channel loops limited only by your computer's available memory.
+	  When used with a
+	  low-latency audio configuration it is capable of truly realtime live performance looping.
+	  
 </p>
 	<div class="flowimageright">
 	  <a href="sshot2.png" border=0> <img src="sshot2_small.png"> </a>
 	</div>
 
 	<p>
-	 Originally implemented as a LADSPA <a href="oldplugin.html">plugin</a>, the new
-	      version is a standalone JACK client with an engine
+	      The application is a standalone <a href="http://jackit.sf.net">JACK</a> client with an engine
 	      controllable via OSC and MIDI.  It also includes a GUI
 	      which communicates with the engine via OSC (even over a
-	      network) for user-friendly control on a desktop.  But
-	      this kind of live performance looping tool is really
+	      network) for user-friendly control on a desktop.  However,
+	      this kind of live performance looping tool is
 	      most effectively used via hardware (midi footpedals, etc) and the engine can
 	      be run standalone on a computer without a monitor.
 	</p>   
 
 
+	<p> SooperLooper is currently supported on Linux/Unix platforms that support <a href="http://jackit.sf.net">JACK</a>.
+	  Macintosh OS X packages will be available shortly, and will be usable with the upcoming
+	  0.6 release of <a href="http://www.jackosx.com/">JACK OS X</a>.  Future plans include possible VST plugin
+	  versions for both Windows and Mac.
+	  
+	
 	  <div class="newsbox_head"><strong>News</strong></div>
 	  <div class="newsbox">
 	  <ul>
-	    <li>  v1.0.0dev25 released -- 22 November 2004 </li>
+	    <li>  <a href="download.html">v1.0.0dev25</a> released  <small> --  22 November 2004</small> </li>
 
 	  </ul>
 	  

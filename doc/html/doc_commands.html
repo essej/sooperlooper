@@ -48,15 +48,8 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	  each loop will have an input and output port
 	  available for connection under JACK.
 	</p>
-	<p>
-		      Use the Add and Remove loop
-		      menu items to control the loop count.  Note that
-		      the default maximum loop memory is fairly large,
-		      so you might want to use the -t option on the
-		      engine to limit the memory used per channel of
-		      each loop.
-	</p>
-	<p> SooperLooper does support long-presses (from gui, or when commands
+	<h4>Command Options</h4>
+	<p> SooperLooper supports long-presses (from gui, or when commands
 	  are bound from MIDI note message).  When a command is held down for more than 2 seconds,
 	  it becomes a momentary (or SUS) control, so that when the command is released, it ends the
 	  operation (as if you had quickly pressed and released a command twice).  In the gui, middle-mouse button
@@ -64,6 +57,9 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	  MIDI bindings have a SUS option, that if set will treat that binding as an immediate
 	  momentary operation (SUS).
 	  </p>
+
+
+	<h4> Command Reference </h4>
 	
 	<div class="commandbox_head">
 	  <b>RECORD</b>
@@ -71,7 +67,8 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	<div class="commandbox">
 	  Start here.  If the record threshold is all the way down,
 	  pressing it once will start recording and pressing
-	  again will end the recording. <p>
+	  again will end the recording.
+	  <p>
 	    
 	    If the Threshold is set higher the loop recording doesn't start until
 	    the audio data is greater than the threshold.  When finishing the loop, the threshold value is ignored. 
@@ -80,10 +77,17 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	    stop and start recording the moment you hit the downbeat, not
 	    before.  Trust them.
 	  <p>
-	    If you end a RECORD with another function it will finish the loop
-	    immediately (threshold ignored) and start doing the new function.  A
-	    special feature: ending with REVERSE stops recording and plays the
+	  <div class="ending_box">
+	    <b>Special Endings</b> <br>
+	    <ul>
+	    <li>If you end a RECORD with another function (OVERDUB, MULTIPLY, REPLACE, SUBSTITUTE, INSERT, ONCE) it will finish the loop
+	    immediately (threshold ignored) and start doing the new function.
+
+	    <li>
+	    Ending with REVERSE stops recording and plays the
 	    loop backwards once then goes into MUTE mode.
+		</ul>
+	  </div>
 	</div>
 	
 	<div class="commandbox_head">
@@ -95,8 +99,8 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	  play on top until you stop overdubbing.  Very useful.... this is the main
 	  tool.  The Feedback controls the amount of the original loop that
 	  is used every pass.  In actuality, when
-	  Feedback is set to 100%, it actually uses a
-	  slightly less amount to prevent overloading.
+	  Feedback is set to 100%, it uses a
+	  slightly less amount to help prevent clipping on output.
 	</div>
 
 	<div class="commandbox_head">
@@ -104,19 +108,20 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	</div>
 	
 	<div class="commandbox">
-	  
 	  This similar to overdub, except the original loop is repeated
 	  underneath you "multiplying" the loop length until you stop it.
 	  Thus it can turn a 1 measure loop into a 2,3, etc measure loop.
 	  QuantizeMode and RoundMode affect how the overdubbing starts and
-	  stops.  See if you can figure it out. Keep in mind that the original
+	  stops, see the EDP manual for more details.  Keep in mind that the original
 	  loop length is a "cycle" and the loop length will be a multiple of
 	  that.  You can actually make an already multiplied loop have fewer
 	  cycles with the right combination of options.
-	  <p>
+
+	  <div class="ending_box">
+	    <b>Special Endings</b> <br>
 	    If you end a MULTIPLY with a RECORD press it ends the loop
-	    immediately and resets the cycle length to the whole loop, if you
-	    want that.
+	    immediately and resets the cycle length to the whole loop.
+	  </div>
 	</div>
 
 	<div class="commandbox_head">
@@ -124,15 +129,23 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	</div>
 	<div class="commandbox">
 	  It inserts new input in place, but always one "cycle" length...
-	  QuantizeMode and RoundMode have effects (RTF EDP Manual).  
+	  QuantizeMode and RoundMode have effects (refer to EDP Manual).  
+
+	  <div class="ending_box">
+	    <b>Special Endings</b> <br>
+	    Ending with a RECORD press it ends the operation
+	    immediately and resets the cycle length to the whole loop.
+	  </div>
 	</div>
 	
 	<div class="commandbox_head">
 	  <b>REPLACE</b>
 	</div>
 	<div class="commandbox">
-	  Is like overdub without keeping or playing the underlying
-	  audio.  
+	  Replaces the audio in the loop for the duration of the command.  The existing loop audio is not
+	  heard during the operation.
+	  <p>
+	    When Quantize mode is set, this operation will be quantized on start and finish.
 	</div>
 	
 
@@ -144,6 +157,8 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	  as it records new audio into the loop.  On the next time around, only the 
 	  newly recorded audio will be heard.  This helps maintain the groove 
 	  when recording a replacement section, because you can play with what was there.
+	  <p>
+	  When Quantize mode is set, this operation will be quantized on start and finish.	  
 	</div>
 
 	<div class="commandbox_head">
@@ -163,10 +178,11 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	  </div>
 	
 	<div class="commandbox">
-	  Undoes the last operation and immediately plays the previous loop
-	  maintaining the current time position if the loop you are undoing was based
-	  on the previous loop (usually is).  You can go all the way back to
-	  the first one.
+	  Restores the playing loop to the state before the last operation.
+	  It maintains the current time position if the current loop was based
+	  on the previous loop (eg, not newly recorded).  You can go all the way back to
+	  the first one still intact within the loop memory.  As more operations are done, more of
+	  the available loop memory is used, and it will eventually start reclaiming the oldest versions.
 	</div>
 	
 
@@ -196,7 +212,7 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	  </div>
 	<div class="commandbox">
 	  this immediately restarts the loop
-	  playing back from the beginning
+	  playing back from the beginning.
 	</div>
 	
 	<div class="commandbox_head">
@@ -205,7 +221,7 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	<div class="commandbox">
 	  this immediately restarts the loop
 	  playing back from the beginning, and goes into
-	  MUTE mode at the end of the loop
+	  MUTE mode at the end of the loop.
 	</div>	
 
 	<div class="commandbox_head">
@@ -215,8 +231,12 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	  These commands allow you to load a loop from an audio file.
 	  The file becomes a new loop, so it must be
 	  shorter than the available loop time, or the
-	  operation will fail.   Save will save the
-	  current loop to an audio file.  The loop is not
+	  operation will fail.  Many audio file formats are supported, but the sample rate should
+	  match that of the current loop, as no resampling is currently done on load.
+
+	  <p>
+	  Save will save the
+	  current loop to an 32bit float WAV file.  The loop playback is not
 	  interrupted when saving.
 	</div>
 	
@@ -235,6 +255,19 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 
 	
 	<div class="commandbox_head">
+	  <b>Rate Adjustment</b>
+	</div>
+	<div class="commandbox">
+	  The rate can be adjusted anytime (even during Recording) and will affect both the
+	  underlying loop and any new incoming audio recorded onto the loop, reminiscent of 
+	  tape delay systems.  Altering the Rate during recording/overdubbing, etc can result 
+	  in interesting recorded audio.  The GUI has buttons for easy access to 1/2 speed, double speed, and 
+	  normal (1x) speed.   MIDI bindings can be created to act like these buttons by specifying the range 
+          min and max to equal the target rate.
+	  </div>
+
+
+	<div class="commandbox_head">
 	  <b>SCRATCH MODE</b>
 	</div>
 	<div class="commandbox">
@@ -249,21 +282,10 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	    my MIDI pedal, very cool, although the scratching code needs some work.
 	</div>
 
-	<div class="commandbox_head">
-	  <b>Rate Adjustment</b>
-	</div>
-	<div class="commandbox">
-	  The rate can be adjusted anytime (even during Recording) and will affect both the
-	  underlying loop and any new incoming audio recorded onto the loop, reminiscent of 
-	  tape delay systems.  Altering the Rate during recording/overdubbing, etc can result 
-	  in interesting recorded audio.  The GUI has buttons for easy access to 1/2 speed, double speed, and 
-	  normal (1x) speed.   MIDI bindings can be created to act like these buttons by specifying the range 
-          min and max to equal the target rate.
-	  </div>
-
 	
       </div>
-
+	
+	
 
       <div class="copyright">
 	&copy; 2004  Jesse Chappell  <i>&lt;jesse at essej dot net&gt;</i>
