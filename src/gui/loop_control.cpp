@@ -386,7 +386,7 @@ LoopControl::osc_traffic()
 		{
 			
 			// emit signal
-			cerr << "got new data" << endl;
+			// cerr << "got new data" << endl;
 			NewDataReady(); // emit
 		}
 

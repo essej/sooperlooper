@@ -22,6 +22,7 @@
 #include <wx/filename.h>
 
 #include <iostream>
+#include <cstring>
 #include <cmath>
 
 #include "gui_app.hpp"
@@ -711,11 +712,11 @@ LooperPanel::get_pixmap_path (const wxString & namebase)
 	pixmapdir = PIXMAPDIR;
 #endif
 	
-	if (wxFile::Exists(wxString::Format("%s%s", pixmapdir.c_str(), namebase.c_str()))) {
-		filename = wxString::Format("%s%s", pixmapdir.c_str(), namebase.c_str());
+	if (wxFile::Exists(wxString::Format(wxT("%s%s"), pixmapdir.c_str(), namebase.c_str()))) {
+		filename = wxString::Format(wxT("%s%s"), pixmapdir.c_str(), namebase.c_str());
 	}
-	else if (wxFile::Exists(wxString::Format("pixmaps%c%s", wxFileName::GetPathSeparator(), namebase.c_str()))) {
-		filename = wxString::Format("pixmaps%c%s", wxFileName::GetPathSeparator(), namebase.c_str());
+	else if (wxFile::Exists(wxString::Format(wxT("pixmaps%c%s"), wxFileName::GetPathSeparator(), namebase.c_str()))) {
+		filename = wxString::Format(wxT("pixmaps%c%s"), wxFileName::GetPathSeparator(), namebase.c_str());
 	}
 	else if (wxFile::Exists (namebase)) {
 		filename = namebase;
@@ -844,7 +845,7 @@ LooperPanel::update_controls()
 	}
 
 	for (int i=0; i < _chan_count; ++i) {
-		wxString panstr = wxString::Format("pan_%d", i+1);
+		wxString panstr = wxString::Format(wxT("wpan_%d"), i+1);
 		if (_loop_control->is_updated(_index, panstr)) {
 			_loop_control->get_value(_index, panstr, val);
 			_panners[i]->set_value (val);
@@ -1031,10 +1032,14 @@ void
 LooperPanel::button_bind_events (wxString cmd)
 {
 	MidiBindInfo info;
-
+	char cmdbuf[100];
+	
 	info.channel = 0;
 	info.type = "n";
-	info.control = cmd.c_str();
+	//info.control = cmd.c_str();
+	snprintf(cmdbuf, sizeof(cmdbuf), "%s", cmd.c_str());
+	info.control = cmdbuf;
+
 	if (cmd == wxT("delay_trigger")) {
 		info.command = "set";
 	} else {
@@ -1102,7 +1107,7 @@ LooperPanel::clicked_events (int button, wxString cmd)
 			// popup basic filename text entry
 			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
 
-			wxString filename = ::wxGetTextFromUser(wxString::Format("Choose file to save on remote host '%s'",
+			wxString filename = ::wxGetTextFromUser(wxString::Format(wxT("Choose file to save on remote host '%s'"),
 										 _loop_control->get_engine_host().c_str())
 								, wxT("Save Loop"));
 
@@ -1134,7 +1139,7 @@ LooperPanel::clicked_events (int button, wxString cmd)
 			// popup basic filename text entry
 			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
 
-			wxString filename = ::wxGetTextFromUser(wxString::Format("Choose file to load on remote host '%s'",
+			wxString filename = ::wxGetTextFromUser(wxString::Format(wxT("Choose file to load on remote host '%s'"),
 										 _loop_control->get_engine_host().c_str())
 								, wxT("Open Loop"));
 

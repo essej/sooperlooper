@@ -34,7 +34,7 @@ class HelpWindowHtmlWin
 {
 public:
 	HelpWindowHtmlWin (wxWindow *parent, wxWindowID id = -1, const wxPoint& pos = wxDefaultPosition,
-			   const wxSize& size = wxDefaultSize, long style = wxHW_SCROLLBAR_AUTO, const wxString& name = "htmlWindow");
+			   const wxSize& size = wxDefaultSize, long style = wxHW_SCROLLBAR_AUTO, const wxString& name = wxT("htmlWindow"));
 	virtual ~HelpWindowHtmlWin() {}
 
 	void OnLinkClicked(const wxHtmlLinkInfo& link);

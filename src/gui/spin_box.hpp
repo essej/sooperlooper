@@ -159,7 +159,7 @@ class SpinBox
 
 	class HidingTextCtrl : public wxTextCtrl {
 	   public:
-		HidingTextCtrl (wxWindow* par, wxWindowID id, const wxString & value = "", const wxPoint & pos = wxDefaultPosition,
+		HidingTextCtrl (wxWindow* par, wxWindowID id, const wxString & value = wxT(""), const wxPoint & pos = wxDefaultPosition,
 				const wxSize & size = wxDefaultSize, long style = 0)
 			: wxTextCtrl (par, id, value, pos, size, style) {}
 

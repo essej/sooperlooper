@@ -121,7 +121,7 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 END_EVENT_TABLE()
 
 GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
-	: wxFrame((wxFrame *)NULL, -1, title, pos, size, wxDEFAULT_FRAME_STYLE, "sooperlooper")
+	: wxFrame((wxFrame *)NULL, -1, title, pos, size, wxDEFAULT_FRAME_STYLE, wxT("sooperlooper"))
 
 {
 	_keyboard = new KeyboardTarget (this, "gui_frame");
@@ -925,7 +925,7 @@ GuiFrame::process_key_event (wxKeyEvent &ev)
 	// this is a pretty extreme hack
 	// to let textfields, etc named with the right name
 	// get their key events
-	static wxString textname = "KeyAware";
+	static wxString textname = wxT("KeyAware");
 
 	//cerr << "got " << ev.GetKeyCode() << endl;
 	
@@ -1037,7 +1037,7 @@ void GuiFrame::on_about (wxCommandEvent &ev)
 	wxMemoryDC mdc;
 	mdc.SelectObject(bitmap);
 	int w,h;
-	wxString vstr = wxString::Format("v %s", sooperlooper_version);
+	wxString vstr = wxString::Format(wxT("v %s"), sooperlooper_version);
 	mdc.SetFont(*wxSWISS_FONT);
 	mdc.SetTextForeground(*wxWHITE);
 	mdc.GetTextExtent(vstr, &w, &h);
@@ -1103,7 +1103,7 @@ void GuiFrame::misc_action (bool release, wxString cmd)
 	}
 	else if (cmd == wxT("delay")) {
 		_tapdelay_val *= -1.0f;
-		_loop_control->post_ctrl_change (index, wxString("tap_trigger"), _tapdelay_val);
+		_loop_control->post_ctrl_change (index, wxString(wxT("tap_trigger")), _tapdelay_val);
 	}
 	else if (cmd == wxT("cancel_learn")) {
 
