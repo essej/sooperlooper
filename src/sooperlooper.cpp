@@ -37,7 +37,7 @@ extern void sl_init ();
 extern	void sl_fini ();
 
 
-int shutdown = 0;
+int do_shutdown = 0;
 
 
 #define DEFAULT_OSC_PORT 9951
@@ -169,7 +169,7 @@ static void* watchdog_thread(void* arg)
   }
 
   
-  shutdown = 1;
+  do_shutdown = 1;
   
   /* to keep the compilers happy; never actually executed */
   return(0);
@@ -283,7 +283,7 @@ int main(int argc, char** argv)
 	
 	// todo proper event loop ?
 
-	while (engine.is_ok() && !shutdown)
+	while (engine.is_ok() && !do_shutdown)
 	{
 		usleep(1000);
 	}
