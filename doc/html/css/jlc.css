@@ -261,6 +261,17 @@ DIV.copyright {
   
 }
 
+DIV.invisible {
+  /*position: relative; */
+  /*left: 25px; */
+  margin: 0px 0px 5px 10px;
+  /*float: right;*/
+  font-size: 0.8em;
+ /* same as bg */
+  color: #bcd;
+  
+}
+
 #titleimage {
   float: left;
   margin: 0px;
