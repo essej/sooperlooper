@@ -83,12 +83,23 @@ AC_SUBST(SIGCPP_CFLAGS)
 
 
 dnl wxwindows
-AC_PATH_PROG(WX_CONFIG, wxgtk2-2.4-config, no, $PATH:/usr/local/bin )
-if [[ "$WX_CONFIG" = "no" ]] ; then
-	AC_PATH_PROG(WX_CONFIG, wx-config, no, $PATH:/usr/local/bin )
-	if [[ "$WX_CONFIG" = "no" ]] ; then
-        	AC_MSG_ERROR("Could not find wx-config: is wxWindows installed? is wx-config in your path?")
+AC_PATH_PROG(WX_CONFIG1, wxgtk2-2.4-config, no, $PATH:/usr/local/bin )
+if [[ "$WX_CONFIG1" = "no" ]] ; then
+
+	AC_PATH_PROG(WX_CONFIG2, wxgtk-2.4-config, no, $PATH:/usr/local/bin )
+	if [[ "$WX_CONFIG2" = "no" ]] ; then
+
+		AC_PATH_PROG(WX_CONFIG3, wx-config, no, $PATH:/usr/local/bin )
+		if [[ "$WX_CONFIG3" = "no" ]] ; then
+        		AC_MSG_ERROR("Could not find any wx-config scripts: is wxWindows installed?")
+		else	
+	   		WX_CONFIG=$WX_CONFIG3
+		fi
+	else
+	   WX_CONFIG=$WX_CONFIG2
 	fi
+else	
+   WX_CONFIG=$WX_CONFIG1
 fi
 
 WX_LIBS="`$WX_CONFIG --libs`"
