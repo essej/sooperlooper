@@ -41,10 +41,8 @@
 #include "check_box.hpp"
 #include "pix_button.hpp"
 #include "keyboard_target.hpp"
-#include "keys_dialog.hpp"
-#include "midi_bind_dialog.hpp"
-#include "config_dialog.hpp"
 #include "help_window.hpp"
+#include "prefs_dialog.hpp"
 
 #include "pixmaps/sl_logo.xpm"
 #include "pixmaps/tap_tempo_active.xpm"
@@ -66,6 +64,7 @@ enum {
 	ID_UpdateTimer = 9000,
 	ID_AboutMenu,
 	ID_HelpTipsMenu,
+	ID_PreferencesMenu,
 	ID_ConnectionMenu,
 	ID_KeybindingsMenu,
 	ID_MidiBindingsMenu,
@@ -102,6 +101,7 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 	EVT_MENU(ID_AddCustomLoop, GuiFrame::on_add_custom_loop)
 	EVT_MENU(ID_RemoveLoop, GuiFrame::on_remove_loop)
 
+	EVT_MENU(ID_PreferencesMenu, GuiFrame::on_view_menu)
 	EVT_MENU(ID_KeybindingsMenu, GuiFrame::on_view_menu)
 	EVT_MENU(ID_MidiBindingsMenu, GuiFrame::on_view_menu)
 	EVT_MENU(ID_ConnectionMenu, GuiFrame::on_view_menu)
@@ -115,9 +115,7 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 	_keyboard = new KeyboardTarget (this, "gui_frame");
 	_curr_loop = -1;
 	_tapdelay_val = 1.0f;
-	_keys_dialog = 0;
-	_midi_bind_dialog = 0;
-	_config_dialog = 0;
+	_prefs_dialog = 0;
 	_got_new_data = 0;
 	_help_window = 0;
 	
@@ -267,19 +265,14 @@ GuiFrame::init()
 	menuFile->Append(ID_RemoveLoop, wxT("Remove Last Loop"), wxT("Remove last loop"));
 
 	menuFile->AppendSeparator();
+	menuFile->Append(ID_PreferencesMenu, wxT("&Preferences...\tCtrl-P"), wxT("Preferences..."));
+	menuFile->AppendSeparator();
 	
 	menuFile->Append(ID_Quit, wxT("Quit but Leave Engine Running\tCtrl-Shift-Q"), wxT("Exit from GUI and leave engine running"));
 	menuFile->Append(ID_QuitStop, wxT("Quit and Stop Engine\tCtrl-Q"), wxT("Exit from GUI and stop engine"));
 	
 	menuBar->Append(menuFile, wxT("&Control"));
 	
-	menuFile = new wxMenu(wxT(""));
-
-	menuFile->Append(ID_ConnectionMenu, wxT("Looper &Connection...\tCtrl-C"), wxT("Configure Looper Engine Connection"));
-	menuFile->Append(ID_KeybindingsMenu, wxT("&Key Bindings...\tCtrl-K"), wxT("Configure Keybindings"));
-	menuFile->Append(ID_MidiBindingsMenu, wxT("&Midi Bindings...\tCtrl-M"), wxT("Configure Midi bindings"));
-	
-	menuBar->Append(menuFile, wxT("&Configure"));
 
 	wxMenu *menuHelp = new wxMenu(wxT(""));
 	menuHelp->Append(ID_HelpTipsMenu, wxT("&Usage Tips...\tCtrl-H"), wxT("Show Usage Tips window"));
@@ -793,43 +786,17 @@ void GuiFrame::intialize_keybindings ()
 
 void GuiFrame::on_view_menu (wxCommandEvent &ev)
 {
-	if (ev.GetId() == ID_KeybindingsMenu) {
-		if (!_keys_dialog) {
-			_keys_dialog = new KeysDialog(this, -1, wxT("SooperLooper Key Bindings"));
-			_keys_dialog->SetSize (230,410);
+	if (ev.GetId() == ID_PreferencesMenu) {
+		if (!_prefs_dialog) {
+			_prefs_dialog = new PrefsDialog(this, -1, wxT("SooperLooper Preferences"));
+			_prefs_dialog->SetSize (230,410);
 		}
-		else if (!_keys_dialog->IsShown()) {
-			_keys_dialog->refresh_state();
-		}
-
-		_keys_dialog->Show(true);
-		_keys_dialog->Raise();
-		
-	}
-	else if (ev.GetId() == ID_MidiBindingsMenu) {
-		if (!_midi_bind_dialog) {
-			_midi_bind_dialog = new MidiBindDialog(this, -1, wxT("SooperLooper MIDI Bindings"));
-			_midi_bind_dialog->SetSize (380,400);
-		}
-		else if (!_midi_bind_dialog->IsShown()) {
-			_midi_bind_dialog->refresh_state();
+		else if (!_prefs_dialog->IsShown()) {
+			_prefs_dialog->refresh_state();
 		}
 
-		_midi_bind_dialog->Show(true);
-		_midi_bind_dialog->Raise();
-		
-	}
-	else if (ev.GetId() == ID_ConnectionMenu) {
-		if (!_config_dialog) {
-			_config_dialog = new ConfigDialog(this, -1, wxT("SooperLooper Connection Configuration"));
-			// _config_dialog->SetSize (380,500);
-		}
-		else if (!_config_dialog->IsShown()) {
-			_config_dialog->refresh_state();
-		}
-
-		_config_dialog->Show(true);
-		_config_dialog->Raise();
+		_prefs_dialog->Show(true);
+		_prefs_dialog->Raise();
 		
 	}
 }

@@ -17,8 +17,8 @@
 **  
 */
 
-#ifndef __sooperlooper_keys_dialog__
-#define __sooperlooper_keys_dialog__
+#ifndef __sooperlooper_config_panel__
+#define __sooperlooper_config_panel__
 
 
 #include <wx/wx.h>
@@ -29,47 +29,66 @@
 #include <sigc++/object.h>
 
 class wxListCtrl;
+class wxSpinCtrl;
 
 namespace SooperLooperGui {
 
 class GuiFrame;
 class KeyboardTarget;
 	
-class KeysDialog
-	: public wxFrame,  public SigC::Object
+class ConfigPanel
+	: public wxPanel,  public SigC::Object
 {
   public:
 	
 	// ctor(s)
-	KeysDialog(GuiFrame * parent, wxWindowID id, const wxString& title,
+	ConfigPanel(GuiFrame * guiframe, wxWindow * parent, wxWindowID id,
 		   const wxPoint& pos = wxDefaultPosition,
 		   const wxSize& size = wxSize(400,600),
 		   long style = wxDEFAULT_FRAME_STYLE,
-		   const wxString& name = wxT("KeybindingsDialog"));
+		   const wxString& name = wxT("ConfigPanel"));
 
-	virtual ~KeysDialog();
+	virtual ~ConfigPanel();
 
 	void refresh_state();
-	
+	void refresh_defaults();
 
+	void commit_changes();
+
+	void looper_connected(int);
+	
    protected:
 
 	void init();
 
-	void item_activated (wxListEvent & ev);
-	void on_close (wxCloseEvent &ev);
 	void on_button (wxCommandEvent &ev);
-	void learning_stopped ();
+
 	
-	void onSize(wxSizeEvent &ev);
-	void onPaint(wxPaintEvent &ev);
+	wxTextCtrl * _host_text;
+	wxTextCtrl * _port_text;
+	wxTextCtrl * _status_text;
+	wxCheckBox * _force_spawn;
+	wxCheckBox * _shutdown_check;
+	
+	wxButton * _disconnect_button;
+	wxButton * _connect_button;
+
 	
 	
-	wxListCtrl * _listctrl;
-	wxButton * _learn_button;
+	wxTextCtrl * _def_host_text;
+	wxTextCtrl * _def_port_text;
+	wxCheckBox * _def_force_spawn;
+	wxTextCtrl * _def_midi_bind_text;
+	wxButton   * _midi_browse_button;
+	wxTextCtrl * _def_jack_name_text;
+	
+	wxSpinCtrl * _num_loops_spin;
+	wxSpinCtrl * _num_channels_spin;
+	wxSpinCtrl * _secs_per_channel_spin;
+
+	wxButton   * _commit_button;
 	
 	GuiFrame * _parent;
-	bool       _justResized;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

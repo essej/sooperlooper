@@ -79,8 +79,7 @@ class Engine
 
 	bool push_command_event (Event::type_t type, Event::command_t cmd, int8_t instance)
 		{ return do_push_command_event (_event_queue, type, cmd, instance); }
-	bool push_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance)
-		{ return do_push_control_event (_event_queue, type, ctrl, val, instance); }
+	void push_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance);
 
 	void push_midi_command_event (Event::type_t type, Event::command_t cmd, int8_t instance)
 		{ do_push_command_event (_midi_event_queue, type, cmd, instance); }
@@ -149,6 +148,7 @@ class Engine
 	RingBuffer<Event> * _event_queue;
 	RingBuffer<Event> * _midi_event_queue;
 	RingBuffer<Event> * _sync_queue;
+	RingBuffer<Event> * _nonrt_update_event_queue;
 
 	EventGenerator * _event_generator;
 

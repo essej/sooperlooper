@@ -816,9 +816,6 @@ int ControlOSC::set_handler(const char *path, const char *types, lo_arg **argv, 
 
 	_engine->push_control_event(info->type, _cmd_map->to_control_t(ctrl), val, info->instance);
 
-
-	// send out updates to registered in main event loop
-	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Send, info->instance, _cmd_map->to_control_t(ctrl), "", "", val));
 	
 	return 0;
 

@@ -26,7 +26,7 @@
 #include <vector>
 
 #include "gui_frame.hpp"
-#include "config_dialog.hpp"
+#include "config_panel.hpp"
 #include "loop_control.hpp"
 #include "keyboard_target.hpp"
 
@@ -46,39 +46,38 @@ enum {
 	ID_RevertButton
 };
 
-BEGIN_EVENT_TABLE(SooperLooperGui::ConfigDialog, wxFrame)
-	EVT_CLOSE(SooperLooperGui::ConfigDialog::on_close)
+BEGIN_EVENT_TABLE(SooperLooperGui::ConfigPanel, wxPanel)
 
-	EVT_BUTTON (ID_CloseButton, SooperLooperGui::ConfigDialog::on_button)
-	EVT_BUTTON (ID_ConnectButton, SooperLooperGui::ConfigDialog::on_button)
-	EVT_BUTTON (ID_DisconnectButton, SooperLooperGui::ConfigDialog::on_button)
-	EVT_BUTTON (ID_DefaultButton, SooperLooperGui::ConfigDialog::on_button)
-	EVT_BUTTON (ID_CommitButton, SooperLooperGui::ConfigDialog::on_button)
-	EVT_BUTTON (ID_RevertButton, SooperLooperGui::ConfigDialog::on_button)
-	EVT_BUTTON (ID_MidiBrowseButton, SooperLooperGui::ConfigDialog::on_button)
+	EVT_BUTTON (ID_CloseButton, SooperLooperGui::ConfigPanel::on_button)
+	EVT_BUTTON (ID_ConnectButton, SooperLooperGui::ConfigPanel::on_button)
+	EVT_BUTTON (ID_DisconnectButton, SooperLooperGui::ConfigPanel::on_button)
+	EVT_BUTTON (ID_DefaultButton, SooperLooperGui::ConfigPanel::on_button)
+	EVT_BUTTON (ID_CommitButton, SooperLooperGui::ConfigPanel::on_button)
+	EVT_BUTTON (ID_RevertButton, SooperLooperGui::ConfigPanel::on_button)
+	EVT_BUTTON (ID_MidiBrowseButton, SooperLooperGui::ConfigPanel::on_button)
 
 END_EVENT_TABLE()
 
 	
 // ctor(s)
-ConfigDialog::ConfigDialog(GuiFrame * parent, wxWindowID id, const wxString& title,
+ConfigPanel::ConfigPanel(GuiFrame * guiframe, wxWindow * parent, wxWindowID id,
 		       const wxPoint& pos,
 		       const wxSize& size,
 		       long style ,
 		       const wxString& name)
 
-	: wxFrame ((wxWindow *)parent, id, title, pos, size, style, name), _parent (parent)
+	: wxPanel ((wxWindow *)parent, id, pos, size, style, name), _parent (guiframe)
 {
 	init();
 }
 
-ConfigDialog::~ConfigDialog()
+ConfigPanel::~ConfigPanel()
 {
 
 }
 
 
-void ConfigDialog::init()
+void ConfigPanel::init()
 {
 	wxBoxSizer * topsizer = new wxBoxSizer(wxVERTICAL);
 
@@ -220,19 +219,19 @@ void ConfigDialog::init()
 	topsizer->Add (colsizer, 0, wxEXPAND|wxALL, 4);
 
 	
-	_parent->get_loop_control().LooperConnected.connect(slot (*this, &ConfigDialog::looper_connected));
-	_parent->get_loop_control().Disconnected.connect(slot (*this, &ConfigDialog::refresh_state));
+	_parent->get_loop_control().LooperConnected.connect(slot (*this, &ConfigPanel::looper_connected));
+	_parent->get_loop_control().Disconnected.connect(slot (*this, &ConfigPanel::refresh_state));
 	
 	refresh_state();
 	refresh_defaults();
 	
 	this->SetAutoLayout( true );     // tell dialog to use sizer
 	this->SetSizer( topsizer );      // actually set the sizer
-	topsizer->Fit( this );            // set size to minimum size as calculated by the sizer
-	topsizer->SetSizeHints( this );   // set size hints to honour mininum size
+	//topsizer->Fit( this );            // set size to minimum size as calculated by the sizer
+	//topsizer->SetSizeHints( this );   // set size hints to honour mininum size
 }
 
-void ConfigDialog::refresh_state()
+void ConfigPanel::refresh_state()
 {
 
 	LoopControl & loopctrl = _parent->get_loop_control();
@@ -250,7 +249,7 @@ void ConfigDialog::refresh_state()
 
 }
 
-void ConfigDialog::refresh_defaults()
+void ConfigPanel::refresh_defaults()
 {
 	LoopControl & loopctrl = _parent->get_loop_control();
 	LoopControl::SpawnConfig & def_config = loopctrl.get_default_spawn_config();
@@ -266,14 +265,14 @@ void ConfigDialog::refresh_defaults()
 	_def_midi_bind_text->SetValue (def_config.midi_bind_path);
 }
 
-void ConfigDialog::looper_connected(int num)
+void ConfigPanel::looper_connected(int num)
 {
 	// just refresh state
 	refresh_state();
 }
 
 
-void ConfigDialog::commit_changes()
+void ConfigPanel::commit_changes()
 {
 	LoopControl & loopctrl = _parent->get_loop_control();
 	LoopControl::SpawnConfig & config = loopctrl.get_default_spawn_config();
@@ -291,7 +290,7 @@ void ConfigDialog::commit_changes()
 }
 
 
-void ConfigDialog::on_button (wxCommandEvent &ev)
+void ConfigPanel::on_button (wxCommandEvent &ev)
 {
 	if (ev.GetId() == ID_CloseButton) {
 		Show(false);
@@ -356,18 +355,5 @@ void ConfigDialog::on_button (wxCommandEvent &ev)
 	}
 	else {
 		ev.Skip();
-	}
-}
-				   
-void ConfigDialog::on_close (wxCloseEvent &ev)
-{
-	if (!ev.CanVeto()) {
-		
-		Destroy();
-	}
-	else {
-		ev.Veto();
-		
-		Show(false);
 	}
 }

@@ -23,10 +23,11 @@ slgui_SOURCES = \
 	slider_bar.cpp \
 	choice_box.cpp \
 	keyboard_target.cpp \
-	keys_dialog.cpp \
+	keys_panel.cpp \
 	check_box.cpp \
-	midi_bind_dialog.cpp \
-	config_dialog.cpp \
+	midi_bind_panel.cpp \
+	config_panel.cpp \
+	prefs_dialog.cpp \
 	help_window.cpp
 
 

@@ -41,10 +41,8 @@ class ChoiceBox;
 class CheckBox;
 class PixButton;
 class KeyboardTarget;
-class KeysDialog;
-class MidiBindDialog;
-class ConfigDialog;
 class HelpWindow;
+class PrefsDialog;
 	
 class GuiFrame
 	: public wxFrame,  public SigC::Object
@@ -146,13 +144,9 @@ protected:
 
 	// keybindings
 
-	KeysDialog * _keys_dialog;
+	PrefsDialog * _prefs_dialog;
 	KeyboardTarget * _keyboard;
 	int              _curr_loop;
-
-	MidiBindDialog * _midi_bind_dialog;
-
-	ConfigDialog *  _config_dialog;
 
 	HelpWindow *  _help_window;
 	

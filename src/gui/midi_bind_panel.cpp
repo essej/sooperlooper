@@ -27,7 +27,7 @@
 #include <list>
 
 #include "gui_frame.hpp"
-#include "midi_bind_dialog.hpp"
+#include "midi_bind_panel.hpp"
 #include "loop_control.hpp"
 #include "gui_app.hpp"
 #include "keyboard_target.hpp"
@@ -62,24 +62,23 @@ enum {
 
 };
 
-BEGIN_EVENT_TABLE(SooperLooperGui::MidiBindDialog, wxFrame)
-	EVT_CLOSE(SooperLooperGui::MidiBindDialog::on_close)
-//EVT_LIST_ITEM_ACTIVATED (ID_ListCtrl, SooperLooperGui::MidiBindDialog::list_event)
-	EVT_LIST_ITEM_SELECTED (ID_ListCtrl, SooperLooperGui::MidiBindDialog::item_selected)
+BEGIN_EVENT_TABLE(SooperLooperGui::MidiBindPanel, wxPanel)
+//EVT_LIST_ITEM_ACTIVATED (ID_ListCtrl, SooperLooperGui::MidiBindPanel::list_event)
+	EVT_LIST_ITEM_SELECTED (ID_ListCtrl, SooperLooperGui::MidiBindPanel::item_selected)
 
-	EVT_BUTTON (ID_CloseButton, SooperLooperGui::MidiBindDialog::on_button)
-	EVT_BUTTON (ID_LearnButton, SooperLooperGui::MidiBindDialog::on_button)
-	EVT_BUTTON (ID_AddButton, SooperLooperGui::MidiBindDialog::on_button)
-	EVT_BUTTON (ID_RemoveButton, SooperLooperGui::MidiBindDialog::on_button)
-	EVT_BUTTON (ID_ModifyButton, SooperLooperGui::MidiBindDialog::on_button)
-	EVT_BUTTON (ID_ClearAllButton, SooperLooperGui::MidiBindDialog::on_button)
-	EVT_BUTTON (ID_LoadButton, SooperLooperGui::MidiBindDialog::on_button)
-	EVT_BUTTON (ID_SaveButton, SooperLooperGui::MidiBindDialog::on_button)
+	EVT_BUTTON (ID_CloseButton, SooperLooperGui::MidiBindPanel::on_button)
+	EVT_BUTTON (ID_LearnButton, SooperLooperGui::MidiBindPanel::on_button)
+	EVT_BUTTON (ID_AddButton, SooperLooperGui::MidiBindPanel::on_button)
+	EVT_BUTTON (ID_RemoveButton, SooperLooperGui::MidiBindPanel::on_button)
+	EVT_BUTTON (ID_ModifyButton, SooperLooperGui::MidiBindPanel::on_button)
+	EVT_BUTTON (ID_ClearAllButton, SooperLooperGui::MidiBindPanel::on_button)
+	EVT_BUTTON (ID_LoadButton, SooperLooperGui::MidiBindPanel::on_button)
+	EVT_BUTTON (ID_SaveButton, SooperLooperGui::MidiBindPanel::on_button)
 	
-	EVT_CHOICE(ID_ControlCombo, SooperLooperGui::MidiBindDialog::on_combo)
+	EVT_CHOICE(ID_ControlCombo, SooperLooperGui::MidiBindPanel::on_combo)
 	
-	EVT_SIZE (SooperLooperGui::MidiBindDialog::onSize)
-	EVT_PAINT (SooperLooperGui::MidiBindDialog::onPaint)
+	EVT_SIZE (SooperLooperGui::MidiBindPanel::onSize)
+	EVT_PAINT (SooperLooperGui::MidiBindPanel::onPaint)
 	
 END_EVENT_TABLE()
 
@@ -98,13 +97,13 @@ static int wxCALLBACK list_sort_callback (long item1, long item2, long sortData)
 
 	
 // ctor(s)
-MidiBindDialog::MidiBindDialog(GuiFrame * parent, wxWindowID id, const wxString& title,
+MidiBindPanel::MidiBindPanel(GuiFrame * guiframe, wxWindow * parent, wxWindowID id,
 		       const wxPoint& pos,
 		       const wxSize& size,
 		       long style ,
 		       const wxString& name)
 
-	: wxFrame ((wxWindow *)parent, id, title, pos, size, style, name), _parent (parent)
+	: wxPanel ((wxWindow *)parent, id, pos, size, style, name), _parent (guiframe)
 {
 	_learning = false;
 	_justResized = false;
@@ -112,19 +111,19 @@ MidiBindDialog::MidiBindDialog(GuiFrame * parent, wxWindowID id, const wxString&
 	init();
 }
 
-MidiBindDialog::~MidiBindDialog()
+MidiBindPanel::~MidiBindPanel()
 {
 
 }
 
-void MidiBindDialog::onSize(wxSizeEvent &ev)
+void MidiBindPanel::onSize(wxSizeEvent &ev)
 {
 
 	_justResized = true;
 	ev.Skip();
 }
 
-void MidiBindDialog::onPaint(wxPaintEvent &ev)
+void MidiBindPanel::onPaint(wxPaintEvent &ev)
 {
 	if (_justResized) {
 		int width,height, cwidth;
@@ -142,7 +141,7 @@ void MidiBindDialog::onPaint(wxPaintEvent &ev)
 }
 
 
-void MidiBindDialog::init()
+void MidiBindPanel::init()
 {
 	wxBoxSizer * topsizer = new wxBoxSizer(wxVERTICAL);
 
@@ -313,19 +312,19 @@ void MidiBindDialog::init()
 
 
 
-	_parent->get_loop_control().MidiBindingChanged.connect (slot (*this, &MidiBindDialog::got_binding_changed));
-	_parent->get_loop_control().ReceivedNextMidi.connect (slot (*this, &MidiBindDialog::recvd_next_midi));
-	_parent->get_loop_control().NextMidiCancelled.connect (slot (*this, &MidiBindDialog::cancelled_next_midi));
+	_parent->get_loop_control().MidiBindingChanged.connect (slot (*this, &MidiBindPanel::got_binding_changed));
+	_parent->get_loop_control().ReceivedNextMidi.connect (slot (*this, &MidiBindPanel::recvd_next_midi));
+	_parent->get_loop_control().NextMidiCancelled.connect (slot (*this, &MidiBindPanel::cancelled_next_midi));
 
 	refresh_state();
 	
 	this->SetAutoLayout( true );     // tell dialog to use sizer
 	this->SetSizer( topsizer );      // actually set the sizer
-	topsizer->Fit( this );            // set size to minimum size as calculated by the sizer
-	topsizer->SetSizeHints( this );   // set size hints to honour mininum size
+	//topsizer->Fit( this );            // set size to minimum size as calculated by the sizer
+	//topsizer->SetSizeHints( this );   // set size hints to honour mininum size
 }
 
-void MidiBindDialog::populate_controls()
+void MidiBindPanel::populate_controls()
 {
 	// add all known controls to combo
 	CommandMap & cmap = CommandMap::instance();
@@ -349,14 +348,14 @@ void MidiBindDialog::populate_controls()
 	
 }
 
-void MidiBindDialog::cancelled_next_midi()
+void MidiBindPanel::cancelled_next_midi()
 {
 	_learning = false;
 	_learn_button->SetLabel (wxT("Learn"));
 	_learn_button->SetForegroundColour (*wxBLACK); // todo default
 }
 
-void MidiBindDialog::recvd_next_midi(SooperLooper::MidiBindInfo & info)
+void MidiBindPanel::recvd_next_midi(SooperLooper::MidiBindInfo & info)
 {
 	if (_learning) {
 		//cerr << "got next: " << info.serialize() << endl;
@@ -375,7 +374,7 @@ void MidiBindDialog::recvd_next_midi(SooperLooper::MidiBindInfo & info)
 
 }
 
-void MidiBindDialog::got_binding_changed(SooperLooper::MidiBindInfo & info)
+void MidiBindPanel::got_binding_changed(SooperLooper::MidiBindInfo & info)
 {
 	// cancel learning too
 	if (_learning) {
@@ -387,7 +386,7 @@ void MidiBindDialog::got_binding_changed(SooperLooper::MidiBindInfo & info)
 	refresh_state();
 }
 
-void MidiBindDialog::refresh_state()
+void MidiBindPanel::refresh_state()
 {
 	_listctrl->DeleteAllItems();
 
@@ -476,7 +475,7 @@ void MidiBindDialog::refresh_state()
 }
 
 
-void MidiBindDialog::update_entry_area(MidiBindInfo * usethis)
+void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 {
 	if (_selitem < 0 && !usethis) {
 		return;
@@ -540,7 +539,7 @@ void MidiBindDialog::update_entry_area(MidiBindInfo * usethis)
 	
 }
 
-void MidiBindDialog::update_curr_binding()
+void MidiBindPanel::update_curr_binding()
 {
 	double fval;
 	CommandMap & cmap = CommandMap::instance();
@@ -610,7 +609,7 @@ void MidiBindDialog::update_curr_binding()
 	
 }
 
-void MidiBindDialog::on_combo (wxCommandEvent &ev)
+void MidiBindPanel::on_combo (wxCommandEvent &ev)
 {
 	string control = static_cast<const char *>(_control_combo->GetClientData(_control_combo->GetSelection()));
 
@@ -622,7 +621,7 @@ void MidiBindDialog::on_combo (wxCommandEvent &ev)
  	}
 }
 
-void MidiBindDialog::on_button (wxCommandEvent &ev)
+void MidiBindPanel::on_button (wxCommandEvent &ev)
 {
 	if (ev.GetId() == ID_CloseButton) {
 		Show(false);
@@ -733,21 +732,8 @@ void MidiBindDialog::on_button (wxCommandEvent &ev)
 	}
 }
 				   
-void MidiBindDialog::on_close (wxCloseEvent &ev)
-{
-	if (!ev.CanVeto()) {
-		
-		Destroy();
-	}
-	else {
-		ev.Veto();
-		
-		Show(false);
-	}
-}
 
-
-void MidiBindDialog::item_selected (wxListEvent & ev)
+void MidiBindPanel::item_selected (wxListEvent & ev)
 {
 	//cerr << "item " << ev.GetText() << " sel" << endl;
 	_selitem = ev.GetIndex();
@@ -757,7 +743,7 @@ void MidiBindDialog::item_selected (wxListEvent & ev)
 	
 }
 
-void MidiBindDialog::learning_stopped ()
+void MidiBindPanel::learning_stopped ()
 {
 	// cerr << "learning stopped " << endl;
 	//_learn_button->SetLabel (wxT("Learn Selected"));

@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "gui_frame.hpp"
-#include "keys_dialog.hpp"
+#include "keys_panel.hpp"
 #include "keyboard_target.hpp"
 
 using namespace SooperLooperGui;
@@ -33,20 +33,17 @@ using namespace std;
 
 enum {
 	ID_ListCtrl = 8000,
-	ID_CloseButton,
 	ID_LearnButton
 
 };
 
-BEGIN_EVENT_TABLE(SooperLooperGui::KeysDialog, wxFrame)
-	EVT_CLOSE(SooperLooperGui::KeysDialog::on_close)
-	EVT_LIST_ITEM_ACTIVATED (ID_ListCtrl, SooperLooperGui::KeysDialog::item_activated)
+BEGIN_EVENT_TABLE(SooperLooperGui::KeysPanel, wxPanel)
+	EVT_LIST_ITEM_ACTIVATED (ID_ListCtrl, SooperLooperGui::KeysPanel::item_activated)
 
-	EVT_BUTTON (ID_CloseButton, SooperLooperGui::KeysDialog::on_button)
-	EVT_BUTTON (ID_LearnButton, SooperLooperGui::KeysDialog::on_button)
+	EVT_BUTTON (ID_LearnButton, SooperLooperGui::KeysPanel::on_button)
 
-	EVT_SIZE (SooperLooperGui::KeysDialog::onSize)
-	EVT_PAINT (SooperLooperGui::KeysDialog::onPaint)
+	EVT_SIZE (SooperLooperGui::KeysPanel::onSize)
+	EVT_PAINT (SooperLooperGui::KeysPanel::onPaint)
 	
 END_EVENT_TABLE()
 
@@ -65,31 +62,31 @@ static int wxCALLBACK list_sort_callback (long item1, long item2, long sortData)
 
 	
 // ctor(s)
-KeysDialog::KeysDialog(GuiFrame * parent, wxWindowID id, const wxString& title,
+KeysPanel::KeysPanel(GuiFrame * guiframe, wxWindow * parent, wxWindowID id,
 		       const wxPoint& pos,
 		       const wxSize& size,
 		       long style ,
 		       const wxString& name)
 
-	: wxFrame ((wxWindow *)parent, id, title, pos, size, style, name), _parent (parent)
+	: wxPanel (parent, id, pos, size, style, name), _parent (guiframe)
 {
 	_justResized = false;
 	init();
 }
 
-KeysDialog::~KeysDialog()
+KeysPanel::~KeysPanel()
 {
 
 }
 
-void KeysDialog::onSize(wxSizeEvent &ev)
+void KeysPanel::onSize(wxSizeEvent &ev)
 {
 
 	_justResized = true;
 	ev.Skip();
 }
 
-void KeysDialog::onPaint(wxPaintEvent &ev)
+void KeysPanel::onPaint(wxPaintEvent &ev)
 {
 	if (_justResized) {
 		int width,height, cwidth;
@@ -107,7 +104,7 @@ void KeysDialog::onPaint(wxPaintEvent &ev)
 }
 
 
-void KeysDialog::init()
+void KeysPanel::init()
 {
 	wxBoxSizer * topsizer = new wxBoxSizer(wxVERTICAL);
 
@@ -125,25 +122,20 @@ void KeysDialog::init()
 	buttsizer->Add (_learn_button, 1, wxALL, 3);
 
 	//buttsizer->Add (1,1, 1, wxALL, 0);
-
-	wxButton * butt = new wxButton (this, ID_CloseButton, wxT("Close"));
-	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
-
-	
 	topsizer->Add (buttsizer, 0, wxEXPAND|wxALL, 1);
 
 
-	_parent->get_keyboard().LearningStopped.connect (slot (*this, &KeysDialog::learning_stopped));
+	_parent->get_keyboard().LearningStopped.connect (slot (*this, &KeysPanel::learning_stopped));
 	
 	refresh_state();
 	
 	this->SetAutoLayout( true );     // tell dialog to use sizer
 	this->SetSizer( topsizer );      // actually set the sizer
-	topsizer->Fit( this );            // set size to minimum size as calculated by the sizer
-	topsizer->SetSizeHints( this );   // set size hints to honour mininum size
+	//topsizer->Fit( this );            // set size to minimum size as calculated by the sizer
+	//topsizer->SetSizeHints( this );   // set size hints to honour mininum size
 }
 
-void KeysDialog::refresh_state()
+void KeysPanel::refresh_state()
 {
 	_listctrl->DeleteAllItems();
 
@@ -182,12 +174,9 @@ void KeysDialog::refresh_state()
 
 
 
-void KeysDialog::on_button (wxCommandEvent &ev)
+void KeysPanel::on_button (wxCommandEvent &ev)
 {
-	if (ev.GetId() == ID_CloseButton) {
-		Show(false);
-	}
-	else if (ev.GetId() == ID_LearnButton) {
+	if (ev.GetId() == ID_LearnButton) {
 		if (_parent->get_keyboard().is_learning()) {
 			// cancel learn
 			_parent->get_keyboard().stop_learning (true);
@@ -210,22 +199,8 @@ void KeysDialog::on_button (wxCommandEvent &ev)
 		ev.Skip();
 	}
 }
-				   
-void KeysDialog::on_close (wxCloseEvent &ev)
-{
-	if (!ev.CanVeto()) {
-		
-		Destroy();
-	}
-	else {
-		ev.Veto();
-		
-		Show(false);
-	}
-}
 
-
-void KeysDialog::item_activated (wxListEvent & ev)
+void KeysPanel::item_activated (wxListEvent & ev)
 {
 	// cerr << "item " << ev.GetText() << " activated" << endl;
 
@@ -238,7 +213,7 @@ void KeysDialog::item_activated (wxListEvent & ev)
 
 }
 
-void KeysDialog::learning_stopped ()
+void KeysPanel::learning_stopped ()
 {
 	// cerr << "learning stopped " << endl;
 	_learn_button->SetLabel (wxT("Learn Selected"));

@@ -17,8 +17,8 @@
 **  
 */
 
-#ifndef __sooperlooper_config_dialog__
-#define __sooperlooper_config_dialog__
+#ifndef __sooperlooper_midi_binding_panel__
+#define __sooperlooper_midi_binding_panel__
 
 
 #include <wx/wx.h>
@@ -27,6 +27,9 @@
 #include <string>
 #include <vector>
 #include <sigc++/object.h>
+#include <list>
+
+#include <midi_bind.hpp>
 
 class wxListCtrl;
 class wxSpinCtrl;
@@ -36,60 +39,71 @@ namespace SooperLooperGui {
 class GuiFrame;
 class KeyboardTarget;
 	
-class ConfigDialog
-	: public wxFrame,  public SigC::Object
+class MidiBindPanel
+	: public wxPanel,  public SigC::Object
 {
   public:
 	
 	// ctor(s)
-	ConfigDialog(GuiFrame * parent, wxWindowID id, const wxString& title,
+	MidiBindPanel(GuiFrame * guiframe, wxWindow *parent, wxWindowID id,
 		   const wxPoint& pos = wxDefaultPosition,
 		   const wxSize& size = wxSize(400,600),
 		   long style = wxDEFAULT_FRAME_STYLE,
-		   const wxString& name = wxT("ConfigDialog"));
+		   const wxString& name = wxT("MidiBindingsPanel"));
 
-	virtual ~ConfigDialog();
+	virtual ~MidiBindPanel();
 
 	void refresh_state();
-	void refresh_defaults();
 
-	void commit_changes();
 
-	void looper_connected(int);
-	
    protected:
 
 	void init();
-
-	void on_close (wxCloseEvent &ev);
+	void populate_controls();
+	
+	void item_selected (wxListEvent & ev);
 	void on_button (wxCommandEvent &ev);
+	void on_combo (wxCommandEvent &ev);
 
-	
-	wxTextCtrl * _host_text;
-	wxTextCtrl * _port_text;
-	wxTextCtrl * _status_text;
-	wxCheckBox * _force_spawn;
-	wxCheckBox * _shutdown_check;
-	
-	wxButton * _disconnect_button;
-	wxButton * _connect_button;
+	void learning_stopped ();
 
+	void got_binding_changed(SooperLooper::MidiBindInfo & info);
+	void recvd_next_midi(SooperLooper::MidiBindInfo & info);
+	void cancelled_next_midi();
+	
+	void update_entry_area(SooperLooper::MidiBindInfo * usethis=0);
+	void update_curr_binding();
+	
+	void onSize(wxSizeEvent &ev);
+	void onPaint(wxPaintEvent &ev);
 	
 	
-	wxTextCtrl * _def_host_text;
-	wxTextCtrl * _def_port_text;
-	wxCheckBox * _def_force_spawn;
-	wxTextCtrl * _def_midi_bind_text;
-	wxButton   * _midi_browse_button;
-	wxTextCtrl * _def_jack_name_text;
-	
-	wxSpinCtrl * _num_loops_spin;
-	wxSpinCtrl * _num_channels_spin;
-	wxSpinCtrl * _secs_per_channel_spin;
+	wxListCtrl * _listctrl;
+	wxButton * _learn_button;
 
-	wxButton   * _commit_button;
+	wxPanel *    _edit_panel;
+	wxChoice *   _control_combo;
+	wxChoice *   _loopnum_combo;
+	wxSpinCtrl * _chan_spin;
+	wxChoice *   _type_combo;
+	wxSpinCtrl * _param_spin;
+	wxPanel   *  _range_panel;
+	wxTextCtrl * _lbound_ctrl;
+	wxTextCtrl * _ubound_ctrl;
+	wxChoice *   _style_combo;
+	wxCheckBox * _sus_check;
+
+	wxCheckBox * _append_check;
 	
 	GuiFrame * _parent;
+	bool       _justResized;
+	bool       _learning;
+	
+	SooperLooper::MidiBindings::BindingList _bind_list;
+	std::list<std::string> _cmdlist;
+	
+	SooperLooper::MidiBindInfo _currinfo;
+	int     _selitem;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

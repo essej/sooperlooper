@@ -86,6 +86,7 @@ bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 	_event_queue = new RingBuffer<Event> (MAX_EVENTS);
 	_midi_event_queue = new RingBuffer<Event> (MAX_EVENTS);
 	_sync_queue = new RingBuffer<Event> (MAX_SYNC_EVENTS);
+	_nonrt_update_event_queue = new RingBuffer<Event> (MAX_SYNC_EVENTS);
 
 	_nonrt_event_queue = new RingBuffer<EventNonRT *> (MAX_EVENTS);
 
@@ -127,12 +128,26 @@ Engine::cleanup()
 		delete _sync_queue;
 		_sync_queue = 0;
 	}
+
+	if (_nonrt_event_queue) {
+		delete _nonrt_event_queue;
+		_nonrt_event_queue = 0;
+	}
+
+	if (_nonrt_update_event_queue) {
+		delete _nonrt_update_event_queue;
+		_nonrt_update_event_queue = 0;
+	}
 	
 	if (_event_generator) {
 		delete _event_generator;
 		_event_generator = 0;
 	}
 
+	if (_internal_sync_buf) {
+		delete [] _internal_sync_buf;
+	}
+	
 	_ok = false;
 	
 }
@@ -540,14 +555,32 @@ Engine::do_push_control_event (RingBuffer<Event> * evqueue, Event::type_t type, 
 }
 
 void
+Engine::push_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance)
+{
+	do_push_control_event (_event_queue, type, ctrl, val, instance);
+
+	// this is a known race condition, if the midi thread is changing controls
+	// simultaneously.  it's just an update :)
+	do_push_control_event (_nonrt_update_event_queue, type, ctrl, val, instance);
+
+	// wakeup nonrt loop... this lock should really not block... but still
+	LockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
+	pthread_cond_signal (&_event_cond);
+	
+}
+
+void
 Engine::push_midi_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance)
 {
 	do_push_control_event (_midi_event_queue, type, ctrl, val, instance);
 
-	// now push non-rt event for ui updates
-	// XXX: this mem allocation may not be ideal
-	push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Send, instance, ctrl, "", "", val));
-	
+	// this is a known race condition, if the osc thread is changing controls
+	// simultaneously.  it's just an update :)
+	do_push_control_event (_nonrt_update_event_queue, type, ctrl, val, instance);
+
+	// wakeup nonrt loop... this lock should really not block... but still
+	LockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
+	pthread_cond_signal (&_event_cond);
 }
 
 void
@@ -641,6 +674,7 @@ Engine::mainloop()
 	struct timeval now;
 
 	EventNonRT * event;
+	Event  * evt;
 	
 	// non-rt event processing loop
 
@@ -651,6 +685,20 @@ Engine::mainloop()
 		{
 			process_nonrt_event (event);
 			delete event;
+		}
+
+		while (is_ok() && _nonrt_update_event_queue->read_space() > 0)
+		{
+			RingBuffer<Event>::rw_vector vec;
+			_nonrt_update_event_queue->get_read_vector(&vec);
+			evt = vec.buf[0];
+
+			if (evt->Type == Event::type_control_change) {
+				ConfigUpdateEvent cuev (ConfigUpdateEvent::Send, evt->Instance, evt->Control, "", "", evt->Value);
+				_osc->finish_update_event (cuev);
+			}
+			
+			_nonrt_update_event_queue->increment_read_ptr(1);
 		}
 		
 		if (!is_ok()) break;
