@@ -838,7 +838,10 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 		      loop->frontfill = 0; // no need.
 	      }
 	      else {
-		      loop->lStartAdj = ((int)floor(fabs((srcloop->dCurrPos) / srcloop->lCycleLength))) * srcloop->lCycleLength; 
+		      // we round to the nearest edge.. if closer to the beginning of the cycle we'll keep this one
+		      // otherwise, the next cycle will be the new first one
+
+		      loop->lStartAdj = ((int)roundf(fabs((srcloop->dCurrPos) / srcloop->lCycleLength))) * srcloop->lCycleLength; 
 	      }
 
 	      // adjust dCurrPos by start adj.
