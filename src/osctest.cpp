@@ -168,6 +168,9 @@ static int post_event(char cmd)
 	case 'v':
 		lo_send(addr, "/sl/-1/down", "s", "reverse");
 		break;
+	case 's':
+		lo_send(addr, "/sl/-1/down", "s", "scratch");
+		break;
 
 	default:
 		ret = 0;
@@ -313,7 +316,7 @@ int main(int argc, char *argv[])
 	
     printw("SooperLooper OSC test client\n");
     printw("  r - record    o - overdub  x - multiply\n");
-    printw("  i - insert    p - replace  v - reverse\n");
+    printw("  i - insert    p - replace  v - reverse    s - scratch\n");
     printw("  m - mute      u - undo     d - redo\n");
     printw("  q - shutdown sooperlooper and quit\n");
     printw("  b - just quit\n");
