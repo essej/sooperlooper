@@ -25,6 +25,7 @@
 
 #include <iostream>
 #include <cstdio>
+#include <cmath>
 
 #include "version.h"
 

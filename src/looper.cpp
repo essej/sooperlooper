@@ -26,6 +26,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <cmath>
 
 #include <sndfile.h>
 

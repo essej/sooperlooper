@@ -18,6 +18,7 @@
 */
 #include <iostream>
 
+#include <cmath>
 #include <unistd.h>
 #include <sys/time.h>
 #include <pthread.h>
