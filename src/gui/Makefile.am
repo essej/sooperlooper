@@ -9,9 +9,9 @@ pixmap_DATA = \
 DEFS = -DPIXMAPDIR=\""$(pixmapdir)/"\"
 
 
-AM_CXXFLAGS = @LOSC_CFLAGS@ @SIGCPP_CFLAGS@ @WX_CFLAGS@
+AM_CXXFLAGS = @LOSC_CFLAGS@ @SIGCPP_CFLAGS@ @XML_CFLAGS@ @WX_CFLAGS@
 
-slgui_LDADD = @LOSC_LIBS@ @WX_LIBS@ @SIGCPP_LIBS@
+slgui_LDADD = @LOSC_LIBS@ @WX_LIBS@ @SIGCPP_LIBS@ @XML_LIBS@
 
 slgui_SOURCES = \
 	gui_app.cpp \
@@ -21,7 +21,9 @@ slgui_SOURCES = \
 	loop_control.cpp \
 	time_panel.cpp \
 	slider_bar.cpp \
-	choice_box.cpp
+	choice_box.cpp \
+	xml++.cpp \
+	keyboard_target.cpp
 
 
 

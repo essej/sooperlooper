@@ -76,7 +76,8 @@ namespace SooperLooper {
 		    type_cmd_down,
 		    type_cmd_up,
 		    type_control_change,
-		    type_control_request
+		    type_control_request,
+		    type_global_control_change,
             } Type;
 
 	    enum command_t
@@ -92,7 +93,7 @@ namespace SooperLooper {
 		    MULTIPLY,
 		    INSERT,
 		    MUTE,
-		    // extra features, cannot be picked directly
+		    // extra features
 		    DELAY,
 		    REDO_TOG,
 		    QUANT_TOG,
@@ -129,7 +130,8 @@ namespace SooperLooper {
 		    // this is end of loop enum.. the following are global
 		    Tempo,
 		    SyncTo,
-		    EighthPerCycle
+		    EighthPerCycle,
+		    TapTempo
 	    } Control;
 	    
 	    int8_t  Instance;

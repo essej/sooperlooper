@@ -92,10 +92,12 @@ class Engine
 
 	bool process_nonrt_event (EventNonRT * event);
 
-	void generate_sync (nframes_t nframes);
+	void generate_sync (nframes_t offset, nframes_t nframes);
 	
 	void update_sync_source ();
 	void calculate_tempo_frames ();
+
+	void do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes);
 	
 	AudioDriver * _driver;
 	
@@ -135,14 +137,17 @@ class Engine
 	float  *       _internal_sync_buf;
 	SyncSourceType _sync_source;
 
-	float    _tempo;        // bpm
+	double    _tempo;        // bpm
 	float    _eighth_cycle; // eighth notes per loop cycle
 
    private:
 
-	float _tempo_counter;
-	float _tempo_frames;
-	
+	double _tempo_counter;
+	double _tempo_frames;
+
+	nframes_t _running_frames;
+	nframes_t _last_tempo_frame;
+	volatile bool _tempo_changed;
 };
 
 };  // sooperlooper namespace

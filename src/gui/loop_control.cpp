@@ -376,6 +376,28 @@ LoopControl::register_input_controls(int index, bool unreg)
 	lo_send(_osc_addr, buf, "sss", "use_rate", _our_url.c_str(), "/ctrl");
 }
 
+void
+LoopControl::register_control (int index, wxString ctrl, bool unreg)
+{
+	char buf[30];
+
+	if ((int)_params_val_map.size() > index) {
+		_params_val_map[index].clear();
+		_updated[index].clear();
+	}
+	
+	if (unreg) {
+		snprintf(buf, sizeof(buf), "/sl/%d/unregister_update", index);
+
+	} else {
+		snprintf(buf, sizeof(buf), "/sl/%d/register_update", index);
+	}
+	
+	// send request for updates
+	lo_send(_osc_addr, buf, "sss", ctrl.c_str(), _our_url.c_str(), "/ctrl");
+
+}
+
 
 bool
 LoopControl::post_down_event(int index, wxString cmd)

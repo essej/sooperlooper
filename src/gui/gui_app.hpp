@@ -23,11 +23,12 @@
 
 #include <wx/wx.h>
 
+
 namespace SooperLooperGui {
 
 
 class GuiFrame;
-
+	
 class GuiApp : public wxApp
 {
 	
@@ -35,6 +36,8 @@ class GuiApp : public wxApp
 	// override base class virtuals
 	// ----------------------------
 	GuiApp();
+
+	virtual ~GuiApp();
 	
 	// this one is called on application startup and is a good place for the app
 	// initialization (doing it here and not in the ctor allows to have an error
@@ -56,7 +59,8 @@ class GuiApp : public wxApp
 	
 	void  usage(char *argv0);
 	void  parse_options (int argc, char **argv);
-		
+
+	void process_key_event (wxKeyEvent &ev);
 
 	GuiFrame * _frame;
 
@@ -68,6 +72,9 @@ class GuiApp : public wxApp
 	wxString _exec_name;
 	bool  _force_spawn;
 	char ** _engine_argv;
+
+	DECLARE_EVENT_TABLE()
+	
 };
 
 

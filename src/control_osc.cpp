@@ -104,6 +104,8 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	lo_server_add_method(_osc_server, "/register_update", "sss", ControlOSC::_global_register_update_handler, this);
 	lo_server_add_method(_osc_server, "/unregister_update", "sss", ControlOSC::_global_unregister_update_handler, this);
 
+	// certain RT global ctrls
+	lo_server_add_method(_osc_server, "/sl/-2/set", "sf", ControlOSC::_set_handler, new CommandInfo(this, -2, Event::type_global_control_change));
 	
 	
 	
@@ -152,6 +154,7 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	_str_ctrl_map["tempo"] = Event::Tempo;
 	_str_ctrl_map["eighth_per_cycle"] = Event::EighthPerCycle;
 	_str_ctrl_map["sync_source"] = Event::SyncTo;
+	_str_ctrl_map["tap_tempo"] = Event::TapTempo;
 	
 	for (map<string, Event::control_t>::iterator iter = _str_ctrl_map.begin(); iter != _str_ctrl_map.end(); ++iter) {
 		_ctrl_str_map[(*iter).second] = (*iter).first;

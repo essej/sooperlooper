@@ -192,9 +192,9 @@ SliderBar::set_value (float val)
 		newval = gain_to_slider_position (val);
 	}
 
-	if (_snap_mode == IntegerSnap) {
-		newval = nearbyintf (newval);
-	}
+// 	if (_snap_mode == IntegerSnap) {
+// 		newval = nearbyintf (newval);
+// 	}
 
 	newval = min (newval, _upper_bound);
 	newval = max (newval, _lower_bound);
@@ -521,6 +521,7 @@ void SliderBar::show_text_ctrl ()
 	if (!_text_ctrl) {
 		_text_ctrl = new HidingTextCtrl(this, ID_TextCtrl, valstr, wxPoint(1,1), wxSize(_width - 2, _height - 2),
 						wxTE_PROCESS_ENTER|wxTE_RIGHT);
+		_text_ctrl->SetName (wxT("KeyAware"));
 		_text_ctrl->SetFont(GetFont());
 	}
 
@@ -537,6 +538,8 @@ void SliderBar::hide_text_ctrl ()
 {
 	if (_text_ctrl && _text_ctrl->IsShown()) {
 		_text_ctrl->Show(false);
+
+		SetFocus();
 	}
 }
 
@@ -561,7 +564,7 @@ void SliderBar::on_text_event (wxCommandEvent &ev)
 			if (_scale_mode == ZeroGainMode && !neginf) {
 				newval = DB_CO(newval);
 			}
-			
+
 			set_value ((float) newval);
 			value_changed (get_value()); // emit
 		}
@@ -579,5 +582,4 @@ void SliderBar::HidingTextCtrl::on_focus_event (wxFocusEvent & ev)
 	if (ev.GetEventType() == wxEVT_KILL_FOCUS) {
 		Show(false);
 	}
-	
 }

@@ -42,11 +42,15 @@ Engine::Engine ()
 	_event_queue = 0;
 	_def_channel_cnt = 2;
 	_def_loop_secs = 200;
-	_tempo = 110.0f;
+	_tempo = 110.0;
 	_eighth_cycle = 16.0f;
 	_sync_source = NoSync;
 	_tempo_counter = 0;
 	_tempo_frames = 0;
+
+	_running_frames = 0;
+	_last_tempo_frame = 0;
+	_tempo_changed = false;
 	
 	pthread_cond_init (&_event_cond, NULL);
 
@@ -225,7 +229,7 @@ Engine::process (nframes_t nframes)
 	
 	// update internal sync
 	calculate_tempo_frames ();
-	generate_sync (nframes);
+	generate_sync (0, nframes);
 	
 
 	nframes_t usedframes = 0;
@@ -261,6 +265,12 @@ Engine::process (nframes_t nframes)
 			}
 				
 			doframes = fragpos - usedframes;
+
+			// handle special global RT events
+			if (evt->Instance == -2) {
+				do_global_rt_event (evt, usedframes + doframes, nframes - (usedframes + doframes));
+			}
+
 			int m = 0;
 			for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i, ++m)
 			{
@@ -272,7 +282,7 @@ Engine::process (nframes_t nframes)
 					(*i)->do_event (evt);
 				}
 			}
-				
+
 			usedframes += doframes;
 		}
 
@@ -293,9 +303,38 @@ Engine::process (nframes_t nframes)
 
 	}
 
+	_running_frames += nframes;
 	
 	return 0;
 }
+
+void
+Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
+{
+	if (ev->Control == Event::TapTempo) {
+		nframes_t thisframe = _running_frames + offset;
+		if (thisframe > _last_tempo_frame) {
+			_tempo = ((double) _driver->get_samplerate() / (double)(thisframe - _last_tempo_frame)) * 60.0f; 
+
+			//cerr << "TAP: new tempo: " << _tempo  << "  off: " << offset << endl;
+
+			_tempo_counter = 0;
+			calculate_tempo_frames ();
+			generate_sync (offset, nframes);
+
+			_tempo_changed = true;
+			// wake up mainloop safely
+			//TentativeLockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
+			//if (mon.locked()) {
+			pthread_cond_signal (&_event_cond);
+			//}
+			
+		}
+
+		_last_tempo_frame = thisframe;
+	}
+}
+
 
 
 bool
@@ -407,8 +446,18 @@ Engine::mainloop()
 			delete event;
 		}
 		
-
 		if (!is_ok()) break;
+
+		// handle special requests from the audio thread
+		// this is a hack for now
+		if (_tempo_changed)
+		{
+			ConfigUpdateEvent cu_event(ConfigUpdateEvent::Send, -2, Event::Tempo, "", "", (float) _tempo);
+			_osc->finish_update_event (cu_event);
+			
+			_tempo_changed = false;
+		}
+
 		
 		// sleep on condition
 		{
@@ -445,7 +494,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 			gg_event->ret_value = (float) _sync_source;
 		}
 		else if (gg_event->param == "tempo") {
-			gg_event->ret_value = _tempo;
+			gg_event->ret_value = (float) _tempo;
 		}
 		else if (gg_event->param == "eighth_per_cycle") {
 			gg_event->ret_value = _eighth_cycle;
@@ -465,7 +514,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 		}
 		else if (gs_event->param == "tempo") {
 			if (gs_event->value > 0.0f) {
-				_tempo = gs_event->value;
+				_tempo = (double) gs_event->value;
 				// _tempo_counter = 0;
 			}
 		}
@@ -568,13 +617,13 @@ Engine::calculate_tempo_frames ()
 		if (quantize_value == QUANT_8TH) {
 			// calculate number of samples per eighth-note (assuming 2 8ths per beat)
 			// samples / 8th = samplerate * (1 / tempo) * 60/2; 
-			_tempo_frames = _driver->get_samplerate() * (1/_tempo) * 30.0;
+			_tempo_frames = _driver->get_samplerate() * (1.0/_tempo) * 30.0;
 		}
 		else if (quantize_value == QUANT_CYCLE) {
 			// calculate number of samples per cycle given the current eighths per cycle
 			// samples / 8th = samplerate * (1 / tempo) * 60/2; 
 			// samples / cycle = samples / 8th  *  eighth_per_cycle
-			_tempo_frames = _driver->get_samplerate() * (1/_tempo) * 30.0 * _eighth_cycle;
+			_tempo_frames = _driver->get_samplerate() * (1.0/_tempo) * 30.0 * _eighth_cycle;
 		}
 		else {
 			_tempo_frames = 0; // ???
@@ -586,11 +635,11 @@ Engine::calculate_tempo_frames ()
 }
 
 void
-Engine::generate_sync (nframes_t nframes)
+Engine::generate_sync (nframes_t offset, nframes_t nframes)
 {
 	if (_sync_source == InternalTempoSync && _tempo_frames != 0) {
-		nframes_t npos = 0;
-		float curr = _tempo_counter;
+		nframes_t npos = offset;
+		double curr = _tempo_counter;
 		
 		while (npos < nframes) {
 			
@@ -603,7 +652,7 @@ Engine::generate_sync (nframes_t nframes)
 				// cerr << "tempo hit" << endl;
 				_internal_sync_buf[npos++] = 1.0f;
 				// reset curr counter
-				curr = ((curr - _tempo_frames) - truncf(curr - _tempo_frames)) + 1.0f;
+				curr = ((curr - _tempo_frames) - truncf(curr - _tempo_frames)) + 1.0;
 			}
 		}
 

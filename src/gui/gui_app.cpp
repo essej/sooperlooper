@@ -45,7 +45,6 @@
 #include "gui_app.hpp"
 #include "gui_frame.hpp"
 
-
 using namespace SooperLooperGui;
 using namespace std;
 
@@ -56,6 +55,14 @@ using namespace std;
 // not wxApp)
 IMPLEMENT_APP(SooperLooperGui::GuiApp)
 
+
+BEGIN_EVENT_TABLE(SooperLooperGui::GuiApp, wxApp)
+   EVT_KEY_DOWN (GuiApp::process_key_event)
+   EVT_KEY_UP (GuiApp::process_key_event)
+
+END_EVENT_TABLE()
+
+	
 // ============================================================================
 // implementation
 // ============================================================================
@@ -165,9 +172,11 @@ GuiApp::GuiApp()
 	_show_version = 0;
 	_exec_name = wxT("sooperlooper");
 	_force_spawn = false;
-	
 }
 
+GuiApp::~GuiApp()
+{
+}
 
 static void* watchdog_thread(void* arg)
 {
@@ -327,4 +336,10 @@ bool GuiApp::OnInit()
 	return TRUE;
 }
 
+void
+GuiApp::process_key_event (wxKeyEvent &ev)
+{
+	// this recieves all key events first
 
+	_frame->process_key_event (ev);
+}

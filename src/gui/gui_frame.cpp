@@ -20,8 +20,13 @@
 #include <wx/wx.h>
 #include <wx/file.h>
 #include <wx/filename.h>
+#include <wx/utils.h>
+#include <wx/dir.h>
 
 #include <iostream>
+#include <cstdio>
+
+#include "version.h"
 
 #include "gui_frame.hpp"
 #include "gui_app.hpp"
@@ -30,6 +35,8 @@
 #include "slider_bar.hpp"
 #include "choice_box.hpp"
 #include "pix_button.hpp"
+#include "keyboard_target.hpp"
+#include "xml++.hpp"
 
 using namespace SooperLooperGui;
 using namespace std;
@@ -69,13 +76,21 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 
 	EVT_CHECKBOX (ID_RoundCheck, GuiFrame::on_round_check)
 	
-	
 END_EVENT_TABLE()
 
 GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
 	: wxFrame((wxFrame *)NULL, -1, title, pos, size, wxDEFAULT_FRAME_STYLE, "sooperlooper")
+
 {
-	_tap_val = 1.0;
+	_keyboard = new KeyboardTarget (this, "gui_frame");
+	_curr_loop = -1;
+	_tapdelay_val = 1.0f;
+
+	_rcdir = wxGetHomeDir() + wxFileName::GetPathSeparator() + wxT(".sooperlooper");
+
+	intialize_keybindings ();
+		
+	load_rc();
 	
 	init();
 
@@ -85,12 +100,16 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 
 GuiFrame::~GuiFrame()
 {
+	save_rc();
+	
 	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
 		// unregister
 		_loop_control->register_input_controls((int) i, true);
 	}
 
 	delete _loop_control;
+
+	delete _keyboard;
 }
 
 void
@@ -223,6 +242,8 @@ GuiFrame::init()
 	this->SetSizer( _topsizer );      // actually set the sizer
 	_topsizer->Fit( this );            // set size to minimum size as calculated by the sizer
 	_topsizer->SetSizeHints( this );   // set size hints to honour mininum size
+
+	_scroller->SetFocus();
 }
 
 void
@@ -482,8 +503,7 @@ GuiFrame::on_round_check (wxCommandEvent &ev)
 void
 GuiFrame::on_taptempo_event ()
 {
-	_tap_val *= -1.0f;
-	_loop_control->post_global_ctrl_change (wxString("tap_tempo"), _tap_val);
+	_loop_control->post_ctrl_change (-2, wxT("tap_tempo"), 1.0f);
 }
 
 
@@ -536,4 +556,218 @@ GuiFrame::load_bitmaps (PixButton * butt, wxString namebase)
 	}
 
 	return true;
+}
+
+
+void
+GuiFrame::process_key_event (wxKeyEvent &ev)
+{
+	// this is a pretty extreme hack
+	// to let textfields, etc named with the right name
+	// get their key events
+	static wxString textname = "KeyAware";
+
+	wxWindow * focwin = wxWindow::FindFocus();
+	if (focwin && (focwin->GetName() == textname
+		       || (focwin->GetParent() && ((focwin->GetParent()->GetName() == textname)
+						   || (focwin->GetParent()->GetParent()
+						       && focwin->GetParent()->GetParent()->GetName() == textname)))))
+	{
+		ev.Skip();
+	}
+	else {
+		_keyboard->process_key_event (ev);
+	}
+}
+
+
+void GuiFrame::intialize_keybindings ()
+{
+	
+	KeyboardTarget::add_action ("record", bind (slot (*this, &GuiFrame::command_action), wxT("record")));
+	KeyboardTarget::add_action ("overdub", bind (slot (*this, &GuiFrame::command_action), wxT("overdub")));
+	KeyboardTarget::add_action ("multiply", bind (slot (*this, &GuiFrame::command_action), wxT("multiply")));
+	KeyboardTarget::add_action ("insert", bind (slot (*this, &GuiFrame::command_action), wxT("insert")));
+	KeyboardTarget::add_action ("replace", bind (slot (*this, &GuiFrame::command_action), wxT("replace")));
+	KeyboardTarget::add_action ("reverse", bind (slot (*this, &GuiFrame::command_action), wxT("reverse")));
+	KeyboardTarget::add_action ("scratch", bind (slot (*this, &GuiFrame::command_action), wxT("scratch")));
+	KeyboardTarget::add_action ("mute", bind (slot (*this, &GuiFrame::command_action), wxT("mute")));
+	KeyboardTarget::add_action ("undo", bind (slot (*this, &GuiFrame::command_action), wxT("undo")));
+	KeyboardTarget::add_action ("redo", bind (slot (*this, &GuiFrame::command_action), wxT("redo")));	
+	KeyboardTarget::add_action ("oneshot", bind (slot (*this, &GuiFrame::command_action), wxT("oneshot")));
+	KeyboardTarget::add_action ("trigger", bind (slot (*this, &GuiFrame::command_action), wxT("trigger")));
+
+	KeyboardTarget::add_action ("delay", bind (slot (*this, &GuiFrame::misc_action), wxT("delay")));
+	KeyboardTarget::add_action ("taptempo", bind (slot (*this, &GuiFrame::misc_action), wxT("taptempo")));
+	KeyboardTarget::add_action ("load", bind (slot (*this, &GuiFrame::misc_action), wxT("load")));
+	KeyboardTarget::add_action ("save", bind (slot (*this, &GuiFrame::misc_action), wxT("save")));
+
+	// these are the defaults... they get overridden by rc file
+
+	_keyboard->add_binding ("r", "record");
+	_keyboard->add_binding ("o", "overdub");
+	_keyboard->add_binding ("x", "multiply");
+	_keyboard->add_binding ("i", "insert");
+	_keyboard->add_binding ("p", "replace");
+	_keyboard->add_binding ("v", "reverse");
+	_keyboard->add_binding ("m", "mute");
+	_keyboard->add_binding ("u", "undo");
+	_keyboard->add_binding ("d", "redo");
+	_keyboard->add_binding ("s", "scratch");
+	_keyboard->add_binding ("l", "delay");
+	_keyboard->add_binding ("h", "oneshot");
+	_keyboard->add_binding (" ", "trigger");
+	_keyboard->add_binding ("t", "taptempo");
+	_keyboard->add_binding ("Control-s", "save");
+	_keyboard->add_binding ("Control-o", "load");
+	
+}
+
+
+void GuiFrame::command_action (bool release, wxString cmd)
+{
+	if (release) {
+		_loop_control->post_up_event (_curr_loop, cmd);
+	}
+	else {
+		_loop_control->post_down_event (_curr_loop, cmd);
+	}
+}
+
+void GuiFrame::misc_action (bool release, wxString cmd)
+{
+	int index = _curr_loop;
+
+	// only on press
+	if (release) return;
+	
+	if (cmd == wxT("taptempo")) {
+
+		on_taptempo_event();
+	}
+	else if (cmd == wxT("delay")) {
+		_tapdelay_val *= -1.0f;
+		_loop_control->post_ctrl_change (index, wxString("tap_trigger"), _tapdelay_val);
+	}
+	else if (cmd == wxT("save"))
+	{
+		if (index < 0) {
+			index = 0;
+		}
+		// popup local file dialog if we are local
+		if (_loop_control->is_engine_local()) {
+
+			wxString filename = ::wxFileSelector(wxT("Choose file to save loop"), wxT(""), wxT(""), wxT(".wav"), wxT("*.*"), wxSAVE|wxCHANGE_DIR);
+			if ( !filename.empty() )
+			{
+				// todo: specify format
+				_loop_control->post_save_loop (index, filename);
+			}
+		}
+		else {
+			// popup basic filename text entry
+			wxString filename = ::wxGetTextFromUser(wxString::Format("Choose file to save on remote host '%s'",
+										 _loop_control->get_engine_host().c_str())
+								, wxT("Save Loop"));
+
+			if (!filename.empty()) {
+				// todo: specify format
+				_loop_control->post_save_loop (index, filename);
+			}
+		}
+
+		
+		
+	}
+	else if (cmd == wxT("load"))
+	{
+		if (index < 0) {
+			index = 0;
+		}
+
+		if (_loop_control->is_engine_local()) {
+
+			wxString filename = wxFileSelector(wxT("Choose file to open"), wxT(""), wxT(""), wxT(""), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
+			if ( !filename.empty() )
+			{
+				_loop_control->post_load_loop (index, filename);
+			}
+		}
+		else {
+			// popup basic filename text entry
+			wxString filename = ::wxGetTextFromUser(wxString::Format("Choose file to load on remote host '%s'",
+										 _loop_control->get_engine_host().c_str())
+								, wxT("Save Loop"));
+
+			if (!filename.empty()) {
+				// todo: specify format
+				_loop_control->post_load_loop (index, filename);
+			}
+		}
+	}
+}
+
+
+bool GuiFrame::load_rc()
+{
+	// open file
+	string configfname(static_cast<const char *> ((_rcdir + wxFileName::GetPathSeparator() + wxT("gui_config.xml")).fn_str() ));
+	XMLTree configdoc (configfname);
+
+	if (!configdoc.initialized()) {
+		fprintf (stderr, "Error loading config at %s!\n", configfname.c_str()); 
+		return false;
+	}
+
+	XMLNode * rootNode = configdoc.root();
+	if (!rootNode || rootNode->name() != "SLConfig") {
+		fprintf (stderr, "Preset root node not found in %s!\n", configfname.c_str()); 
+		return false;
+	}
+
+	XMLNode * bindingsNode = rootNode->find_named_node ("KeyBindings");
+	if (!bindingsNode ) {
+		fprintf(stderr, "Preset Channels node not found in %s!\n", configfname.c_str()); 
+		return false;
+	}
+
+	_keyboard->set_binding_state (*bindingsNode);
+
+	return true;
+}
+
+bool GuiFrame::save_rc()
+{
+	wxString dirname = _rcdir;
+	
+	if ( ! wxDirExists(dirname) ) {
+		if (!wxMkdir ( dirname.fn_str(), 0755 )) {
+			printf ("Error creating %s\n", static_cast<const char *> (dirname.mb_str())); 
+			return false;
+		}
+	}
+
+	// make xmltree
+	XMLTree configdoc;
+	XMLNode * rootNode = new XMLNode("SLConfig");
+	rootNode->add_property("version", sooperlooper_version);
+	configdoc.set_root (rootNode);
+	
+	XMLNode * bindingsNode = rootNode->add_child ("KeyBindings");
+
+	bindingsNode->add_child_nocopy (_keyboard->get_binding_state());
+
+
+	// write doc to file
+	
+	if (configdoc.write (static_cast<const char *> ((dirname + wxFileName::GetPathSeparator() + wxT("gui_config.xml")).fn_str())))
+	{	    
+		fprintf (stderr, "Stored settings into %s\n", static_cast<const char *> (dirname.fn_str()));
+		return true;
+	}
+	else {
+		fprintf (stderr, "Failed to store settings into %s\n", static_cast<const char *> (dirname.fn_str()));
+		return false;
+	}
+
 }

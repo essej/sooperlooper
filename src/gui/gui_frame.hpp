@@ -36,6 +36,7 @@ class LooperPanel;
 class SliderBar;
 class ChoiceBox;	
 class PixButton;
+class KeyboardTarget;
 	
 class GuiFrame
 	: public wxFrame,  public SigC::Object
@@ -56,12 +57,27 @@ public:
 	void OnIdle(wxIdleEvent& event);
 	void OnUpdateTimer(wxTimerEvent &ev);
 
+	void process_key_event (wxKeyEvent &ev);
+
+
+	KeyboardTarget & get_keyboard() { return *_keyboard; }
+
+	void command_action (bool release, wxString cmd);
+	void misc_action (bool release, wxString cmd);
+
 protected:
 
 	void init();
 
+	bool load_rc();
+	bool save_rc();
+	
+	void intialize_keybindings ();
+	
 	void init_loopers (int count);
 
+	
+	
 	void on_add_loop (wxCommandEvent &ev);
 	void on_remove_loop (wxCommandEvent &ev);
 
@@ -99,8 +115,15 @@ protected:
 	ChoiceBox * _quantize_choice;
 	wxCheckBox * _round_check;
 	PixButton * _taptempo_button;
+	float _tapdelay_val;
+	
+	// keybindings
 
-	float _tap_val;
+	KeyboardTarget * _keyboard;
+	int              _curr_loop;
+
+	wxString  _rcdir;
+	
 private:
     // any class wishing to process wxWindows events must use this macro
     DECLARE_EVENT_TABLE()
