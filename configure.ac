@@ -34,19 +34,16 @@ if test "$ac_cv_prog_cxx" = "no" ; then
    AC_MSG_ERROR([*** SooperLooper is written in C++. You don't appear to have a C++ compiler])
 fi
 
-CXXFLAGS="-g -D_REENTRANT"
-OPT_CXXFLAGS="-D_REENTRANT -O6 -fomit-frame-pointer -ffast-math -fstrength-reduce -funroll-loops -fmove-all-movables"
 if test x"$GXX" = xyes ; then
    CXXFLAGS="$CXXFLAGS -Wall"
 fi
-if test x"$GXX" = xyes ; then
-   OPT_CXXFLAGS="$OPT_CXXFLAGS -Wall"
-fi
+
+OPT_CXXFLAGS="-D_REENTRANT -O6 -fomit-frame-pointer -ffast-math -fstrength-reduce -funroll-loops -fmove-all-movables"
 
 AC_ARG_ENABLE(optimize,
-     [  --disable-optimize       avoid optimizations to allow gdb debugging.],
-     [ if test "x$enable_optimize" != "xno" ; then CXXFLAGS="$OPT_CXXFLAGS" ; fi ],
-     [ CXXFLAGS="$OPT_CXXFLAGS" ]
+     [  --enable-optimize       enable optimizations.],
+     [ if test "x$enable_optimize" != "xno" ; then OPT_CXXFLAGS="$OPT_CXXFLAGS" ; fi ],
+     [ OPT_CXXFLAGS="" ]
 )
 
 #AM_PATH_GTK(1.0.0, , [
@@ -135,17 +132,20 @@ EXTRA_LIBS="$JACK_LIBS $XML_LIBS $GTKMM_LIBS $LOSC_LIBS $SIGCPP_LIBS"
 AC_LANG_CPLUSPLUS
 
 
+
 AC_ARG_ENABLE(debug,
       [  --enable-debug    not optimized and includes debug symbols],
       [ if test "x$enable_debug" != "xno" ; then
-          CXXFLAGS="-g -Wall -D_REENTRANT -DDEBUG "
-          CFLAGS="$CXXFLAGS "
+          CXXFLAGS="-g -Wall -D_REENTRANT -DDEBUG"
+          CFLAGS="$CXXFLAGS"
 	fi
       ],
         [
-	blah=1
+          CXXFLAGS="$CXXFLAGS $OPT_CXXFLAGS"
+          CFLAGS="$CFLAGS $OPT_CXXFLAGS"
         ]
 )
+
 
 
 #CFLAGS="$CFLAGS -DSAMPLE_MEMORY=200 $JACK_CFLAGS $LOSC_CFLAGS $SIGCPP_CFLAGS"
