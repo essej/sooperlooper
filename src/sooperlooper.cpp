@@ -111,7 +111,11 @@ static void parse_options (int argc, char **argv, OptionInfo & option_info)
 	int longopt_index = 0;
 	char c;
 	
-	while ((c = getopt_long (argc, argv, optstring, long_options, &longopt_index)) != -1) {
+	while ((c = getopt_long (argc, argv, optstring, long_options, &longopt_index)) >= 0) {
+		if (c >= 255) {
+			break;
+		}
+		
 		switch (c) {
 		case 1:
 			/* getopt signals end of '-' options */
@@ -148,8 +152,12 @@ static void parse_options (int argc, char **argv, OptionInfo & option_info)
 			option_info.pingurl = optarg;
 			break;
 		default:
-			fprintf (stderr, "argument error\n");
+			fprintf (stderr, "argument error: %d\n", c);
 			option_info.show_usage++;
+			break;
+		}
+
+		if (option_info.show_usage > 0) {
 			break;
 		}
 	}
