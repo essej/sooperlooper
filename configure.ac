@@ -81,6 +81,12 @@ PKG_CHECK_MODULES(SIGCPP, sigc++-1.2 >= 0.14)
 AC_SUBST(SIGCPP_LIBS)
 AC_SUBST(SIGCPP_CFLAGS)
 
+dnl libsndfile
+PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.2, ac_cv_sndfile=1, ac_cv_sndfile=0)
+
+AC_DEFINE_UNQUOTED([HAVE_SNDFILE],${ac_cv_sndfile},[Set to 1 if you have libsndfile.])
+AC_SUBST(SNDFILE_CFLAGS)
+AC_SUBST(SNDFILE_LIBS)
 
 dnl wxwindows
 AC_PATH_PROG(WX_CONFIG1, wxgtk2-2.4-config, no, $PATH:/usr/local/bin )

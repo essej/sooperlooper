@@ -90,6 +90,8 @@ class ControlOSC
 	static int _loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _register_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 
 
 	static void * _osc_receiver(void * arg);
@@ -107,6 +109,8 @@ class ControlOSC
 	int get_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
 	int register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
 	int unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
+	int loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
+	int saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
 
 	Event::command_t  to_command_t (std::string cmd);
 	std::string       to_command_str (Event::command_t cmd);

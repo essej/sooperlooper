@@ -188,18 +188,6 @@ Engine::process (nframes_t nframes)
 {
 	TentativeLockMonitor lm (_instance_lock, __LINE__, __FILE__);
 
-	Event * evt;
-	RingBuffer<Event>::rw_vector vec;
-	
-	
-	// get available events
-	_event_queue->get_read_vector (&vec);
-
-	// update event generator
-	_event_generator->updateFragmentTime (nframes);
-	
-
-	
 	if (!lm.locked()) {
 		// todo pass silence
 		cerr << "already locked!" << endl;
@@ -207,6 +195,17 @@ Engine::process (nframes_t nframes)
 	else
 	{
 		// process events
+		
+		Event * evt;
+		RingBuffer<Event>::rw_vector vec;
+		
+		// get available events
+		_event_queue->get_read_vector (&vec);
+		
+		// update event generator
+		_event_generator->updateFragmentTime (nframes);
+		
+
 		nframes_t usedframes = 0;
 		nframes_t doframes;
 		size_t num = vec.len[0];
@@ -378,6 +377,7 @@ Engine::mainloop()
 	ConfigLoopEvent *   cl_event;
 	PingEvent *         ping_event;
 	RegisterConfigEvent * rc_event;
+	LoopFileEvent      * lf_event;
 	
 	// non-rt event processing loop
 
@@ -420,6 +420,19 @@ Engine::mainloop()
 			else if ((rc_event = dynamic_cast<RegisterConfigEvent*> (event)) != 0)
 			{
 				_osc->finish_register_event (*rc_event);
+			}
+			else if ((lf_event = dynamic_cast<LoopFileEvent*> (event)) != 0)
+			{
+				for (unsigned int n=0; n < _instances.size(); ++n) {
+					if (lf_event->instance == -1 || lf_event->instance == (int)n) {
+						if (lf_event->type == LoopFileEvent::Load) {
+							_instances[n]->load_loop (lf_event->filename);
+						}
+						else {
+							_instances[n]->save_loop (lf_event->filename);
+						}
+					}
+				}
 			}
 			
 			delete event;

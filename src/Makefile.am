@@ -4,7 +4,7 @@ SUBDIRS = . gui
 bin_PROGRAMS =  sooperlooper slconsole
 
 
-AM_CXXFLAGS = @JACK_CFLAGS@ @LOSC_CFLAGS@ @SIGCPP_CFLAGS@
+AM_CXXFLAGS = @JACK_CFLAGS@ @LOSC_CFLAGS@ @SIGCPP_CFLAGS@ @SNDFILE_CFLAGS@
 
 sooperlooper_SOURCES = \
 	sooperlooper.cpp \
@@ -19,10 +19,10 @@ sooperlooper_SOURCES = \
 	jack_audio_driver.cpp
 
 
-sooperlooper_LDADD = @JACK_LIBS@ @LOSC_LIBS@ @SIGCPP_LIBS@ -lasound
+sooperlooper_LDADD = @JACK_LIBS@ @LOSC_LIBS@ @SIGCPP_LIBS@ @SNDFILE_LIBS@-lasound
 
 
-slconsole_SOURCES = osctest.cpp
+slconsole_SOURCES = slconsole.cpp
 slconsole_LDADD = @LOSC_LIBS@ @NCURSES_LIBS@ -lpthread
 
 

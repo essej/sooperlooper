@@ -46,6 +46,8 @@ enum {
 	ID_MuteButton,
 	ID_RateButton,
 	ID_ScratchButton,
+	ID_LoadButton,
+	ID_SaveButton,
 
 	ID_ThreshControl,
 	ID_FeedbackControl,
@@ -219,6 +221,19 @@ LooperPanel::init()
 
 	rowsizer->Add(lilcolsizer, 1, wxTOP|wxLEFT, 5);
 
+	lilcolsizer = new wxBoxSizer(wxVERTICAL);
+	
+ 	_load_button = bitbutt = new PixButton(this, ID_LoadButton);
+	load_bitmaps (bitbutt, wxT("load"));
+	lilcolsizer->Add (bitbutt, 0, wxTOP, 3);
+
+ 	_save_button = bitbutt = new PixButton(this, ID_SaveButton);
+	load_bitmaps (bitbutt, wxT("save"));
+	lilcolsizer->Add (bitbutt, 0, wxTOP, 3);
+	
+	rowsizer->Add(lilcolsizer, 0, wxTOP, 2);
+	
+	
  	_mute_button = bitbutt = new PixButton(this, ID_MuteButton);
 	load_bitmaps (bitbutt, wxT("mute"));
  	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 5);

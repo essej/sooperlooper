@@ -1,5 +1,8 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Set to 1 if you have libsndfile. */
+#undef HAVE_SNDFILE
+
 /* Name of package */
 #undef PACKAGE
 

@@ -17,15 +17,23 @@
 **  
 */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+
 #include "looper.hpp"
 
 #include <iostream>
 #include <cstring>
 
+#include <sndfile.h>
+
 #include "ladspa.h"
 
 using namespace std;
 using namespace SooperLooper;
+using namespace PBD;
 
 extern	const LADSPA_Descriptor* ladspa_descriptor (unsigned long);
 
@@ -181,7 +189,25 @@ void
 Looper::run (nframes_t offset, nframes_t nframes)
 {
 	/* maybe change modes */
+	TentativeLockMonitor lm (_loop_lock, __LINE__, __FILE__);
 
+	if (!lm.locked()) {
+
+		// treat as bypassed
+		for (unsigned int i=0; i < _chan_count; ++i)
+		{
+			float * inbuf = _driver->get_input_port_buffer (_input_ports[i], nframes);
+			float * outbuf = _driver->get_output_port_buffer (_output_ports[i], nframes);
+			if (inbuf && outbuf) {
+				for (nframes_t n=0; n < nframes; ++n) {
+					outbuf[n] = inbuf[n] * ports[DryLevel];
+				}
+			}
+		}
+		
+		return;
+	}
+	
 	if (request_pending) {
 		
 		if (ports[Multi] == requested_cmd) {
@@ -210,3 +236,293 @@ Looper::run (nframes_t offset, nframes_t nframes)
 
 	}
 }
+
+
+bool
+Looper::load_loop (string fname)
+{
+	bool ret = false;
+
+#ifdef HAVE_SNDFILE
+	// this is not called from the audio thread
+	// so we take the loop_lock during the whole procedure
+	LockMonitor lm (_loop_lock, __LINE__, __FILE__);
+
+	SNDFILE * sfile = 0;
+	SF_INFO   sinfo;
+
+	memset (&sinfo, 0, sizeof(SF_INFO));
+
+	if ((sfile = sf_open (fname.c_str(), SFM_READ, &sinfo)) == 0) {
+		cerr << "error opening " << fname << endl;
+		return false;
+	}
+	else {
+		cerr << "opened " << fname << endl;
+	}
+
+	// verify that we have enough free loop space to load it
+
+	
+        nframes_t freesamps = (nframes_t) (ports[LoopFreeMemory] * _driver->get_samplerate());
+
+	if (sinfo.frames > freesamps) {
+		cerr << "file is too long for available space: file: " << sinfo.frames << "  free: " << freesamps << endl;
+		sf_close (sfile);
+		return false;
+	}
+
+	// make some temporary input buffers
+	nframes_t bufsize = 16384;
+	float ** inbufs = new float*[_chan_count];
+	for (unsigned int i=0; i < _chan_count; ++i) {
+		inbufs[i] = new float[bufsize];
+	}
+
+	float * dummyout = new float[bufsize];
+	float * bigbuf   = new float[bufsize * _chan_count];
+	
+	for (unsigned int i=0; i < _chan_count; ++i)
+	{
+		/* connect audio ports */
+		descriptor->connect_port (_instances[i], 18, (LADSPA_Data*) inbufs[i]);
+		descriptor->connect_port (_instances[i], 19, (LADSPA_Data*) dummyout);
+	}
+	
+	// ok, first we need to store some current values
+	float old_recthresh = ports[TriggerThreshold];
+
+	ports[TriggerThreshold] = 0.0f;
+
+	// now set it to mute just to make sure we weren't already recording
+	for (unsigned int i=0; i < _chan_count; ++i)
+	{
+		// run it for 0 frames just to change state
+		ports[Multi] = Event::MUTE;
+		descriptor->run (_instances[i], 0);
+		ports[Multi] = Event::RECORD;
+		descriptor->run (_instances[i], 0);
+	}
+
+	// now start recording and run for sinfo.frames total
+	nframes_t nframes = bufsize;
+	nframes_t frames_left = sinfo.frames;
+	nframes_t filechans = sinfo.channels;
+	nframes_t bpos;
+	float * databuf;
+	
+	while (frames_left > 0)
+	{
+		if (nframes > frames_left) {
+			nframes = frames_left;
+		}
+
+
+
+		// fill input buffers
+		nframes = sf_readf_float (sfile, bigbuf, nframes);
+
+		// deinterleave
+		unsigned int n;
+		for (n=0; n < _chan_count && n < filechans; ++n) {
+			databuf = inbufs[n];
+			bpos = n;
+			for (nframes_t m=0; m < nframes; ++m) {
+				
+				databuf[m] = bigbuf[bpos];
+				bpos += filechans;
+			}
+		}
+		for (; n < _chan_count; ++n) {
+			// clear leftover channels (maybe we should duplicate last one, we'll see)
+			memset(inbufs[n], 0, sizeof(float) * nframes);
+		}
+		
+		
+		for (unsigned int i=0; i < _chan_count; ++i)
+		{
+			// run it for nframes
+			descriptor->run (_instances[i], nframes);
+		}
+
+		
+
+		frames_left -= nframes;
+	}
+	
+
+	// change state to unknown, then the end record
+	for (unsigned int i=0; i < _chan_count; ++i)
+	{
+		ports[Multi] = Event::UNKNOWN;
+		descriptor->run (_instances[i], 0);
+		ports[Multi] = Event::RECORD;
+		descriptor->run (_instances[i], 0);
+	}
+
+	ports[TriggerThreshold] = old_recthresh;
+	
+	ret = true;
+
+	sf_close (sfile);
+
+	for (unsigned int i=0; i < _chan_count; ++i) {
+		delete [] inbufs[i];
+	}
+	delete [] inbufs;
+	delete [] dummyout;
+	delete [] bigbuf;
+#endif
+
+	return ret;
+}
+
+bool
+Looper::save_loop (string fname, FileFormat format)
+{
+	bool ret = false;
+	
+#ifdef HAVE_SNDFILE
+
+	// right now, this is a bit of a hack
+	// we have to set the plugin(s) to mute state
+	// then do a unmute one-shot and run it a total
+	// of loop_length frames
+
+	// this is not called from the audio thread
+	// so we take the loop_lock during the whole procedure
+	LockMonitor lm (_loop_lock, __LINE__, __FILE__);
+
+	SNDFILE * sfile = 0;
+	SF_INFO   sinfo;
+
+	memset (&sinfo, 0, sizeof(SF_INFO));
+
+	switch(format) {
+	case FormatFloat:
+		sinfo.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
+		break;
+	case FormatPCM16:
+		sinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
+		break;
+
+	default:
+		sinfo.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
+	}
+	
+	sinfo.channels = _chan_count;
+	sinfo.samplerate = _driver->get_samplerate();
+	
+	if ((sfile = sf_open (fname.c_str(), SFM_WRITE, &sinfo)) == 0) {
+		cerr << "error opening " << fname << endl;
+		return false;
+	}
+	else {
+		cerr << "opened for write: " << fname << endl;
+	}
+
+	// make some temporary buffers
+	nframes_t bufsize = 16384;
+	float ** outbufs = new float*[_chan_count];
+	for (unsigned int i=0; i < _chan_count; ++i) {
+		outbufs[i] = new float[bufsize];
+	}
+
+	float * dummyin = new float[bufsize];
+	float * bigbuf   = new float[bufsize * _chan_count];
+
+	memset(dummyin, 0, sizeof(float) * bufsize);
+	
+	for (unsigned int i=0; i < _chan_count; ++i)
+	{
+		/* connect audio ports */
+		descriptor->connect_port (_instances[i], 18, (LADSPA_Data*) dummyin);
+		descriptor->connect_port (_instances[i], 19, (LADSPA_Data*) outbufs[i]);
+	}
+	
+	// ok, first we need to store some current values
+	float old_wet = ports[WetLevel];
+	float old_dry = ports[DryLevel];
+
+	ports[WetLevel] = 1.0f;
+	ports[DryLevel] = 0.0f;
+
+	// now set it to mute then scratch (to start from beginning)
+	//   just to make sure we weren't already recording
+	
+	for (unsigned int i=0; i < _chan_count; ++i)
+	{
+		// run it for 0 frames just to change state
+		ports[Multi] = Event::MUTE;
+		descriptor->run (_instances[i], 0);
+		ports[Multi] = Event::SCRATCH;
+		descriptor->run (_instances[i], 0);
+	}
+
+	// now start recording and run for loop length total
+	nframes_t nframes = bufsize;
+	nframes_t frames_left = (nframes_t) (ports[LoopLength] * _driver->get_samplerate());
+
+	nframes_t bpos;
+	float * databuf;
+	
+	while (frames_left > 0)
+	{
+		if (nframes > frames_left) {
+			nframes = frames_left;
+		}
+
+
+		for (unsigned int i=0; i < _chan_count; ++i)
+		{
+			// run it for nframes
+			descriptor->run (_instances[i], nframes);
+		}
+
+		// interleave
+		unsigned int n;
+		for (n=0; n < _chan_count; ++n) {
+			databuf = outbufs[n];
+			bpos = n;
+			for (nframes_t m=0; m < nframes; ++m) {
+				bigbuf[bpos] = databuf[m];
+				bpos += _chan_count;
+			}
+		}
+
+		// write out big buffer
+		sf_writef_float (sfile, bigbuf, nframes);
+		
+
+		frames_left -= nframes;
+	}
+	
+
+	ports[DryLevel] = old_dry;
+	ports[WetLevel] = old_wet;
+	
+	// change state to unknown, then the end record
+	for (unsigned int i=0; i < _chan_count; ++i)
+	{
+		ports[Multi] = Event::UNKNOWN;
+		descriptor->run (_instances[i], 0);
+	}
+
+	
+	
+	ret = true;
+
+	sf_close (sfile);
+
+	for (unsigned int i=0; i < _chan_count; ++i) {
+		delete [] outbufs[i];
+	}
+	delete [] outbufs;
+	delete [] dummyin;
+	delete [] bigbuf;
+	
+#endif
+
+	return ret;
+}
+

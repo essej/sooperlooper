@@ -168,6 +168,14 @@ ControlOSC::on_loop_added (int instance)
 	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/get", instance);
 	lo_server_add_method(_osc_server, tmpstr, "sss", ControlOSC::_get_handler, new CommandInfo(this, instance, Event::type_control_request));
 
+	// load loop:  s:filename  s:returl  s:retpath
+	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/load_loop", instance);
+	lo_server_add_method(_osc_server, tmpstr, "sss", ControlOSC::_loadloop_handler, new CommandInfo(this, instance, Event::type_control_request));
+
+	// save loop:  s:filename  s:returl  s:retpath
+	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/save_loop", instance);
+	lo_server_add_method(_osc_server, tmpstr, "sss", ControlOSC::_saveloop_handler, new CommandInfo(this, instance, Event::type_control_request));
+	
 	// register_update args= s:ctrl s:returl s:retpath
 	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/register_update", instance);
 	lo_server_add_method(_osc_server, tmpstr, "sss", ControlOSC::_register_update_handler, new CommandInfo(this, instance, Event::type_control_request));
@@ -317,6 +325,19 @@ int ControlOSC::_unregister_config_handler(const char *path, const char *types, 
 	return osc->unregister_config_handler (path, types, argv, argc, data);
 }
 
+int ControlOSC::_loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
+{
+	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
+	return cp->osc->loadloop_handler (path, types, argv, argc, data, cp);
+}
+
+int ControlOSC::_saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
+{
+	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
+	return cp->osc->saveloop_handler (path, types, argv, argc, data, cp);
+}
+
+
 /* real callbacks */
 
 int ControlOSC::quit_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
@@ -388,6 +409,34 @@ int ControlOSC::loop_del_handler(const char *path, const char *types, lo_arg **a
 
 	_engine->push_nonrt_event ( new ConfigLoopEvent (ConfigLoopEvent::Remove, 0, 0.0f, index));
 
+	return 0;
+}
+
+int ControlOSC::loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+{
+
+	// first arg is fname, 2nd is return URL string 3rd is retpath
+	string fname (&argv[0]->s);
+	string returl (&argv[1]->s);
+	string retpath (&argv[2]->s);
+
+	// push this onto a queue for the main event loop to process
+	_engine->push_nonrt_event ( new LoopFileEvent (LoopFileEvent::Load, info->instance, fname, returl, retpath));
+	
+	return 0;
+}
+
+int ControlOSC::saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+{
+
+	// first arg is fname, 2nd is return URL string 3rd is retpath
+	string fname (&argv[0]->s);
+	string returl (&argv[1]->s);
+	string retpath (&argv[2]->s);
+
+	// push this onto a queue for the main event loop to process
+	_engine->push_nonrt_event ( new LoopFileEvent (LoopFileEvent::Save, info->instance, fname, returl, retpath));
+	
 	return 0;
 }
 

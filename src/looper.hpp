@@ -20,7 +20,10 @@
 #ifndef __sooperlooper_looper__
 #define __sooperlooper_looper__
 
+#include <string>
+
 #include "audio_driver.hpp"
+#include "lockmonitor.hpp"
 #include "ladspa.h"
 
 #include "event.hpp"
@@ -70,12 +73,21 @@ class Looper
 	void set_port (ControlPort n, LADSPA_Data val) {
 		ports[n] = val;
 	}
-	
-	int requested_cmd;
-	int last_requested_cmd;
 
+	enum FileFormat
+	{
+		FormatFloat = 0,
+		FormatPCM16
+	};
+	
+	bool load_loop (std::string fname);
+	bool save_loop (std::string fname, FileFormat format = FormatFloat);
+	
   protected:
 
+	int requested_cmd;
+	int last_requested_cmd;
+	
 	AudioDriver *      _driver;
 
 	port_id_t*       _input_ports;
@@ -91,6 +103,8 @@ class Looper
 	
 	bool _ok;
 	bool request_pending;
+
+	PBD::NonBlockingLock _loop_lock;
 };
 
 };

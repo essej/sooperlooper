@@ -53,6 +53,25 @@ namespace SooperLooper {
 		float secs;
 		int index;
 	};
+
+	class LoopFileEvent : public EventNonRT
+	{
+	public:
+		enum Type {
+			Load,
+			Save
+		} type;
+
+		LoopFileEvent(Type tp, int inst, std::string fname,  std::string returl, std::string retpath)
+			: type(tp), instance(inst), filename(fname), ret_url(returl), ret_path(retpath) {}
+
+		virtual ~LoopFileEvent() {}
+
+		int instance;
+		std::string      filename;
+		std::string      ret_url;
+		std::string      ret_path;
+	};
 	
 	class GetParamEvent : public EventNonRT
 	{
