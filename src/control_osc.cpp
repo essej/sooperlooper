@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <cstdio>
+#include <algorithm>
 
 #include "control_osc.hpp"
 #include "engine.hpp"
@@ -152,6 +153,14 @@ ControlOSC::on_loop_added (int instance)
 	
 	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/get", instance);
 	lo_server_add_method(_osc_server, tmpstr, "sss", ControlOSC::_get_handler, new CommandInfo(this, instance, Event::type_control_request));
+
+	// register_update args= s:ctrl s:returl s:retpath
+	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/register_update", instance);
+	lo_server_add_method(_osc_server, tmpstr, "sss", ControlOSC::_register_update_handler, new CommandInfo(this, instance, Event::type_control_request));
+
+	// unregister_update args= s:ctrl s:returl s:retpath
+	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/unregister_update", instance);
+	lo_server_add_method(_osc_server, tmpstr, "sss", ControlOSC::_unregister_update_handler, new CommandInfo(this, instance, Event::type_control_request));
 	
 }
 
@@ -241,6 +250,19 @@ int ControlOSC::_get_handler(const char *path, const char *types, lo_arg **argv,
 	return cp->osc->get_handler (path, types, argv, argc, data, cp);
 }
 
+int ControlOSC::_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
+	return cp->osc->register_update_handler (path, types, argv, argc, data, cp);
+}
+
+int ControlOSC::_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
+	return cp->osc->unregister_update_handler (path, types, argv, argc, data, cp);
+}
 
 /* real callbacks */
 
@@ -271,6 +293,17 @@ int ControlOSC::set_handler(const char *path, const char *types, lo_arg **argv, 
 	float val  = argv[1]->f;
 
 	_engine->push_control_event(info->type, to_control_t(ctrl), val, info->instance);
+
+	// todo:
+	// send registered in another thread
+
+	if (info->instance == -1) {
+		for (unsigned int i = 0; i < _engine->loop_count_unsafe(); ++i) {
+			send_registered_updates (ctrl, val, (int) i);
+		}
+	} else {
+		send_registered_updates (ctrl, val, info->instance);
+	}
 	
 	return 0;
 
@@ -310,6 +343,108 @@ int ControlOSC::get_handler(const char *path, const char *types, lo_arg **argv, 
 	
 	return 0;
 }
+
+int ControlOSC::register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+{
+
+	// todo, push this onto a queue for another thread to return
+
+	// first arg is control string, 2nd is return URL string 3rd is retpath
+	string ctrl (&argv[0]->s);
+	string returl (&argv[1]->s);
+	string retpath (&argv[2]->s);
+	lo_address addr;
+		
+	if (_retaddr_map.find(returl) == _retaddr_map.end()) {
+		addr = lo_address_new_from_url (returl.c_str());
+		if (lo_address_errno (addr) < 0) {
+			fprintf(stderr, "addr error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
+		}
+		_retaddr_map[returl] = addr;
+	}
+	else {
+		addr = _retaddr_map[returl];
+	}
+
+	// add this to register_ctrl map
+	InstancePair ipair(info->instance, ctrl);
+	ControlRegistrationMap::iterator iter = _registration_map.find (ipair);
+
+	if (iter == _registration_map.end()) {
+		_registration_map[ipair] = UrlList();
+		iter = _registration_map.find (ipair);
+	}
+
+	UrlList & ulist = (*iter).second;
+	UrlPair upair(addr, retpath);
+
+	if (find(ulist.begin(), ulist.end(), upair) == ulist.end()) {
+		cerr << "added " << ctrl << "  " << returl << endl;
+		ulist.push_back (upair);
+	}
+	
+	return 0;
+}
+
+int ControlOSC::unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+{
+	// todo, push this onto a queue for another thread to return
+
+	// first arg is control string, 2nd is return URL string 3rd is retpath
+	string ctrl (&argv[0]->s);
+	string returl (&argv[1]->s);
+	string retpath (&argv[2]->s);
+	lo_address addr;
+		
+	if (_retaddr_map.find(returl) == _retaddr_map.end()) {
+		return 0;
+	}
+	else {
+		addr = _retaddr_map[returl];
+	}
+
+	// add this to register_ctrl map
+	InstancePair ipair(info->instance, ctrl);
+	ControlRegistrationMap::iterator iter = _registration_map.find (ipair);
+
+	if (iter != _registration_map.end()) {
+		UrlList & ulist = (*iter).second;
+		UrlPair upair(addr, retpath);
+		UrlList::iterator uiter = find(ulist.begin(), ulist.end(), upair);
+		
+		if (uiter != ulist.end()) {
+			cerr << "unregistered " << ctrl << "  " << returl << endl;
+			ulist.erase (uiter);
+		}
+	}
+
+	return 0;
+}
+
+
+void
+ControlOSC::send_registered_updates(string ctrl, float val, int instance)
+{
+	InstancePair ipair(instance, ctrl);
+	ControlRegistrationMap::iterator iter = _registration_map.find (ipair);
+
+	if (iter != _registration_map.end()) {
+		UrlList & ulist = (*iter).second;
+
+		for (UrlList::iterator url = ulist.begin(); url != ulist.end(); ++url)
+		{
+		        lo_address addr = (*url).first;
+			
+			if (lo_send(addr, (*url).second.c_str(), "isf", instance, ctrl.c_str(), val) == -1) {
+				fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
+			}
+		}
+	}
+	else {
+		cerr << "not in map" << endl;
+	}
+}
+
 
 
 Event::command_t  ControlOSC::to_command_t (std::string cmd)

@@ -19,7 +19,8 @@ slgui_SOURCES = \
 	pix_button.cpp \
 	looper_panel.cpp \
 	loop_control.cpp \
-	time_panel.cpp
+	time_panel.cpp \
+	slider_bar.cpp
 
 
 

@@ -45,11 +45,16 @@ class LoopControl
 	bool post_ctrl_change (int index, wxString ctrl, float val);
 	
 	void request_values (int index);
+	void request_all_values (int index);
 	void update_values();
 
+	void register_input_controls(int index, bool unreg=false);
+
+	
 	bool is_updated (int index, wxString ctrl);
 	
 	bool get_value (int index, wxString ctrl, float &retval);
+	bool get_state (int index, wxString & state);
 	
   protected:
 

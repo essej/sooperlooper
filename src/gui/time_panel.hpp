@@ -44,6 +44,7 @@ class TimePanel
 	int get_index() { return _index; }
 
 
+	void OnSize (wxSizeEvent &ev);
 	void OnPaint (wxPaintEvent &ev);
 
 	bool update_time();
@@ -52,6 +53,7 @@ class TimePanel
 
 	void init();
 	
+	void format_time(wxString & timestr, float val);
 	void draw_area(wxDC & dc);
 	
 
@@ -67,6 +69,17 @@ class TimePanel
 
 	wxFont  _pos_font;
 	wxColour _pos_color;
+
+	wxFont  _state_font;
+	wxColour _state_color;
+
+	wxFont  _time_font;
+	wxColour _time_color;
+
+	wxFont  _legend_font;
+	wxColour _legend_color;
+
+	int _width, _height;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

@@ -31,10 +31,11 @@ using namespace std;
 
 BEGIN_EVENT_TABLE(TimePanel, wxPanel)
 	EVT_PAINT(TimePanel::OnPaint)
+	EVT_SIZE(TimePanel::OnSize)
 END_EVENT_TABLE()
 
 TimePanel::TimePanel(LoopControl * control, wxWindow * parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
-	: wxPanel(parent, id, pos, size), _loop_control(control), _index(0)
+	: wxPanel(parent, id, pos, size), _loop_control(control), _index(0), _width(1), _height(1)
 {
 	init();
 }
@@ -52,12 +53,36 @@ TimePanel::init()
 
 	_pos_font.SetFamily(wxSWISS);
 	_pos_font.SetPointSize(14);
-	_pos_font.SetStyle(wxBOLD);
-
+	_pos_font.SetWeight(wxBOLD);
 	_pos_color.Set(244, 255, 158);
-	
 	_pos_str = "--:--.--";
+
+	_state_font.SetFamily(wxSWISS);
+	_state_font.SetPointSize(10);
+	_state_font.SetWeight(wxBOLD);
+	_state_color.Set(154, 255, 168);
+	_state_str = "----";
+
+	_time_font.SetFamily(wxSWISS);
+	_time_font.SetPointSize(7);
+	_time_font.SetWeight(wxNORMAL);
+	_time_color.Set(244, 255, 178);
+
+	_legend_font.SetFamily(wxSWISS);
+	_legend_font.SetPointSize(7);
+	_legend_font.SetWeight(wxNORMAL);
+	_legend_color.Set(225, 225, 225);
 	
+}
+
+void
+TimePanel::format_time(wxString & timestr, float val)
+{
+	// seconds
+	int minutes = (int) (val / 60.0f);
+	float secs = val - minutes*60.0f;
+	
+	timestr.Printf("%02d:%05.2f", minutes, secs);
 }
 
 bool
@@ -68,17 +93,49 @@ TimePanel::update_time()
 	
 	if (_loop_control->is_updated(_index, "loop_pos")) {
 		_loop_control->get_value(_index, "loop_pos", val);
-		// seconds
-		int minutes = (int) (val / 60.0f);
-		float secs = val - minutes*60.0f;
-		
-		_pos_str.Printf("%02d:%05.2f", minutes, secs);
+		format_time (_pos_str, val);
 		ret = true;
 	}
+
+	if (_loop_control->is_updated(_index, "loop_len")) {
+		_loop_control->get_value(_index, "loop_len", val);
+		format_time (_tot_str, val);
+		ret = true;
+	}
+
+	if (_loop_control->is_updated(_index, "cycle_len")) {
+		_loop_control->get_value(_index, "cycle_len", val);
+		format_time (_cyc_str, val);
+		ret = true;
+	}
+
+	if (_loop_control->is_updated(_index, "free_time")) {
+		_loop_control->get_value(_index, "free_time", val);
+		format_time (_rem_str, val);
+		ret = true;
+	}
+
+	if (_loop_control->is_updated(_index, "total_time")) {
+		_loop_control->get_value(_index, "total_time", val);
+		format_time (_tot_str, val);
+		ret = true;
+	}
+
+	if (_loop_control->is_updated(_index, "state")) {
+		_loop_control->get_state(_index, _state_str);
+		ret = true;
+	}
+	
 	
 	return ret;
 }
 
+
+void
+TimePanel::OnSize (wxSizeEvent &ev)
+{
+	GetClientSize(&_width, &_height);
+}
 
 void
 TimePanel::OnPaint(wxPaintEvent &ev)
@@ -92,10 +149,45 @@ TimePanel::OnPaint(wxPaintEvent &ev)
 void
 TimePanel::draw_area(wxDC & dc)
 {
-
+	wxCoord sw=0, sh=0, tw=0, th=0, w=0, h=0;
+	wxCoord cw=0, ch=0, rw=0, rh=0;
+	
+	// main pos
 	dc.SetFont(_pos_font);
 	dc.SetTextForeground(_pos_color);
-	
 	dc.DrawText (_pos_str, 5, 5);
+	
+	// state
+	dc.SetFont(_state_font);
+	dc.SetTextForeground(_state_color);
+	dc.GetTextExtent(_state_str, &sw, &sh);
+	dc.DrawText (_state_str, 5, _height - sh - 5);
+
+	// other times
+	dc.SetFont(_time_font);
+	dc.SetTextForeground(_time_color);
+
+	dc.GetTextExtent(_tot_str, &tw, &th);
+	dc.DrawText (_tot_str, _width - tw - 5, 5);
+
+	dc.GetTextExtent(_cyc_str, &cw, &ch);
+	dc.DrawText (_cyc_str, _width - cw - 5, 5 + th);
+
+	// rem time
+	dc.GetTextExtent(_rem_str, &rw, &rh);
+	dc.DrawText (_rem_str, _width - rw - 5, _height - rh - 5);
+	
+	// legends
+	dc.SetFont(_legend_font);
+	dc.SetTextForeground(_legend_color);
+
+	dc.GetTextExtent(wxT("tot"), &w, &h);
+	dc.DrawText (wxT("tot"), _width - tw - w - 10, 5);
+
+	dc.GetTextExtent(wxT("cyc"), &w, &h);
+	dc.DrawText (wxT("cyc"), _width - cw - w - 10, 5 + th);
+
+	dc.GetTextExtent(wxT("rem"), &w, &h);
+	dc.DrawText (wxT("rem"), _width - rw - w - 10, _height - rh - 5);
 	
 }

@@ -18,6 +18,7 @@
 */
 
 #include <cstdio>
+#include <iostream>
 #include "loop_control.hpp"
 
 using namespace std;
@@ -77,6 +78,7 @@ LoopControl::_control_handler(const char *path, const char *types, lo_arg **argv
 	return lc->control_handler (path, types, argv, argc, data);
 }
 
+
 int
 LoopControl::control_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
 {
@@ -93,10 +95,16 @@ LoopControl::control_handler(const char *path, const char *types, lo_arg **argv,
 		_params_val_map.resize(index + 1);
 		_updated.resize(index + 1);
 	}
+
+	if (_params_val_map[index].find(ctrl) == _params_val_map[index].end()
+	    || _params_val_map[index][ctrl] != val)
+	{
+		_updated[index][ctrl] = true;
+	}
 	
 	_params_val_map[index][ctrl] = val;
-	_updated[index][ctrl] = true;
 	
+	// cerr << "got " << ctrl << " = " << val << endl;
 	
 	return 0;
 }
@@ -118,6 +126,55 @@ LoopControl::request_values(int index)
 	lo_send(_osc_addr, buf, "sss", "total_time", _our_url.c_str(), "/ctrl");
 
 }
+
+void
+LoopControl::request_all_values(int index)
+{
+	char buf[20];
+
+	snprintf(buf, sizeof(buf), "/sl/%d/get", index);
+
+	request_values(index);
+	
+	// send request for updates
+	lo_send(_osc_addr, buf, "sss", "rec_thresh", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "feedback", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "dry", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "wet", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "rate", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "scratch_pos", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "tap_trigger", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "quantize", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "round", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "redo_is_tap", _our_url.c_str(), "/ctrl");
+
+}
+
+
+void
+LoopControl::register_input_controls(int index, bool unreg)
+{
+	char buf[30];
+
+	if (unreg) {
+		snprintf(buf, sizeof(buf), "/sl/%d/unregister_update", index);
+	} else {
+		snprintf(buf, sizeof(buf), "/sl/%d/register_update", index);
+	}
+	
+	// send request for updates
+	lo_send(_osc_addr, buf, "sss", "rec_thresh", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "feedback", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "dry", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "wet", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "rate", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "scratch_pos", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "tap_trigger", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "quantize", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "round", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "redo_is_tap", _our_url.c_str(), "/ctrl");
+}
+
 
 bool
 LoopControl::post_down_event(int index, wxString cmd)
@@ -210,3 +267,23 @@ LoopControl::get_value (int index, wxString ctrl, float & retval)
 	return ret;
 }
 
+
+bool
+LoopControl::get_state (int index, wxString & state)
+{
+	bool ret = false;
+
+	if (index >= 0 && index < (int) _params_val_map.size())
+	{
+		ControlValMap::iterator iter = _params_val_map[index].find ("state");
+
+		if (iter != _params_val_map[index].end()) {
+			state = state_map[(int) (*iter).second];
+			// set updated to false
+			_updated[index]["state"] = false;
+			ret = true;
+		}
+	}
+
+	return ret;
+}

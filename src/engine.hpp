@@ -54,6 +54,7 @@ class Engine
 	bool remove_loop (unsigned int index);
 	
 	unsigned int loop_count() { PBD::LockMonitor lm(_instance_lock, __LINE__, __FILE__); return _instances.size(); }
+	unsigned int loop_count_unsafe() { return _instances.size(); }
 
 	int process (nframes_t);
 

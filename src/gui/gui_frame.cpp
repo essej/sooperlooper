@@ -56,6 +56,10 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 
 GuiFrame::~GuiFrame()
 {
+	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
+		// unregister
+		_loop_control->register_input_controls((int) i, true);
+	}
 
 }
 
@@ -66,7 +70,7 @@ GuiFrame::init()
 
 	//wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	
-	//SetBackgroundColour(*wxBLACK);
+	SetBackgroundColour(*wxBLACK);
 
 	
 	
@@ -104,6 +108,12 @@ GuiFrame::init_loopers (unsigned int count)
 	}
 		
 	_main_sizer->Layout();
+
+	// request all values for initial state
+	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
+		_loop_control->register_input_controls((int) i);
+		_loop_control->request_all_values ((int)i);
+	}
 	
 }
 

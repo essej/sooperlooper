@@ -27,6 +27,7 @@
 #include "pix_button.hpp"
 #include "loop_control.hpp"
 #include "time_panel.hpp"
+#include "slider_bar.hpp"
 
 using namespace SooperLooperGui;
 using namespace std;
@@ -60,12 +61,15 @@ enum {
 };
 
 BEGIN_EVENT_TABLE(LooperPanel, wxPanel)
-	EVT_COMMAND_SCROLL (ID_ThreshControl, LooperPanel::slider_events)
-	EVT_COMMAND_SCROLL (ID_FeedbackControl, LooperPanel::slider_events)
-	EVT_COMMAND_SCROLL (ID_DryControl, LooperPanel::slider_events)
-	EVT_COMMAND_SCROLL (ID_WetControl, LooperPanel::slider_events)
-	EVT_COMMAND_SCROLL (ID_ScratchControl, LooperPanel::slider_events)
-	EVT_COMMAND_SCROLL (ID_RateControl, LooperPanel::slider_events)
+// 	EVT_COMMAND_SCROLL (ID_ThreshControl, LooperPanel::slider_events)
+// 	EVT_COMMAND_SCROLL (ID_FeedbackControl, LooperPanel::slider_events)
+// 	EVT_COMMAND_SCROLL (ID_DryControl, LooperPanel::slider_events)
+// 	EVT_COMMAND_SCROLL (ID_WetControl, LooperPanel::slider_events)
+// 	EVT_COMMAND_SCROLL (ID_ScratchControl, LooperPanel::slider_events)
+// 	EVT_COMMAND_SCROLL (ID_RateControl, LooperPanel::slider_events)
+
+	EVT_CHECKBOX (ID_QuantizeCheck, LooperPanel::check_events)
+	EVT_CHECKBOX (ID_RoundCheck, LooperPanel::check_events)
 	
 END_EVENT_TABLE()
 
@@ -125,13 +129,21 @@ LooperPanel::init()
 	colsizer = new wxBoxSizer(wxVERTICAL);
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 
-	wxSlider *slider;
+	SliderBar *slider;
+	wxFont sliderFont = *wxSMALL_FONT;
 	
-	_thresh_control = slider = new wxSlider(this, ID_ThreshControl, 0, 0, 100);
-	slider->SetBackgroundColour(wxColour(24,60,130));
+	_thresh_control = slider = new SliderBar(this, ID_ThreshControl, 0.0f, 100.0f, 0.0f);
+	slider->set_units(wxT("%"));
+	slider->set_label(wxT("rec thresh"));
+	slider->SetFont(sliderFont);
+	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 5);
-	_feedback_control = slider = new wxSlider(this, ID_FeedbackControl, 0, 0, 100);
-	slider->SetBackgroundColour(wxColour(24,60,130));
+
+	_feedback_control = slider = new SliderBar(this, ID_FeedbackControl, 0.0f, 100.0f, 0.0f);
+	slider->set_units(wxT("%"));
+	slider->set_label(wxT("feedback"));
+	slider->SetFont(sliderFont);
+	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 5);
 
 	colsizer->Add (20, 5, 0, wxEXPAND);
@@ -164,18 +176,25 @@ LooperPanel::init()
 	// time area
 	colsizer = new wxBoxSizer(wxVERTICAL);
 
-	_time_panel = new TimePanel(_loop_control, this, -1, wxDefaultPosition, wxSize(190, 62));
+	_time_panel = new TimePanel(_loop_control, this, -1, wxDefaultPosition, wxSize(210, 60));
 	_time_panel->set_index (_index);
 	
 	colsizer->Add (_time_panel, 0, wxLEFT|wxTOP, 5);
 
 	colsizer->Add (20, -1, 1);
-	
-	_dry_control = slider = new wxSlider(this, ID_DryControl, 0, 0, 100);
-	slider->SetBackgroundColour(wxColour(24,60,130));
+
+	_dry_control = slider = new SliderBar(this, ID_DryControl, 0.0f, 100.0f, 0.0f);
+	slider->set_units(wxT("%"));
+	slider->set_label(wxT("dry"));
+	slider->SetFont(sliderFont);
+	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 4);
-	_wet_control = slider = new wxSlider(this, ID_WetControl, 0, 0, 100);
-	slider->SetBackgroundColour(wxColour(24,60,130));
+
+	_wet_control = slider = new SliderBar(this, ID_WetControl, 0.0f, 100.0f, 0.0f);
+	slider->set_units(wxT("%"));
+	slider->set_label(wxT("wet"));
+	slider->SetFont(sliderFont);
+	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 4);
 	
 	
@@ -188,15 +207,17 @@ LooperPanel::init()
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer * lilcolsizer = new wxBoxSizer(wxVERTICAL);
 	
-	wxCheckBox *check = new wxCheckBox(this, ID_QuantizeCheck, "quantize");
-	check->SetBackgroundColour(wxColour(50,50,50));
-	check->SetForegroundColour(*wxWHITE);
-	lilcolsizer->Add (check, 0);
+	_quantize_check = new wxCheckBox(this, ID_QuantizeCheck, "quantize");
+	_quantize_check->SetFont(sliderFont);
+	_quantize_check->SetBackgroundColour(wxColour(90,90,90));
+	_quantize_check->SetForegroundColour(*wxWHITE);
+	lilcolsizer->Add (_quantize_check, 0, wxEXPAND);
 
-	check = new wxCheckBox(this, ID_RoundCheck, "round");
-	check->SetBackgroundColour(wxColour(50,50,50));
-	check->SetForegroundColour(*wxWHITE);
-	lilcolsizer->Add (check, 0);
+	_round_check = new wxCheckBox(this, ID_RoundCheck, "round");
+	_round_check->SetFont(sliderFont);
+	_round_check->SetBackgroundColour(wxColour(90,90,90));
+	_round_check->SetForegroundColour(*wxWHITE);
+	lilcolsizer->Add (_round_check, 0, wxEXPAND);
 
 	rowsizer->Add(lilcolsizer, 1, wxTOP|wxLEFT, 5);
 
@@ -215,18 +236,26 @@ LooperPanel::init()
  	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 5);
 
 	// rate control
-	_rate_control = slider = new wxSlider(this, ID_RateControl, 25, -100, 100);
-	slider->SetBackgroundColour(wxColour(24,60,130));
+	_rate_control = slider = new SliderBar(this, ID_RateControl, -4.0f, 4.0f, 1.0f);
+	slider->set_units(wxT(""));
+	slider->set_label(wxT("rate"));
+	slider->set_style (SliderBar::CenterStyle);
+	slider->SetFont(sliderFont);
+	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 5);
 	
 	colsizer->Add (rowsizer, 0, wxEXPAND);
 
 	
-	_scratch_control = slider = new wxSlider(this, ID_ScratchControl, 0, 0, 100);
-	slider->SetBackgroundColour(wxColour(24,60,130));
+	_scratch_control = slider = new SliderBar(this, ID_ScratchControl, 0.0f, 1.0f, 0.0f);
+	slider->set_units(wxT(""));
+	slider->set_label(wxT("scratch"));
+	slider->set_style (SliderBar::CenterStyle);
+	slider->SetFont(sliderFont);
+	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 5);
 	
-	mainSizer->Add (colsizer, 1, wxEXPAND|wxBOTTOM|wxLEFT|wxRIGHT, 5);
+	mainSizer->Add (colsizer, 1, wxEXPAND|wxBOTTOM|wxRIGHT, 5);
 
 	
 	bind_events();
@@ -314,17 +343,42 @@ LooperPanel::update_controls()
 {
 	// get recent controls from loop control
 	float val;
-
-	
 	
 	if (_loop_control->is_updated(_index, "feedback")) {
 		_loop_control->get_value(_index, "feedback", val);
-		_feedback_control->SetValue ((int) (val * 100));
+		_feedback_control->set_value ((val * 100.0f));
 	}
-	// todo the rest
+	if (_loop_control->is_updated(_index, "rec_thresh")) {
+		_loop_control->get_value(_index, "rec_thresh", val);
+		_thresh_control->set_value ((val * 100.0f));
+	}
+	if (_loop_control->is_updated(_index, "dry")) {
+		_loop_control->get_value(_index, "dry", val);
+		_dry_control->set_value ((val * 100.0f));
+	}
+	if (_loop_control->is_updated(_index, "wet")) {
+		_loop_control->get_value(_index, "wet", val);
+		_wet_control->set_value (val * 100.0f);
+	}
+	if (_loop_control->is_updated(_index, "rate")) {
+		_loop_control->get_value(_index, "rate", val);
+		_rate_control->set_value (val);
+	}
+	if (_loop_control->is_updated(_index, "scratch_pos")) {
+		_loop_control->get_value(_index, "scratch_pos", val);
+		_scratch_control->set_value (val);
+	}
+	if (_loop_control->is_updated(_index, "quantize")) {
+		_loop_control->get_value(_index, "quantize", val);
+		_quantize_check->SetValue (val > 0.0);
+	}
+	if (_loop_control->is_updated(_index, "round")) {
+		_loop_control->get_value(_index, "round", val);
+		_round_check->SetValue (val > 0.0);
+	}
 
 	if (_time_panel->update_time()) {
-		_time_panel->Refresh(FALSE);
+		_time_panel->Refresh(true);
 	}
 }
 
@@ -332,61 +386,76 @@ LooperPanel::update_controls()
 void
 LooperPanel::pressed_events (wxString cmd)
 {
-	cerr << "pressed " << cmd << endl;
 	_loop_control->post_down_event (_index, cmd);
 }
 
 void
 LooperPanel::released_events (wxString cmd)
 {
-	cerr << "released " << cmd << endl;
 	_loop_control->post_up_event (_index, cmd);
 
 }
 
 void
-LooperPanel::slider_events(wxCommandEvent &ev)
+LooperPanel::slider_events(float val, int id)
 {
 	wxString ctrl;
-	float val = 0.0f;
 	
-	switch(ev.GetId())
+	switch(id)
 	{
 	case ID_ThreshControl:
 		ctrl = "rec_thresh";
-		val = _thresh_control->GetValue() / 100.0f;
+		val = val / 100.0f;
 		break;
 	case ID_FeedbackControl:
 		ctrl = "feedback";
-		val = _feedback_control->GetValue() / 100.0f;
+		val = _feedback_control->get_value() / 100.0f;
 		break;
 	case ID_DryControl:
 		ctrl = "dry";
-		val = _dry_control->GetValue() / 100.0f;
+		val = _dry_control->get_value() / 100.0f;
 		break;
 	case ID_WetControl:
 		ctrl = "wet";
-		val = _wet_control->GetValue() / 100.0f;
+		val = _wet_control->get_value() / 100.0f;
 		break;
 	case ID_ScratchControl:
 		ctrl = "scratch_pos";
-		val = _scratch_control->GetValue() / 100.0f;
+		val = _scratch_control->get_value();
 		break;
 	case ID_RateControl:
 		ctrl = "rate";
-		val = (_rate_control->GetValue() / 100.0f) * 4.0f;
+		val = (_rate_control->get_value() / 100.0f) * 4.0f;
 		break;
 	default:
 		break;
 	}
 
 	if (!ctrl.empty()) {
-		control_event (ctrl, val);
+		post_control_event (ctrl, val);
 	}
 }
 
 void
-LooperPanel::control_event (wxString ctrl, float val)
+LooperPanel::check_events(wxCommandEvent &ev)
+{
+	int id = ev.GetId();
+
+	switch (id) {
+	case ID_RoundCheck:
+		post_control_event ("round", _round_check->GetValue() ? 1.0f: 0.0f);
+		break;
+	case ID_QuantizeCheck:
+		post_control_event ("quantize", _quantize_check->GetValue() ? 1.0f: 0.0f);
+		break;
+	default:
+		break;
+	}
+
+}
+
+void
+LooperPanel::post_control_event (wxString ctrl, float val)
 {
 	_loop_control->post_ctrl_change (_index, ctrl, val);
 }

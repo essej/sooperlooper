@@ -165,7 +165,7 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 void PixButton::draw_area(wxDC & dc)
 {
 	dc.SetBackground(_bgbrush);
-	dc.Clear();
+	// dc.Clear();
 	
 	switch (_bstate) {
 	case Normal:

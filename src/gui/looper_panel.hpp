@@ -32,6 +32,7 @@ namespace SooperLooperGui {
 class PixButton;
 class LoopControl;
 class TimePanel;
+class SliderBar;
 	
 class LooperPanel
 	: public wxPanel, public SigC::Object
@@ -54,9 +55,10 @@ class LooperPanel
 	bool load_bitmaps (PixButton * butt, wxString namebase);
 	wxString get_pixmap_path (const wxString & namebase);
 
-	void slider_events(wxCommandEvent &ev);
-	void control_event (wxString ctrl, float val);
-
+	void slider_events(float val, int id);
+	void check_events(wxCommandEvent &ev);
+	
+	void post_control_event (wxString ctrl, float val);
 	
 	void bind_events();
 
@@ -75,13 +77,17 @@ class LooperPanel
 	PixButton * _rate_button;
 	PixButton * _mute_button;
 
-	wxSlider * _thresh_control;
-	wxSlider * _feedback_control;
-	wxSlider * _dry_control;
-	wxSlider * _wet_control;
-	wxSlider * _scratch_control;
-	wxSlider * _rate_control;
 
+	SliderBar * _thresh_control;
+	SliderBar * _feedback_control;
+	SliderBar * _dry_control;
+	SliderBar * _wet_control;
+	SliderBar * _scratch_control;
+	SliderBar * _rate_control;
+
+	wxCheckBox * _quantize_check;
+	wxCheckBox * _round_check;
+	
 	TimePanel * _time_panel;
 	
 	LoopControl * _loop_control;
