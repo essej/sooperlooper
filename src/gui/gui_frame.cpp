@@ -188,7 +188,8 @@ GuiFrame::init()
 	_taptempo_button->set_focus_bitmap (wxBitmap(tap_tempo_focus));
 	_taptempo_button->set_disabled_bitmap (wxBitmap(tap_tempo_disabled));
 	_taptempo_button->set_active_bitmap (wxBitmap(tap_tempo_active));
-	_taptempo_button->pressed.connect (slot (*this, &GuiFrame::on_taptempo_event));
+	_taptempo_button->pressed.connect (slot (*this, &GuiFrame::on_taptempo_press));
+	_taptempo_button->released.connect (slot (*this, &GuiFrame::on_taptempo_release));
 	_taptempo_button->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("taptempo")));
  	rowsizer->Add (_taptempo_button, 0, wxALL, 2);
 	
@@ -664,11 +665,18 @@ GuiFrame::on_round_check (bool val)
 }
 
 void
-GuiFrame::on_taptempo_event (int button)
+GuiFrame::on_taptempo_press (int button)
 {
 	_loop_control->post_ctrl_change (-2, wxT("tap_tempo"), 1.0f);
 }
 
+void
+GuiFrame::on_taptempo_release (int button)
+{
+	if (button == PixButton::MiddleButton) {
+		_loop_control->post_ctrl_change (-2, wxT("tap_tempo"), 1.0f);
+	}
+}
 
 
 void
@@ -840,7 +848,7 @@ void GuiFrame::misc_action (bool release, wxString cmd)
 	
 	if (cmd == wxT("taptempo")) {
 
-		on_taptempo_event(1);
+		on_taptempo_press(1);
 	}
 	else if (cmd == wxT("delay")) {
 		_tapdelay_val *= -1.0f;

@@ -36,6 +36,7 @@
 #include <midi++/port_request.h>
 
 #include "midi_bind.hpp"
+#include "lockmonitor.hpp"
 
 namespace SooperLooper {
 
@@ -48,7 +49,8 @@ class MidiBridge
 	virtual ~MidiBridge();			
 
 	MidiBindings & bindings() { return _midi_bindings; }
-
+	PBD::NonBlockingLock & bindings_lock() { return _bindings_lock; }
+	
 	virtual bool is_ok() { return _port != 0; }
 
 	void start_learn (MidiBindInfo & info, bool exclus=false);
@@ -94,6 +96,9 @@ class MidiBridge
 	int                _midi_request_pipe[2];
 	pthread_t          _midi_thread;
 
+	PBD::NonBlockingLock _bindings_lock;
+
+	
 	bool _done;
 	bool _learning;
 	bool _getnext;

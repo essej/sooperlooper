@@ -407,7 +407,8 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			double ntempo = ((double) _driver->get_samplerate() / (double)(thisframe - _last_tempo_frame)) * 60.0f; 
 
 			//cerr << "TAP: new tempo: " << _tempo  << "  off: " << offset << endl;
-
+			ntempo = avg_tempo(ntempo);
+			
 			set_tempo(ntempo);
 			calculate_tempo_frames ();
 
@@ -614,6 +615,7 @@ Engine::mainloop()
 		
 		// handle learning done from the midi thread
 		if (_learn_done) {
+			LockMonitor lm (_midi_bridge->bindings_lock(), __LINE__, __FILE__);
 			_midi_bridge->bindings().add_binding (_learninfo, _learn_event.options == "exclusive");
 
 			_learn_event.bind_str = _learninfo.serialize();
@@ -726,6 +728,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 			MidiBindInfo info;
 			if (info.unserialize (mb_event->bind_str)) {
 				bool exclus = (mb_event->options.find("exclusive") != string::npos);
+				LockMonitor lm (_midi_bridge->bindings_lock(), __LINE__, __FILE__);
 				_midi_bridge->bindings().add_binding (info, exclus);
 			}
 		}
@@ -756,23 +759,28 @@ Engine::process_nonrt_event (EventNonRT * event)
 		{
 			MidiBindInfo info;
 			if (info.unserialize (mb_event->bind_str)) {
+				LockMonitor lm (_midi_bridge->bindings_lock(), __LINE__, __FILE__);
 				_midi_bridge->bindings().remove_binding (info);
 			}
 		}
 		else if (mb_event->type == MidiBindingEvent::GetAll)
 		{
+			LockMonitor lm (_midi_bridge->bindings_lock(), __LINE__, __FILE__);
 			_osc->send_all_midi_bindings (&_midi_bridge->bindings(), mb_event->ret_url, mb_event->ret_path);
 		}
 		else if (mb_event->type == MidiBindingEvent::Clear)
 		{
+			LockMonitor lm (_midi_bridge->bindings_lock(), __LINE__, __FILE__);
 			_midi_bridge->bindings().clear_bindings();
 		}
 		else if (mb_event->type == MidiBindingEvent::Load)
 		{
+			LockMonitor lm (_midi_bridge->bindings_lock(), __LINE__, __FILE__);
 			_midi_bridge->bindings().load_bindings (mb_event->bind_str, mb_event->options == "add" ? true: false);
 		}
 		else if (mb_event->type == MidiBindingEvent::Save)
 		{
+			LockMonitor lm (_midi_bridge->bindings_lock(), __LINE__, __FILE__);
 			_midi_bridge->bindings().save_bindings (mb_event->bind_str);
 		}
 		else if (mb_event->type == MidiBindingEvent::GetNextMidi)
@@ -1041,14 +1049,14 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 					ntempo = avg_tempo(ntempo);
 
 					if (ntempo != _tempo) {
-						//cerr << "new tempo is: " << ntempo << endl;
+						// cerr << "new tempo is: " << ntempo << "   tcount = " << tcount << "  used: " << usedframes << endl;
 						set_tempo(ntempo);
 						_tempo_changed = true;
 						// wake up mainloop safely
 						pthread_cond_signal (&_event_cond);
 					}
 					
-					_quarter_counter = (double) -usedframes;
+					_quarter_counter = - ((double)usedframes);
 				}
 				
 				if ((_midi_ticks % _midi_loop_tick) == 0) {

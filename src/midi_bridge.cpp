@@ -37,6 +37,7 @@
 using namespace SooperLooper;
 using namespace std;
 using namespace MIDI;
+using namespace PBD;
 
 // Convert a value in dB's to a coefficent
 #define DB_CO(g) ((g) > -90.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
@@ -177,6 +178,13 @@ MidiBridge::finish_learn(MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 	int chan;
 	string type;
 
+	TentativeLockMonitor lm (_bindings_lock, __LINE__, __FILE__);
+	if (!lm.locked()) {
+		// just drop it if we don't get the lock
+		return;
+	}
+
+	
 	if (_learning) {
 
 		if (_midi_bindings.get_channel_and_type (chcmd, chan, type)) {
@@ -272,6 +280,12 @@ MidiBridge::incoming_midi (Parser &p, byte *msg, size_t len)
 void
 MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 {
+	TentativeLockMonitor lm (_bindings_lock, __LINE__, __FILE__);
+	if (!lm.locked()) {
+		// just drop it if we don't get the lock
+		return;
+	}
+
 	// convert midi to lookup key
 	// lookup key = (chcmd << 8) | param
 

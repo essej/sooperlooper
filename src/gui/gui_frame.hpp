@@ -111,7 +111,8 @@ protected:
 	
 	void on_view_menu (wxCommandEvent &ev);
 	
-	void on_taptempo_event (int button);
+	void on_taptempo_press (int button);
+	void on_taptempo_release (int button);
 	
 	void init_syncto_choice();
 	void update_syncto_choice();
