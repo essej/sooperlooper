@@ -45,7 +45,7 @@ int do_shutdown = 0;
 
 
 #define DEFAULT_OSC_PORT 9951
-#define DEFAULT_LOOP_TIME 200.0f
+#define DEFAULT_LOOP_TIME 40.0f
 
 
 char *optstring = "c:l:j:p:m:t:U:qVh";
@@ -96,7 +96,7 @@ static void usage(char *argv0)
 	fprintf(stderr, "Options:\n");
 	fprintf(stderr, "  -l <num> , --loopcount=<num> number of loopers to create (default is 1)\n");
 	fprintf(stderr, "  -c <num> , --channels=<num>  channel count for each looper (default is 2)\n");
-	fprintf(stderr, "  -t <numsecs> , --looptime=<num>  number of seconds of loop memory per channel (default is %g)\n", DEFAULT_LOOP_TIME);
+	fprintf(stderr, "  -t <numsecs> , --looptime=<num>  number of seconds of loop memory per channel (default is %g), at least\n", DEFAULT_LOOP_TIME);
 	fprintf(stderr, "  -p <num> , --osc-port=<num>  udp port number for OSC server (default is %d)\n", DEFAULT_OSC_PORT);
 	fprintf(stderr, "  -j <str> , --jack-name=<str> jack client name, default is sooperlooper_1\n");
 	fprintf(stderr, "  -m <str> , --load-midi-binding=<str> loads midi binding from file or preset\n");

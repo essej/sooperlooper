@@ -171,7 +171,7 @@ TimePanel::update_time()
 
 	if (_loop_control->is_updated(_index, "total_time")) {
 		_loop_control->get_value(_index, "total_time", val);
-		format_time (_tot_str, val);
+		format_time (_mem_str, val);
 		ret = true;
 	}
 
@@ -285,7 +285,8 @@ TimePanel::draw_area(wxDC & dc)
 // 	// rem time
 // 	dc.GetTextExtent(_rem_str, &rw, &rh);
 // 	dc.DrawText (_rem_str, _width - rw - 5, _height - rh - 5);
- 	_otherdc.DrawText (_rem_str, _other_bm->GetWidth() - tw, 10 + th + th);
+ 	//_otherdc.DrawText (_rem_str, _other_bm->GetWidth() - tw, 10 + th + th);
+	_otherdc.DrawText (_mem_str, _other_bm->GetWidth() - tw, 10 + th + th);
 	
 	// legends
 // 	dc.SetFont(_legend_font);
@@ -294,7 +295,7 @@ TimePanel::draw_area(wxDC & dc)
 
 // 	dc.GetTextExtent(wxT("tot"), &w, &h);
 // 	dc.DrawText (wxT("tot"), _width - tw - w - 10, 5);
- 	_otherdc.GetTextExtent(wxT("rem"), &w, &h);
+ 	_otherdc.GetTextExtent(wxT("mem"), &w, &h);
  	_otherdc.DrawText (wxT("tot"), _other_bm->GetWidth() - tw - w - 5, 0);
 	
 	
@@ -304,7 +305,7 @@ TimePanel::draw_area(wxDC & dc)
 
 // 	dc.GetTextExtent(wxT("rem"), &w, &h);
 // 	dc.DrawText (wxT("rem"), _width - rw - w - 10, _height - rh - 5);
- 	_otherdc.DrawText (wxT("rem"), _other_bm->GetWidth() - tw - w - 5, 10 + th + th);
+ 	_otherdc.DrawText (wxT("mem"), _other_bm->GetWidth() - tw - w - 5, 10 + th + th);
 
 	dc.Blit (120, 5, _other_bm->GetWidth(), _other_bm->GetHeight(), &_otherdc, 0, 0);
 	

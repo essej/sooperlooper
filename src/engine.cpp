@@ -262,7 +262,7 @@ Engine::process (nframes_t nframes)
 	size_t num = vec.len[0];
 	size_t n = 0;
 	size_t vecn = 0;
-	nframes_t fragpos;
+	int fragpos;
 	int m, syncm;
 	
 	if (num > 0) {
@@ -287,7 +287,8 @@ Engine::process (nframes_t nframes)
 #ifdef DEBUG
 				cerr << "BAD FRAGMENT POS: " << fragpos << endl;
 #endif
-				continue;
+				// do immediately
+				fragpos = usedframes;
 			}
 
 			doframes = fragpos - usedframes;

@@ -144,9 +144,9 @@ namespace SooperLooper {
 	    
 	    float Value;
 
-            inline uint32_t FragmentPos() {
-                if (iFragmentPos >= 0) return (uint32_t) iFragmentPos;
-                return (uint32_t) (iFragmentPos = pEventGenerator->toFragmentPos(TimeStamp));
+            inline int FragmentPos() {
+                if (iFragmentPos >= 0) return (int) iFragmentPos;
+                return (int) (iFragmentPos = pEventGenerator->toFragmentPos(TimeStamp));
             }
 
     protected:

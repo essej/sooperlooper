@@ -68,6 +68,7 @@ class TimePanel
 	wxString _cyc_str;
 	wxString _state_str;
 	wxString _rem_str;
+	wxString _mem_str;
 	bool     _waiting;
 	
 	wxFont  _pos_font;
