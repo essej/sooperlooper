@@ -354,23 +354,23 @@ LooperPanel::load_bitmaps (PixButton * butt, wxString namebase)
 	wxString bpath;
 
 	if(!(bpath = get_pixmap_path(namebase + wxT("_normal.png"))).empty()) {
-		butt->set_normal_bitmap (wxBitmap(bpath));
+		butt->set_normal_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
 	}
 	
 	if(!(bpath = get_pixmap_path(namebase + wxT("_selected.png"))).empty()) {
-		butt->set_selected_bitmap (wxBitmap(bpath));
+		butt->set_selected_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
 	}
 
 	if(!(bpath = get_pixmap_path(namebase + wxT("_focus.png"))).empty()) {
-		butt->set_focus_bitmap (wxBitmap(bpath));
+		butt->set_focus_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
 	}
 
 	if(!(bpath = get_pixmap_path(namebase + wxT("_disabled.png"))).empty()) {
-		butt->set_disabled_bitmap (wxBitmap(bpath));
+		butt->set_disabled_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
 	}
 
 	if(!(bpath = get_pixmap_path(namebase + wxT("_active.png"))).empty()) {
-		butt->set_active_bitmap (wxBitmap(bpath));
+		butt->set_active_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
 	}
 
 	return true;
