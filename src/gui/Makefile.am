@@ -31,4 +31,4 @@ slgui_SOURCES = \
 
 noinst_HEADERS = $(wildcard *.hpp *.h)
 
-EXTRA_DIST = $(wildcard pixmaps/*.png)
+EXTRA_DIST = $(wildcard pixmaps/*.png) pixmaps/sl_logo.xpm
