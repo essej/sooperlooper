@@ -143,6 +143,7 @@ int
 JackAudioDriver::_xrun_callback (void* arg)
 {
 	cerr << "got xrun" << endl;
+	return 0;
 }
 
 

@@ -168,13 +168,13 @@ MidiBridge::queue_midi (int chcmd, int param, int val)
 
 		float scaled_val = (float) ((val/127.0) *  ( info.ubound - info.lbound)) + info.lbound;
 
-		cerr << "found binding: val is " << val << "  scaled: " << scaled_val << endl;
+		// cerr << "found binding: val is " << val << "  scaled: " << scaled_val << endl;
 		
 		send_osc (info, scaled_val);
 		
 	}
 	else {
-		fprintf(stderr, "binding %x not found\n", key);
+		// fprintf(stderr, "binding %x not found\n", key);
 	}
 }
 

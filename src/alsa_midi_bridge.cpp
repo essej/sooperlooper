@@ -95,11 +95,11 @@ void  AlsaMidiBridge::midi_receiver()
 		switch(event->type){
 		case SND_SEQ_EVENT_NOTEON:
 			queue_midi(0x90+event->data.note.channel,event->data.note.note,event->data.note.velocity);
-			printf("Noteon, channel: %d note: %d vol: %d\n",event->data.note.channel,event->data.note.note,event->data.note.velocity);
+			//printf("Noteon, channel: %d note: %d vol: %d\n",event->data.note.channel,event->data.note.note,event->data.note.velocity);
 			break;
 		case SND_SEQ_EVENT_NOTEOFF:
 			queue_midi(0x90+event->data.note.channel,event->data.note.note,0);
-			printf("Noteoff, channel: %d note: %d vol: %d\n",event->data.note.channel,event->data.note.note,event->data.note.velocity);
+			//printf("Noteoff, channel: %d note: %d vol: %d\n",event->data.note.channel,event->data.note.note,event->data.note.velocity);
 			break;
 		case SND_SEQ_EVENT_KEYPRESS:
 			//printf("Keypress, channel: %d note: %d vol: %d\n",event->data.note.channel,event->data.note.note,event->data.note.velocity);
@@ -107,7 +107,7 @@ void  AlsaMidiBridge::midi_receiver()
 			break;
 		case SND_SEQ_EVENT_CONTROLLER:
 			queue_midi(0xb0+event->data.control.channel,event->data.control.param,event->data.control.value);
-			printf("Control: %d %d %d\n",event->data.control.channel,event->data.control.param,event->data.control.value);
+			//printf("Control: %d %d %d\n",event->data.control.channel,event->data.control.param,event->data.control.value);
 			break;
 		case SND_SEQ_EVENT_PITCHBEND:
 			val=event->data.control.value + 0x2000;
@@ -119,7 +119,7 @@ void  AlsaMidiBridge::midi_receiver()
 			queue_midi(0xc0+event->data.control.channel,event->data.control.value,0);
 			break;
 		case SND_SEQ_EVENT_PGMCHANGE:
-			printf("pgmchange: %d %d %d\n",event->data.control.channel,event->data.control.param,event->data.control.value);
+			//printf("pgmchange: %d %d %d\n",event->data.control.channel,event->data.control.param,event->data.control.value);
 			queue_midi(0xc0+event->data.control.channel,event->data.control.value,0);
 			break;
 		default:
