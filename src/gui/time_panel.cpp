@@ -184,7 +184,7 @@ TimePanel::update_cyc()
 	
 	if (clen > 0.0f) {
 		_cyc_cnt_str.Printf("%2d", (int) roundf (llen / clen));
-		_cyc_curr_str.Printf("%2d", (int) ceilf (lpos / clen));
+		_cyc_curr_str.Printf("%2d", (int) ceilf (lpos / (clen)));
 	}
 	else {
 		_cyc_curr_str.Printf("-");

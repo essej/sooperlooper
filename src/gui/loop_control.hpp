@@ -97,7 +97,7 @@ class LoopControl
 	bool is_engine_local();
 	wxString get_engine_host() { return _host; }
 	int get_engine_port() { return _port; }
-	bool connected() { return _osc_addr != 0; }
+	bool connected() { return (_osc_addr != 0 && _pingack); }
 	
 	void request_values (int index);
 	void request_all_values (int index);
@@ -126,6 +126,7 @@ class LoopControl
 	void register_auto_update(int index, wxString ctrl, bool unreg=false);
 	
 	void send_quit();
+	void send_alive_ping();
 	
 	bool is_updated (int index, wxString ctrl);
 	bool is_global_updated (wxString ctrl);
@@ -139,8 +140,10 @@ class LoopControl
 	SigC::Signal1<void,int> LooperConnected;
 	SigC::Signal1<void, const std::string&> ConnectFailed;
 	SigC::Signal1<void, const std::string&> LostConnection;
+	SigC::Signal1<void, const std::string&> ErrorReceived;
 	SigC::Signal0<void> Disconnected;
 	SigC::Signal0<void> NewDataReady;
+	SigC::Signal0<void> IsAlive;
 	SigC::Signal1<void, SooperLooper::MidiBindInfo&> MidiBindingChanged;
 	SigC::Signal1<void, SooperLooper::MidiBindInfo&> ReceivedNextMidi;
 	SigC::Signal0<void> MidiLearnCancelled;
@@ -162,6 +165,16 @@ class LoopControl
 				    void *data, void *user_data);
 
 	int midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+
+	static int _alive_handler(const char *path, const char *types, lo_arg **argv, int argc,
+				    void *data, void *user_data);
+
+	int alive_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+
+	static int _error_handler(const char *path, const char *types, lo_arg **argv, int argc,
+				    void *data, void *user_data);
+
+	int error_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	
 	static void * _osc_traffic(void * arg);
 	void osc_traffic();

@@ -1422,6 +1422,21 @@ void ControlOSC::send_all_config ()
 	}
 }
 
+void ControlOSC::send_error (std::string returl, std::string retpath, std::string mesg)
+{
+	lo_address addr;
+
+	addr = find_or_cache_addr (returl);
+	if (!addr) {
+		return;
+	}
+
+	string oururl = get_server_url();
+	
+	if (lo_send(addr, retpath.c_str(), "ss", oururl.c_str(), mesg.c_str()) < 0) {
+		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
+	}
+}
 
 void ControlOSC::send_pingack (bool useudp, string returl, string retpath)
 {
@@ -1443,7 +1458,7 @@ void ControlOSC::send_pingack (bool useudp, string returl, string retpath)
 		oururl = get_server_url();
 	}
 	
-	cerr << "sooperlooper: sending ping response to " << returl << endl;
+	//cerr << "sooperlooper: sending ping response to " << returl << endl;
 	if (lo_send(addr, retpath.c_str(), "ssi", oururl.c_str(), sooperlooper_version, _engine->loop_count()) < 0) {
 		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
 	}

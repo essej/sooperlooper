@@ -59,6 +59,7 @@ class ControlOSC
 	void send_all_midi_bindings (MidiBindings * bind, std::string returl, std::string retpath);
 
 	void send_auto_updates ();
+	void send_error (std::string returl, std::string retpath, std::string mesg);
 	
 	void finish_get_event (GetParamEvent & event);
 	void finish_update_event (ConfigUpdateEvent & event);

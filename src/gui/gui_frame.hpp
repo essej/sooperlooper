@@ -128,6 +128,8 @@ protected:
 
 	void on_connect_failed (const std::string & msg);
 	void on_connection_lost (const std::string & msg);
+	void on_engine_alive ();
+	void on_error_received (const std::string & msg);
 	
 	LoopControl * _loop_control;
 	SigC::Connection  _loop_update_connection;
@@ -163,6 +165,7 @@ protected:
 	
 	int     _got_new_data;
 	wxString  _rcdir;
+	bool _engine_alive;
 	
 private:
     // any class wishing to process wxWindows events must use this macro

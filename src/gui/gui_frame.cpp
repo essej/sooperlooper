@@ -130,6 +130,7 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 	_prefs_dialog = 0;
 	_got_new_data = 0;
 	_help_window = 0;
+	_engine_alive = true;
 	
 	_rcdir = wxGetHomeDir() + wxFileName::GetPathSeparator() + wxT(".sooperlooper");
 
@@ -150,12 +151,15 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 #endif
 
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
-	//_update_timer->Start(100);
+	_update_timer->Start(3000);
 
 	_taptempo_button_timer = new wxTimer(this, ID_TapTempoTimer);
 
 	_loop_control->ConnectFailed.connect (slot (*this,  &GuiFrame::on_connect_failed));
 	_loop_control->LostConnection.connect (slot (*this,  &GuiFrame::on_connection_lost));
+	_loop_control->IsAlive.connect (slot (*this,  &GuiFrame::on_engine_alive));
+	_loop_control->ErrorReceived.connect (slot (*this,  &GuiFrame::on_error_received));
+	
 }
 
 GuiFrame::~GuiFrame()
@@ -466,6 +470,7 @@ GuiFrame::init_loopers (int count)
 	init_syncto_choice ();
 
 	set_curr_loop (_curr_loop);
+	_engine_alive = true;
 }
 
 void
@@ -496,13 +501,40 @@ GuiFrame::on_connection_lost (const std::string & msg)
 }
 
 void
+GuiFrame::on_error_received (const std::string & msg)
+{
+	wxMessageDialog dial(this, wxString::FromAscii(msg.c_str()), wxT("Error Received"), wxOK);
+	dial.SetTitle(wxT("Error Received"));
+
+	dial.ShowModal();
+}
+
+
+void
+GuiFrame::on_engine_alive ()
+{
+	//cerr << "got alive ping" << endl;
+	_engine_alive = true;
+}
+
+
+void
 GuiFrame::OnUpdateTimer(wxTimerEvent &ev)
 {
+	// check to see if our connected server is still alive
+	
+	if (_loop_control->connected()) {
+ 		_loop_control->update_values();
 
-	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
-		//_loop_control->request_values ((int)i);
+		if (!_engine_alive) {		
+			_loop_control->disconnect();
+			on_connection_lost ("Lost connection to SooperLooper engine.\nSee the Preferences->Connections tab to start a new one");
+		}
+
+		_engine_alive = false;
+		_loop_control->send_alive_ping();
 	}
-
+	
 	ev.Skip();
 }
 

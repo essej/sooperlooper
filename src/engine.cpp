@@ -1190,10 +1190,14 @@ Engine::process_nonrt_event (EventNonRT * event)
 		for (unsigned int n=0; n < _instances.size(); ++n) {
 			if (lf_event->instance == -1 || lf_event->instance == (int)n) {
 				if (lf_event->type == LoopFileEvent::Load) {
-					_instances[n]->load_loop (lf_event->filename);
+					if (!_instances[n]->load_loop (lf_event->filename)) {
+						_osc->send_error(lf_event->ret_url, lf_event->ret_path, "Loop Load Failed");
+					}
 				}
 				else {
-					_instances[n]->save_loop (lf_event->filename);
+					if (!_instances[n]->save_loop (lf_event->filename)) {
+						_osc->send_error(lf_event->ret_url, lf_event->ret_path, "Loop Save Failed");
+					}
 				}
 			}
 		}

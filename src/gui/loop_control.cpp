@@ -50,19 +50,19 @@ XMLNode& LoopControl::SpawnConfig::get_state () const
 {
 	XMLNode *node = new XMLNode ("context");
 
-	node->add_property ("name", name.c_str());
+	node->add_property ("name", name.ToAscii());
 
-	node->add_property ("host", host.c_str());
-	node->add_property ("port", wxString::Format(wxT("%ld"), port).c_str());
-	node->add_property ("num_loops", wxString::Format(wxT("%ld"), num_loops).c_str());
-	node->add_property ("num_channels", wxString::Format(wxT("%ld"), num_channels).c_str());
-	node->add_property ("mem_secs", wxString::Format(wxT("%f"), mem_secs).c_str());
+	node->add_property ("host", host.ToAscii());
+	node->add_property ("port", wxString::Format(wxT("%ld"), port).ToAscii());
+	node->add_property ("num_loops", wxString::Format(wxT("%ld"), num_loops).ToAscii());
+	node->add_property ("num_channels", wxString::Format(wxT("%ld"), num_channels).ToAscii());
+	node->add_property ("mem_secs", wxString::Format(wxT("%f"), mem_secs).ToAscii());
 	node->add_property ("discrete_io", discrete_io ? "yes": "no");
 
-	node->add_property ("exec_name", exec_name.c_str());
-	node->add_property ("jack_name", jack_name.c_str());
-	node->add_property ("jack_serv_name", jack_serv_name.c_str());
-	node->add_property ("midi_bind_path", midi_bind_path.c_str());
+	node->add_property ("exec_name", exec_name.ToAscii());
+	node->add_property ("jack_name", jack_name.ToAscii());
+	node->add_property ("jack_serv_name", jack_serv_name.ToAscii());
+	node->add_property ("midi_bind_path", midi_bind_path.ToAscii());
 
 	node->add_property ("force_spawn", force_spawn ? "yes": "no");
 	
@@ -160,6 +160,8 @@ LoopControl::LoopControl (const wxString & rcdir)
 	tmpstr = lo_server_get_url (_osc_server);
 	_our_url = tmpstr;
 	free (tmpstr);
+
+	cerr << "our URL is " << _our_url << endl;
 	
 	/* add handler for control param callbacks, first is loop index , 2nd arg ctrl string, 3nd arg value */
 	lo_server_add_method(_osc_server, "/ctrl", "isf", LoopControl::_control_handler, this);
@@ -167,6 +169,10 @@ LoopControl::LoopControl (const wxString & rcdir)
 	// pingack expects: s:engine_url s:version i:loopcount
 	lo_server_add_method(_osc_server, "/pingack", "ssi", LoopControl::_pingack_handler, this);
 
+	lo_server_add_method(_osc_server, "/alive_resp", "ssi", LoopControl::_alive_handler, this);
+
+	lo_server_add_method(_osc_server, "/error", "ss", LoopControl::_error_handler, this);
+	
 	/* add handler for recving midi bindings, s:status s:serialized binding */
 	lo_server_add_method(_osc_server, "/recv_midi_bindings", "ss", LoopControl::_midi_binding_handler, this);
 	
@@ -582,6 +588,43 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 
 	return 0;
 }
+
+int
+LoopControl::_alive_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			      void *data, void *user_data)
+{
+	LoopControl * lc = static_cast<LoopControl*> (user_data);
+	return lc->alive_handler (path, types, argv, argc, data);
+}
+
+int
+LoopControl::alive_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+{
+	// s:hosturl  s:version  i:loopcount
+
+	IsAlive(); // emit
+	return 0;
+}
+
+int
+LoopControl::_error_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			      void *data, void *user_data)
+{
+	LoopControl * lc = static_cast<LoopControl*> (user_data);
+	return lc->error_handler (path, types, argv, argc, data);
+}
+
+int
+LoopControl::error_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+{
+	// s:errstr
+	string errsrc(&argv[0]->s);
+	string errstr(&argv[1]->s);
+
+	ErrorReceived(errstr); // emit
+	return 0;
+}
+
 
 
 int
@@ -1075,6 +1118,12 @@ LoopControl::send_quit()
 	lo_send(_osc_addr, "/quit", NULL);
 }
 
+void
+LoopControl::send_alive_ping()
+{
+	if (!_osc_addr) return;
+	lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/alive_resp");
+}
 
 void
 LoopControl::update_values()

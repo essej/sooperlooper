@@ -1036,7 +1036,6 @@ LooperPanel::button_bind_events (wxString cmd)
 	
 	info.channel = 0;
 	info.type = "n";
-	//info.control = cmd.c_str();
 	snprintf(cmdbuf, sizeof(cmdbuf), "%s", cmd.c_str());
 	info.control = cmdbuf;
 
@@ -1200,7 +1199,6 @@ LooperPanel::slider_events(float val, int id)
 void
 LooperPanel::control_bind_events(int id)
 {
-	wxString ctrl;
 	MidiBindInfo info;
 	bool donothing = false;
 
@@ -1215,51 +1213,42 @@ LooperPanel::control_bind_events(int id)
 	switch(id)
 	{
 	case ID_ThreshControl:
-		ctrl = wxT("rec_thresh");
-		info.control = ctrl.c_str();
+		info.control = "rec_thresh";
 		info.style = MidiBindInfo::GainStyle;
 		break;
 	case ID_FeedbackControl:
-		ctrl = wxT("feedback");
-		info.control = ctrl.c_str();
+		info.control = "feedback";
 		info.style = MidiBindInfo::NormalStyle;
 		break;
 	case ID_DryControl:
-		ctrl = wxT("dry");
-		info.control = ctrl.c_str();
+		info.control = "dry";
 		info.style = MidiBindInfo::GainStyle;
 		break;
 	case ID_WetControl:
-		ctrl = wxT("wet");
-		info.control = ctrl.c_str();
+		info.control = "wet";
 		info.command = "set";
 		info.style = MidiBindInfo::GainStyle;
 		break;
 	case ID_ScratchControl:
-		ctrl = wxT("scratch_pos");
-		info.control = ctrl.c_str();
+		info.control = "scratch_pos";
 		info.style = MidiBindInfo::NormalStyle;
 		break;
 	case ID_RateControl:
-		ctrl = wxT("rate");
-		info.control = ctrl.c_str();
+		info.control = "rate";
 		info.style = MidiBindInfo::NormalStyle;
 		info.lbound = 0.25;
 		info.ubound = 4.0;
 		break;
 	case ID_SyncCheck:
-		ctrl = wxT("sync");
-		info.control = ctrl.c_str();
+		info.control = "sync";
 		info.style = MidiBindInfo::NormalStyle;
 		break;
 	case ID_PlaySyncCheck:
-		ctrl = wxT("playback_sync");
-		info.control = ctrl.c_str();
+		info.control = "playback_sync";
 		info.style = MidiBindInfo::NormalStyle;
 		break;
 	case ID_UseFeedbackPlayCheck:
-		ctrl = wxT("use_feedback_play");
-		info.control = ctrl.c_str();
+		info.control = "use_feedback_play";
 		info.style = MidiBindInfo::NormalStyle;
 		break;
 	default:
@@ -1281,9 +1270,9 @@ void LooperPanel::pan_events(float val, int chan)
        
 void LooperPanel::pan_bind_events(int chan)
 {
-	wxString ctrl;
 	MidiBindInfo info;
-
+	char cmdbuf[20];
+	
 	info.channel = 0;
 	info.type = "cc";
 	info.command = "set";
@@ -1292,8 +1281,8 @@ void LooperPanel::pan_bind_events(int chan)
 	info.ubound = 1.0;
 	info.style = MidiBindInfo::NormalStyle;
 
-	ctrl = wxString::Format(wxT("pan_%d"), chan+1);
-	info.control = ctrl.c_str();
+	snprintf (cmdbuf, sizeof(cmdbuf), "pan_%d", chan+1);
+	info.control = cmdbuf;
 
 	start_learning(info);
 }
