@@ -1,0 +1,183 @@
+<html>
+
+<head> <title>SooperLooper: Parameters</title> </head>
+
+<body bgcolor=white>
+
+<img align=right src="sooperlooper.gif">
+    
+<h1>      Description of SooperLooper Parameters </h1>
+
+    
+<p>
+<a href="index.html">SooperLooper main page</a>
+    <p>
+
+ I need to get a properly allocated LADSPA plugin unique ID, right now 
+      I'm using 3333, who runs the registry?
+      <p>
+      
+    <h3>Input Parameters</h3>
+
+<dl>    
+<dt> <b>1: Record Threshold</b>  &nbsp; [0, 1]
+   <dd> This defines the audio sample threshold to begin recording after
+    RECORD is triggered.  This value is also used as the trigger to
+    stop recording after RECORD is pressed a second time.  It can help
+    get cleaner seams under certain conditions.
+
+
+<dt><b>2: Dry Level</b> &nbsp;  [0, 1]
+   <dd>Controls input thru amplitude.
+
+<dt><b>3: Wet Level</b> &nbsp;  [0, 1]
+   <dd>Controls loop/delay playback amplitude.
+
+<dt><b>4: Feedback</b> &nbsp; [0, 1]
+  <dd>   Controls how much of the loop signal gets passed back to the loop
+    during Overdubbing, Multiplying, or Delay mode.  Note that the
+    audible effect of feedback changes made during one of these
+    functions won't be heard until the next loop cycle.  Can be used
+    to fade out a loop while overdubbing a new one.
+   
+<dt><b>5: Rate</b> (during scratch mode)
+   <dd> When the scratch rate active is toggled on (by pressing Reverse
+    while in SCRATCH mode), this is the rate of loop playback in SCRATCH
+    mode when not changing the Scratch Pos (scratching).  Can be +/-
+    anything.
+
+<dt><b>6: Scratch Position</b> &nbsp; [0,1]
+  <dd> When in SCRATCH mode, changes in this parameter
+   over time define the rate of playback (position unit is ratio of
+   current loop length).
+
+<dt><b>7: Multi Control </b>
+
+  <dd>The main control of the plugin is done through this parameter,
+  the use of which is a little unorthodox.  It takes an integer
+  (interpreted) value between 0 and 127, but only pays attention to
+  changes in its value.  The value of the ones digit corresponds to
+  the function you wish to trigger from the following table: <br>
+	  
+   UNDO       0   // UNDO ALL in mute mode  <br>
+   REDO       1   // DELAY TAP, if REDO_TAP_MODE is true<br>
+   REPLACE    2   // QUANTIZE TOGGLE in mute mode<br>
+   REVERSE    3   // ROUND TOGGLE in mute mode<br>
+   SCRATCH    4   // UNMUTE from Top in mute mode<br>
+   RECORD     5<br>
+   OVERDUB    6<br>
+   MULTIPLY   7<br>
+   INSERT     8   // ONE SHOT playback from mute mode<br>
+   MUTE       9   // UNMUTE continue in mute mode<br>
+	
+<br>
+  The value of the tens digit (well, 0-12) is used to match the value
+  of the "Multi Tens" parameter set for a given instance of the
+  plugin.  This way you can use the same hardware controller to
+  control several independent instances of the plugin.  The weird
+  thing about the Multi Control is to get two "presses" of one
+  function in a row, you must set the value for one frame of data, set
+  it to -1 (or anything else out of range) for at least a frame, then
+  set it back to the original value when you want to trigger it again.
+  All of this derives from the fact that I am using a MIDI
+  footcontroller's program changes as the triggering mechanism
+  (described in detail below).
+
+<dt><b>8:  Tap Tempo Delay Trigger </b>
+  <dd>At any time, changes in the parameter are registered as tap tempo
+  triggers (with a settle-time threshold for dirty switches).  DELAY
+  mode is entered and the time between the most recent two presses is
+  the new delay time.  Pressing other functions or UNDO leaves DELAY
+  mode.
+
+<dt><b>9: Multi Control Tens digit</b>
+  <dd>See 7:MultiControl above.
+
+<dt><b>10: Quantize Mode</b>  (boolean)
+  <dd>Sets the value of Quantize Mode (non-zero is on).  This mode affects
+  how certain looping functions start their operation.  See the EDP
+  manual for details.  I diverged a little bit from the EDP usage with
+  the Multiply command in a way that made more sense to me: if
+  QuantizeMode is on, new input doesn't start being added to the loop
+  until the next cycle boundary.  The rest of the semantics should be
+  the same as the EDP.
+
+<dt><b>11: Round Mode</b>  (boolean)
+  <dd>Sets the value of Round Mode (non-zero is on).  This mode affects
+  how certain operations finish.  See the EDP manual again.
+
+<dt><b>12: Redo Tap Mode </b> (boolean)
+  <dd> If this is non-zero, the REDO command is treated as a tap tempo
+trigger instead (see 8 above).
+
+</dl>
+
+	  <p>
+<h3>Output Parameters</h3>
+
+<dl>
+<dt><b>13: State</b>  (treat as integer)
+  <dd>This indicates which internal state the plugin is currently in.  It
+  will be one of the following values: <br> <br>
+    0 = Off<br> 
+    1 = Waiting for threshold to START RECORD<br> 
+    2 = RECORD <br>
+    3 = Waiting for threshold to STOP RECORD <br>
+    4 = PLAY <br>
+    5 = OVERDUB <br>
+    6 = MULTIPLY <br>
+    7 = INSERT <br>
+    8 = REPLACE <br>
+    9 = TAP DELAY <br>
+    10 = MUTE <br>
+    11 = SCRATCH <br>
+    12 = ONE SHOT <br> <br>
+
+<dt><b>14: Loop Length</b> (secs)
+  <dd> The length in seconds of the current loop.
+
+<dt><b>15: Loop Position</b> (secs)
+   <dd>The position in seconds of the current loop.
+
+<dt><b>16: Cycle Length</b> (secs)
+   <dd>The cycle length of the current loop.  This is the length of the
+   loop after the initial record.  If it is later Multiplied, the loop 
+   length will always be a multiple of the cycle length.  Quantized
+   and Rounded operations always use cycle length boundaries.
+
+<dt><b>17: Loop Memory Free</b> (secs)
+  <dd> This is amount of available audio time left in the loop memory.
+   Because we support unlimited Undo/Redo, each time you start a new
+   operation you take up more space in the loop memory (so you can
+   undo back to the previous state).  Periodically you'll need to Undo
+   or Undo All to get free loop memory back.
+
+<dt><b>18: Loop Memory Total</b> (secs)
+  <dd> Total amount of loop memory set at compile time on the module.
+   Alter the SAMPLE_MEMORY variable in the Makefile and recompile to
+   increase or decrease the value to suit your requirements.  The
+   default is 200 seconds worth (2 seconds more than the EDP max ;) ,
+   which at 44.1kHz sample rate of 32 bit floats is about 35 MB.  You
+   do NOT want this to swap, so plan accordingly.
+
+</dl>
+
+    <p>
+
+      
+<h3>Audio I/O</h3>
+    
+ This is not a stereo plugin, but if you instantiate 2 of them and
+keep your record threshold at 0.0 you should be good.
+<p>
+<b>19:  Audio Input</b>
+<p>
+<b>20:  Audio Output</b>
+
+<p>
+      <hr> <p>
+      January 2002 -- Jesse Chappell -- &nbsp; <a
+	href="mailto:jesse@essej.net">jesse@essej.net</a>
+      
+      </body>
+</html>

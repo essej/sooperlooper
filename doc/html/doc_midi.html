@@ -28,28 +28,68 @@
       <div id="Content">
 
 	The engine can be controlled with MIDI via the
-	ALSA sequencer interface on Linux.
+	ALSA sequencer interface on Linux and CoreMidi on OS X.
 	<p>
-	You can edit/load/save the midi
-	bindings through the MIDI Bindings window in the
-	GUI, or do learn-style control binding by choosing the learn option from the 
+	  Do learn-style control binding by choosing the learn option from the 
 	context menu's of a button, slider or control.
 	  Control-Middle-clicking on the button or
 	  slider is a shortcut to start learning.
+	</p>
+
+
+	<div class="flowimage">
+	  <a href="midi_bindings_dial.png" border=0> <img src="midi_bindings_dial_small.png"> </a>
+	</div>
+	
+	You can edit, load, and save the midi
+	bindings through the MIDI Bindings window in the
+	GUI.  
+	</p>
+
 	<p>
-	  
+	  The main area of the MIDI Bindings window contains a list
+	  showing the currently bound commands and controls.  Below
+	  the list are controls which reflect the currently selected
+	  item,  allowing for modification of the selected binding,
+	  or the addition of a new binding.
+	  </p>
+	<p>
+	  The Command/Control area
+	  allows for picking the specific command (record, overdub,
+	  etc) or one of the available numeric or togglable controls
+	  (feedback, output level, sync, etc), and which loop index
+	  the binding will control.  The SUS option makes the binding
+	  behave as a momentary control with note and CC events (see
+	  <a href="doc_commands.html">commands</a>).
+	</p>
+
+	<p> The MIDI Event area allows editing of the midi event
+	  parameters for a binding.     The Range entries become active with
+	  controls to specify how the midi 0-127 values are mapped to
+	  the target control.  The scaling type choice may be either
+	  Normal (linear) or Gain (logarithmic).  The first entry maps
+	  to midi value of 0, the second entry maps to 127.
+	</p>
+	<p>
+	  If the Learn button is pressed,
+	  the next incoming midi event will set the controls to its
+	  value.  <b>Note that no binding is changed until
+	  Add New or Modify is pressed which adds a new binding or modifies
+	  the existing selected one respectively.</b>
+	</p>
+	<p>
 	  You
 	  can also load the intial bindings from the saved bindings file with the
 	  <b>-m</b> option (to the engine) or by specifying in the GUI's Looper Connection window.  Example binding files are to be found
-	  in the source code directory with the extension
+	  installed in PREFIX/share/sooperlooper/presets/ directory with the extension
 	'.slb'.  
-		    
+	</p>    
 	
       </div>
 
 
       <div class="copyright">
-	&copy; 2004  Jesse Chappell  <i>&lt;jesse at essej dot net&gt;</i>
+	&copy; 2005  Jesse Chappell  <i>&lt;jesse at essej dot net&gt;</i>
 	
       </div>
       
@@ -59,8 +99,9 @@
     	<a href="download.html" title="Download">Download</a><br>
     	<a href="docs.html" title="Documentation">Documentation</a><br>
 
-    	<a href="doc_start.html" title="Command Reference" class="offset">Getting Started</a><br>
+    	<a href="doc_start.html" title="Getting Started" class="offset">Getting Started</a><br>
     	<a href="doc_commands.html" title="Command Reference"  class="offset">Commands</a><br>
+    	<a href="doc_sync.html" title="Sync/Tempo"  class="offset">Sync/Tempo</a><br>
     	<a href="doc_midi.html" title="MIDI Bindings"
 	  class="offset">MIDI Bindings</a><br>
     	<a href="doc_osc.html" title="OSC Interface"

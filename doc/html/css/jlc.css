@@ -243,6 +243,7 @@ UL.smaller {
   float: left;
   clear: left bottom;
   margin: 5px 5px 5px 5px;
+  border: solid 2px #68a;
 }
 
 .flowimageright {

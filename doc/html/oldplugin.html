@@ -1,0 +1,341 @@
+<html>
+
+<head> <title>SooperLooper: The LADSPA Looping Sampler</title> </head>
+
+<body bgcolor=white>
+
+<center>
+      <img src="sooperlooper.gif">
+      </center>
+    <p>
+
+<b> This page refers to the older LADSPA plugin version of SooperLooper,
+   it has been superceded by the in development standalone JACK client version
+  <a href="index.html">here</a>
+</b>
+
+<p>
+      
+<b>SooperLooper</b> is a looping sampler very much like the Gibson/Oberheim
+Echoplex Digital Pro (EDP).  In fact, it is a downright emulation of an EDP,
+with some additional features and a silly name.  I figured that the EDP feature-set is
+powerful, proven, and popular -- so why not implement it as a LADSPA plugin
+we can all use?  It is a true realtime software looper if used with a 
+low-latency Linux kernel and the proper audio buffer configuration.
+      Please let me know if you have any problems...
+
+<p>
+<b> Download the source:</b> &nbsp; <a
+href="sooperlooper-0.93.tar.gz">sooperlooper-0.93.tar.gz</a>
+<p>
+
+      <font size=-1>
+ <i>Changes for 0.93:</i> <br>
+	&nbsp; &nbsp; now includes PD patches!<br>
+	
+	
+	<br>
+	<i>Changes for 0.92:</i> <br>
+	&nbsp; &nbsp; sltester.py now supports ecasound 2.2 <br>
+<br>
+ <i>Changes for 0.91:</i> <br>
+	&nbsp; &nbsp; Now uses officially allocated plugin ID <br>
+	&nbsp; &nbsp; Minor error checking fixes <br>
+
+    </font>
+
+    <p>
+      
+<b> Author Contact:</b> &nbsp; Jesse Chappell -- &nbsp; 
+	jesse at essej dot net</a>
+
+      <p>
+	
+      
+I have never used an actual EDP, but all the features are described in
+the user's manual, which was an invaluable resource.  Take a look at
+<a href="http://www.loopers-delight.com/tools/echoplex/echoplex.html">
+	http://www.loopers-delight.com/tools/echoplex/echoplex.html</a>
+      to get the manual and other tips.  It all applies.
+
+<p>
+
+      
+<b>Features of SooperLooper shared with the EDP:</b>
+
+<ul compact>
+  <li>  Record
+  <li> Overdub
+  <li>Multiply
+  <li>Insert
+  <li>Replace
+ <li> Reverse
+  <li>Mute
+  <li>One Shot
+  <li>Undo
+  <li>Tap tempo delay mode
+ <li> Feedback and Mix parameters
+  <li>QuantizeMode and RoundMode toggles
+</ul>
+
+<p>
+
+ <b> Additional features of SooperLooper:</b>
+<ul compact>
+    <li>  Redo
+  <li>Scratch Mode (DJ-like scratching of the current loop)
+       w/ arbitrary playback rate
+</ul>
+
+    <p>
+      
+There are a few differences in functionality on the alternate endings
+of certain functions, but for the most part I tried to match the EDP
+manual for the LoopIII version.  The primary difference is the mechanism of control, 
+as it is a LADSPA plugin and not hardware :)
+
+See the <a href="parameters.html">parameters page</a> for a detailed
+description of the LADSPA input and
+output parameters for this plugin.
+
+
+<h2>How to get it working for you</h2>
+
+<b></b> Now included with SooperLooper are <a
+      href="http://iem.kug.ac.at/pd/">PD</a> (Pure-Data)
+    patches which let
+you control it manually or by MIDI program changes.  The patches
+use the <a href="ftp://iem.kug.ac.at/pd/Externals/PLUGIN/">plugin~</a> external
+to wrap the SooperLooper LADSPA plugin.  However, because
+of bugs and missing features of plugin~-0.2 you will need to apply
+this <a
+      href="pd-plugin0.2-patch.diff">source code patch</a>
+    to use it.  This patch fixes the output control parameter
+    messages, and extends them with an additional element (the output index).  This patch 
+   is already integrated into the latest maintained version of PD 0.37.
+<p>
+Once you have a patched plugin~, fire up PD making sure that
+it and 'sooperlooper~.pd' and 'sooperloopermanual_midi.pd' files are located 
+in your PD path (or specified via the -path argument).
+<p>
+Open 'sooperloopermanual_midi.pd', you will need to get audio in and
+out.  You can open up a new window to 'throw' and 'catch' the data
+from the audio hardware to 'sooploopin' and 'sooploopout' as seen in this
+  <a href="sooperlooper_pd_shot.png">screenshot</a>.
+Or do it your own way....
+<p>
+You can control it via the buttons, or via a MIDI program change
+messages ideally sent by your MIDI footcontroller.  The values are:
+<p>
+   0 &nbsp; &nbsp; UNDO       // UNDO ALL in mute mode<br>
+   1 &nbsp; &nbsp;REDO        // DELAY TAP, if REDO_TAP_MODE is true<br>
+   2 &nbsp; &nbsp;REPLACE       // QUANTIZE TOGGLE in mute mode<br>
+   3 &nbsp; &nbsp;REVERSE       // ROUND TOGGLE in mute mode<br>
+   4 &nbsp; &nbsp;SCRATCH       // UNMUTE from Top in mute mode<br>
+   5 &nbsp; &nbsp;RECORD     <br>
+   6 &nbsp; &nbsp;OVERDUB    <br>
+   7 &nbsp; &nbsp;MULTIPLY   <br>
+   8 &nbsp; &nbsp;INSERT        // ONE SHOT playback from mute mode<br>
+   9 &nbsp; &nbsp;MUTE          // UNMUTE continue in mute mode<br>
+<p>
+  The value of the tens digit (well, 0-12) is used to match the value
+  of the "Multi Tens" parameter set for a given instance of the
+  plugin.  This way you can use the same hardware controller to
+  control several independent instances of the plugin.
+
+    <p>
+      
+      
+<h3>Install the plugin and try the python demo</h3>
+
+If you just want to try it out without investing the time and
+effort to do it with your feet or learn PD :) I included a sample
+curses-based console program to let you try it out with the keyboard.
+It also has some nice feedback from the control outputs to let you
+know the state of the plugin and time info about the looping.
+<p>
+      Here is a <a href="sl-shot.jpg">screenshot</a> of the console
+      demo sltester.py.
+      
+<p>
+
+    
+<tt>sltester.py</tt> is a Python script using curses and pyecasound to handle
+the audio.  You must have Python 2.x, the LADSPA header file and
+Ecasound (with pyecasound module (including eci.py) properly
+installed).  Ecasound is fantastically useful and well designed for a
+wide variety of audio applications, you should already have it if you
+don't.
+
+Get them respectively at:
+    <p>
+  <a href="http://www.python.org">http://www.python.org</a> <br>
+  <a href="http://www.ladspa.org">http://www.ladspa.org</a> <br>
+  <a href="http://www.wakkanet.fi/~kaiv/ecasound/">http://www.wakkanet.fi/~kaiv/ecasound/</a>
+
+      <p>
+      
+Compile SooperLooper by possibly editing the Makefile, and running
+'make' and copying SooperLooper.so into your LADSPA_PATH (or 'make
+install').
+
+<p>
+      
+Run the python script like this: <p>
+<tt>  ./sltester.py 2> error.output </tt>
+
+      <p>
+      
+And in another window tail the file to see the debugging output: <p>
+<tt>  tail -f -s 0 error.output </tt>
+
+      <p>
+If you don't do this the stderr will screw up the curses display. And its
+useful to see the debugging output, if you compiled it in.  Sometimes 
+<tt>tail</tt> might peg the CPU at 100%, if yours does, just use
+<tt> tail -f -s 1 error.output </tt>.
+<p>
+      
+Make sure your mixer is set to record the input you want to use, and
+everything except PCM and master is muted.  If you don't have a good
+full-duplex soundcard and/or <a href="http://www.linuxdj.com/audio/lad/resourceslatency.php3">low-latency kernel</a> you may want to
+increase the -b:128 in the ECASTART variable near the top of
+sltester.py to -b:256.  However, with a low-latency patched kernel and
+running as root (to get SCHED_FIFO) you should have no problems (you
+could even take it down to -b:64).
+
+      <p>
+      
+Have at it... note that the usage portion of the window changes a bit
+depending on what state the plugin is in.  The updating time status is
+turned off by default, but if you have nice low-latency stuff enabled you can
+turn it on without any overruns.... (press 's').
+
+<p>
+      
+<h3> Inadequate Usage Tips </h3>
+
+<dl>
+
+<dt><b>RECORD</b>
+  <dd>  Start here.  If Threshold > 0 the loop recording doesn't start until
+  the audio data is greater than the threshold.  The same goes for
+  when you finish a loop by pressing RECORD again, the loop doesn't
+  end until the audio goes above the threshold.  It might seem
+  strange, but this really helps get clean seams on your loops.  For
+  instance, in silence press RECORD the first time.  Then play a
+  measure or two in proper time, and just _before_ you hit the
+  downbeat (it must be below threshold) press RECORD again and play
+  the downbeat in time, don't stop.  The loop will take over and if
+  you did it right your last downbeat will be louder, but not out of
+  time.  If the Threshold is 0, it starts and stop the moment you
+  press RECORD.  See the tips in the EDP manual, it works best if you
+  stop and start recording the moment you hit the downbeat, not
+  before.  Trust them.
+    <p>
+  If you end a RECORD with another function it will finish the loop
+  immediately (threshold ignored) and start doing the new function.  A
+  special feature: ending with REVERSE stops recording and plays the
+  loop backwards once then goes into MUTE mode.
+
+
+<dt> <b>OVERDUB</b>
+ <dd> This just keeps playing the loop and  keeps adding whatever you
+  play until you stop overdubbing.  Very useful.... this is the main
+  tool.
+
+<dt> <b>MULTIPLY</b>
+  <dd> This similar to overdub, except the original loop is repeated
+  underneath you "multiplying" the loop length until you stop it.
+  Thus it can turn a 1 measure loop into a 2,3, etc measure loop.
+  QuantizeMode and RoundMode affect how the overdubbing starts and
+  stops.  See if you can figure it out. Keep in mind that the original
+  loop length is a "cycle" and the loop length will be a multiple of
+  that.  You can actually make an already multiplied loop have fewer
+  cycles with the right combination of options.
+<p>
+  If you end a MULTIPLY with a RECORD press it ends the loop
+  immediately and resets the cycle length to the whole loop, if you
+  want that.
+
+
+<dt><b>INSERT</b>
+  <dd>It insert new input in place, but always one "cycle" length...
+  QuantizeMode and RoundMode have effects (RTF EDP Manual).
+
+<dt><b>REPLACE</b>
+  <dd> Is like overdub without keeping or playing the underlying
+	audio.  So it's not like overdub at all.
+
+<dt><b>REVERSE</b>
+  <dd>Reverses playback direction.  Can be used in play mode, and even
+  during an OVERDUB, which makes for some pretty interesting stuff.
+  Can also be used in DELAY mode.  If QuantizeMode is on, the reversal 
+	doesn't happen until the next loop boundary, thus keeping the
+	loop in time.
+
+<dt><b>UNDO</b>
+	<dd>Undoes the last operation and immediately plays the previous loop
+  maintaining the current time position if the loop you are undoing was based
+  on the previous loop (usually is).  You can go all the way back to
+  the first one.
+
+<dt><b>REDO</b>
+  <dd> Redoes the loop if it can (if you haven't done a new operation since
+  your last undo).  Taken together UNDO and REDO allow you to do some
+  neat things: record a verse part, then hit record to do a chorus
+  part.  To get back to the verse, press UNDO... to get to the chorus
+  press REDO...  Pressing UNDO while in MUTE mode undoes all the way
+  back (can be redone).
+
+<dt><b>MUTE MODE</b>
+  <dd> To continue playing the loop in time press MUTE again.  To continue playing
+  the loop from the top press SCRATCH.  To play back the loop once and
+  return to mute, press Insert/OneShot.
+<p>
+  You can toggle some of the parameters while in MUTE mode, see the
+  usage panel.  QuantizeMode and RoundMode are described in the EDP
+  manual... the semantics in SooperLooper are almost the same, there
+  is a subtle difference in MULTIPLY mode when QuantizeMode is on,
+  more description to come.
+
+<dt><b>TAP DELAY MODE</b>
+  <dd>If you set the REDOTAPMODE parameter to non-zero, the REDO button
+  will become the trigger for the tap tempo delay mode.  Or you can
+  use the dedicated control input on the LADSPA plugin for the tap
+  trigger (any change is considered a trigger).  The time between the
+  most recent two presses is the new delay time.  While in DELAY mode,
+  you can toggle Hold Mode, or Reverse at any time for a cool effect.
+  To get out of delay mode press any other function or UNDO.  You will
+  probably want to adjust Feedback down from 1 before you enter delay
+  mode or you'll build up a nice cacophony fast.
+
+<dt><b>SCRATCH MODE</b>
+  <dd>By default the Scratch Rate Active is toggled off which means it
+  ignores the Scratch Rate parameter.  Changes in the Scratch Position
+  input parameter over time define the rate of playback (position unit
+  is ratio of current loop length).  Pressing the Reverse command
+  while in Scratch mode toggles the Scratch Rate Active flag.  Then
+  the loop is played back at Rate input parameter (which can be +/-
+  anything) unless you're actively scratching.
+<p>
+  You can't test this feature in the console demo, but it works great
+  with a hardware controller patched in through midi and Ecasound.
+  I personally use a
+	    <a href="http://dexterssandbox.com/theremin.html">Theremin</a>
+	  (the <a href="http://www.paia.com">PAIA</a> Theremax) with CV output through
+  my MIDI pedal, very cool.
+</dl>
+
+<p>
+      <hr> <p>
+       Jesse Chappell -- &nbsp; 
+	jesse at essej dot net
+
+      <br> Get the latest SooperLooper at
+      <a
+	href="http://essej.net/sooperlooper/">http://essej.net/sooperlooper/</a>
+      
+    
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>SooperLooper -  Documentation :: Sync/Tempo</title>
+    
+    <link rel="stylesheet" href="css/nn4.css" type="text/css" media="screen" />
+    <!--link before import prevents Flash Of Unstyled Content in ie6pc -->
+    <style type="text/css" media="screen">@import "css/jlc.css";</style>
+  </head>
+    
+    <body>
+      
+      <div id="Header">      
+	<a href="index.html" border=0>
+	<img src="sl_web_logo_black.png" id="titleimage"></a>
+
+	<div id="headertitle">
+	  <h4 id="titletext">Live Looping Sampler</h4>
+	</div>
+
+	<div id="pagetitle">
+	  <h4 id="pagetitletext">Documentation ::: Sync/Tempo</h4>
+	</div>
+
+      </div>
+      
+      
+      <div id="Content">
+
+	<p>
+	  SooperLooper can quantize most operations with a choice of
+	  several sources and parameters.  When enabled, the quantize
+	  operations affect all loops.
+	</p>
+
+	<center><img src="sync_controls.png"></center>
+
+	<p>
+	  The <b>sync to</b> control
+	  chooses what source to use for synchronization: None,
+	  Internal Tempo, MIDI clock, JACK transport, or any of the
+	  existing loops.
+	</p>
+
+	
+	<p>
+	The <b>tempo</b> control shows the current tempo,
+	  and is only editable directly when <b>sync to</b> is set to
+	  None or Internal.   When MIDI clock is selected, the tempo
+	  will be updated to reflect the estimated tempo based on any
+	  incoming MIDI clock ticks.  When JACK transport is selected,
+	  it will always reflect the tempo specified by the current
+	  JACK time master (if any).  However, when one of the loops
+	  is selected as the sync source, the tempo is defined
+	  entirely by the current loop's length and the
+	  <b>8th/cycle</b> parameter.
+
+	</p>
+
+	<p> The <b>tap</b> button lets you tap in a tempo when in
+	  Internal (or None) sync-to mode.  This function can also be
+	  done with a keybinding ('t' by default) and a MIDI binding.
+	  The tap button also pulses with the current tempo giving a
+	  visual indication of it.
+	</p>
+	
+	<p>
+	  The <b>8th/cycle</b> parameter defines how many 8th notes as
+	  defined by the current tempo (there are 2 eighths per beat)
+	  are in a cycle of a current loop, or a potential loop.  As
+	  described below, the cycle length is useful as a
+	  quantization boundary, as well as an eighth-note itself.
+
+	</p>
+	<p>
+	  The <b>quantize</b> parameter defines when
+	operations sync to in reference to the sync source.  The
+	available choices are Off, Cycle, 8th, and Loop.  Note that no
+	sync will ever occur if this value is set to Off.
+	When the sync source is another loop, the choices are all
+	valid.  
+	</p>
+
+	<div class="flowimage" >
+	  <img src="sync_checks.png">
+	</div>
+
+	<p>
+	  If the <b>sync</b> option is checked for a
+	  particular loop, operations will be quantized to the
+	  selected boundary.  This includes Record,  Multiply,
+	  Replace, Substitute, Insert, Reverse, Trigger, and Once.
+	  Note that Overdub is never quantized.  When a command is
+	  performed, the actual operation won't start/stop until the
+	  precise moment of the next sync boundary arrives.  For
+	  instance, when the sync source is a loop, and the quantize
+	  parameter is Cycle, a Record operation will start and stop
+	  on an exact cycle boundary of the source loop.  More
+	  interesting polyrhythms are possible when using 8ths as the
+	  quantize parameter, for example.
+
+	</p>
+
+	<p>
+	  The <b>play sync</b> option for a loop causes the
+	  playback of the loop to be coerced to remain in sync with
+	  the selected syncto source.  Currently, this is done by
+	  retriggering the loop if an external sync boundary occurs
+	  when near a loop boundary (+/- the current quantize type).
+	  This technique is particulary suitable for maintaining playback sync
+	  with MIDI clock which may drift with respect to the audio
+	  playback.  Note that it does <b>not</b> currently do any
+	  timestretching or rate resampling, so it isn't suitable for
+	  dealing with external tempo changes from the original recorded loop's
+	  tempo.
+	</p>
+	
+      </div>
+
+
+      <div class="copyright">
+	&copy; 2005  Jesse Chappell  <i>&lt;jesse at essej dot net&gt;</i>
+	
+      </div>
+      
+      <div id="Menu">
+    	<a href="index.html" title="Home">Home</a><br>
+    	<a href="features.html" title="Features">Features</a><br>
+    	<a href="download.html" title="Download">Download</a><br>
+    	<a href="docs.html" title="Documentation">Documentation</a><br>
+
+    	<a href="doc_start.html" title="Getting Started" class="offset">Getting Started</a><br>
+    	<a href="doc_commands.html" title="Command Reference"  class="offset">Commands</a><br>
+    	<a href="doc_sync.html" title="Sync/Tempo"  class="offset">Sync/Tempo</a><br>
+    	<a href="doc_midi.html" title="MIDI Bindings"
+	  class="offset">MIDI Bindings</a><br>
+    	<a href="doc_osc.html" title="OSC Interface"
+	  class="offset">OSC Interface</a><br>
+
+
+	<a href="donate.html" title="Donate">Donate</a><br>
+	
+      </div>
+      
+    </body>
+</html>
+	
