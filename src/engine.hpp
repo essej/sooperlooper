@@ -42,6 +42,9 @@ class Engine
 	: public SigC::Object
 {
   public:
+
+	static const int TEMPO_WINDOW_SIZE = 4;
+	static const int TEMPO_WINDOW_SIZE_MASK = 3;
 	
 	Engine();
 	virtual ~Engine();
@@ -110,6 +113,9 @@ class Engine
 	void do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes);
 
 	void set_tempo (double tempo);
+
+	inline double avg_tempo(double tempo);
+	inline void reset_avg_tempo(double tempo=0.0);
 	
 	AudioDriver * _driver;
 	
@@ -175,8 +181,32 @@ class Engine
 	nframes_t _last_tempo_frame;
 	volatile bool _tempo_changed;
 	volatile bool _beat_occurred;
+
+	double _tempo_averages[TEMPO_WINDOW_SIZE];
+	double _running_tempo_sum;
+	unsigned int    _avgindex;
 };
 
+inline double Engine::avg_tempo(double tempo)
+{
+	_running_tempo_sum += tempo;
+	_running_tempo_sum -= _tempo_averages[_avgindex];
+	_tempo_averages[_avgindex] = tempo;
+	_avgindex = (_avgindex + 1) & TEMPO_WINDOW_SIZE_MASK;
+	return _running_tempo_sum / (double) TEMPO_WINDOW_SIZE;
+}
+
+inline void Engine::reset_avg_tempo(double tempo)
+{
+	for (int i=0; i < TEMPO_WINDOW_SIZE; ++i) {
+		_tempo_averages[i] = tempo;
+	}
+
+	_running_tempo_sum = tempo * TEMPO_WINDOW_SIZE;
+	_avgindex = TEMPO_WINDOW_SIZE_MASK;
+}
+
+	
 };  // sooperlooper namespace
 
 #endif

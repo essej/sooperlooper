@@ -67,6 +67,7 @@ Engine::Engine ()
 	
 	pthread_cond_init (&_event_cond, NULL);
 
+	reset_avg_tempo();
 }
 
 bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
@@ -1028,8 +1029,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 
 					// calc new tempo
 					double ntempo = (_driver->get_samplerate() * 60.0 / tcount);
-					// lowpass it against
-					//ntempo = _tempo * 0.25 + ntempo * 0.75;
+					ntempo = avg_tempo(ntempo);
 
 					if (ntempo != _tempo) {
 						//cerr << "new tempo is: " << ntempo << endl;
