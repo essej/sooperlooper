@@ -309,7 +309,8 @@ do
 done
 
 echo "Building autoconf/automake files for the top level ..."
-aclocal $ACLOCAL_FLAGS && automake --foreign --add-missing && autoconf
+aclocal $ACLOCAL_FLAGS && autoheader && automake --foreign --add-missing && autoconf
+
 
 echo "
 
