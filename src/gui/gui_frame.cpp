@@ -578,10 +578,10 @@ GuiFrame::OnIdle(wxIdleEvent& event)
 		_loop_control->update_values();
 		
 		for (unsigned int i=0; i < _looper_panels.size(); ++i) {
-			_looper_panels[i]->update_controls();
+	//		_looper_panels[i]->update_controls();
 		}
 		
-		update_controls();
+//		update_controls();
 
 		_got_new_data = 0;
 	}
