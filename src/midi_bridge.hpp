@@ -33,7 +33,7 @@
 #include <midi++/port.h>
 #include <midi++/port_request.h>
 
-#include "midi_bind_info.hpp"
+#include "midi_bind.hpp"
 
 namespace SooperLooper {
 
@@ -45,17 +45,8 @@ class MidiBridge
 	MidiBridge (std::string name, std::string oscurl, MIDI::PortRequest & req);
 	virtual ~MidiBridge();			
 
-	typedef std::vector<MidiBindInfo> BindingList;
-	
-	virtual void clear_bindings ();
-	virtual bool load_bindings (std::string filename);
+	MidiBindings & bindings() { return _midi_bindings; }
 
-	void get_bindings (BindingList & blist);
-	bool add_binding (const MidiBindInfo & info);
-	bool remove_binding (const MidiBindInfo & info);
-
-	int binding_key (const MidiBindInfo & info) const;
-	
 	virtual bool is_ok() { return _port != 0; }
 	
   protected:
@@ -81,18 +72,9 @@ class MidiBridge
 
 	void send_osc (MidiBindInfo & info, float val);
 	
-	std::FILE * search_open_file (std::string filename);
 
-
-	// the int key here is  (chcmd << 8) | param
-	// or midi byte 1 and 2 in 16 bits
-	typedef std::map<int, BindingList> BindingsMap;
-
-	typedef std::map<std::string, int> TypeMap;
-	TypeMap _typemap;
+	MidiBindings _midi_bindings;
 	
-	BindingsMap _bindings;
-
 	MIDI::Port * _port;
 	
 	lo_address _addr;

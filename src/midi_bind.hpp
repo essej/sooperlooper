@@ -17,10 +17,13 @@
 **  
 */
 
-#ifndef __sooperlooper_midi_bind_info__
-#define __sooperlooper_midi_bind_info__
+#ifndef __sooperlooper_midi_bind__
+#define __sooperlooper_midi_bind__
 
 #include <string>
+#include <vector>
+#include <map>
+#include <cstdio>
 
 namespace SooperLooper {
 
@@ -72,6 +75,46 @@ public:
 		return false;
 	}
 	
+
+
+	
+class MidiBindings
+{
+public:
+
+	MidiBindings();
+	virtual ~MidiBindings();
+
+	typedef std::vector<MidiBindInfo> BindingList;
+
+	void clear_bindings ();
+	bool load_bindings (std::string filename);
+
+	void get_bindings (BindingList & blist);
+	bool add_binding (const MidiBindInfo & info);
+	bool remove_binding (const MidiBindInfo & info);
+
+	int binding_key (const MidiBindInfo & info) const;
+
+	// the int key here is  (chcmd << 8) | param
+	// or midi byte 1 and 2 in 16 bits
+	typedef std::map<int, BindingList> BindingsMap;
+	
+	// for direct use... be careful
+	BindingsMap & bindings_map() { return _bindings; }
+	
+protected:
+
+	std::FILE * search_open_file (std::string filename);
+
+	
+	typedef std::map<std::string, int> TypeMap;
+	TypeMap _typemap;
+	
+	BindingsMap _bindings;
+	
+
 };
 
+};
 #endif

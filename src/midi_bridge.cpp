@@ -79,27 +79,6 @@ MidiBridge::MidiBridge (string name, string oscurl, PortRequest & req)
 	}
 
 
-	_typemap["cc"] = 0xb0;
-	_typemap["n"] = 0x90;
-	_typemap["pc"] = 0xc0;
-
-	// temp bindings
-// 	_bindings[0x9000 | 48] = MidiBindInfo("note", "record", -1);
-// 	_bindings[0x9000 | 49] = MidiBindInfo("note", "undo", -1);
-// 	_bindings[0x9000 | 50] = MidiBindInfo("note", "overdub", -1);
-// 	_bindings[0x9000 | 51] = MidiBindInfo("note", "redo", -1);
-// 	_bindings[0x9000 | 52] = MidiBindInfo("note", "multiply", -1);
-
-// 	_bindings[0x9000 | 54] = MidiBindInfo("note", "mute", -1);
-// 	_bindings[0x9000 | 55] = MidiBindInfo("note", "scratch", -1);
-// 	_bindings[0x9000 | 56] = MidiBindInfo("note", "reverse", -1);
-
-
-// 	_bindings[0xb000 | 1] =  MidiBindInfo("set", "feedback", -1, 0.0, 1.0);
-// 	_bindings[0xb000 | 7] =  MidiBindInfo("set", "scratch_pos", -1, 0.0, 1.0);
-// 	_bindings[0xb000 | 74] =  MidiBindInfo("set", "dry", -1, 0.0, 1.0);
-// 	_bindings[0xb000 | 71] =  MidiBindInfo("set", "wet", -1, 0.0, 1.0);
-
 	PortFactory factory;
 	
 	if ((_port = factory.create_port (req)) == 0) {
@@ -175,150 +154,6 @@ MidiBridge::poke_midi_thread ()
 }
 
 
-void
-MidiBridge::get_bindings (BindingList & blist)
-{
-	for (BindingsMap::iterator biter = _bindings.begin(); biter != _bindings.end(); ++biter) {
-		BindingList & elist = (*biter).second;
-		
-		for (BindingList::iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
-			MidiBindInfo & info = (*eiter);
-			
-			blist.push_back (info);
-		}
-	}
-}
-
-int
-MidiBridge::binding_key (const MidiBindInfo & info) const
-{
-	int typei;
-	int key;
-
-	TypeMap::const_iterator titer = _typemap.find(info.type);
-	if (titer == _typemap.end()) {
-		cerr << "invalid midi type str: " << info.type;
-		return 0;
-	}
-	
-	typei = titer->second;
-	key = ((typei + info.channel) << 8) | info.param;
-
-	return key;
-}
-
-bool
-MidiBridge::add_binding (const MidiBindInfo & info)
-{
-	///  type->typei is { pc = 0xc0 , cc = 0xb0 , on = 0x80 , n = 0x90  }
-	// chcmd = cmd + ch
-	// lookup key = (chcmd << 8) | param
-
-	int key;
-	
-	if ((key = binding_key (info)) == 0) {
-		return false;
-	}
-
-	BindingsMap::iterator biter = _bindings.find(key);
-	if (biter == _bindings.end()) {
-		_bindings.insert (BindingsMap::value_type ( key, BindingList()));
-	}
-
-	// TODO: check for duplicates
-	
-	_bindings[key].push_back (info);
-	// cerr << "added binding: " << info.type << "  "  << info.control << "  " << info.instance << "  " << info.lbound << "  " << info.ubound << endl;
-	
-	cerr << "added binding: " << info.serialize() << endl;
-	return true;
-}
-
-bool
-MidiBridge::remove_binding (const MidiBindInfo & info)
-{
-	int key;
-	
-	if ((key = binding_key (info)) == 0) {
-		return false;
-	}
-
-	BindingsMap::iterator biter = _bindings.find(key);
-	if (biter == _bindings.end()) {
-		return false;
-	}
-
-	BindingList & blist = biter->second;
-
-	for (BindingList::iterator iter = blist.begin(); iter != blist.end(); ++iter) {
-		MidiBindInfo & binfo = (*iter);
-		if (binfo == info) {
-			cerr << "found match to remove" << endl;
-			blist.erase(iter);
-			break;
-		}
-	}
-
-	if (blist.empty()) {
-		_bindings.erase(biter);
-	}
-	
-	return true;
-}
-
-void
-MidiBridge::clear_bindings ()
-{
-	_bindings.clear();
-}
-
-FILE *
-MidiBridge::search_open_file (std::string filename)
-{
-	FILE *bindfile = 0;
-	
-	if ((bindfile = fopen(filename.c_str(), "r")) == NULL) {
-		cerr << "error: could not open " << filename << endl;
-	}
-
-	// todo: look for it in systemwide and ~/.sooperlooper/bindings/
-
-	return bindfile;
-}
-
-
-bool
-MidiBridge::load_bindings (std::string filename)
-{
-	FILE * bindfile = 0;
-	char  line[200];
-
-
-	if ((bindfile = search_open_file(filename)) == NULL) {
-		cerr << "error: could not open " << filename << endl;
-		return false;
-	}
-
-	while (fgets (line, sizeof(line), bindfile) != NULL)
-	{
-		// ignore empty lines and # lines
-		if (line[0] == '\n' || line[0] == '#') {
-			continue;
-		}
-
-		MidiBindInfo info;
-
-		if (!info.unserialize(line)) {
-			continue;
-		}
-
-		add_binding (info);
-	}
-
-	fclose(bindfile);
-
-	return true;
-}
 
 void
 MidiBridge::incoming_midi (Parser &p, byte *msg, size_t len)
@@ -345,13 +180,13 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 
 	int key = (chcmd << 8) | param;
 
-	BindingsMap::iterator iter = _bindings.find(key);
+	MidiBindings::BindingsMap::iterator iter = _midi_bindings.bindings_map().find(key);
 	
-	if (iter != _bindings.end())
+	if (iter != _midi_bindings.bindings_map().end())
 	{
-		BindingList & elist = (*iter).second;
+		MidiBindings::BindingList & elist = (*iter).second;
 
-		for (BindingList::iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
+		for (MidiBindings::BindingList::iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
 			MidiBindInfo & info = (*eiter);
 			float scaled_val;
 			
@@ -362,7 +197,8 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 			else {
 				scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
 			}
-			// cerr << "found binding: val is " << val << "  scaled: " << scaled_val << endl;
+			cerr << "found binding: key: " << key << " val is " << (int) val << "  scaled: " << scaled_val << "  type: " << info.type << endl;
+			cerr << "ctrl: " << info.control << "  cmd: " << info.command << endl;
 			
 			send_osc (info, scaled_val);
 		}
@@ -377,7 +213,7 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 		lo_send(_addr, "/sl/midi_tick", "");
 	}
 	else {
-		// fprintf(stderr, "binding %x not found\n", key);
+		fprintf(stderr, "binding %x not found\n", key);
 	}
 }
 
@@ -388,29 +224,29 @@ MidiBridge::send_osc (MidiBindInfo & info, float val)
 	static char tmpbuf[100];
 
 
-	string type = info.type;
+	string cmd = info.command;
 	
-	if (info.type == "set") {
-		snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, info.type.c_str());
+	if (cmd == "set") {
+		snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, cmd.c_str());
 
-		if (lo_send(_addr, tmpbuf, "sf", info.command.c_str(), val) < 0) {
+		if (lo_send(_addr, tmpbuf, "sf", info.control.c_str(), val) < 0) {
 			fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
 		}
 	}
 	else {
-		if (type == "note") {
+		if (cmd == "note") {
 			if (val > 0.0f) {
 				cerr << "val is " << val << endl;
-				type = "down";
+				cmd = "down";
 			}
 			else {
-				type = "up";
+				cmd = "up";
 			}
 		}
 
-		snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, type.c_str());
+		snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, cmd.c_str());
 		
-		if (lo_send(_addr, tmpbuf, "s", info.command.c_str()) < 0) {
+		if (lo_send(_addr, tmpbuf, "s", info.control.c_str()) < 0) {
 			fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
 		}
 	}

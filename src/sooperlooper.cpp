@@ -350,7 +350,7 @@ int main(int argc, char** argv)
 #endif
 
 	if (midibridge && midibridge->is_ok() && !option_info.bindfile.empty()) {
-		midibridge->load_bindings (option_info.bindfile);
+		midibridge->bindings().load_bindings (option_info.bindfile);
 	}
 	
 	// go into engine's non-rt event loop

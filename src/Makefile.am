@@ -21,7 +21,7 @@ sooperlooper_SOURCES = \
 	plugin.cc \
 	event.cpp \
 	midi_bridge.cpp \
-	midi_bind_info.cpp \
+	midi_bind.cpp \
 	audio_driver.cpp \
 	jack_audio_driver.cpp \
 	$(SYSDEP_SRCS)
