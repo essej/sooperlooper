@@ -85,7 +85,7 @@ class Looper
 		float p = peak;
 		
 		for (nframes_t n = 0; n < nsamples; ++n) {
-			p = f_max (p, fabs(buf[n]));
+			p = f_max (p, fabsf(buf[n]));
 		}
 		
 		peak = p;
