@@ -110,8 +110,8 @@ class LoopControl
 	void cancel_next_midi_event();
 	void cancel_midi_learn();
 
-	void load_midi_bindings(std::string filename, bool append=false);
-	void save_midi_bindings(std::string filename);
+	void load_midi_bindings(const wxString & filename, bool append=false);
+	void save_midi_bindings(const wxString & filename);
 
 	// for read only
 	const SooperLooper::MidiBindings & midi_bindings() { return *_midi_bindings; }

@@ -377,6 +377,12 @@ GuiFrame::init_loopers (int count)
 		_topsizer->Layout();
 // 		_topsizer->Fit(this);
 // 		_topsizer->SetSizeHints(this);
+
+		// maybe resize
+		if (_looper_panels.size() <= 4) {
+			SetSize(GetSize().GetWidth(), bestsz.GetHeight() * _looper_panels.size()  + 64); 
+		}
+
  	}
 	
 
@@ -415,6 +421,8 @@ GuiFrame::OnUpdateTimer(wxTimerEvent &ev)
 	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
 		_loop_control->request_values ((int)i);
 	}
+
+	ev.Skip();
 }
 
 void
@@ -560,13 +568,11 @@ void
 GuiFrame::OnSize(wxSizeEvent & event)
 {
 	event.Skip();
-
 }
 
 void GuiFrame::OnPaint(wxPaintEvent & event)
 {
 	event.Skip();
-
 }
 
 void
@@ -575,18 +581,18 @@ GuiFrame::OnIdle(wxIdleEvent& event)
 	if (_got_new_data) {
 		//cerr << "idle update" << endl;
 
-		_loop_control->update_values();
+ 		_loop_control->update_values();
 		
-		for (unsigned int i=0; i < _looper_panels.size(); ++i) {
-			_looper_panels[i]->update_controls();
-		}
+    		for (unsigned int i=0; i < _looper_panels.size(); ++i) {
+    			_looper_panels[i]->update_controls();
+    		}
 		
-		update_controls();
+    		update_controls();
 
-		_got_new_data = 0;
+ 		_got_new_data = 0;
 	}
 	
-	event.Skip();
+	//event.Skip();
 }
 
 void
@@ -601,7 +607,7 @@ GuiFrame::save_default_midibindings ()
 		}
 	}
 
-	_loop_control->save_midi_bindings ( (dirname + wxFileName::GetPathSeparator() + wxT("default_midi.slb")).fn_str());
+	_loop_control->save_midi_bindings ( (dirname + wxFileName::GetPathSeparator() + wxT("default_midi.slb")));
 }
 
 void

@@ -62,7 +62,7 @@ TimePanel::init()
 	_pos_font.SetStyle(wxNORMAL);
 	_pos_font.SetWeight(wxBOLD);
 	_pos_color.Set(244, 255, 158);
-	_pos_str = "--:--.--";
+	_pos_str = "00:00.00";
 	_pos_font.SetPointSize(10);
 	normalize_font_size(_pos_font, 110, 40, wxT("00:00.00"));
 
@@ -92,6 +92,10 @@ TimePanel::init()
 	_time_color.Set(244, 255, 178);
 	_time_font.SetPointSize(7);
 	normalize_font_size(_time_font, 45, 20, wxT("00:00.00"));
+	_tot_str = "00:00.00";
+	_cyc_str = "00:00.00";
+	_rem_str = "00:00.00";
+
 
 	_other_bm = new wxBitmap(90,60); 
 	_otherdc.SelectObject(*_other_bm);

@@ -680,7 +680,7 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 
 			if ( !filename.empty() )
 			{
-				_parent->get_loop_control().load_midi_bindings(filename.c_str(),  _append_check->GetValue());
+				_parent->get_loop_control().load_midi_bindings(filename,  _append_check->GetValue());
 			}
 		}
 		else {
@@ -694,7 +694,7 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
 
 			if (!filename.empty()) {
-				_parent->get_loop_control().load_midi_bindings(filename.c_str(), _append_check->GetValue());
+				_parent->get_loop_control().load_midi_bindings(filename, _append_check->GetValue());
 			}
 		}
 			
@@ -709,7 +709,7 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 
 			if ( !filename.empty() )
 			{
-				_parent->get_loop_control().save_midi_bindings(filename.c_str());
+				_parent->get_loop_control().save_midi_bindings(filename);
 			}
 		}
 		else {
@@ -723,7 +723,7 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
 
 			if (!filename.empty()) {
-				_parent->get_loop_control().save_midi_bindings(filename.c_str());
+				_parent->get_loop_control().save_midi_bindings(filename);
 			}
 		}
 	}

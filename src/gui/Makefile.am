@@ -35,3 +35,6 @@ slgui_SOURCES = \
 noinst_HEADERS = $(wildcard *.hpp *.h)
 
 EXTRA_DIST = $(wildcard pixmaps/*.xpm)
+
+mac: slgui
+	`wx-config --rezflags` slgui

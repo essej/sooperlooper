@@ -282,7 +282,7 @@ int main(int argc, char** argv)
 
 	
 	if (!option_info.quiet || option_info.show_version) {
-		cerr << "SooperLooper " << sooperlooper_version << endl << "Copyright 2004 Jesse Chappell" << endl;
+		cerr << "SooperLooper " << sooperlooper_version << endl << "Copyright 2005 Jesse Chappell" << endl;
 	}
 
 	if (option_info.show_version) {

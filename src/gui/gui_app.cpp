@@ -330,7 +330,7 @@ bool GuiApp::OnInit()
 
 	
 	if (_show_version) {
-		cerr << "SooperLooper GUI" << sooperlooper_version << endl << "Copyright 2004 Jesse Chappell" << endl;
+		cerr << "SooperLooper GUI" << sooperlooper_version << endl << "Copyright 2005 Jesse Chappell" << endl;
 		return FALSE;
 	}
 
@@ -361,8 +361,8 @@ bool GuiApp::OnInit()
 	loopctrl.connect(_engine_argv);
 
 	// Show it and tell the application that it's our main window
-	_frame->SetSize(790,181);
-	_frame->SetSizeHints(790, 181);
+	_frame->SetSizeHints(790, 185);
+	_frame->SetSize(800, 190);
 	_frame->Show(TRUE);
 
 	SetTopWindow(_frame);

@@ -272,7 +272,8 @@ LoopControl::connect(char **engine_argv)
 		// send off a ping.  set a timer, if we don't have a response, we'll start our own locally
 		_waiting = 0;
 		lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
-		_updatetimer->Start(200, true);
+		//cerr << "sending ping" << endl;
+		_updatetimer->Start(3000, true);
 	}
 	// spawn now
 	else if (!_spawn_config.never_spawn && spawn_looper()) {
@@ -364,6 +365,7 @@ LoopControl::osc_traffic()
 			}
 			
 			// emit signal
+			//cerr << "got new data" << endl;
 			NewDataReady(); // emit
 		}
 
@@ -406,7 +408,7 @@ LoopControl::pingtimer_expired()
 	}
 	else if (_waiting > 0)
 	{
-		if (_waiting > 40) {
+		if (_waiting > 80) {
 			// give up
 			cerr << "gave up" << endl;
 			if (_osc_addr) {
@@ -416,7 +418,7 @@ LoopControl::pingtimer_expired()
 			_failed = true;
 		}
 		else {
-			//cerr << "waiting" << endl;
+			cerr << "waiting" << endl;
 			_waiting++;
 			// lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
 			_updatetimer->Start(100, true);
@@ -424,8 +426,8 @@ LoopControl::pingtimer_expired()
 	}
 	else
 	{
-		
 		// lets try to spawn our own
+		cerr << "spawning now" << endl;
 		if (!_spawn_config.never_spawn && spawn_looper()) {
 			_updatetimer->Start(100, true);
 			_waiting = 1;
@@ -598,8 +600,8 @@ LoopControl::control_handler(const char *path, const char *types, lo_arg **argv,
 	}
 	
 	_params_val_map[index][ctrl] = val;
-	
-	//cerr << "got " << ctrl << " = " << val << "  index=" << index << endl;
+
+	// cerr << "got " << ctrl << " = " << val << "  index=" << index << endl;
 	
 	return 0;
 }
@@ -775,7 +777,7 @@ LoopControl::cancel_midi_learn()
 }
 
 void
-LoopControl::load_midi_bindings(string filename, bool append)
+LoopControl::load_midi_bindings(const wxString & filename, bool append)
 {
 	lo_send(_osc_addr, "/load_midi_bindings", "ss", filename.c_str(), append ? "add": "");
 
@@ -783,7 +785,7 @@ LoopControl::load_midi_bindings(string filename, bool append)
 }
 
 void
-LoopControl::save_midi_bindings(string filename)
+LoopControl::save_midi_bindings(const wxString & filename)
 {
 	if (!_osc_addr) return;
 
