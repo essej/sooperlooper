@@ -437,6 +437,7 @@ LoopControl::request_values(int index)
 	lo_send(_osc_addr, buf, "sss", "free_time", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "total_time", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "waiting", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "rate_output", _our_url.c_str(), "/ctrl");
 
 }
 

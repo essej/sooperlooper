@@ -73,6 +73,7 @@ CommandMap::CommandMap()
 	_output_controls["cycle_len"]  = Event::CycleLength;
 	_output_controls["free_time"]  = Event::FreeTime;
 	_output_controls["total_time"]  = Event::TotalTime;
+	_output_controls["rate_output"]  = Event::TrueRate;
 
 	_str_ctrl_map.insert (_output_controls.begin(), _output_controls.end());
 

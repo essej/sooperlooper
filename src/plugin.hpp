@@ -53,11 +53,12 @@ enum OutputPort {
 	LoopFreeMemory,
 	LoopMemory,
 	Waiting,
+	TrueRate,
 	LASTPORT
 };
 
 enum AudioPort {
-	AudioInputPort=22,
+	AudioInputPort=23,
 	AudioOutputPort,
 	SyncInputPort,
 	SyncOutputPort,
@@ -305,6 +306,7 @@ typedef struct {
 	LADSPA_Data * pfSecsTotal;    
 
 	LADSPA_Data * pfWaiting;    
+	LADSPA_Data * pfRateOutput;
 	
 } SooperLooperI;
 

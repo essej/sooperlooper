@@ -80,6 +80,9 @@ class SliderBar
 	
 	void set_allow_outside_bounds (bool val) { _oob_flag = val; }
 	bool get_allow_outside_bounds () { return _oob_flag; }
+
+	void set_show_value (bool val) { _showval_flag = val; }
+	bool get_show_value () { return _showval_flag; }
 	
  	void set_bg_color (const wxColour & col);
 	wxColour & get_bg_color () { return _bgcolor; }
@@ -100,6 +103,8 @@ class SliderBar
 	int get_decimal_digits () { return _decimal_digits; }
 	
 	
+	SigC::Signal0<void> pressed;
+	SigC::Signal0<void> released;
 	SigC::Signal1<void, float> value_changed;
 	SigC::Signal0<void> bind_request;
 	
@@ -171,6 +176,7 @@ class SliderBar
 	SnapMode   _snap_mode;
 	int        _decimal_digits;
 	bool       _oob_flag;
+	bool       _showval_flag;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

@@ -78,6 +78,7 @@ class LooperPanel
 
 	void pressed_events (wxString cmd);
 	void released_events (wxString cmd);
+	void scratch_events (wxString cmd);
 	void clicked_events (wxString cmd);
 	void button_bind_events (wxString cmd);
 	void tap_button_event ();
@@ -142,7 +143,8 @@ class LooperPanel
 	float _tap_val;
 
 	bool _learning;
-  private:
+	bool _scratch_pressed;
+private:
     // any class wishing to process wxWindows events must use this macro
     DECLARE_EVENT_TABLE()
 	

@@ -130,6 +130,7 @@ namespace SooperLooper {
 		    FreeTime,
 		    TotalTime,
 		    Waiting,
+		    TrueRate,
 		    // this is end of loop enum.. the following are global
 		    Tempo,
 		    SyncTo,

@@ -638,6 +638,9 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
       case Waiting:
 	 pLS->pfWaiting= DataLocation;
 	 break;
+      case TrueRate:
+	 pLS->pfRateOutput= DataLocation;
+	 break;
 
 
    }
@@ -3110,6 +3113,9 @@ runSooperLooper(LADSPA_Handle Instance,
   }
 
   *pLS->pfWaiting = pLS->waitingForSync ? 1.0f: 0.0f;
+
+  *pLS->pfRateOutput = (LADSPA_Data) pLS->fCurrRate *  (*pLS->pfRate);
+
   
   if (pLS->pfSecsFree) {
 	  *pLS->pfSecsFree = pLS->lBufferSize / pLS->fSampleRate;
@@ -3129,6 +3135,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
      if (pLS->pfCycleLength)
 	*pLS->pfCycleLength = ((LADSPA_Data) loop->lCycleLength) / pLS->fSampleRate;
+
 
      
   }
@@ -3259,6 +3266,8 @@ sl_init() {
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
     piPortDescriptors[Waiting]
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
+    piPortDescriptors[TrueRate]
+      = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
 
 
     
@@ -3327,6 +3336,8 @@ sl_init() {
       = strdup("Free Sample Mem (s)");
     pcPortNames[Waiting]
       = strdup("Waiting");
+    pcPortNames[TrueRate]
+      = strdup("True Rate");
 
     
     psPortRangeHints = ((LADSPA_PortRangeHint *)
@@ -3367,6 +3378,13 @@ sl_init() {
     psPortRangeHints[Rate].LowerBound 
       = -4.0;
     psPortRangeHints[Rate].UpperBound
+      = 4.0;
+
+    psPortRangeHints[TrueRate].HintDescriptor
+      = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE;
+    psPortRangeHints[TrueRate].LowerBound 
+      = -4.0;
+    psPortRangeHints[TrueRate].UpperBound
       = 4.0;
     
     psPortRangeHints[ScratchPosition].HintDescriptor

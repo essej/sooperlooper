@@ -82,6 +82,7 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_text_ctrl = 0;
 	_ignoretext = false;
 	_oob_flag = false;
+	_showval_flag = true;
 	
 	_bgcolor.Set(30,30,30);
 	_bgbrush.SetColour (_bgcolor);
@@ -427,7 +428,8 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		CaptureMouse();
 		_dragging = true;
 		_last_x = ev.GetX();
-
+		pressed(); // emit
+		
 		if (ev.MiddleDown() && !ev.ControlDown()) {
 			// set immediately
 			float newval = (ev.GetX() * _val_scale) + _lower_bound;
@@ -465,7 +467,8 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 			// binding click
 			bind_request(); // emit
 		}
-		
+
+		released(); // emit		
 	}
 	else if (ev.ButtonDClick()) {
 		// todo editor
@@ -515,10 +518,11 @@ void SliderBar::draw_area(wxDC & dc)
 	dc.GetTextExtent(_label_str, &w, &h);
 	dc.DrawText (_label_str, 3, _height - h - 3);
 
-	dc.SetTextForeground(_valuecolor);
-	dc.GetTextExtent(_value_str, &w, &h);
-	dc.DrawText (_value_str, _width - w - 3, _height - h - 3);
-	
+	if (_showval_flag) {
+		dc.SetTextForeground(_valuecolor);
+		dc.GetTextExtent(_value_str, &w, &h);
+		dc.DrawText (_value_str, _width - w - 3, _height - h - 3);
+	}
 
 }
 

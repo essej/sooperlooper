@@ -85,6 +85,10 @@ END_EVENT_TABLE()
 LooperPanel::LooperPanel(LoopControl * control, wxWindow * parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 	: wxPanel(parent, id, pos, size), _loop_control(control), _index(0), _last_state(LooperStateUnknown), _tap_val(1.0f)
 {
+	_learning = false;
+	_scratch_pressed = false;
+	_last_state = LooperStateUnknown;
+
 	init();
 }
 
@@ -324,6 +328,7 @@ LooperPanel::init()
 	slider->set_label(wxT("pos"));
 	slider->set_style (SliderBar::CenterStyle);
 	slider->set_decimal_digits (3);
+	slider->set_show_value(false);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::slider_bind_events), (int) slider->GetId()));
@@ -465,6 +470,10 @@ LooperPanel::bind_events()
 	_load_button->clicked.connect (bind (slot (*this, &LooperPanel::clicked_events), wxString("load")));
 
 
+	_scratch_control->pressed.connect (bind (slot (*this, &LooperPanel::scratch_events), wxString("scratch_press")));
+	_scratch_control->released.connect (bind (slot (*this, &LooperPanel::scratch_events), wxString("scratch_release")));
+
+	
 	_loop_control->MidiBindingChanged.connect (slot (*this, &LooperPanel::got_binding_changed));
 	_loop_control->MidiLearnCancelled.connect (slot (*this, &LooperPanel::got_learn_canceled));
 	
@@ -549,6 +558,15 @@ LooperPanel::update_controls()
 		_rate_control->set_value (val);
 
 		update_rate_buttons(val);
+	}
+	if (_loop_control->is_updated(_index, "rate_output")) {
+		_loop_control->get_value(_index, "rate_output", val);
+		if (val < 0.0) {
+			_reverse_button->set_active(true);
+		}
+		else {
+			_reverse_button->set_active(false);
+		}
 	}
 	if (_loop_control->is_updated(_index, "scratch_pos")) {
 		_loop_control->get_value(_index, "scratch_pos", val);
@@ -708,6 +726,24 @@ LooperPanel::released_events (wxString cmd)
 {
 	_loop_control->post_up_event (_index, cmd);
 
+}
+
+
+void
+LooperPanel::scratch_events (wxString cmd)
+{
+	if (_last_state == LooperStateRecording) return;
+	
+	if (cmd == wxT("scratch_press") && (_last_state != LooperStateScratching)) {
+		// toggle scratch on
+		_scratch_pressed = true;
+		_loop_control->post_down_event (_index, wxT("scratch"));
+	}
+	else if (_scratch_pressed) {
+		// toggle scratch off
+		_loop_control->post_down_event (_index, wxT("scratch"));
+		_scratch_pressed = false;
+	}
 }
 
 void
