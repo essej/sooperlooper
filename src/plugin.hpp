@@ -17,10 +17,61 @@
 **  
 */
 
+#ifndef __sooperlooper_plugin_hpp__
+#define __sooperlooper_plugin_hpp__
+
 #include "ladspa.h"
 
 // TODO, move the whole looping core into a class
 
+
+namespace SooperLooper {
+
+enum ControlPort {
+	TriggerThreshold = 0,
+	DryLevel,
+	WetLevel,
+	Feedback,
+	Rate,
+	ScratchPosition,
+	Multi,
+	TapDelayTrigger,
+	UseFeedbackPlay,
+	Quantize,
+	Round,
+	RedoTap,
+	Sync,
+	UseRate,
+	FadeSamples,
+};
+
+enum OutputPort {
+	State = 15,
+	LoopLength,
+	LoopPosition,
+	CycleLength,
+	LoopFreeMemory,
+	LoopMemory,
+	Waiting,
+	LASTPORT
+};
+
+enum AudioPort {
+	AudioInputPort=22,
+	AudioOutputPort,
+	SyncInputPort,
+	SyncOutputPort,
+	PORT_COUNT // must be last
+};
+
+enum {
+	QUANT_OFF=0,
+	QUANT_CYCLE,
+	QUANT_8TH,
+	QUANT_LOOP
+};
+
+};
 
 /*****************************************************************************/
 
@@ -191,13 +242,7 @@ typedef struct {
 	 */
 	LADSPA_Data * pfMultiCtrl;
 
-	/* This specifies which multiple of ten this plugin responds to
-	 * for the multi-control port.  For instance, if 0 is given we respond
-	 * to 0-9 on the multi control port, if 1 is given, 10-19.  This allows you
-	 * to separately control multiple looper instances with the same footpedal,
-	 * for instance.  Range is 0-12.
-	 */
-	LADSPA_Data * pfMultiTens;
+	LADSPA_Data * pfUseFeedbackPlay;
     
 	/* changes on this control signal with more than TAP_THRESH_SAMP samples
 	 * between them (to handle settle time) is treated as a a TAP Delay trigger
@@ -248,3 +293,5 @@ typedef struct {
 // reads loop audio into buffer, up to frames length, starting from loop_offset.  if fewer frames are
 // available returns amount read.  if 0 is returned loop is done.
 extern unsigned long sl_read_current_loop_audio (LADSPA_Handle instance, float * buf, unsigned long frames, unsigned long loop_offset);
+
+#endif

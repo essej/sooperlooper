@@ -336,6 +336,7 @@ LoopControl::request_all_values(int index)
 	// send request for updates
 	lo_send(_osc_addr, buf, "sss", "rec_thresh", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "feedback", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "use_feedback_play", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "dry", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "wet", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "rate", _our_url.c_str(), "/ctrl");
@@ -370,6 +371,7 @@ LoopControl::register_input_controls(int index, bool unreg)
 	// send request for updates
 	lo_send(_osc_addr, buf, "sss", "rec_thresh", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "feedback", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "use_feedback_play", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "dry", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "wet", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "rate", _our_url.c_str(), "/ctrl");

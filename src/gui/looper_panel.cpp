@@ -67,7 +67,7 @@ enum {
 	ID_QuantizeChoice,
 	ID_RoundCheck,
 	ID_SyncCheck,
-
+	ID_UseFeedbackPlayCheck
 
 };
 
@@ -249,16 +249,22 @@ LooperPanel::init()
 // 	_round_check->SetForegroundColour(*wxWHITE);
 // 	lilrowsizer->Add (_round_check, 0, wxEXPAND);
 
-	_sync_check = new CheckBox(this, ID_SyncCheck, wxT("sync"), wxDefaultPosition, wxSize(55, 22));
+	_sync_check = new CheckBox(this, ID_SyncCheck, wxT("sync"), wxDefaultPosition, wxSize(55, 20));
 	_sync_check->SetFont(sliderFont);
-// 	_sync_check->SetBackgroundColour(wxColour(90,90,90));
-// 	_sync_check->SetForegroundColour(*wxWHITE);
+	_sync_check->SetToolTip(wxT("sync to quantize source"));
 	_sync_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("sync")));
-	lilrowsizer->Add (_sync_check, 0, wxEXPAND|wxLEFT, 3);
+	lilrowsizer->Add (_sync_check, 1, wxLEFT, 3);
+	lilcolsizer->Add (lilrowsizer, 0, wxTOP|wxEXPAND, 0);
 
-	lilcolsizer->Add (lilrowsizer, 0, wxTOP, 2);
+	lilrowsizer = new wxBoxSizer(wxHORIZONTAL);
+	_play_feed_check = new CheckBox(this, ID_UseFeedbackPlayCheck, wxT("p. feedb"), wxDefaultPosition, wxSize(55, 20));
+	_play_feed_check->SetFont(sliderFont);
+	_play_feed_check->SetToolTip(wxT("enable feedback during playback"));
+	_play_feed_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("use_feedback_play")));
+	lilrowsizer->Add (_play_feed_check, 1, wxLEFT, 3);
+	lilcolsizer->Add (lilrowsizer, 0, wxTOP|wxEXPAND, 0);
 	
-	rowsizer->Add(lilcolsizer, 1, wxTOP|wxLEFT, 5);
+	rowsizer->Add(lilcolsizer, 1, wxTOP|wxLEFT, 3);
 
 
 	lilcolsizer = new wxBoxSizer(wxVERTICAL);
@@ -517,6 +523,10 @@ LooperPanel::update_controls()
 	if (_loop_control->is_updated(_index, "sync")) {
 		_loop_control->get_value(_index, "sync", val);
 		_sync_check->set_value (val > 0.0);
+	}
+	if (_loop_control->is_updated(_index, "use_feedback_play")) {
+		_loop_control->get_value(_index, "use_feedback_play", val);
+		_play_feed_check->set_value (val > 0.0);
 	}
 	if (_loop_control->is_updated(_index, "use_rate")) {
 		_loop_control->get_value(_index, "use_rate", val);

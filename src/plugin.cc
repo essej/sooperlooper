@@ -52,6 +52,9 @@ using namespace std;
 
 #include "plugin.hpp"
 
+using namespace SooperLooper;
+
+
 /*****************************************************************************/
 //#define LOOPDEBUG
 
@@ -80,43 +83,6 @@ using namespace std;
 #define MAX_LOOPS 512
 
 /*****************************************************************************/
-
-/* The port numbers for the plugin: */
-
-#define PORT_COUNT  26
-
-#define SDL_THRESH       0
-#define SDL_DRY          1
-#define SDL_WET          2
-#define SDL_FEEDBACK     3
-#define SDL_RATE         4
-#define SDL_SCRATCH_POS  5
-#define SDL_MULTICTRL    6
-#define SDL_TAP_TRIG     7
-#define SDL_MULTITENS    8
-#define SDL_QUANTMODE    9
-#define SDL_ROUNDMODE    10
-#define SDL_REDOTAPMODE  11
-#define SDL_SYNCMODE     12
-#define SDL_USERATE      13
-#define SDL_XFADESAMPLES 14
-
-
-// control outs
-#define SDL_STATE_OUT     15
-#define SDL_LOOPLEN_OUT   16
-#define SDL_LOOPPOS_OUT   17
-#define SDL_CYCLELEN_OUT  18
-#define SDL_SECSFREE_OUT  19
-#define SDL_SECSTOTAL_OUT 20
-#define SDL_WAITING       21
-
-/* audio */
-#define SDL_INPUT        22
-#define SDL_OUTPUT       23
-#define SDL_SYNC_INPUT        24
-#define SDL_SYNC_OUTPUT       25
-
 
 
 /* States of the sampler */
@@ -163,13 +129,6 @@ using namespace std;
 
 #define MULTI_ONESHOT    14
 #define MULTI_TRIGGER    15
-
-enum {
-	QUANT_OFF=0,
-	QUANT_CYCLE,
-	QUANT_8TH,
-	QUANT_LOOP
-};
 
 
 /*****************************************************************************/
@@ -597,86 +556,86 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
    
    pLS = (SooperLooperI *)Instance;
    switch (Port) {
-      case SDL_DRY:
+      case DryLevel:
 	 pLS->pfDry = DataLocation;
 	 break;
-      case SDL_WET:
+      case WetLevel:
 	 pLS->pfWet = DataLocation;
 	 break;
 
-      case SDL_FEEDBACK:
+      case Feedback:
 	 pLS->pfFeedback = DataLocation;
 	 break;
-      case SDL_THRESH:
+      case TriggerThreshold:
 	 pLS->pfTrigThresh = DataLocation;
 	 break;
-      case SDL_RATE:
+      case Rate:
 	 pLS->pfRate = DataLocation;
 	 break;
-      case SDL_SCRATCH_POS:
+      case ScratchPosition:
 	 pLS->pfScratchPos = DataLocation;
 	 break;
-      case SDL_MULTICTRL:
+      case Multi:
 	 pLS->pfMultiCtrl = DataLocation;
 	 break;
-      case SDL_TAP_TRIG:
+      case TapDelayTrigger:
 	 pLS->pfTapCtrl = DataLocation;
 	 break;
-      case SDL_MULTITENS:
-	 pLS->pfMultiTens = DataLocation;
+      case UseFeedbackPlay:
+	 pLS->pfUseFeedbackPlay = DataLocation;
 	 break;
-      case SDL_QUANTMODE:
+      case Quantize:
 	 pLS->pfQuantMode = DataLocation;
 	 break;
-      case SDL_SYNCMODE:
+      case Sync:
 	 pLS->pfSyncMode = DataLocation;
 	 break;
-      case SDL_USERATE:
+      case UseRate:
 	 pLS->pfRateCtrlActive = DataLocation;
 	 break;
-      case SDL_XFADESAMPLES:
+      case FadeSamples:
 	 pLS->pfXfadeSamples = DataLocation;
 	 break;
-      case SDL_ROUNDMODE:
+      case Round:
 	 pLS->pfRoundMode = DataLocation;
 	 break;
-      case SDL_REDOTAPMODE:
+      case RedoTap:
 	 pLS->pfRedoTapMode = DataLocation;
 	 break;
 
 	 
-      case SDL_INPUT:
+      case AudioInputPort:
 	 pLS->pfInput = DataLocation;
 	 break;
-      case SDL_OUTPUT:
+      case AudioOutputPort:
 	 pLS->pfOutput = DataLocation;
 	 break;
-      case SDL_SYNC_INPUT:
+      case SyncInputPort:
 	 pLS->pfSyncInput = DataLocation;
 	 break;
-      case SDL_SYNC_OUTPUT:
+      case SyncOutputPort:
 	 pLS->pfSyncOutput = DataLocation;
 	 break;
 
-      case SDL_STATE_OUT:
+      case State:
 	 pLS->pfStateOut = DataLocation;
 	 break;
-      case SDL_LOOPLEN_OUT:
+      case LoopLength:
 	 pLS->pfLoopLength = DataLocation;
 	 break;
-      case SDL_LOOPPOS_OUT:
+      case LoopPosition:
 	 pLS->pfLoopPos = DataLocation;
 	 break;
-      case SDL_CYCLELEN_OUT:
+      case CycleLength:
 	 pLS->pfCycleLength = DataLocation;
 	 break;
-      case SDL_SECSFREE_OUT:
+      case LoopFreeMemory:
 	 pLS->pfSecsFree = DataLocation;
 	 break;
-      case SDL_SECSTOTAL_OUT:
+      case LoopMemory:
 	 pLS->pfSecsTotal= DataLocation;
 	 break;
-      case SDL_WAITING:
+      case Waiting:
 	 pLS->pfWaiting= DataLocation;
 	 break;
 
@@ -1317,7 +1276,8 @@ runSooperLooper(LADSPA_Handle Instance,
   LADSPA_Data rateDelta=0.0f, scratchDelta=0.0f, rateTarget=1.0f, scratchTarget=0.0f;
   LADSPA_Data fTrigThresh = 0.0f;
 
-  int lMultiCtrl=-1, lMultiTens=0;  
+  int lMultiCtrl=-1;  
+  bool useFeedbackPlay = false;
   LADSPA_Data fTapTrig = 0.0f;
   
   LADSPA_Data fFeedback = 1.0f;
@@ -1380,11 +1340,14 @@ runSooperLooper(LADSPA_Handle Instance,
 	  fQuantizeMode = *pLS->pfQuantMode;
   }
   
-  if (pLS->pfMultiCtrl && pLS->pfMultiTens) {
+  if (pLS->pfMultiCtrl) {
      lMultiCtrl = (int) *(pLS->pfMultiCtrl);
-     lMultiTens = (int) *(pLS->pfMultiTens);
   }
 
+  if (pLS->pfUseFeedbackPlay) {
+	  useFeedbackPlay = (bool) *(pLS->pfUseFeedbackPlay);
+  }
+  
   if (pLS->pfTapCtrl) {
      fTapTrig = *(pLS->pfTapCtrl);
   }
@@ -1478,7 +1441,6 @@ runSooperLooper(LADSPA_Handle Instance,
   // transitions due to control triggering
   
   if (lMultiCtrl >= 0 && lMultiCtrl <= 127)
-	  //&& (lMultiCtrl/10) == lMultiTens)
   {
      // fprintf(stderr, "Multictrl val is %ld\n", lMultiCtrl);
 
@@ -2568,7 +2530,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 slCurrPos =(long) loop->dCurrPos;
 		 spLoopSample = & pLS->pSampleBuf[(srcloop->lLoopStart + lpCurrPos) & pLS->lBufferSizeMask];
 		 pLoopSample = & pLS->pSampleBuf[(loop->lLoopStart + slCurrPos) & pLS->lBufferSizeMask];
-// JLC IS HERE		 
+
 		 fillLoops(pLS, loop, lpCurrPos);
 		 
 		 fInputSample = pfInput[lSampleIndex];
@@ -2932,7 +2894,10 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // we might add a bit from the input still during xfadeout
 		 *(pLoopSample) += pLS->fLoopFadeAtten * fInputSample;
 
-
+		 // optionally support feedback during playback
+		 if (useFeedbackPlay) {
+			 *(pLoopSample) *= fFeedback;
+		 }
 		 
 		 
 		 // increment and wrap at the proper loop end
@@ -3234,65 +3199,65 @@ sl_init() {
       = (LADSPA_PortDescriptor *)calloc(PORT_COUNT, sizeof(LADSPA_PortDescriptor));
     g_psDescriptor->PortDescriptors 
       = (const LADSPA_PortDescriptor *)piPortDescriptors;
-    piPortDescriptors[SDL_WET]
+    piPortDescriptors[WetLevel]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_DRY]
-      = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
-
-    piPortDescriptors[SDL_FEEDBACK]
-      = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_THRESH]
-      = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_RATE]
-      = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_SCRATCH_POS]
+    piPortDescriptors[DryLevel]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
 
-    piPortDescriptors[SDL_MULTICTRL]
+    piPortDescriptors[Feedback]
+      = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
+    piPortDescriptors[TriggerThreshold]
+      = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
+    piPortDescriptors[Rate]
+      = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
+    piPortDescriptors[ScratchPosition]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
 
-    piPortDescriptors[SDL_TAP_TRIG]
+    piPortDescriptors[Multi]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
 
-    piPortDescriptors[SDL_MULTITENS]
+    piPortDescriptors[TapDelayTrigger]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_QUANTMODE]
+
+    piPortDescriptors[UseFeedbackPlay]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_ROUNDMODE]
+    piPortDescriptors[Quantize]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_SYNCMODE]
+    piPortDescriptors[Round]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_USERATE]
+    piPortDescriptors[Sync]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_XFADESAMPLES]
+    piPortDescriptors[UseRate]
+      = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
+    piPortDescriptors[FadeSamples]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
     
-    piPortDescriptors[SDL_REDOTAPMODE]
+    piPortDescriptors[RedoTap]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
     
-    piPortDescriptors[SDL_INPUT]
+    piPortDescriptors[AudioInputPort]
       = LADSPA_PORT_INPUT | LADSPA_PORT_AUDIO;
-    piPortDescriptors[SDL_OUTPUT]
+    piPortDescriptors[AudioOutputPort]
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_AUDIO;
-    piPortDescriptors[SDL_SYNC_INPUT]
+    piPortDescriptors[SyncInputPort]
       = LADSPA_PORT_INPUT | LADSPA_PORT_AUDIO;
-    piPortDescriptors[SDL_SYNC_OUTPUT]
+    piPortDescriptors[SyncOutputPort]
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_AUDIO;
 
     
-    piPortDescriptors[SDL_STATE_OUT]
+    piPortDescriptors[State]
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_LOOPPOS_OUT]
+    piPortDescriptors[LoopPosition]
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_LOOPLEN_OUT]
+    piPortDescriptors[LoopLength]
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_CYCLELEN_OUT]
+    piPortDescriptors[CycleLength]
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_SECSTOTAL_OUT]
+    piPortDescriptors[LoopMemory]
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_SECSFREE_OUT]
+    piPortDescriptors[LoopFreeMemory]
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
-    piPortDescriptors[SDL_WAITING]
+    piPortDescriptors[Waiting]
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
 
 
@@ -3301,66 +3266,66 @@ sl_init() {
       = (char **)calloc(PORT_COUNT, sizeof(char *));
     g_psDescriptor->PortNames
       = (const char **)pcPortNames;
-    pcPortNames[SDL_DRY] 
+    pcPortNames[DryLevel] 
       = strdup("Dry Level (dB)");
-    pcPortNames[SDL_WET] 
+    pcPortNames[WetLevel] 
       = strdup("Wet Level (dB)");
 
-    pcPortNames[SDL_FEEDBACK] 
+    pcPortNames[Feedback] 
       = strdup("Feedback");
-    pcPortNames[SDL_THRESH] 
+    pcPortNames[TriggerThreshold] 
       = strdup("Trigger Threshold");
-    pcPortNames[SDL_RATE] 
+    pcPortNames[Rate] 
       = strdup("Rate");
-    pcPortNames[SDL_SCRATCH_POS] 
+    pcPortNames[ScratchPosition] 
       = strdup("Scratch Destination");
 
-    pcPortNames[SDL_MULTICTRL] 
+    pcPortNames[Multi] 
       = strdup("Multi Control");
 
-    pcPortNames[SDL_TAP_TRIG] 
+    pcPortNames[TapDelayTrigger] 
       = strdup("Tap Delay Trigger");
 
-    pcPortNames[SDL_MULTITENS] 
-      = strdup("MultiCtrl 10s");
-    pcPortNames[SDL_QUANTMODE] 
+    pcPortNames[UseFeedbackPlay] 
+      = strdup("Use Feedback Play");
+    pcPortNames[Quantize] 
       = strdup("Quantize Mode");
-    pcPortNames[SDL_ROUNDMODE] 
+    pcPortNames[Round] 
       = strdup("Round Mode");
-    pcPortNames[SDL_REDOTAPMODE] 
+    pcPortNames[RedoTap] 
       = strdup("Redo Tap Mode");
-    pcPortNames[SDL_SYNCMODE] 
+    pcPortNames[Sync] 
       = strdup("Sync Mode");
-    pcPortNames[SDL_USERATE] 
+    pcPortNames[UseRate] 
       = strdup("Use Rate Ctrl");
-    pcPortNames[SDL_XFADESAMPLES] 
+    pcPortNames[FadeSamples] 
       = strdup("Fade samples");
 
     
-    pcPortNames[SDL_INPUT] 
+    pcPortNames[AudioInputPort] 
       = strdup("Input");
-    pcPortNames[SDL_OUTPUT]
+    pcPortNames[AudioOutputPort]
       = strdup("Output");
 
-    pcPortNames[SDL_SYNC_INPUT] 
+    pcPortNames[SyncInputPort] 
       = strdup("Sync Input");
-    pcPortNames[SDL_SYNC_OUTPUT]
+    pcPortNames[SyncOutputPort]
       = strdup("Sync Output");
     
-    pcPortNames[SDL_STATE_OUT] 
+    pcPortNames[State] 
       = strdup("State Output");
-    pcPortNames[SDL_LOOPLEN_OUT]
+    pcPortNames[LoopLength]
       = strdup("Loop Length Out (s)");
-    pcPortNames[SDL_LOOPPOS_OUT]
+    pcPortNames[LoopPosition]
       = strdup("Loop Position Out (s)");
-    pcPortNames[SDL_CYCLELEN_OUT]
+    pcPortNames[CycleLength]
       = strdup("Cycle Length Out (s)");
 
-    pcPortNames[SDL_SECSTOTAL_OUT]
+    pcPortNames[LoopMemory]
       = strdup("Total Sample Mem (s)");
-    pcPortNames[SDL_SECSFREE_OUT]
+    pcPortNames[LoopFreeMemory]
       = strdup("Free Sample Mem (s)");
-    pcPortNames[SDL_WAITING]
+    pcPortNames[Waiting]
       = strdup("Waiting");
 
     
@@ -3369,128 +3334,124 @@ sl_init() {
     g_psDescriptor->PortRangeHints
       = (const LADSPA_PortRangeHint *)psPortRangeHints;
 
-    psPortRangeHints[SDL_DRY].HintDescriptor
+    psPortRangeHints[DryLevel].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE;
-    psPortRangeHints[SDL_DRY].LowerBound 
+    psPortRangeHints[DryLevel].LowerBound 
       = -90.0f;
-    psPortRangeHints[SDL_DRY].UpperBound
+    psPortRangeHints[DryLevel].UpperBound
       = 0.0;
 
-    psPortRangeHints[SDL_WET].HintDescriptor
+    psPortRangeHints[WetLevel].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE;
-    psPortRangeHints[SDL_WET].LowerBound 
+    psPortRangeHints[WetLevel].LowerBound 
       = -90.0f;
-    psPortRangeHints[SDL_WET].UpperBound
+    psPortRangeHints[WetLevel].UpperBound
       = 0.0;
     
-    psPortRangeHints[SDL_FEEDBACK].HintDescriptor
+    psPortRangeHints[Feedback].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE;
-    psPortRangeHints[SDL_FEEDBACK].LowerBound 
+    psPortRangeHints[Feedback].LowerBound 
       = 0.0;
-    psPortRangeHints[SDL_FEEDBACK].UpperBound
+    psPortRangeHints[Feedback].UpperBound
       = 1.0;
 
-    psPortRangeHints[SDL_THRESH].HintDescriptor
+    psPortRangeHints[TriggerThreshold].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE;
-    psPortRangeHints[SDL_THRESH].LowerBound 
+    psPortRangeHints[TriggerThreshold].LowerBound 
       = 0.0;
-    psPortRangeHints[SDL_THRESH].UpperBound
+    psPortRangeHints[TriggerThreshold].UpperBound
       = 1.0;
 
-    psPortRangeHints[SDL_RATE].HintDescriptor
+    psPortRangeHints[Rate].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE;
-    psPortRangeHints[SDL_RATE].LowerBound 
+    psPortRangeHints[Rate].LowerBound 
       = -4.0;
-    psPortRangeHints[SDL_RATE].UpperBound
+    psPortRangeHints[Rate].UpperBound
       = 4.0;
     
-    psPortRangeHints[SDL_SCRATCH_POS].HintDescriptor
+    psPortRangeHints[ScratchPosition].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE;
-    psPortRangeHints[SDL_SCRATCH_POS].LowerBound 
+    psPortRangeHints[ScratchPosition].LowerBound 
       = 0.0;
-    psPortRangeHints[SDL_SCRATCH_POS].UpperBound
+    psPortRangeHints[ScratchPosition].UpperBound
       = 1.0;
 
-    psPortRangeHints[SDL_MULTICTRL].HintDescriptor
+    psPortRangeHints[Multi].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_INTEGER;
-    psPortRangeHints[SDL_MULTICTRL].LowerBound 
+    psPortRangeHints[Multi].LowerBound 
       = 0.0;
-    psPortRangeHints[SDL_MULTICTRL].UpperBound
+    psPortRangeHints[Multi].UpperBound
       = 127.0;
 
-    psPortRangeHints[SDL_TAP_TRIG].HintDescriptor
+    psPortRangeHints[TapDelayTrigger].HintDescriptor
       = LADSPA_HINT_TOGGLED;
 
-    psPortRangeHints[SDL_MULTITENS].HintDescriptor
-      = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_INTEGER;
-    psPortRangeHints[SDL_MULTITENS].LowerBound 
-      = 0.0;
-    psPortRangeHints[SDL_MULTITENS].UpperBound
-      = 12.0;
+    psPortRangeHints[UseFeedbackPlay].HintDescriptor
+	    = LADSPA_HINT_TOGGLED;
 
-    psPortRangeHints[SDL_QUANTMODE].HintDescriptor
+    psPortRangeHints[Quantize].HintDescriptor
       = LADSPA_HINT_BOUNDED_ABOVE|LADSPA_HINT_BOUNDED_BELOW|LADSPA_HINT_INTEGER;
-    psPortRangeHints[SDL_QUANTMODE].LowerBound 
+    psPortRangeHints[Quantize].LowerBound 
       = 0.0f;
-    psPortRangeHints[SDL_QUANTMODE].UpperBound
+    psPortRangeHints[Quantize].UpperBound
       = 3.0f;
 
-    psPortRangeHints[SDL_XFADESAMPLES].HintDescriptor
+    psPortRangeHints[FadeSamples].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_INTEGER;
-    psPortRangeHints[SDL_XFADESAMPLES].LowerBound 
+    psPortRangeHints[FadeSamples].LowerBound 
       = 0.0f;
-    psPortRangeHints[SDL_XFADESAMPLES].UpperBound
+    psPortRangeHints[FadeSamples].UpperBound
       = 8192.0f;
     
     
-    psPortRangeHints[SDL_ROUNDMODE].HintDescriptor
+    psPortRangeHints[Round].HintDescriptor
       = LADSPA_HINT_TOGGLED;
-    psPortRangeHints[SDL_REDOTAPMODE].HintDescriptor
+    psPortRangeHints[RedoTap].HintDescriptor
       = LADSPA_HINT_TOGGLED;
-    psPortRangeHints[SDL_SYNCMODE].HintDescriptor
+    psPortRangeHints[Sync].HintDescriptor
       = LADSPA_HINT_TOGGLED;
-    psPortRangeHints[SDL_USERATE].HintDescriptor
+    psPortRangeHints[UseRate].HintDescriptor
       = LADSPA_HINT_TOGGLED;
     
-    psPortRangeHints[SDL_INPUT].HintDescriptor
+    psPortRangeHints[AudioInputPort].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW;
-    psPortRangeHints[SDL_INPUT].LowerBound 
+    psPortRangeHints[AudioInputPort].LowerBound 
       = 0.0;
-    psPortRangeHints[SDL_OUTPUT].HintDescriptor
+    psPortRangeHints[AudioOutputPort].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW;
-    psPortRangeHints[SDL_OUTPUT].LowerBound 
-      = 0.0;
-
-    psPortRangeHints[SDL_STATE_OUT].HintDescriptor
-      = LADSPA_HINT_BOUNDED_BELOW;
-    psPortRangeHints[SDL_LOOPPOS_OUT].LowerBound 
+    psPortRangeHints[AudioOutputPort].LowerBound 
       = 0.0;
 
-    psPortRangeHints[SDL_LOOPPOS_OUT].HintDescriptor
+    psPortRangeHints[State].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW;
-    psPortRangeHints[SDL_LOOPPOS_OUT].LowerBound 
+    psPortRangeHints[LoopPosition].LowerBound 
+      = 0.0;
+
+    psPortRangeHints[LoopPosition].HintDescriptor
+      = LADSPA_HINT_BOUNDED_BELOW;
+    psPortRangeHints[LoopPosition].LowerBound 
       = 0.0;
     
-    psPortRangeHints[SDL_LOOPLEN_OUT].HintDescriptor
+    psPortRangeHints[LoopLength].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW;
-    psPortRangeHints[SDL_LOOPLEN_OUT].LowerBound 
+    psPortRangeHints[LoopLength].LowerBound 
       = 0.0;
 
-    psPortRangeHints[SDL_CYCLELEN_OUT].HintDescriptor
+    psPortRangeHints[CycleLength].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW;
-    psPortRangeHints[SDL_CYCLELEN_OUT].LowerBound 
+    psPortRangeHints[CycleLength].LowerBound 
       = 0.0;
 
-    psPortRangeHints[SDL_SECSTOTAL_OUT].HintDescriptor
+    psPortRangeHints[LoopMemory].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW;
-    psPortRangeHints[SDL_SECSTOTAL_OUT].LowerBound 
+    psPortRangeHints[LoopMemory].LowerBound 
       = 0.0;
-    psPortRangeHints[SDL_SECSFREE_OUT].HintDescriptor
+    psPortRangeHints[LoopFreeMemory].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW;
-    psPortRangeHints[SDL_SECSFREE_OUT].LowerBound 
+    psPortRangeHints[LoopFreeMemory].LowerBound 
       = 0.0;
 
-    psPortRangeHints[SDL_WAITING].HintDescriptor
+    psPortRangeHints[Waiting].HintDescriptor
       = LADSPA_HINT_TOGGLED;
     
     

@@ -136,6 +136,7 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 
 	_str_ctrl_map["rec_thresh"]  = Event::TriggerThreshold;
 	_str_ctrl_map["feedback"]  = Event::Feedback;
+	_str_ctrl_map["use_feedback_play"]  = Event::UseFeedbackPlay;
 	_str_ctrl_map["dry"]  = Event::DryLevel;
 	_str_ctrl_map["wet"]  = Event::WetLevel;
 	_str_ctrl_map["rate"]  = Event::Rate;

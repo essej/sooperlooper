@@ -115,7 +115,7 @@ namespace SooperLooper {
 		    ScratchPosition,
 		    MultiUnused,
 		    TapDelayTrigger,
-		    MultiTensUnused,
+		    UseFeedbackPlay,
 		    Quantize,
 		    Round,
 		    RedoTap,

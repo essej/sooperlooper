@@ -26,11 +26,13 @@
 #include "lockmonitor.hpp"
 #include "ladspa.h"
 
+#include "plugin.hpp"
 #include "event.hpp"
 #include "event_nonrt.hpp"
 
 namespace SooperLooper {
 
+#if 0	
 enum ControlPort {
 	TriggerThreshold = 0,
 	DryLevel,
@@ -73,7 +75,7 @@ enum {
 	QUANT_8TH,
 	QUANT_LOOP
 };
-
+#endif
 	
 class Looper 
 {
