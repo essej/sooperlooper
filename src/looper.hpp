@@ -67,8 +67,10 @@ class Looper
 
 	void use_sync_buf(float * buf);
 
-	void set_use_common_io (bool val);
-	bool get_use_common_io () { return _use_common_io; }
+	void set_use_common_ins (bool val);
+	bool get_use_common_ins () { return _use_common_ins; }
+	void set_use_common_outs (bool val);
+	bool get_use_common_outs () { return _use_common_outs; }
 
 	bool get_have_discrete_io () { return _have_discrete_io; }
 	
@@ -114,7 +116,8 @@ class Looper
 	LADSPA_Data         _slave_sync_port;
 	LADSPA_Data         _slave_dummy_port;
 
-	bool                _use_common_io;
+	bool                _use_common_ins;
+	bool                _use_common_outs;
 	bool                _have_discrete_io;
 
 	// SRC stuff

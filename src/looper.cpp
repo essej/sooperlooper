@@ -75,7 +75,8 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	_dummy_buf = 0;
 	_tmp_io_buf = 0;
 	_running_frames = 0;
-	_use_common_io = true;
+	_use_common_ins = true;
+	_use_common_outs = true;
 	_have_discrete_io = discrete;
 	_curr_dry = 1.0f;
 	_target_dry = 1.0f;
@@ -273,9 +274,15 @@ Looper::~Looper ()
 
 
 void 
-Looper::set_use_common_io (bool val)
+Looper::set_use_common_ins (bool val)
 {
-	_use_common_io = val;
+	_use_common_ins = val;
+}
+
+void 
+Looper::set_use_common_outs (bool val)
+{
+	_use_common_outs = val;
 }
 
 void
@@ -339,9 +346,18 @@ float
 Looper::get_control_value (Event::control_t ctrl)
 {
 	int index = (int) ctrl;
-	
+
 	if (ctrl == Event::DryLevel) {
 		return _curr_dry;
+	}
+	else if (ctrl == Event::UseCommonOuts) {
+		return _use_common_outs;
+	}
+	else if (ctrl == Event::UseCommonIns) {
+		return _use_common_ins;
+	}
+	else if (ctrl == Event::HasDiscreteIO) {
+		return _have_discrete_io;
 	}
 	else if (index >= 0 && index < LASTPORT) {
 		return ports[index];
@@ -352,11 +368,14 @@ Looper::get_control_value (Event::control_t ctrl)
 
 void Looper::set_port (ControlPort n, float val)
 {
-	if (n == DryLevel) {
+	switch (n)
+	{
+	case DryLevel:
 		_target_dry = val;
-	}
-	else {
+		break;
+	default:
 		ports[n] = val;
+		break;
 	}
 }
 
@@ -424,20 +443,21 @@ Looper::do_event (Event *ev)
 
 		if ((int)ev->Control >= (int)Event::TriggerThreshold && (int)ev->Control < (int) Event::State) {
 
-			if (ev->Control == Event::Quantize) {
+			switch (ev->Control) 
+			{
+			case  Event::Quantize:
 				ev->Value = roundf(ev->Value);
-			}
+				break;
 			
-			if (ev->Control == Event::DryLevel)
-			{
+			case Event::DryLevel:
 				_target_dry = ev->Value;
-			}
-			else 
-			{
+				break;
+
+			default:
 				ports[ev->Control] = ev->Value;
 				//cerr << "set port " << ev->Control << "  to: " << ev->Value << endl;
+				break;
 			}
-
 			
 #ifdef HAVE_SAMPLERATE
 			if (ev->Control == Event::Rate) {
@@ -458,7 +478,17 @@ Looper::do_event (Event *ev)
 			}
 #endif
 		}
+		else if (ev->Control == Event::UseCommonIns) 
+		{
+			_use_common_ins = ev->Value > 0.0f;
+		}
+		else if (ev->Control == Event::UseCommonOuts) 
+		{
+			_use_common_outs = ev->Value > 0.0f;
+		}
+
 	}
+
 	
 	// todo other stuff
 }
@@ -548,7 +578,7 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 			outbuf = _tmp_io_buf;
 		}
 
-		if (_use_common_io || !_have_discrete_io) {
+		if (_use_common_ins || !_have_discrete_io) {
 			// mix common input into this buffer
 			port_id_t cominport;
 			if (_driver->get_engine()->get_common_input(i, cominport)) {
@@ -588,7 +618,7 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		/* do it */
 		descriptor->run (_instances[i], nframes);
 
-		if (_use_common_io) {
+		if (_use_common_outs) {
 			// mix this output into common output
 			port_id_t comoutport;
 
@@ -653,7 +683,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 			outbuf = _tmp_io_buf;
 		}
 
-		if (_use_common_io || !_have_discrete_io) {
+		if (_use_common_ins || !_have_discrete_io) {
 			// mix common input into this buffer
 			port_id_t cominport;
 			if (_driver->get_engine()->get_common_input(i, cominport)) {
@@ -762,7 +792,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 			_lp_filter[i]->run_lowpass (_src_data.data_out, nframes);
 		}
 
-		if (_use_common_io) {
+		if (_use_common_outs) {
 			// mix this output into common output
 			port_id_t comoutport;
 

@@ -195,7 +195,7 @@ GuiFrame::init()
 	_sync_choice->value_changed.connect (slot (*this,  &GuiFrame::on_syncto_change));
 	_sync_choice->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("sync")));
 	
-	rowsizer->Add (_sync_choice, 0, wxALL, 2);
+	rowsizer->Add (_sync_choice, 0, wxALL|wxEXPAND, 2);
 	
 	_tempo_bar = new SpinBox(_top_panel, ID_TempoSlider, 0.0f, 10000.0f, 110.0f, true, wxDefaultPosition, wxSize(120, 22));
 	_tempo_bar->set_units(wxT("bpm"));
@@ -205,7 +205,7 @@ GuiFrame::init()
 	_tempo_bar->SetFont (sliderFont);
 	_tempo_bar->value_changed.connect (slot (*this,  &GuiFrame::on_tempo_change));
 	_tempo_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("tempo")));
-	rowsizer->Add (_tempo_bar, 0, wxALL, 2);
+	rowsizer->Add (_tempo_bar, 0, wxALL|wxEXPAND, 2);
 
  	_taptempo_button = new PixButton(_top_panel, ID_TapTempoButton, true);
 	_taptempo_button->set_normal_bitmap (wxBitmap(tap_tempo_normal));
@@ -216,7 +216,7 @@ GuiFrame::init()
 	_taptempo_button->pressed.connect (slot (*this, &GuiFrame::on_taptempo_press));
 	_taptempo_button->released.connect (slot (*this, &GuiFrame::on_taptempo_release));
 	_taptempo_button->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("taptempo")));
- 	rowsizer->Add (_taptempo_button, 0, wxALL, 2);
+ 	rowsizer->Add (_taptempo_button, 0, wxALL|wxEXPAND, 2);
 	
 
 	_eighth_cycle_bar = new SpinBox(_top_panel, ID_EighthSlider, 1.0f, 1024.0f, 16.0f, true, wxDefaultPosition, wxSize(110, 22));
@@ -227,7 +227,7 @@ GuiFrame::init()
 	_eighth_cycle_bar->SetFont (sliderFont);
 	_eighth_cycle_bar->value_changed.connect (slot (*this,  &GuiFrame::on_eighth_change));
 	_eighth_cycle_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("eighth")));
-	rowsizer->Add (_eighth_cycle_bar, 0, wxALL, 2);
+	rowsizer->Add (_eighth_cycle_bar, 0, wxALL|wxEXPAND, 2);
 	
 
 	_quantize_choice = new ChoiceBox (_top_panel, ID_QuantizeChoice, true, wxDefaultPosition, wxSize (110, 22));
@@ -239,7 +239,7 @@ GuiFrame::init()
 	_quantize_choice->append_choice (wxT("cycle"), 1);
 	_quantize_choice->append_choice (wxT("8th"), 2);
 	_quantize_choice->append_choice (wxT("loop"), 3);
-	rowsizer->Add (_quantize_choice, 0, wxALL, 2);
+	rowsizer->Add (_quantize_choice, 0, wxALL|wxEXPAND, 2);
 
 	
 	rowsizer->Add (1, 1, 1);
@@ -261,7 +261,7 @@ GuiFrame::init()
 	_xfade_bar->SetFont (sliderFont);
 	_xfade_bar->value_changed.connect (slot (*this,  &GuiFrame::on_xfade_change));
 	_xfade_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("fade_samples")));
-	rowsizer->Add (_xfade_bar, 0, wxALL, 2);
+	rowsizer->Add (_xfade_bar, 0, wxALL|wxEXPAND, 2);
 
 	_common_dry_bar = new SliderBar(_top_panel, ID_DryControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(200,22));
 	_common_dry_bar->set_units(wxT("dB"));
@@ -270,7 +270,7 @@ GuiFrame::init()
 	_common_dry_bar->SetFont(sliderFont);
 	_common_dry_bar->value_changed.connect (slot (*this, &GuiFrame::on_dry_change));
 	_common_dry_bar->bind_request.connect (bind (slot (*this, &GuiFrame::on_bind_request), wxT("dry")));
-	rowsizer->Add (_common_dry_bar, 0, wxALL, 2);
+	rowsizer->Add (_common_dry_bar, 0, wxALL|wxEXPAND, 2);
 
 	_common_wet_bar = new SliderBar(_top_panel, ID_WetControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(200,22));
 	_common_wet_bar->set_units(wxT("dB"));
@@ -279,7 +279,7 @@ GuiFrame::init()
 	_common_wet_bar->SetFont(sliderFont);
 	_common_wet_bar->value_changed.connect (slot (*this, &GuiFrame::on_wet_change));
 	_common_wet_bar->bind_request.connect (bind (slot (*this, &GuiFrame::on_bind_request), wxT("wet")));
-	rowsizer->Add (_common_wet_bar, 0, wxALL, 2);
+	rowsizer->Add (_common_wet_bar, 0, wxALL|wxEXPAND, 2);
 	
 
 	
@@ -287,7 +287,7 @@ GuiFrame::init()
 	_round_check->SetFont (sliderFont);
 	_round_check->value_changed.connect (slot (*this, &GuiFrame::on_round_check));
 	_round_check->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("round")));
-	rowsizer->Add (_round_check, 0, wxALL, 2);
+	rowsizer->Add (_round_check, 0, wxALL|wxEXPAND, 2);
 
 	rowsizer->Add (1, 1, 1);
 
@@ -429,8 +429,9 @@ GuiFrame::init_loopers (int count)
 			if (GetMenuBar()) {
 				topheight += GetMenuBar()->GetSize().GetHeight();
 			}
+#else
+			topheight += 32;
 #endif
-			cerr << "topheight = " <<  topheight << endl;
 			SetSize(GetSize().GetWidth(), bestsz.GetHeight() * _looper_panels.size()  + topheight); 
 		}
 
@@ -503,7 +504,6 @@ GuiFrame::update_controls()
 	float val;
 
 	if (_loop_control->is_global_updated("tempo")) {
-		cerr << "setting tempo" << endl;
 		_loop_control->get_global_value("tempo", val);
 		_tempo_bar->set_value (val);
 	}

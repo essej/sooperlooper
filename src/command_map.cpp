@@ -76,6 +76,8 @@ CommandMap::CommandMap()
 	_input_controls["playback_sync"]  = Event::PlaybackSync;
 	_input_controls["use_rate"]  = Event::UseRate;
 	_input_controls["fade_samples"]  = Event::FadeSamples;
+	_input_controls["use_common_ins"]  = Event::UseCommonIns;
+	_input_controls["use_common_outs"]  = Event::UseCommonOuts;
 
 
 	_str_ctrl_map.insert (_input_controls.begin(), _input_controls.end());
@@ -90,6 +92,7 @@ CommandMap::CommandMap()
 	_output_controls["free_time"]  = Event::FreeTime;
 	_output_controls["total_time"]  = Event::TotalTime;
 	_output_controls["rate_output"]  = Event::TrueRate;
+	_output_controls["has_discrete_io"]  = Event::HasDiscreteIO;
 
 	_str_ctrl_map.insert (_output_controls.begin(), _output_controls.end());
 

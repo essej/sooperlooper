@@ -146,7 +146,10 @@ namespace SooperLooper {
 		    MidiStart,
 		    MidiStop,
 		    MidiTick,
-		    SaveLoop
+		    SaveLoop,
+		    UseCommonIns,
+		    UseCommonOuts,
+		    HasDiscreteIO
 	    } Control;
 	    
 	    int8_t  Instance;

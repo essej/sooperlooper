@@ -132,6 +132,7 @@ class LooperPanel
 	CheckBox * _sync_check;
 	CheckBox * _play_feed_check;
 	CheckBox * _play_sync_check;
+	CheckBox * _use_main_in_check;
 
 	ChoiceBox  * _quantize_choice;
 	
