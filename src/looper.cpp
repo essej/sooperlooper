@@ -31,6 +31,7 @@
 #include <sndfile.h>
 
 #include "ladspa.h"
+#include "plugin.hpp"
 
 using namespace std;
 using namespace SooperLooper;
@@ -487,6 +488,7 @@ Looper::load_loop (string fname)
 	return ret;
 }
 
+
 bool
 Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 {
@@ -494,14 +496,10 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 	
 #ifdef HAVE_SNDFILE
 
-	// right now, this is a bit of a hack
-	// we have to set the plugin(s) to mute state
-	// then do a unmute one-shot and run it a total
-	// of loop_length frames
-
-	// this is not called from the audio thread
-	// so we take the loop_lock during the whole procedure
-	LockMonitor lm (_loop_lock, __LINE__, __FILE__);
+	// this is called from the man work thread which controls
+	// the allocation of loops and jack ports
+	// thus, our readonly activity to the current loop does not
+	// need a lock to operate safely (because we know it will be safe :)
 
 	SNDFILE * sfile = 0;
 	SF_INFO   sinfo;
@@ -538,40 +536,7 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 		outbufs[i] = new float[bufsize];
 	}
 
-	float * dummyin = new float[bufsize];
 	float * bigbuf   = new float[bufsize * _chan_count];
-
-	memset(dummyin, 0, sizeof(float) * bufsize);
-	
-	for (unsigned int i=0; i < _chan_count; ++i)
-	{
-		/* connect audio ports */
-		descriptor->connect_port (_instances[i], AudioInputPort, (LADSPA_Data*) dummyin);
-		descriptor->connect_port (_instances[i], AudioOutputPort, (LADSPA_Data*) outbufs[i]);
-		descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) dummyin);
-		descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) dummyin);
-	}
-	
-	// ok, first we need to store some current values
-	float old_wet = ports[WetLevel];
-	float old_dry = ports[DryLevel];
-	float old_xfade = ports[FadeSamples];
-	
-	ports[WetLevel] = 1.0f;
-	ports[DryLevel] = 0.0f;
-	ports[FadeSamples] = 0.0f;
-	
-	// now set it to mute then scratch (to start from beginning)
-	//   just to make sure we weren't already recording
-	
-	for (unsigned int i=0; i < _chan_count; ++i)
-	{
-		// run it for 0 frames just to change state
-		ports[Multi] = Event::MUTE;
-		descriptor->run (_instances[i], 0);
-		ports[Multi] = Event::SCRATCH;
-		descriptor->run (_instances[i], 0);
-	}
 
 	// now start recording and run for loop length total
 	nframes_t nframes = bufsize;
@@ -579,6 +544,7 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 
 	nframes_t bpos;
 	float * databuf;
+	nframes_t looppos = 0;
 	
 	while (frames_left > 0)
 	{
@@ -590,9 +556,14 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 		for (unsigned int i=0; i < _chan_count; ++i)
 		{
 			// run it for nframes
-			descriptor->run (_instances[i], nframes);
+			nframes = sl_read_current_loop_audio (_instances[i], outbufs[i], nframes, looppos);
 		}
 
+		if (nframes == 0) {
+			// we're done, it shorted us somehow
+			break;
+		}
+		
 		// interleave
 		unsigned int n;
 		for (n=0; n < _chan_count; ++n) {
@@ -609,21 +580,8 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 		
 
 		frames_left -= nframes;
+		looppos += nframes;
 	}
-	
-
-	ports[DryLevel] = old_dry;
-	ports[WetLevel] = old_wet;
-	ports[FadeSamples] = old_xfade;
-	
-	// change state to unknown, then the end record
-	for (unsigned int i=0; i < _chan_count; ++i)
-	{
-		ports[Multi] = Event::UNKNOWN;
-		descriptor->run (_instances[i], 0);
-	}
-
-	
 	
 	ret = true;
 
@@ -633,11 +591,9 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 		delete [] outbufs[i];
 	}
 	delete [] outbufs;
-	delete [] dummyin;
 	delete [] bigbuf;
 	
 #endif
 
 	return ret;
 }
-

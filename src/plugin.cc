@@ -50,6 +50,8 @@ using namespace std;
 
 #include "ladspa.h"
 
+#include "plugin.hpp"
+
 /*****************************************************************************/
 //#define LOOPDEBUG
 
@@ -191,231 +193,51 @@ enum {
 
 
 
-/*****************************************************************************/
+// reads loop audio into buffer, up to frames length, starting from loop_offset.  if fewer frames are
+// available returns amount read.  if 0 is returned loop is done.
+unsigned long
+sl_read_current_loop_audio (LADSPA_Handle instance, float * buf, unsigned long frames, unsigned long loop_offset)
+{
+	SooperLooperI * pLS = (SooperLooperI *)instance;
 
-// defines all a loop needs to know to cycle properly in memory
-// one of these will prefix the actual loop data in our buffer memory
-typedef struct _LoopChunk {
+	if (!pLS || !buf) return 0;
 
-	/* pointers in buffer memory. */
-	//LADSPA_Data * pLoopStart;
-	//LADSPA_Data * pLoopStop;    
+	LoopChunk * loop = pLS->headLoopChunk;
+	if (!loop) return 0;
+	if (loop_offset > loop->lLoopLength) return 0;
 	
-	// index into main sample buffer
-	unsigned long lLoopStart;
-	//unsigned long lLoopStop;    
-	unsigned long lLoopLength;
+	unsigned long frames_left = loop->lLoopLength - loop_offset;
+	unsigned long startpos = (loop->lLoopStart + loop_offset) & pLS->lBufferSizeMask;
+	unsigned long first_chunk;
+	unsigned long second_chunk=0;
+
+	if (frames > frames_left) {
+		frames = frames_left;
+	}
 	
-	// adjustment needed in the case of multiply/insert
-	unsigned long lStartAdj;
-	unsigned long lEndAdj;
-	unsigned long lInsPos; // used only by INSERT mode
-	unsigned long lRemLen; // used only by INSERT mode
-	
-	// markers needed for frontfilling and backfilling
-	unsigned long lMarkL;
-	unsigned long lMarkH;    
-	unsigned long lMarkEndL;
-	unsigned long lMarkEndH;        
-	
-	int firsttime;
-	int frontfill;
-	int backfill;
-	int valid;
-	
-	unsigned long lCycles;
-	unsigned long lCycleLength;
-	
-	// current position is double to support alternative rates easier
-	double dCurrPos;
-	
-	// used when doing frontfills
-	LADSPA_Data dOrigFeedback;
-	
-	// the loop where we should be frontfilled and backfilled from
-	struct _LoopChunk* srcloop;
-	
-	struct _LoopChunk* next;
-	struct _LoopChunk* prev;
-	
-} LoopChunk;
+	if ( startpos > ((startpos + frames) & pLS->lBufferSizeMask)) {
+		// crosses buffer boundary, 2 chunks needed
+		first_chunk = pLS->lBufferSize - startpos;
+		second_chunk = frames - first_chunk;
+	}
+	else {
+		first_chunk = frames;
+		second_chunk = 0;
+	}
 
 
-/* Instance data */
-typedef struct {
-    
-	LADSPA_Data fSampleRate;
+	// read first chunk
+	memcpy ((char *)buf, (char *) &pLS->pSampleBuf[startpos], first_chunk * sizeof(LADSPA_Data));
 
-	/* the sample memory */
-	//LADSPA_Data * pfSampleBuf;
-	LADSPA_Data * pSampleBuf;
-    
-	/* Buffer size, IS necessarily a power of two. */
-	unsigned long lBufferSize;
-	unsigned long lBufferSizeMask;
-	
-	// the loopchunk pool
-	LoopChunk * pLoopChunks;
-	LoopChunk * lastLoopChunk;
-	unsigned long lLoopChunkCount;
-	
-	LADSPA_Data fTotalSecs;	
-	
-	/* the current state of the sampler */
-	int state;
+	if (second_chunk) {
+		memcpy ((char *) (buf + first_chunk), (char *) pLS->pSampleBuf, second_chunk * sizeof(LADSPA_Data));
+	}
 
-	int nextState;
-
-	int waitingForSync;
-	
-	long lLastMultiCtrl;
-
-	// initial location of params
-	LADSPA_Data fQuantizeMode;
-	LADSPA_Data fRoundMode;    
-	LADSPA_Data fRedoTapMode;
-	LADSPA_Data fSyncMode;
-
-    
-	// used only when in DELAY mode
-	int bHoldMode;
-
-    
-	unsigned long lTapTrigSamples;
-
-	LADSPA_Data fLastOverTrig;    
-	unsigned long lOverTrigSamples;    
-
-	unsigned long lRampSamples;
-    
-	LADSPA_Data fCurrRate;
-	LADSPA_Data fNextCurrRate;
-
-	LADSPA_Data fLastScratchVal;
-	unsigned long lScratchSamples;
-	LADSPA_Data fCurrScratchRate;
-	LADSPA_Data fLastRateSwitch;
-	int bRateCtrlActive;
-    
-	LADSPA_Data fLastTapCtrl;
-	int bPreTap;
-    
-	// linked list of loop chunks
-	LoopChunk * headLoopChunk;
-	LoopChunk * tailLoopChunk;    
-	unsigned int lHeadLoopChunk;
-	unsigned int lTailLoopChunk;
-    
-	LADSPA_Data fWetCurr;
-	LADSPA_Data fWetTarget;
-
-	LADSPA_Data fDryCurr;
-	LADSPA_Data fDryTarget;
-
-	LADSPA_Data fRateCurr;
-	LADSPA_Data fRateTarget;
-
-	LADSPA_Data fScratchPosCurr;
-	LADSPA_Data fScratchPosTarget;
-
-	LADSPA_Data fFeedbackCurr;
-	LADSPA_Data fFeedbackTarget;
-
-	LADSPA_Data fLoopFadeAtten;
-	LADSPA_Data fLoopFadeDelta;
-
-	LADSPA_Data fLoopXfadeTime;
-	
-	/* Ports:
-	   ------ */
-
-    
-
-	LADSPA_Data * pfWet;
-    
-	LADSPA_Data * pfDry;
-
-    
-	/* Feedback 0 for none, 1 for infinite */
-	LADSPA_Data * pfFeedback;
-
-	/* Trigger level for record and stop record */
-	LADSPA_Data * pfTrigThresh;
+	return frames;
+}
 
 
-	/* The rate of loop playback, if RateSwitch is on */
-	LADSPA_Data * pfRate;
-
-	/* The destination position in the loop to scratch to. 0 is the start */
-	/*  and 1.0 is the end of the loop.  Only active if RateSwitch is on */
-	LADSPA_Data * pfScratchPos;
-
-	/* The multicontrol port.  Each value from (0-127) has a
-	 * meaning.  This is considered a momentary control, thus
-	 * ANY change to a value within the value range is only
-	 * noticed at the moment it changes from something different.
-	 *  If you want to do two identical values in a row, you must change
-	 * the value to something outside our range for a cycle before using
-	 * the real value again.
-	 */
-	LADSPA_Data * pfMultiCtrl;
-
-	/* This specifies which multiple of ten this plugin responds to
-	 * for the multi-control port.  For instance, if 0 is given we respond
-	 * to 0-9 on the multi control port, if 1 is given, 10-19.  This allows you
-	 * to separately control multiple looper instances with the same footpedal,
-	 * for instance.  Range is 0-12.
-	 */
-	LADSPA_Data * pfMultiTens;
-    
-	/* changes on this control signal with more than TAP_THRESH_SAMP samples
-	 * between them (to handle settle time) is treated as a a TAP Delay trigger
-	 */
-	LADSPA_Data *pfTapCtrl;
-
-	/* non zero here toggle quantize and round mode
-	 *  WARNING: the plugin may set this value internally... cause I want
-	 *  it controllable (via mute mode)
-	 */
-	LADSPA_Data *pfQuantMode;
-	LADSPA_Data *pfRoundMode;    
-	LADSPA_Data *pfSyncMode;    
-	LADSPA_Data *pfRateCtrlActive;
-
-	LADSPA_Data *pfXfadeSamples;
-	
-	/* if non zero, the redo command is treated like a tap trigger */
-	LADSPA_Data *pfRedoTapMode;
-    
-	/* Input audio port data location. */
-	LADSPA_Data * pfInput;
-    
-	/* Output audio port data location. */
-	LADSPA_Data * pfOutput;
-
-	LADSPA_Data * pfSyncInput;
-	LADSPA_Data * pfSyncOutput;
-
-    
-	/* Control outputs */
-
-	LADSPA_Data * pfStateOut;
-	LADSPA_Data * pfLoopLength;
-	LADSPA_Data * pfLoopPos;        
-	LADSPA_Data * pfCycleLength;
-
-	/* how many seconds of loop memory free and total */
-	LADSPA_Data * pfSecsFree;
-	LADSPA_Data * pfSecsTotal;    
-
-	LADSPA_Data * pfWaiting;    
-	
-} SooperLooper;
-
-
-
-
-static bool invalidateTails (SooperLooper * pLS, unsigned long bufstart, unsigned long buflen, LoopChunk * currloop)
+static bool invalidateTails (SooperLooperI * pLS, unsigned long bufstart, unsigned long buflen, LoopChunk * currloop)
 {
 	LoopChunk * tailLoop = pLS->tailLoopChunk;
 	LoopChunk * tmploop;
@@ -466,7 +288,7 @@ static bool invalidateTails (SooperLooper * pLS, unsigned long bufstart, unsigne
 	return true;
 }
 
-static LoopChunk * ensureLoopSpace(SooperLooper* pLS, LoopChunk *loop, unsigned long morelength, LoopChunk * pendsrc)
+static LoopChunk * ensureLoopSpace(SooperLooperI* pLS, LoopChunk *loop, unsigned long morelength, LoopChunk * pendsrc)
 {
 	// TODO: check to see if we'll require more space than the buffer allows
 	
@@ -511,7 +333,7 @@ static LoopChunk * ensureLoopSpace(SooperLooper* pLS, LoopChunk *loop, unsigned 
 
 // creates a new loop chunk and puts it on the head of the list
 // returns the new chunk
-static LoopChunk * pushNewLoopChunk(SooperLooper* pLS, unsigned long initLength, LoopChunk * pendsrc)
+static LoopChunk * pushNewLoopChunk(SooperLooperI* pLS, unsigned long initLength, LoopChunk * pendsrc)
 {
    LoopChunk * loop;   
 
@@ -547,7 +369,7 @@ static LoopChunk * pushNewLoopChunk(SooperLooper* pLS, unsigned long initLength,
 
 
 // pop the head off and free it
-static void popHeadLoop(SooperLooper *pLS)
+static void popHeadLoop(SooperLooperI *pLS)
 {
    LoopChunk *dead;
    dead = pLS->headLoopChunk;
@@ -568,13 +390,13 @@ static void popHeadLoop(SooperLooper *pLS)
 }
 
 // clear all LoopChunks (undoAll , can still redo them back)
-static void clearLoopChunks(SooperLooper *pLS)
+static void clearLoopChunks(SooperLooperI *pLS)
 {
    
    pLS->headLoopChunk = NULL;
 }
 
-void undoLoop(SooperLooper *pLS)
+void undoLoop(SooperLooperI *pLS)
 {
    LoopChunk *loop = pLS->headLoopChunk;
    LoopChunk *prevloop;
@@ -592,7 +414,7 @@ void undoLoop(SooperLooper *pLS)
 }
 
 
-void redoLoop(SooperLooper *pLS)
+void redoLoop(SooperLooperI *pLS)
 {
    LoopChunk *loop = NULL;
    LoopChunk *nextloop = NULL;
@@ -633,11 +455,11 @@ instantiateSooperLooper(const LADSPA_Descriptor * Descriptor,
 			unsigned long             SampleRate)
 {
 
-   SooperLooper * pLS;
+   SooperLooperI * pLS;
    char * sampmem;
    
    // important note: using calloc to zero all data
-   pLS = (SooperLooper *) calloc(1, sizeof(SooperLooper));
+   pLS = (SooperLooperI *) calloc(1, sizeof(SooperLooperI));
    
    if (pLS == NULL) 
       return NULL;
@@ -713,8 +535,8 @@ cleanup:
 void
 activateSooperLooper(LADSPA_Handle Instance) {
 
-  SooperLooper * pLS;
-  pLS = (SooperLooper *)Instance;
+  SooperLooperI * pLS;
+  pLS = (SooperLooperI *)Instance;
 
 	 
   pLS->lLastMultiCtrl = -1;
@@ -768,12 +590,12 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
 			     LADSPA_Data * DataLocation)
 {
    
-   SooperLooper * pLS;
+   SooperLooperI * pLS;
 
    //fprintf(stderr,"connectPortTo\n");  
 
    
-   pLS = (SooperLooper *)Instance;
+   pLS = (SooperLooperI *)Instance;
    switch (Port) {
       case SDL_DRY:
 	 pLS->pfDry = DataLocation;
@@ -864,7 +686,7 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
 
 
 
-static void fillLoops(SooperLooper *pLS, LoopChunk *mloop, unsigned long lCurrPos)
+static void fillLoops(SooperLooperI *pLS, LoopChunk *mloop, unsigned long lCurrPos)
 {
    LoopChunk *loop=NULL, *nloop, *srcloop;
 
@@ -956,10 +778,10 @@ static void fillLoops(SooperLooper *pLS, LoopChunk *mloop, unsigned long lCurrPo
 
 }
 
-static LoopChunk* transitionToNext(SooperLooper *pLS, LoopChunk *loop, int nextstate);
+static LoopChunk* transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nextstate);
 
 
-static LoopChunk* beginMultiply(SooperLooper *pLS, LoopChunk *loop)
+static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 {
    LoopChunk * srcloop = loop;
    int xfadeSamples = (int) (*pLS->pfXfadeSamples);
@@ -1056,7 +878,7 @@ static LoopChunk* beginMultiply(SooperLooper *pLS, LoopChunk *loop)
 
 
 // encapsulates what happens when a multiply is ended
-static LoopChunk * endMultiply(SooperLooper *pLS, LoopChunk *loop, int nextstate)
+static LoopChunk * endMultiply(SooperLooperI *pLS, LoopChunk *loop, int nextstate)
 {
    LoopChunk *srcloop;
    int xfadeSamples = (int) (*pLS->pfXfadeSamples);
@@ -1115,7 +937,7 @@ static LoopChunk * endMultiply(SooperLooper *pLS, LoopChunk *loop, int nextstate
 }
 
 
-static LoopChunk * beginInsert(SooperLooper *pLS, LoopChunk *loop)
+static LoopChunk * beginInsert(SooperLooperI *pLS, LoopChunk *loop)
 {
    LoopChunk *srcloop = loop;
    int xfadeSamples = (int) (*pLS->pfXfadeSamples);
@@ -1205,7 +1027,7 @@ static LoopChunk * beginInsert(SooperLooper *pLS, LoopChunk *loop)
 }
 
 // encapsulates what happens when a insert is ended
-static LoopChunk * endInsert(SooperLooper *pLS, LoopChunk *loop, int nextstate)
+static LoopChunk * endInsert(SooperLooperI *pLS, LoopChunk *loop, int nextstate)
 {
    LoopChunk *srcloop;
 
@@ -1237,7 +1059,7 @@ static LoopChunk * endInsert(SooperLooper *pLS, LoopChunk *loop, int nextstate)
 }
 
 
-static LoopChunk * beginOverdub(SooperLooper *pLS, LoopChunk *loop)
+static LoopChunk * beginOverdub(SooperLooperI *pLS, LoopChunk *loop)
 {
    LoopChunk * srcloop = loop;
    int xfadeSamples = (int) (*pLS->pfXfadeSamples);
@@ -1316,7 +1138,7 @@ static LoopChunk * beginOverdub(SooperLooper *pLS, LoopChunk *loop)
    return loop;
 }
 
-static LoopChunk * beginReplace(SooperLooper *pLS, LoopChunk *loop)
+static LoopChunk * beginReplace(SooperLooperI *pLS, LoopChunk *loop)
 {
    LoopChunk * srcloop = loop;
    int xfadeSamples = (int) (*pLS->pfXfadeSamples);
@@ -1398,7 +1220,7 @@ static LoopChunk * beginReplace(SooperLooper *pLS, LoopChunk *loop)
 }
 
 
-static LoopChunk * transitionToNext(SooperLooper *pLS, LoopChunk *loop, int nextstate)
+static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nextstate)
 {
    LoopChunk * newloop = loop;
 
@@ -1511,7 +1333,7 @@ runSooperLooper(LADSPA_Handle Instance,
   float fPosRatio;
   int xfadeSamples = XFADE_SAMPLES;
   
-  SooperLooper * pLS;
+  SooperLooperI * pLS;
   LoopChunk *loop, *srcloop;
 
   LADSPA_Data fSyncMode = 0.0f;
@@ -1520,7 +1342,7 @@ runSooperLooper(LADSPA_Handle Instance,
   unsigned long lSampleIndex;
 
   
-  pLS = (SooperLooper *)Instance;
+  pLS = (SooperLooperI *)Instance;
 
   if (!pLS || !pLS->pfInput || !pLS->pfOutput) {
      // something is badly wrong!!!
@@ -3367,9 +3189,9 @@ runSooperLooper(LADSPA_Handle Instance,
 void 
 cleanupSooperLooper(LADSPA_Handle Instance) {
 
-  SooperLooper * pLS;
+  SooperLooperI * pLS;
 
-  pLS = (SooperLooper *)Instance;
+  pLS = (SooperLooperI *)Instance;
 
   free(pLS->pSampleBuf);
   free(pLS);
