@@ -808,13 +808,13 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
       //pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 
       // start out with the single cycle as our length as a marker
-//      loop->lLoopLength = srcloop->lCycleLength;
-      loop->lLoopLength = srcloop->lLoopLength;
+      loop->lLoopLength = srcloop->lCycleLength;
+      //loop->lLoopLength = srcloop->lLoopLength;
 
       // start out at same pos
       loop->dCurrPos = srcloop->dCurrPos;
-//      loop->lCycles = 1; // start with 1 by default
-      loop->lCycles = srcloop->lCycles; 
+      loop->lCycles = 1; // start with 1 by default
+      //loop->lCycles = srcloop->lCycles; 
 
       loop->lCycleLength = srcloop->lCycleLength;
 		       
@@ -830,11 +830,16 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 		       
       // handle the case where the src loop
       // is already multiplied
-      if (*pLS->pfQuantMode == QUANT_CYCLE && srcloop->lCycles > 1) {
+      if (srcloop->lCycles > 1) {
 	      // we effectively remove the first cycles from our new one
-	      loop->lStartAdj = ((int)floor(fabs((srcloop->dCurrPos-1) / srcloop->lCycleLength))
-				 + 1) * srcloop->lCycleLength; 
-	      
+	      if (*pLS->pfQuantMode == QUANT_CYCLE) {
+		      loop->lStartAdj = ((int)floor(fabs((srcloop->dCurrPos-1) / srcloop->lCycleLength))
+					 + 1) * srcloop->lCycleLength; 
+	      }
+	      else {
+		      loop->lStartAdj = ((int)floor(fabs((srcloop->dCurrPos) / srcloop->lCycleLength))) * srcloop->lCycleLength; 
+	      }
+
 	      // adjust dCurrPos by start adj.
 	      // we handle this properly in the processing section
 	      loop->dCurrPos = loop->dCurrPos - loop->lStartAdj;

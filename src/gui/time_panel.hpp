@@ -56,6 +56,8 @@ class TimePanel
 	void format_time(wxString & timestr, float val);
 	void draw_area(wxDC & dc);
 
+	void update_cyc();
+
 	void normalize_font_size(wxFont & fnt, int width, int height, wxString fitstr);
 
 	void update_size();
@@ -68,6 +70,8 @@ class TimePanel
 	wxString _pos_str;
 	wxString _tot_str;
 	wxString _cyc_str;
+	wxString _cyc_curr_str;
+	wxString _cyc_cnt_str;
 	wxString _state_str;
 	wxString _rem_str;
 	wxString _mem_str;
@@ -75,6 +79,8 @@ class TimePanel
 	
 	wxFont  _pos_font;
 	wxColour _pos_color;
+	wxFont  _cyc_font;
+	wxColour _cyc_color;
 
 	wxFont  _state_font;
 	wxColour _state_color;
@@ -88,6 +94,8 @@ class TimePanel
 	wxColour _bgcolor;
 	wxBrush  _bgbrush;
 	
+	wxBrush  _transbrush;
+
 	int _width, _height;
 	wxBitmap * _backing_store;
 
@@ -101,6 +109,8 @@ class TimePanel
 	wxMemoryDC _waitdc;
 	wxBitmap * _other_bm;
 	wxMemoryDC _otherdc;
+	wxBitmap * _cyc_bm;
+	wxMemoryDC _cycdc;
 
 	wxCoord _sw, _sh, _tw, _th, _pw, _ph, _mh, _mw, _ww, _wh;
 	

@@ -22,6 +22,7 @@
 #include <wx/filename.h>
 
 #include <iostream>
+#include <cmath>
 
 #include "time_panel.hpp"
 #include "loop_control.hpp"
@@ -54,6 +55,8 @@ TimePanel::init()
 {
 	SetThemeEnabled(false);
 
+	_transbrush.SetStyle(wxTRANSPARENT);
+
 	_bgcolor.Set(34, 49, 71);
 	SetBackgroundColour(_bgcolor);
 	_bgbrush.SetColour(_bgcolor);
@@ -66,17 +69,33 @@ TimePanel::init()
 	_pos_font.SetPointSize(10);
 	normalize_font_size(_pos_font, 110, 40, wxT("00:00.00"));
 
-	_pos_bm = new wxBitmap(110,40); 
+       	_pos_bm = new wxBitmap(110,40); 
 	_posdc.SelectObject(*_pos_bm);
 	_posdc.SetFont(_pos_font);
  	_posdc.SetTextForeground(_pos_color);
 	_posdc.SetBackground (_bgbrush);
 
+	_cyc_font.SetFamily(wxSWISS);
+	_cyc_font.SetStyle(wxNORMAL);
+	_cyc_font.SetWeight(wxNORMAL);
+	_cyc_color.Set(154, 255, 168);
+	_cyc_font.SetPointSize(10);
+	normalize_font_size(_cyc_font, 20, 20, wxT("00"));
+	_cyc_cnt_str = wxT("-");
+	_cyc_curr_str = wxT("-");
+
+       	_cyc_bm = new wxBitmap(20,42); 
+	_cycdc.SelectObject(*_cyc_bm);
+	_cycdc.SetFont(_cyc_font);
+ 	_cycdc.SetTextForeground(_cyc_color);
+ 	_cycdc.SetPen(*wxWHITE_PEN);
+	_cycdc.SetBackground (_bgbrush);
+
 	_state_font.SetFamily(wxSWISS);
 	_state_font.SetWeight(wxBOLD);
 	_state_font.SetStyle(wxNORMAL);
 	_state_color.Set(154, 255, 168);
-	_state_str = "plpppplpp";
+	_state_str = "not connected";
 	_state_font.SetPointSize(10);
 	normalize_font_size(_state_font, 110, 30, wxT("ooooooooooo"));
 
@@ -147,27 +166,50 @@ TimePanel::format_time(wxString & timestr, float val)
 	timestr.Printf("%02d:%05.2f", minutes, secs);
 }
 
+void
+TimePanel::update_cyc()
+{
+	float llen, lpos, clen;
+	
+	_loop_control->get_value(_index, "loop_len", llen);
+	_loop_control->get_value(_index, "loop_pos", lpos);
+	_loop_control->get_value(_index, "cycle_len", clen);
+	
+	if (clen > 0.0f) {
+		_cyc_cnt_str.Printf("%2d", (int) roundf (llen / clen));
+		_cyc_curr_str.Printf("%2d", (int) ceilf (lpos / clen));
+	}
+	else {
+		_cyc_curr_str.Printf("-");
+		_cyc_cnt_str.Printf("-");
+	}
+}
+
 bool
 TimePanel::update_time()
 {
 	float val;
 	bool ret = false;
-	
+	bool up_cyc = false;
+
 	if (_loop_control->is_updated(_index, "loop_pos")) {
 		_loop_control->get_value(_index, "loop_pos", val);
 		format_time (_pos_str, val);
 		ret = true;
+		up_cyc = true;
 	}
 
 	if (_loop_control->is_updated(_index, "loop_len")) {
 		_loop_control->get_value(_index, "loop_len", val);
 		format_time (_tot_str, val);
+		up_cyc = true;
 		ret = true;
 	}
 
 	if (_loop_control->is_updated(_index, "cycle_len")) {
 		_loop_control->get_value(_index, "cycle_len", val);
 		format_time (_cyc_str, val);
+		up_cyc = true;
 		ret = true;
 	}
 
@@ -195,7 +237,10 @@ TimePanel::update_time()
 		calc_text_extents();
 		ret = true;
 	}
-	
+
+	if (up_cyc) {
+		update_cyc();
+	}
 	
 	return ret;
 }
@@ -266,7 +311,7 @@ TimePanel::draw_area(wxDC & dc)
  	_posdc.DrawText (_pos_str, 0, 0);
 
 	dc.Blit (5,3, _pos_bm->GetWidth(), _pos_bm->GetHeight(), &_posdc, 0, 0);
-	
+
 	// state
 // 	dc.SetFont(_state_font);
 // 	dc.SetTextForeground(_state_color);
@@ -327,5 +372,15 @@ TimePanel::draw_area(wxDC & dc)
  	_otherdc.DrawText (wxT("mem"), _other_bm->GetWidth() - _tw - _mw - 5, 10 + _th + _th);
 
 	dc.Blit (120, 5, _other_bm->GetWidth(), _other_bm->GetHeight(), &_otherdc, 0, 0);
+
+
+	_cycdc.Clear();
+ 	_cycdc.DrawText (_cyc_curr_str, 0, 0);
+ 	_cycdc.DrawText (_cyc_cnt_str,  0, 18);
+
+	_cycdc.DrawLine (5, 17, 13, 17);
+
+	dc.Blit (_pos_bm->GetWidth() + 3, 2, _cyc_bm->GetWidth(), _cyc_bm->GetHeight(),  &_cycdc, 0, 0);
+	
 	
 }
