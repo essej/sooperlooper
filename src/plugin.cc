@@ -2844,7 +2844,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 		 else if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (lCurrPos % loop->lCycleLength) == 0)
 			  || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0))) {
-			 DBG(fprintf(stderr, "outputtuing sync at %d\n", lCurrPos));
+			 //DBG(fprintf(stderr, "outputtuing sync at %d\n", lCurrPos));
 			 pfSyncOutput[lSampleIndex] = 1.0f;
 		 }
 
