@@ -477,7 +477,7 @@ void MidiBindDialog::update_entry_area(MidiBindInfo * usethis)
 	}
 
 	for (int i=0; i < _control_combo->GetCount(); ++i) {
-		if (static_cast<const char *>(_control_combo->GetClientData(i)) == info->control) {
+		if (static_cast<const char *>((void *)_control_combo->GetClientData(i)) == info->control) {
 			_control_combo->SetSelection(i);
 			break;
 		}
@@ -524,9 +524,9 @@ void MidiBindDialog::update_curr_binding()
 	CommandMap & cmap = CommandMap::instance();
 	
 	// take info from editpanel and set the MidiBindInfo
-	_currinfo.control = static_cast<const char *>(_control_combo->GetClientData(_control_combo->GetSelection()));
+	_currinfo.control = static_cast<const char *>((void *) _control_combo->GetClientData(_control_combo->GetSelection()));
 	_currinfo.channel = _chan_spin->GetValue() - 1;
-	_currinfo.instance = (int) _loopnum_combo->GetClientData(_loopnum_combo->GetSelection()) - 1;
+	_currinfo.instance = (int)(long) _loopnum_combo->GetClientData(_loopnum_combo->GetSelection()) - 1;
 
 	
 	wxString tsel = _type_combo->GetStringSelection();
@@ -581,7 +581,7 @@ void MidiBindDialog::update_curr_binding()
 
 void MidiBindDialog::on_combo (wxCommandEvent &ev)
 {
-	string control = static_cast<const char *>(_control_combo->GetClientData(_control_combo->GetSelection()));
+	string control = static_cast<const char *>((void *)_control_combo->GetClientData(_control_combo->GetSelection()));
 
  	if (CommandMap::instance().is_input_control(control)) {
  		_range_panel->Enable(true);
