@@ -572,7 +572,7 @@ GuiFrame::process_key_event (wxKeyEvent &ev)
 	// get their key events
 	static wxString textname = "KeyAware";
 
-	cerr << "got " << ev.GetKeyCode() << endl;
+	//cerr << "got " << ev.GetKeyCode() << endl;
 	
 	wxWindow * focwin = wxWindow::FindFocus();
 	if (focwin && (focwin->GetName() == textname

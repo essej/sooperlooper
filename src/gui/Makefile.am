@@ -23,7 +23,8 @@ slgui_SOURCES = \
 	slider_bar.cpp \
 	choice_box.cpp \
 	xml++.cpp \
-	keyboard_target.cpp
+	keyboard_target.cpp \
+	keys_dialog.cpp
 
 
 

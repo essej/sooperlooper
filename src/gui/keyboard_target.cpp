@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-//#define DEBUG_KEYBOARD
+// #define DEBUG_KEYBOARD
 
 using namespace SooperLooperGui;
 using std::pair;
@@ -52,7 +52,10 @@ KeyboardTarget::process_key_event (wxKeyEvent &event)
 		changed = update_state (event);
 
 		if (changed) {
-			if ((result = keymap.find (_state)) != keymap.end()) {
+			if (_learning) {
+				// do nothing yet
+			}
+			else if ((result = keymap.find (_state)) != keymap.end()) {
 				(*result).second (false);
 			}
 			else  {
@@ -64,7 +67,13 @@ KeyboardTarget::process_key_event (wxKeyEvent &event)
 	}
 	else if (event.GetEventType() == wxEVT_KEY_UP) {
 
-		if ((result = keymap.find (_state)) != keymap.end()) {
+		if (_learning) {
+			// this is the first key up while learning, commit the binding
+			commit_learn ();
+			_learning = false;
+			LearningStopped(); // emit
+		}
+		else if ((result = keymap.find (_state)) != keymap.end()) {
 			(*result).second (true);
 		}
 		else {
@@ -115,6 +124,7 @@ int
 KeyboardTarget::add_binding (string keystring, string action)
 {
 	KeyMap::iterator existing;
+	BindingMap::iterator existingb;
 	KeyState  state;
 	KeyAction key_action;
  
@@ -141,10 +151,61 @@ KeyboardTarget::add_binding (string keystring, string action)
 	if ((existing = keymap.find (state)) != keymap.end()) {
 		keymap.erase (existing);
 	}
+	if ((existingb = bindings.find (keystring)) != bindings.end()) {
+		bindings.erase (existingb);
+	}
 	
 	keymap.insert (pair<KeyState,KeyAction> (state, key_action));
 	bindings.insert (pair<string,string> (keystring, action));
 	return 0;
+}
+
+bool
+KeyboardTarget::start_learning (string actname)
+{
+	// the state at the next key-up will be bound to actname
+	_learning = true;
+	_learn_action = actname;
+
+	cerr << "learning: " << _learn_action << endl;
+	
+	return true;
+}
+
+bool
+KeyboardTarget::stop_learning (bool cancel)
+{
+	if (_learning) {
+		if (!cancel) {
+			// go ahead and bind current state
+			commit_learn();
+		}
+		
+		_learning = false;
+		LearningStopped(); // emit
+	}
+
+	return true;
+}
+
+void
+KeyboardTarget::commit_learn ()
+{
+	wxString keys;
+	
+	for (KeyState::iterator i = _state.begin(); i != _state.end(); ++i) {
+		wxString key = name_from_keycode(*i);
+		if (key == "Shift" || key == "Control" || key == "Alt") {
+			keys = key + "-" + keys;
+		}
+		else {
+			keys = keys + key;
+		}
+	}
+	// clear all for this command first, this is debatable
+	clear_binding (_learn_action);
+	add_binding (string (keys.c_str()), _learn_action);
+
 }
 
 string
@@ -159,33 +220,77 @@ KeyboardTarget::get_binding (string name)
 			/* convert keystring to GTK format */
 
 			string str = i->first;
-			string gtkstr;
-			string::size_type p;
+// 			string gtkstr;
+// 			string::size_type p;
 
-			while (1) {
+// 			while (1) {
 
-				if ((p = str.find ('-')) == string::npos || (p == str.length() - 1)) {
-					break;
-				}
+// 				if ((p = str.find ('-')) == string::npos || (p == str.length() - 1)) {
+// 					break;
+// 				}
 
-				gtkstr += '<';
-				gtkstr += str.substr (0, p);
-				gtkstr += '>';
+// 				gtkstr += '<';
+// 				gtkstr += str.substr (0, p);
+// 				gtkstr += '>';
 
-				str = str.substr (p+1);
+// 				str = str.substr (p+1);
 
-			}
+// 			}
 
-			gtkstr += str;
+// 			gtkstr += str;
 
-			if (gtkstr.length() == 0) {
-				return i->first;
-			} 
+// 			if (gtkstr.length() == 0) {
+// 				return i->first;
+// 			} 
 
-			return gtkstr;
+// 			return gtkstr;
+			return str;
 		}
 	}
 	return string ();
+}
+
+void
+KeyboardTarget::clear_binding (string name)
+{
+	/* clears keys bound to name */
+	BindingMap::iterator i = bindings.begin();
+	BindingMap::iterator tmpi;
+	KeyMap::iterator tmpk;
+		
+	while (i != bindings.end()) {
+		
+		if (i->second == name) {
+			KeyState keystate = translate_key_name (i->first);
+
+			tmpi = i;
+			++i;
+
+			bindings.erase (tmpi);
+
+			//cerr << "erase binding" << endl;
+			
+			if ((tmpk = keymap.find (keystate)) != keymap.end()) {
+				keymap.erase (tmpk);
+				//cerr << "erase binding keymap" << endl;
+			}
+		}
+		else {
+			++i;
+		}
+	}
+
+}
+
+void
+KeyboardTarget::get_action_names (ActionNameList & nlist)
+{
+	ActionMap::iterator i;
+	
+	for (i = actions.begin(); i != actions.end(); ++i) {
+		nlist.push_back (i->first);
+	}
+
 }
 
 void
@@ -360,9 +465,9 @@ KeyboardTarget::translate_key_name (const string& name)
 			}
 		}
 		
-		if (keyname.length() == 1 && isupper (keyname[0])) {
-			result.push_back (WXK_SHIFT);
-		}
+// 		if (keyname.length() == 1 && isupper (keyname[0])) {
+// 			result.push_back (WXK_SHIFT);
+// 		}
 		
 		if ((keycode = keycode_from_name (wxString(keyname.c_str()))) == 0) {
 			cerr << "KeyboardTarget: keyname " <<  keyname << "  is unknown" << endl;
@@ -548,7 +653,7 @@ wxString KeyboardTarget::name_from_keycode (int key)
                 if ( wxIsalnum(key) )
                 {
 			text << (wxChar)key;
-			
+			text.MakeLower();
 			break;
                 }
 		

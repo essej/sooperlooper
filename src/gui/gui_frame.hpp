@@ -37,6 +37,7 @@ class SliderBar;
 class ChoiceBox;	
 class PixButton;
 class KeyboardTarget;
+class KeysDialog;
 	
 class GuiFrame
 	: public wxFrame,  public SigC::Object
@@ -88,6 +89,8 @@ protected:
 	void on_quantize_change (int index, wxString val);
 	void on_round_check (wxCommandEvent &ev);
 
+	void on_view_menu (wxCommandEvent &ev);
+	
 	void on_taptempo_event ();
 	
 	void init_syncto_choice();
@@ -119,6 +122,7 @@ protected:
 	
 	// keybindings
 
+	KeysDialog * _keys_dialog;
 	KeyboardTarget * _keyboard;
 	int              _curr_loop;
 

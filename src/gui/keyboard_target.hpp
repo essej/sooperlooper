@@ -53,6 +53,8 @@ class KeyboardTarget
 	typedef SigC::Slot1<void, bool> KeyAction;
 
 	typedef std::vector<unsigned int> KeyState;
+
+	typedef std::list<std::string> ActionNameList;
 	
 	string name() const { return _name; }
 
@@ -64,28 +66,41 @@ class KeyboardTarget
 	
 	int add_binding (string keys, string name);
 	string get_binding (string name); /* returns keys bound to name */
-
+	void clear_binding (string name); /* clears keys bound to name */
+	
+	
 	XMLNode& get_binding_state () const;
 	int set_binding_state (const XMLNode&);
 
+	bool start_learning (string actname);
+	bool stop_learning (bool cancel=false);
+	bool is_learning() { return _learning; }
+	
 	static int add_action (string, KeyAction);
 	static int find_action (string, KeyAction&);
 	static int remove_action (string);
 	static void show_all_actions();
-
+	static void get_action_names (ActionNameList & nlist);
+	
 	wxWindow * window() const { return _window; }
+
+	SigC::Signal0<void> LearningStopped;
 	
   protected:
 	typedef map<KeyState,KeyAction> KeyMap;
 	typedef map<string,string> BindingMap;
 
 	bool update_state (wxKeyEvent &ev);
-
+	void commit_learn();
+	
 	
 	KeyMap     keymap;
 	BindingMap bindings;
 
 	KeyState      _state;
+
+	bool       _learning;
+	string     _learn_action;
 	
   private:
 	typedef map<string,KeyAction> ActionMap; 
