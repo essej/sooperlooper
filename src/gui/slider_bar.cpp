@@ -43,6 +43,7 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_lower_bound = lb;
 	_upper_bound = ub;
 	_value = val;
+	_backing_store = 0;
 	
 	_bgcolor.Set(30,30,30);
 	_bgbrush.SetColour (_bgcolor);
@@ -76,7 +77,7 @@ SliderBar::set_style (BarStyle md)
 {
 	if (md != _bar_style) {
 		_bar_style = md;
-		Refresh();
+		Refresh(false);
 	}
 }
 
@@ -91,12 +92,12 @@ SliderBar::set_bounds (float lb, float ub)
 		if (_value < _lower_bound) {
 			_value = _lower_bound;
 			update_value_str();
-			Refresh();
+			Refresh(false);
 		}
 		else if (_value > _upper_bound) {
 			_value = _upper_bound;
 			update_value_str();
-			Refresh();
+			Refresh(false);
 		}
 	}
 }
@@ -105,7 +106,7 @@ void
 SliderBar::set_label (const wxString & label)
 {
 	_label_str = label;
-	Refresh();	
+	Refresh(false);	
 }
 
 void
@@ -113,7 +114,7 @@ SliderBar::set_units (const wxString & units)
 {
 	_units_str = units;
 	update_value_str();
-	Refresh();	
+	Refresh(false);	
 }
 
 void
@@ -122,7 +123,7 @@ SliderBar::set_value (float val)
 	if (val != _value) {
 		_value = val;
 		update_value_str();
-		Refresh();
+		Refresh(false);
 	}
 }
 
@@ -139,27 +140,27 @@ void SliderBar::set_bg_color (const wxColour & col)
 	_bgcolor = col;
 	_bgbrush.SetColour (col);
 	SetBackgroundColour (col);
-	Refresh();
+	Refresh(false);
 }
 
 void SliderBar::set_text_color (const wxColour & col)
 {
 	_textcolor = col;
-	Refresh();
+	Refresh(false);
 }
 
 void SliderBar::set_border_color (const wxColour & col)
 {
 	_bordercolor = col;
 	_borderbrush.SetColour (col);
-	Refresh();
+	Refresh(false);
 }
 
 void SliderBar::set_bar_color (const wxColour & col)
 {
 	_barcolor = col;
 	_barbrush.SetColour (col);
-	Refresh();
+	Refresh(false);
 }
 
 void
@@ -168,6 +169,12 @@ SliderBar::OnSize(wxSizeEvent & event)
 	GetClientSize(&_width, &_height);
 
 	_val_scale = (_upper_bound - _lower_bound) / (_width);
+
+	if (_backing_store) {
+		delete _backing_store;
+	}
+	_backing_store = new wxBitmap(_width, _height);
+
 	
 	event.Skip();
 }
@@ -175,9 +182,17 @@ SliderBar::OnSize(wxSizeEvent & event)
 void SliderBar::OnPaint(wxPaintEvent & event)
 {
 	wxPaintDC pdc(this);
+	wxMemoryDC dc;
 
+	if (!_backing_store) {
+		return;
+	}
+   
+	dc.SelectObject(*_backing_store);
 	
-	draw_area(pdc);
+	draw_area(dc);
+
+	pdc.Blit(0, 0, _width, _height, &dc, 0, 0);
 }
 
 
@@ -218,7 +233,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 			value_changed (_value); // emit
 
 			update_value_str();
-			Refresh();
+			Refresh(false);
 			//cerr << "new val is: " << _value << endl;
 		}
 
@@ -271,7 +286,7 @@ void SliderBar::draw_area(wxDC & dc)
 	
 	dc.SetFont(GetFont());
 	dc.SetBackground(_bgbrush);
-	//dc.Clear();
+	dc.Clear();
 
 	dc.SetBrush(_borderbrush);
 	dc.SetPen(_borderpen);

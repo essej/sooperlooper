@@ -92,6 +92,8 @@ class SliderBar
 	void update_value_str();
 	
 	int _width, _height;
+	wxBitmap * _backing_store;
+
 	
 	wxColour _bgcolor;
 	wxBrush  _bgbrush;

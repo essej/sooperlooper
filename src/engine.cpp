@@ -218,7 +218,9 @@ Engine::process (nframes_t nframes)
 				
 				if (fragpos < usedframes || fragpos >= nframes) {
 					// bad fragment pos
+#ifdef DEBUG
 					cerr << "BAD FRAGMENT POS: " << fragpos << endl;
+#endif
 					continue;
 				}
 				
@@ -272,7 +274,9 @@ Engine::push_command_event (Event::type_t type, Event::command_t cmd, int8_t ins
 	_event_queue->get_write_vector (&vec);
 
 	if (vec.len[0] == 0) {
+#ifdef DEBUG
 		cerr << "event queue full, dropping event" << endl;
+#endif
 		return false;
 	}
 	
@@ -285,8 +289,6 @@ Engine::push_command_event (Event::type_t type, Event::command_t cmd, int8_t ins
 
 	_event_queue->increment_write_ptr (1);
 
-	cerr << "posted event" << endl;
-	
 	return true;
 }
 
@@ -301,7 +303,9 @@ Engine::push_control_event (Event::type_t type, Event::control_t ctrl, float val
 	_event_queue->get_write_vector (&vec);
 
 	if (vec.len[0] == 0) {
+#ifdef DEBUG
 		cerr << "event queue full, dropping event" << endl;
+#endif
 		return false;
 	}
 	

@@ -37,6 +37,7 @@ END_EVENT_TABLE()
 TimePanel::TimePanel(LoopControl * control, wxWindow * parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 	: wxPanel(parent, id, pos, size), _loop_control(control), _index(0), _width(1), _height(1)
 {
+	_backing_store = 0;
 	init();
 }
 
@@ -49,31 +50,62 @@ void
 TimePanel::init()
 {
 	SetThemeEnabled(false);
-	SetBackgroundColour(wxColour(34, 49, 71));
 
 	_pos_font.SetFamily(wxSWISS);
-	_pos_font.SetPointSize(14);
+	_pos_font.SetStyle(wxNORMAL);
 	_pos_font.SetWeight(wxBOLD);
 	_pos_color.Set(244, 255, 158);
 	_pos_str = "--:--.--";
-
+	_pos_font.SetPointSize(10);
+	normalize_font_size(_pos_font, 110, 40, wxT("00:00.00"));
+	
 	_state_font.SetFamily(wxSWISS);
-	_state_font.SetPointSize(10);
 	_state_font.SetWeight(wxBOLD);
+	_state_font.SetStyle(wxNORMAL);
 	_state_color.Set(154, 255, 168);
-	_state_str = "----";
+	_state_str = "------";
+	_state_font.SetPointSize(10);
+	normalize_font_size(_state_font, 110, 30, wxT("ooooooooooo"));
 
 	_time_font.SetFamily(wxSWISS);
 	_time_font.SetPointSize(7);
+	_time_font.SetStyle(wxNORMAL);
 	_time_font.SetWeight(wxNORMAL);
 	_time_color.Set(244, 255, 178);
 
 	_legend_font.SetFamily(wxSWISS);
 	_legend_font.SetPointSize(7);
+	_legend_font.SetStyle(wxNORMAL);
 	_legend_font.SetWeight(wxNORMAL);
 	_legend_color.Set(225, 225, 225);
+
+	_bgcolor.Set(34, 49, 71);
+	SetBackgroundColour(_bgcolor);
+	_bgbrush.SetColour(_bgcolor);
 	
 }
+
+void
+TimePanel::normalize_font_size(wxFont & fnt, int width, int height, wxString fitstr)
+{
+	int fontw, fonth, desch, lead, lastw=0, lastsize = fnt.GetPointSize();
+	
+	GetTextExtent(fitstr, &fontw, &fonth, &desch, &lead, &fnt);
+	//printf ("Text extent for %s: %d %d %d %d   sz: %d\n", fitstr.c_str(), fontw, desch, lead, fonth, fnt.GetPointSize());
+	while (fonth < height && fontw < width) {
+		lastsize = fnt.GetPointSize();
+		fnt.SetPointSize(fnt.GetPointSize() + 1);
+		GetTextExtent(fitstr, &fontw, &fonth, &desch, &lead, &fnt);
+		//printf ("Text extent for buttfont: %d %d %d %d sz: %d\n", fontw, fonth, desch, lead, fnt.GetPointSize());
+
+		//if (lastw == fontw) break; // safety
+		lastw = fontw;
+	}
+
+	fnt.SetPointSize(lastsize);
+	
+}
+
 
 void
 TimePanel::format_time(wxString & timestr, float val)
@@ -135,6 +167,13 @@ void
 TimePanel::OnSize (wxSizeEvent &ev)
 {
 	GetClientSize(&_width, &_height);
+
+	if (_backing_store) {
+		delete _backing_store;
+	}
+	_backing_store = new wxBitmap(_width, _height);
+
+	ev.Skip();
 }
 
 void
@@ -142,8 +181,17 @@ TimePanel::OnPaint(wxPaintEvent &ev)
 {
 	wxPaintDC pdc(this);
 
+	wxMemoryDC dc;
+
+	if (!_backing_store) {
+		return;
+	}
+   
+	dc.SelectObject(*_backing_store);
 	
-	draw_area(pdc);
+	draw_area(dc);
+
+	pdc.Blit(0, 0, _width, _height, &dc, 0, 0);
 }
 
 void
@@ -151,6 +199,9 @@ TimePanel::draw_area(wxDC & dc)
 {
 	wxCoord sw=0, sh=0, tw=0, th=0, w=0, h=0;
 	wxCoord cw=0, ch=0, rw=0, rh=0;
+
+	dc.SetBackground(_bgbrush);
+	dc.Clear();
 	
 	// main pos
 	dc.SetFont(_pos_font);

@@ -42,6 +42,8 @@ PixButton::PixButton(wxWindow * parent, wxWindowID id, const wxPoint& pos, const
 	_bgbrush.SetColour (_bgcolor);
 	_bstate = Normal;
 	_estate = Outside;
+	_backing_store = 0;
+	
 	SetBackgroundColour (_bgcolor);
 	SetThemeEnabled(false);
 }
@@ -58,7 +60,7 @@ void PixButton::set_normal_bitmap (const wxBitmap & bm)
 	_normal_bitmap = bm;
 	SetSizeHints (bm.GetWidth(), bm.GetHeight());
 	SetClientSize (bm.GetWidth(), bm.GetHeight());
-	Refresh();
+	Refresh(false);
 }
 
 void PixButton::set_focus_bitmap (const wxBitmap & bm)
@@ -68,7 +70,7 @@ void PixButton::set_focus_bitmap (const wxBitmap & bm)
 	_focus_bitmap = bm;
 	SetSizeHints (bm.GetWidth(), bm.GetHeight());
 	SetClientSize (bm.GetWidth(), bm.GetHeight());
-	Refresh();
+	Refresh(false);
 }
 
 void PixButton::set_selected_bitmap (const wxBitmap & bm)
@@ -78,7 +80,7 @@ void PixButton::set_selected_bitmap (const wxBitmap & bm)
 	_selected_bitmap = bm;
 	SetSizeHints (bm.GetWidth(), bm.GetHeight());
 	SetClientSize (bm.GetWidth(), bm.GetHeight());
-	Refresh();
+	Refresh(false);
 }
 
 void PixButton::set_disabled_bitmap (const wxBitmap & bm)
@@ -88,7 +90,7 @@ void PixButton::set_disabled_bitmap (const wxBitmap & bm)
 	_disabled_bitmap = bm;
 	SetSizeHints (bm.GetWidth(), bm.GetHeight());
 	SetClientSize (bm.GetWidth(), bm.GetHeight());
-	Refresh();
+	Refresh(false);
 }
 
 
@@ -97,7 +99,7 @@ void PixButton::set_bg_color (const wxColour & col)
 	_bgcolor = col;
 	_bgbrush.SetColour (col);
 	SetBackgroundColour (col);
-	Refresh();
+	Refresh(false);
 }
 
 void
@@ -105,15 +107,29 @@ PixButton::OnSize(wxSizeEvent & event)
 {
 	GetClientSize(&_width, &_height);
 
+	if (_backing_store) {
+		delete _backing_store;
+	}
+	_backing_store = new wxBitmap(_width, _height);
+
+	
 	event.Skip();
 }
 
 void PixButton::OnPaint(wxPaintEvent & event)
 {
 	wxPaintDC pdc(this);
+	wxMemoryDC dc;
 
+	if (!_backing_store) {
+		return;
+	}
+   
+	dc.SelectObject(*_backing_store);
 	
-	draw_area(pdc);
+	draw_area(dc);
+
+	pdc.Blit(0, 0, _width, _height, &dc, 0, 0);
 }
 
 
@@ -133,29 +149,29 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 		_bstate = Selected;
 		pressed (); // emit
 		CaptureMouse();
-		Refresh();
+		Refresh(false);
 	}
 	else if (ev.ButtonUp())
 	{
 		_bstate = Normal;
 		ReleaseMouse();
 		released (); // emit
-		Refresh();
+		Refresh(false);
 	}
 	else if (ev.ButtonDClick()) {
 		_bstate = Selected;
 		pressed (); // emit
-		Refresh();
+		Refresh(false);
 	}
 	else if (ev.Entering())
 	{
 		_estate = Inside;
-		Refresh();
+		Refresh(false);
 	}
 	else if (ev.Leaving())
 	{
 		_estate = Outside;
-		Refresh();
+		Refresh(false);
 	}
 	
 	ev.Skip();
@@ -165,7 +181,7 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 void PixButton::draw_area(wxDC & dc)
 {
 	dc.SetBackground(_bgbrush);
-	// dc.Clear();
+	dc.Clear();
 	
 	switch (_bstate) {
 	case Normal:

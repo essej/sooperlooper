@@ -164,7 +164,7 @@ Looper::do_event (Event *ev)
 		if ((int)ev->Control >= (int)Event::TriggerThreshold && (int)ev->Control <= (int) Event::RedoTap) {
 			
 			ports[ev->Control] = ev->Value;
-			cerr << "set port " << ev->Control << "  to: " << ev->Value << endl;
+			//cerr << "set port " << ev->Control << "  to: " << ev->Value << endl;
 		}
 	}
 	
@@ -185,12 +185,12 @@ Looper::run (nframes_t offset, nframes_t nframes)
 		} else {
 			ports[Multi] = requested_cmd;
 			request_pending = false;
-			cerr << "requested mode " << requested_cmd << endl;
+			// cerr << "requested mode " << requested_cmd << endl;
 		}
 
 	} else if (ports[Multi] >= 0) {
 		ports[Multi] = -1;
-		cerr << "reset to -1\n";
+		//cerr << "reset to -1\n";
 	}
 
 	for (unsigned int i=0; i < _chan_count; ++i)

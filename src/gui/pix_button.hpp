@@ -92,6 +92,8 @@ class PixButton
 	wxColour _bgcolor;
 	wxBrush  _bgbrush;
 
+	wxBitmap * _backing_store;
+	
   private:
     // any class wishing to process wxWindows events must use this macro
     DECLARE_EVENT_TABLE()

@@ -61,12 +61,6 @@ enum {
 };
 
 BEGIN_EVENT_TABLE(LooperPanel, wxPanel)
-// 	EVT_COMMAND_SCROLL (ID_ThreshControl, LooperPanel::slider_events)
-// 	EVT_COMMAND_SCROLL (ID_FeedbackControl, LooperPanel::slider_events)
-// 	EVT_COMMAND_SCROLL (ID_DryControl, LooperPanel::slider_events)
-// 	EVT_COMMAND_SCROLL (ID_WetControl, LooperPanel::slider_events)
-// 	EVT_COMMAND_SCROLL (ID_ScratchControl, LooperPanel::slider_events)
-// 	EVT_COMMAND_SCROLL (ID_RateControl, LooperPanel::slider_events)
 
 	EVT_CHECKBOX (ID_QuantizeCheck, LooperPanel::check_events)
 	EVT_CHECKBOX (ID_RoundCheck, LooperPanel::check_events)
@@ -378,7 +372,7 @@ LooperPanel::update_controls()
 	}
 
 	if (_time_panel->update_time()) {
-		_time_panel->Refresh(true);
+		_time_panel->Refresh(false);
 	}
 }
 

@@ -71,8 +71,6 @@ GuiFrame::init()
 	//wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	
 	SetBackgroundColour(*wxBLACK);
-
-	
 	
 	_loop_control = new LoopControl(::wxGetApp().get_host(), ::wxGetApp().get_port());
 
@@ -94,7 +92,7 @@ GuiFrame::init_loopers (unsigned int count)
 		while (count > _looper_panels.size()) {
 			looperpan = new LooperPanel(_loop_control, this, -1);
 			looperpan->set_index(_looper_panels.size());
-			_main_sizer->Add (looperpan, 0, wxEXPAND|wxALL, 5);
+			_main_sizer->Add (looperpan, 0, wxEXPAND|wxALL, 0);
 			_looper_panels.push_back (looperpan);
 		}
 	}

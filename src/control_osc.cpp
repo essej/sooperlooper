@@ -140,8 +140,9 @@ void
 ControlOSC::on_loop_added (int instance)
 {
 	char tmpstr[255];
+#ifdef DEBUG
 	cerr << "loop added: " << instance << endl;
-	
+#endif	
 	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/down", instance);
 	lo_server_add_method(_osc_server, tmpstr, "s", ControlOSC::_updown_handler, new CommandInfo(this, instance, Event::type_cmd_down));
 	
@@ -216,7 +217,9 @@ ControlOSC::osc_receiver()
 int ControlOSC::_dummy_handler(const char *path, const char *types, lo_arg **argv, int argc,
 			 void *data, void *user_data)
 {
+#ifdef DEBUG
 	cerr << "got path: " << path << endl;
+#endif
 	return 0;
 }
 
@@ -379,7 +382,9 @@ int ControlOSC::register_update_handler(const char *path, const char *types, lo_
 	UrlPair upair(addr, retpath);
 
 	if (find(ulist.begin(), ulist.end(), upair) == ulist.end()) {
-		cerr << "added " << ctrl << "  " << returl << endl;
+#ifdef DEBUG
+		cerr << "registered " << ctrl << "  " << returl << endl;
+#endif
 		ulist.push_back (upair);
 	}
 	
@@ -413,7 +418,9 @@ int ControlOSC::unregister_update_handler(const char *path, const char *types, l
 		UrlList::iterator uiter = find(ulist.begin(), ulist.end(), upair);
 		
 		if (uiter != ulist.end()) {
+#ifdef DEBUG
 			cerr << "unregistered " << ctrl << "  " << returl << endl;
+#endif
 			ulist.erase (uiter);
 		}
 	}
@@ -441,7 +448,9 @@ ControlOSC::send_registered_updates(string ctrl, float val, int instance)
 		}
 	}
 	else {
+#ifdef DEBUG
 		cerr << "not in map" << endl;
+#endif
 	}
 }
 
