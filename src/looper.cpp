@@ -86,8 +86,8 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	memset (_in_src_states, 0, sizeof(SRC_STATE*) * _chan_count);
 	memset (_out_src_states, 0, sizeof(SRC_STATE*) * _chan_count);
 
-	_insync_src_state = src_new (SRC_ZERO_ORDER_HOLD, 1, &dummyerror);
-	_outsync_src_state = src_new (SRC_ZERO_ORDER_HOLD, 1, &dummyerror);
+	_insync_src_state = src_new (SRC_LINEAR, 1, &dummyerror);
+	_outsync_src_state = src_new (SRC_LINEAR, 1, &dummyerror);
 
 	_src_sync_buffer = 0;
 	_src_in_buffer = 0;
@@ -509,7 +509,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 	// resample input audio and sync using Rate
 	_src_data.src_ratio = _src_in_ratio;
 	_src_data.input_frames = nframes;
-	_src_data.output_frames = (long) ceil (nframes * _src_in_ratio);
+	_src_data.output_frames = (long) ceil (nframes * _src_in_ratio) + 1;
 	
 	// sync input
 	_src_data.data_in = _use_sync_buf + offset;
@@ -518,6 +518,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 
 	alt_frames = _src_data.output_frames_gen;
 	// cerr << "nframes: " << nframes << "  output: " <<  _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << endl;
+
 	
 	// process
 	for (unsigned int i=0; i < _chan_count; ++i)
@@ -603,8 +604,9 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 	_src_data.input_frames = alt_frames;
 	_src_data.output_frames = nframes;
 	_src_data.data_in =  _src_sync_buffer;
-	_src_data.data_out = _use_sync_buf + offset;
+	_src_data.data_out = _our_syncout_buf + offset;
 	src_process (_outsync_src_state, &_src_data);
+
 #endif	
 }
 

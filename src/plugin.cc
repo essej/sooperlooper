@@ -960,7 +960,7 @@ static LoopChunk * beginInsert(SooperLooperI *pLS, LoopChunk *loop)
       if (*pLS->pfQuantMode == 0.0f) {
 	      // we'll do this later if we are quantizing
 	      pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
-	      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+	      pLS->fFeedFadeDelta = -1.0f / xfadeSamples;
       }
 
       pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
@@ -1442,7 +1442,9 @@ runSooperLooper(LADSPA_Handle Instance,
   loop = pLS->headLoopChunk;
 
   // clear sync out
-  memset(pfSyncOutput, 0, SampleCount * sizeof(LADSPA_Data));
+  if (fSyncMode == 0.0f || pfSyncInput != pfSyncOutput) {
+	  memset(pfSyncOutput, 0, SampleCount * sizeof(LADSPA_Data));
+  }
   
      
   // transitions due to control triggering
@@ -2414,7 +2416,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      if ((fSyncMode == 0.0f)
  		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0))
 	      {
-		      DBG(fprintf(stderr,"Entering %d state at %lu\n", pLS->nextState, lCurrPos));
+		      DBG(fprintf(stderr,"Entering %d state at %u\n", pLS->nextState, lCurrPos));
 		 //pLS->state = pLS->nextState;
 		 // reset for audio ramp
 		 //pLS->lRampSamples = xfadeSamples;
@@ -2529,6 +2531,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			 *(pLoopSample) = fInputSample * pLS->fLoopFadeAtten +  (pLS->fFeedFadeAtten * fFeedback *  *(pLoopSample));
 			 break;
 		 case STATE_SUBSTITUTE:
+		 default:
 			 // use our self as the source (we have been filled by the call above)
 			 // hear the loop
 			 fOutputSample = fWet  *  *(pLoopSample)
@@ -2537,7 +2540,6 @@ runSooperLooper(LADSPA_Handle Instance,
 			 // but not feed it back (xfade it really)
 			 *(pLoopSample) = fInputSample * pLS->fLoopFadeAtten + (pLS->fFeedFadeAtten * fFeedback *  *(pLoopSample));
 			 break;
-		 default: break;
 		 }
 		 
 		 pfOutput[lSampleIndex] = fOutputSample;
@@ -2811,12 +2813,13 @@ runSooperLooper(LADSPA_Handle Instance,
 		 if (firsttime && *pLS->pfQuantMode != 0 )
 		 {
 		    // just the source and input
-		    fOutputSample = (fWet *  *(spLoopSample)
-				     + fDry * fInputSample);
+			 fOutputSample = (pLS->fPlayFadeAtten * fWet *  (*spLoopSample))
+				 + fDry * fInputSample;
 		    
 		    // do not include the new input
 		    //*(loop->pLoopStart + lCurrPos)
 		    //  = fFeedback *  *(srcloop->pLoopStart + lpCurrPos);
+		    //*(pLoopSample) = (pLS->fFeedFadeAtten * fFeedback *  (*pLoopSample));
 		 }
 		 else if (lCurrPos > loop->lMarkEndL && *pLS->pfRoundMode == 0)
 		 {
@@ -2832,8 +2835,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		    // just the input we are now inserting
 		    pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
 		    pLS->fFeedFadeDelta = -1.0f / xfadeSamples;
+		    pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 
-		    fOutputSample = fDry * fInputSample;
+		    fOutputSample = fDry * fInputSample  + (pLS->fPlayFadeAtten * fWet *  (*spLoopSample));
 
 		    *(pLoopSample) = (fInputSample * pLS->fLoopFadeAtten) + (pLS->fFeedFadeAtten * fFeedback *  (*pLoopSample));
 
