@@ -124,7 +124,11 @@ namespace SooperLooper {
 		    LoopPosition,
 		    CycleLength,
 		    FreeTime,
-		    TotalTime
+		    TotalTime,
+		    // this is end of loop enum.. the following are global
+		    Tempo,
+		    SyncTo,
+		    EighthPerCycle
 	    } Control;
 	    
 	    int8_t  Instance;

@@ -25,6 +25,8 @@
 #include "gui_app.hpp"
 #include "looper_panel.hpp"
 #include "loop_control.hpp"
+#include "slider_bar.hpp"
+#include "choice_box.hpp"
 
 using namespace SooperLooperGui;
 using namespace std;
@@ -39,7 +41,9 @@ enum {
 	ID_Quit,
 	ID_QuitStop,
 	ID_AddLoop,
-	ID_RemoveLoop
+	ID_RemoveLoop,
+	ID_TempoSlider,
+	ID_SyncChoice
 };
 
 
@@ -89,10 +93,43 @@ GuiFrame::init()
 	wxInitAllImageHandlers();
 	
 	SetBackgroundColour(*wxBLACK);
-
+	SetThemeEnabled(false);
+	
 	GuiApp & guiapp = ::wxGetApp();
 
+	wxFont sliderFont = *wxSMALL_FONT;
+	
+	wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
+
+	rowsizer->Add (1, 1, 1);
+	
+	_tempo_bar = new SliderBar(this, ID_TempoSlider, 0.0f, 300.0f, 120.0f, wxDefaultPosition, wxSize(150, 22));
+	_tempo_bar->set_units(wxT("bpm"));
+	_tempo_bar->set_label(wxT("tempo"));
+	_tempo_bar->set_snap_mode (SliderBar::IntegerSnap);
+	_tempo_bar->SetFont (sliderFont);
+	_tempo_bar->value_changed.connect (slot (*this,  &GuiFrame::on_tempo_change));
+	rowsizer->Add (_tempo_bar, 0, wxALL, 2);
+
+	_sync_choice = new ChoiceBox (this, ID_SyncChoice, wxDefaultPosition, wxSize (140, 22));
+	_sync_choice->set_label (wxT("sync to"));
+	_sync_choice->SetFont (sliderFont);
+	_sync_choice->value_changed.connect (slot (*this,  &GuiFrame::on_syncto_change));
+	_sync_choice->append_choice (wxT("Internal"));
+	_sync_choice->append_choice (wxT("MidiClock"));
+	_sync_choice->append_choice (wxT("Jack"));
+	_sync_choice->append_choice (wxT("BrotherSync"));
+		
+	rowsizer->Add (_sync_choice, 0, wxALL, 2);
+
+	rowsizer->Add (1, 1, 1);
+
+	
+	_topsizer->Add (rowsizer, 0, wxALL|wxEXPAND, 4);
+
+	
 	_scroller = new wxScrolledWindow(this, -1, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
+	_scroller->SetBackgroundColour(*wxBLACK);
 	
 	_loop_control = new LoopControl(guiapp.get_host(), guiapp.get_port(), guiapp.get_force_spawn(),
 					guiapp.get_exec_name(), guiapp.get_engine_args());
@@ -191,6 +228,8 @@ GuiFrame::init_loopers (int count)
 	//_main_sizer->SetSizeHints( _scroller );   // set size hints to honour mininum size
 	
 	// request all values for initial state
+	_loop_control->request_global_values ();
+	
 	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
 		_looper_panels[i]->set_index(i);
 		_loop_control->register_input_controls((int) i);
@@ -213,6 +252,47 @@ GuiFrame::OnUpdateTimer(wxTimerEvent &ev)
 
 	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
 		_looper_panels[i]->update_controls();
+	}
+
+	update_controls ();
+}
+
+void
+GuiFrame::update_controls()
+{
+	// get recent controls from loop control
+	float val;
+	
+	if (_loop_control->is_global_updated("tempo")) {
+		_loop_control->get_global_value("tempo", val);
+		_tempo_bar->set_value (val);
+	}
+
+	if (_loop_control->is_global_updated("sync_source")) {
+		_loop_control->get_global_value("sync_source", val);
+
+		int index = -1;
+// 		BrotherSync = -4,
+// 		InternalTempoSync = -3,
+// 		MidiClockSync = -2,
+// 		JackSync = -1,
+// 		NoSync = 0
+
+		if (val == -3.0f) {
+			index = 0;
+		} else if (val == -2.0f) {
+			index = 1;
+		} else if (val == -1.0f) {
+			index = 2;
+		} else if (val == -4.0f) {
+			index = 3;
+		}
+		else if (val >= 0.0f) {
+			// the loop instances
+			index = (int) (val + 4);
+		}
+
+		_sync_choice->set_index_value (index);
 	}
 	
 }
@@ -269,4 +349,38 @@ void
 GuiFrame::on_remove_loop (wxCommandEvent &ev)
 {
 	_loop_control->post_remove_loop();
+}
+
+void
+GuiFrame::on_tempo_change (float value)
+{
+	_loop_control->post_global_ctrl_change ("tempo", value);
+}
+
+void
+GuiFrame::on_syncto_change (int index, wxString val)
+{
+// 		BrotherSync = -4,
+// 		InternalTempoSync = -3,
+// 		MidiClockSync = -2,
+// 		JackSync = -1,
+// 		NoSync = 0
+
+	float value = 0.0f;
+	
+	if (index == 0) {
+		value = -3;
+	} else if (index == 1) {
+		value = -2;
+	} else if (index == 2) {
+		value = -1;
+	} else if (index == 3) {
+		value = -4;
+	}
+	else if (index > 3) {
+		// the loop instances
+		value = (float) (index - 4);
+	}
+
+	_loop_control->post_global_ctrl_change ("sync_source", value);
 }

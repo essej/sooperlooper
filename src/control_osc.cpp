@@ -100,6 +100,10 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	lo_server_add_method(_osc_server, "/set", "sf", ControlOSC::_global_set_handler, this);
 	lo_server_add_method(_osc_server, "/get", "sss", ControlOSC::_global_get_handler, this);
 
+	// un/register_update args= s:ctrl s:returl s:retpath
+	lo_server_add_method(_osc_server, "/register_update", "sss", ControlOSC::_global_register_update_handler, this);
+	lo_server_add_method(_osc_server, "/unregister_update", "sss", ControlOSC::_global_unregister_update_handler, this);
+
 	
 	
 	
@@ -141,6 +145,11 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	_str_ctrl_map["cycle_len"]  = Event::CycleLength;
 	_str_ctrl_map["free_time"]  = Event::FreeTime;
 	_str_ctrl_map["total_time"]  = Event::TotalTime;
+
+	// global params
+	_str_ctrl_map["tempo"] = Event::Tempo;
+	_str_ctrl_map["eighth_per_cycle"] = Event::EighthPerCycle;
+	_str_ctrl_map["sync_source"] = Event::SyncTo;
 	
 	for (map<string, Event::control_t>::iterator iter = _str_ctrl_map.begin(); iter != _str_ctrl_map.end(); ++iter) {
 		_ctrl_str_map[(*iter).second] = (*iter).first;
@@ -362,6 +371,21 @@ int ControlOSC::_saveloop_handler(const char *path, const char *types, lo_arg **
 	return cp->osc->saveloop_handler (path, types, argv, argc, data, cp);
 }
 
+int ControlOSC::_global_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
+	return osc->global_register_update_handler (path, types, argv, argc, data);
+}
+
+int ControlOSC::_global_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
+	return osc->global_unregister_update_handler (path, types, argv, argc, data);
+}
+
+
 
 /* real callbacks */
 
@@ -402,9 +426,41 @@ int ControlOSC::global_set_handler(const char *path, const char *types, lo_arg *
 
 	_engine->push_nonrt_event ( new GlobalSetEvent (param, val));
 
+	// send out updates to registered in main event loop
+	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Send, -2, to_control_t(param), "", "", val));
+	
 	return 0;
 }
 
+int
+ControlOSC::global_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+{
+	// un/register_update args= s:ctrl s:returl s:retpath
+	string ctrl (&argv[0]->s);
+	string returl (&argv[1]->s);
+	string retpath (&argv[2]->s);
+
+	// push this onto a queue for the main event loop to process
+	// -2 means global
+	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Register, -2, to_control_t(ctrl), returl, retpath));
+
+	return 0;
+}
+
+int
+ControlOSC::global_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+{
+	// 1st is return URL string 2nd is retpath
+	string ctrl (&argv[0]->s);
+	string returl (&argv[1]->s);
+	string retpath (&argv[2]->s);
+
+	// push this onto a queue for the main event loop to process
+	// -2 means global
+	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Unregister, -2, to_control_t(ctrl), returl, retpath));
+
+	return 0;
+}
 
 
 int ControlOSC::updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
@@ -632,9 +688,9 @@ ControlOSC::finish_global_get_event (GlobalGetEvent & event)
 		return;
 	}
 	
-//	 cerr << "sending to " << returl << "  path: " << retpath << "  ctrl: " << ctrl << "  val: " <<  event.ret_value << endl;
+	// cerr << "sending to " << returl << "  path: " << retpath << "  ctrl: " << param << "  val: " <<  event.ret_value << endl;
 
-	if (lo_send(addr, retpath.c_str(), "sf", param.c_str(), event.ret_value) == -1) {
+	if (lo_send(addr, retpath.c_str(), "isf", -2, param.c_str(), event.ret_value) == -1) {
 		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
 	}
 	
@@ -792,7 +848,7 @@ void ControlOSC::send_pingack (string returl, string retpath)
 		return;
 	}
 	
-	// cerr << "sending to " << returl << "  path: " << retpath << "  ctrl: " << ctrl << "  val: " <<  val << endl;
+	// cerr << "sending to " << returl << "  path: " << retpath  << endl;
 	if (lo_send(addr, retpath.c_str(), "ssi", get_server_url().c_str(), sooperlooper_version, _engine->loop_count_unsafe()) == -1) {
 		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
 	}

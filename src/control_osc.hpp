@@ -97,6 +97,8 @@ class ControlOSC
 	static int _unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _global_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _global_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 
 
 	static void * _osc_receiver(void * arg);
@@ -110,6 +112,8 @@ class ControlOSC
 	int loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	int register_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	int unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int global_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int global_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 
 	int updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo * info);
 	int set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);

@@ -133,7 +133,7 @@ LooperPanel::init()
 	_thresh_control = slider = new SliderBar(this, ID_ThreshControl, 0.0f, 1.0f, 0.0f);
 	slider->set_units(wxT("dB"));
 	slider->set_label(wxT("rec thresh"));
-	slider->set_gain_style(true);
+	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	colsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 5);
@@ -185,7 +185,7 @@ LooperPanel::init()
 	_dry_control = slider = new SliderBar(this, ID_DryControl, 0.0f, 1.0f, 1.0f);
 	slider->set_units(wxT("dB"));
 	slider->set_label(wxT("dry"));
-	slider->set_gain_style(true);
+	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 4);
@@ -193,7 +193,7 @@ LooperPanel::init()
 	_wet_control = slider = new SliderBar(this, ID_WetControl, 0.0f, 1.0f, 1.0f);
 	slider->set_units(wxT("dB"));
 	slider->set_label(wxT("wet"));
-	slider->set_gain_style(true);
+	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 4);

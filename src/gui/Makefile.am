@@ -20,7 +20,8 @@ slgui_SOURCES = \
 	looper_panel.cpp \
 	loop_control.cpp \
 	time_panel.cpp \
-	slider_bar.cpp
+	slider_bar.cpp \
+	choice_box.cpp
 
 
 

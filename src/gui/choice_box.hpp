@@ -17,75 +17,50 @@
 **  
 */
 
-#ifndef __sooperlooper_gui_slider_bar__
-#define __sooperlooper_gui_slider_bar__
+#ifndef __sooperlooper_gui_choice_box__
+#define __sooperlooper_gui_choice_box__
 
 
 #include <wx/wx.h>
 
-
+#include <vector>
 #include <sigc++/sigc++.h>
 
 
 namespace SooperLooperGui {
 
 
-class SliderBar
+class ChoiceBox
 	: public wxWindow
 {
   public:
 	
 	// ctor(s)
-	SliderBar(wxWindow * parent, wxWindowID id=-1, float lb=0.0f, float ub=1.0f, float val=0.5f,
+	ChoiceBox(wxWindow * parent, wxWindowID id=-1,
 		  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
-	virtual ~SliderBar();
+	virtual ~ChoiceBox();
 
-	enum BarStyle {
-		FromLeftStyle=0,
-		CenterStyle,
-		FromRightStyle
-	};
-
-	enum ScaleMode {
-		LinearMode = 0,
-		ZeroGainMode
-	};
-
-	enum SnapMode {
-		NoSnap = 0,
-		IntegerSnap
-	};
+	typedef std::vector<wxString> ChoiceList;
 	
-	void set_style (BarStyle md);
-	BarStyle get_style () { return _bar_style;}
-
-	void set_bounds (float lb, float ub);
-	void get_bounds (float &lb, float &ub) { lb = _lower_bound; ub = _upper_bound; }
-
-	void set_value (float val);
-	float get_value ();
-
+	void append_choice (const wxString & val);
+	void clear_choices ();
+	void get_choices (ChoiceList & clist);
+	
+	
 	void set_label (const wxString &label);
 	wxString get_label () { return _label_str; }
 
-	void set_units (const wxString &units);
-	wxString get_units () { return _units_str; }
+	void set_string_value (const wxString &val);
+	wxString get_string_value ();
 	
-	void set_scale_mode (ScaleMode mode);
-	ScaleMode get_scale_mode () { return _scale_mode; }
-	
-	void set_snap_mode (SnapMode mode);
-	SnapMode get_snap_mode () { return _snap_mode; }
-	
+	void set_index_value (int ind);
+        int get_index_value () { return _curr_index; }
 	
  	void set_bg_color (const wxColour & col);
 	wxColour & get_bg_color () { return _bgcolor; }
 
- 	void set_bar_color (const wxColour & col);
-	wxColour & get_bar_color () { return _barcolor; }
-
- 	void set_text_color (const wxColour & col);
-	wxColour & get_text_color () { return _textcolor; }
+ 	void set_label_color (const wxColour & col);
+	wxColour & get_label_color () { return _textcolor; }
 
  	void set_value_color (const wxColour & col);
 	wxColour & get_value_color () { return _valuecolor; }
@@ -94,7 +69,7 @@ class SliderBar
 	wxColour & get_border_color () { return _bordercolor; }
 	
 	
-	SigC::Signal1<void, float> value_changed;
+	SigC::Signal2<void, int, wxString> value_changed;
 	
   protected:
 
@@ -128,18 +103,14 @@ class SliderBar
 	float _value;
 	float _lower_bound, _upper_bound;
 
+	int _curr_index;
 	wxString _value_str;
 	wxString _label_str;
-	wxString _units_str;
 
-	BarStyle _bar_style;
-
+	ChoiceList _choices;
+	
 	bool _dragging;
 	int _last_x;
-
-	float _val_scale;
-	ScaleMode  _scale_mode;
-	SnapMode   _snap_mode;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

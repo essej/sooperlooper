@@ -33,6 +33,8 @@ namespace SooperLooperGui {
 
 class LoopControl;
 class LooperPanel;
+class SliderBar;
+class ChoiceBox;	
 	
 class GuiFrame
 	: public wxFrame,  public SigC::Object
@@ -61,6 +63,12 @@ protected:
 
 	void on_add_loop (wxCommandEvent &ev);
 	void on_remove_loop (wxCommandEvent &ev);
+
+	void on_tempo_change (float value);
+	void on_syncto_change (int index, wxString val);
+
+	void update_controls();
+
 	
 	LoopControl * _loop_control;
 
@@ -71,6 +79,9 @@ protected:
 	wxScrolledWindow * _scroller;
 	wxBoxSizer * _main_sizer;
 	wxBoxSizer * _topsizer;
+
+	SliderBar * _tempo_bar;
+	ChoiceBox * _sync_choice;
 	
 private:
     // any class wishing to process wxWindows events must use this macro

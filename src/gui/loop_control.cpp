@@ -51,7 +51,7 @@ LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString ex
 	else {
 		_osc_addr = lo_address_new(host.c_str(), wxString::Format(wxT("%d"), port).c_str());
 	}
-
+	cerr << "osc errstr: " << lo_address_errstr(_osc_addr) << endl;
 
 	_pingack = false;
 	_waiting = 0;
@@ -63,10 +63,11 @@ LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString ex
 	if (!_force_spawn) {
 		// send off a ping.  set a timer, if we don't have a response, we'll start our own locally
 		lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
-		_updatetimer->Start(100, true);
+		_updatetimer->Start(200, true);
 	}
 	// spawn now
 	else if (spawn_looper()) {
+		cerr << "immediate spawn" << endl;
 		_waiting = 1;
 		_updatetimer->Start(100, true);
 	}
@@ -78,6 +79,9 @@ LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString ex
 LoopControl::~LoopControl()
 {
 	lo_send(_osc_addr, "/unregister", "ss", _our_url.c_str(), "/pingack");
+	lo_send(_osc_addr, "/unregister_update", "sss", "tempo", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, "/unregister_update", "sss", "sync_source", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, "/unregister_update", "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
 
 	lo_server_free (_osc_server);
 	lo_address_free (_osc_addr);
@@ -130,7 +134,7 @@ LoopControl::pingtimer_expired()
 	// check state of pingack
 
 	if (_pingack) {
-		//cerr << "got ping response" << endl;
+		cerr << "got ping response" << endl;
 	}
 	else if (_waiting > 0)
 	{
@@ -214,6 +218,11 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 	if (!_pingack) {
 		// register future configs with it once
 		lo_send(_osc_addr, "/register", "ss", _our_url.c_str(), "/pingack");
+
+		// results will come back with instance = -2
+		lo_send(_osc_addr, "/register_update", "sss", "tempo", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/register_update", "sss", "sync_source", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/register_update", "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
 		
 		_pingack = true;
 	}
@@ -243,7 +252,21 @@ LoopControl::control_handler(const char *path, const char *types, lo_arg **argv,
 	wxString ctrl(&argv[1]->s);
 	float val  = argv[2]->f;
 
-	if (index < 0) {
+	
+	if (index == -2)
+	{
+		// global ctrls
+		if (_global_val_map.find(ctrl) == _global_val_map.end()
+		    || _global_val_map[ctrl] != val)
+		{
+			_global_updated[ctrl] = true;
+		}
+	
+		_global_val_map[ctrl] = val;
+
+		return 0;
+	}
+	else if (index < 0) {
 		return 0;
 	}
 	else if (index >= (int) _params_val_map.size()) {
@@ -264,6 +287,19 @@ LoopControl::control_handler(const char *path, const char *types, lo_arg **argv,
 	return 0;
 }
 
+void
+LoopControl::request_global_values()
+{
+	char buf[20];
+
+	snprintf(buf, sizeof(buf), "/get");
+	
+	// send request for updates
+	lo_send(_osc_addr, buf, "sss", "tempo", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "sync_source", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
+
+}
 
 void
 LoopControl::request_values(int index)
@@ -384,6 +420,17 @@ LoopControl::post_ctrl_change (int index, wxString ctrl, float val)
 }
 
 bool
+LoopControl::post_global_ctrl_change (wxString ctrl, float val)
+{
+
+	if (lo_send(_osc_addr, "/set", "sf", ctrl.c_str(), val) == -1) {
+		return false;
+	}
+
+	return true;
+}
+
+bool
 LoopControl::post_save_loop(int index, wxString fname, wxString format, wxString endian)
 {
 	char buf[30];
@@ -464,6 +511,36 @@ LoopControl::get_value (int index, wxString ctrl, float & retval)
 			_updated[index][ctrl] = false;
 			ret = true;
 		}
+	}
+
+	return ret;
+}
+
+
+bool
+LoopControl::is_global_updated (wxString ctrl)
+{
+        UpdatedCtrlMap::iterator iter = _global_updated.find (ctrl);
+	
+	if (iter != _global_updated.end()) {
+		return (*iter).second;
+	}
+
+	return false;
+}
+
+bool
+LoopControl::get_global_value (wxString ctrl, float & retval)
+{
+	bool ret = false;
+	
+	ControlValMap::iterator iter = _global_val_map.find (ctrl);
+	
+	if (iter != _global_val_map.end()) {
+		retval = (*iter).second;
+		// set updated to false
+		_global_updated[ctrl] = false;
+		ret = true;
 	}
 
 	return ret;

@@ -71,7 +71,6 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_value = val;
 	_backing_store = 0;
 	_dragging = false;
-	_gain_style = false;
 	
 	_bgcolor.Set(30,30,30);
 	_bgbrush.SetColour (_bgcolor);
@@ -93,6 +92,8 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_linebrush.SetColour(wxColour(154, 245, 168));
 	
 	_bar_style = FromLeftStyle;
+	_scale_mode = LinearMode;
+	_snap_mode = NoSnap;
 }
 
 SliderBar::~SliderBar()
@@ -111,10 +112,18 @@ SliderBar::set_style (BarStyle md)
 }
 
 void
-SliderBar::set_gain_style (bool flag)
+SliderBar::set_snap_mode (SnapMode md)
 {
-	if (flag != _gain_style) {
-		_gain_style = flag;
+	if (md != _snap_mode) {
+		_snap_mode = md;
+	}
+}
+
+void
+SliderBar::set_scale_mode (ScaleMode mode)
+{
+	if (mode != _scale_mode) {
+		_scale_mode = mode;
 		update_value_str();
 		Refresh(false);
 	}
@@ -161,8 +170,12 @@ SliderBar::set_value (float val)
 {
 	float newval = val;
 	
-	if (_gain_style) {
+	if (_scale_mode == ZeroGainMode) {
 		newval = gain_to_slider_position (val);
+	}
+
+	if (_snap_mode == IntegerSnap) {
+		newval = nearbyintf (newval);
 	}
 	
 	if (newval != _value) {
@@ -175,7 +188,7 @@ SliderBar::set_value (float val)
 float
 SliderBar::get_value ()
 {
-	if (_gain_style) {
+	if (_scale_mode == ZeroGainMode) {
 		return slider_position_to_gain(_value);
 	}
 	else {
@@ -187,7 +200,7 @@ SliderBar::get_value ()
 void
 SliderBar::update_value_str()
 {
-	if (_gain_style) {
+	if (_scale_mode == ZeroGainMode) {
 		float gain = slider_position_to_gain(_value);
 		if (gain == 0) {
 			_value_str.Printf(wxT("-inf %s"), _units_str.c_str());
@@ -304,6 +317,9 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		}
 		//cerr << "dragging: " << delta << "  " << fdelta << "  "  << newval << endl;
 
+		if (_snap_mode == IntegerSnap) {
+			newval = nearbyintf (newval);
+		}
 		
 		if (newval != _value) {
 			_value = newval;
@@ -342,6 +358,10 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 			newval = _lower_bound;
 		}
 
+		if (_snap_mode == IntegerSnap) {
+			newval = nearbyintf (newval);
+		}
+		
 		_value = newval;
 		
 		value_changed (get_value()); // emit
@@ -358,6 +378,11 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		if (ev.MiddleDown()) {
 			// set immediately
 			float newval = (ev.GetX() * _val_scale) + _lower_bound;
+
+			if (_snap_mode == IntegerSnap) {
+				newval = nearbyintf (newval);
+			}
+
 			_value = newval;
 			
 			value_changed (get_value()); // emit

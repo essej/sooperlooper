@@ -42,7 +42,7 @@ Engine::Engine ()
 	_event_queue = 0;
 	_def_channel_cnt = 2;
 	_def_loop_secs = 200;
-	_tempo = 120.0f;
+	_tempo = 110.0f;
 	_eighth_cycle = 16.0f;
 	_sync_source = NoSync;
 	

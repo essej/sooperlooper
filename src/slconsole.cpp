@@ -250,6 +250,7 @@ static void request_values()
 	lo_send(addr, "/sl/0/get", "sss", "loop_pos", our_url.c_str(), "/ctrl");
 	lo_send(addr, "/sl/0/get", "sss", "loop_len", our_url.c_str(), "/ctrl");
 	lo_send(addr, "/sl/0/get", "sss", "cycle_len", our_url.c_str(), "/ctrl");
+
 }
 
 static void update_values()

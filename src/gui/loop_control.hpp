@@ -65,6 +65,7 @@ class LoopControl
 	bool post_up_event (int index, wxString cmd);
 
 	bool post_ctrl_change (int index, wxString ctrl, float val);
+	bool post_global_ctrl_change (wxString ctrl, float val);
 
 	bool post_add_loop();
 	bool post_remove_loop();
@@ -77,6 +78,8 @@ class LoopControl
 	
 	void request_values (int index);
 	void request_all_values (int index);
+	void request_global_values ();
+
 	void update_values();
 
 	void register_input_controls(int index, bool unreg=false);
@@ -84,7 +87,9 @@ class LoopControl
 	void send_quit();
 	
 	bool is_updated (int index, wxString ctrl);
+	bool is_global_updated (wxString ctrl);
 	
+	bool get_global_value (wxString ctrl, float &retval);
 	bool get_value (int index, wxString ctrl, float &retval);
 	bool get_state (int index, LooperState & state, wxString & statestr);
 
@@ -119,12 +124,14 @@ class LoopControl
 	typedef std::map<wxString, float> ControlValMap;
 	typedef std::vector<ControlValMap> ControlValMapList;
         ControlValMapList _params_val_map;
-
+	ControlValMap     _global_val_map;
+	
 	std::map<LooperState, wxString> state_map;
 
 	typedef std::map<wxString, bool> UpdatedCtrlMap;
 	typedef std::vector<ControlValMap> UpdatedCtrlMapList;
 	UpdatedCtrlMapList _updated;
+	UpdatedCtrlMap     _global_updated;
 
 	wxString _host;
 	int      _port;

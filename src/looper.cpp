@@ -265,7 +265,8 @@ Looper::do_event (Event *ev)
 void
 Looper::run (nframes_t offset, nframes_t nframes)
 {
-	/* maybe change modes */
+	// this is the audio thread
+	
 	TentativeLockMonitor lm (_loop_lock, __LINE__, __FILE__);
 
 	if (!lm.locked()) {
