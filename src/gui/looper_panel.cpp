@@ -45,6 +45,7 @@ enum {
 	ID_ReverseButton,
 	ID_MuteButton,
 	ID_RateButton,
+	ID_ScratchButton,
 
 	ID_ThreshControl,
 	ID_FeedbackControl,
@@ -227,27 +228,35 @@ LooperPanel::init()
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
  	_rate_button = bitbutt = new PixButton(this, ID_RateButton);
 	load_bitmaps (bitbutt, wxT("rate"));
- 	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 5);
+ 	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 3);
 
 	// rate control
 	_rate_control = slider = new SliderBar(this, ID_RateControl, -4.0f, 4.0f, 1.0f);
 	slider->set_units(wxT(""));
-	slider->set_label(wxT("rate"));
+	slider->set_label(wxT(""));
 	slider->set_style (SliderBar::CenterStyle);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 5);
+	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
 	
 	colsizer->Add (rowsizer, 0, wxEXPAND);
 
-	
+	// scratch stuff
+	rowsizer = new wxBoxSizer(wxHORIZONTAL);
+ 	_scratch_button = bitbutt = new PixButton(this, ID_ScratchButton);
+	load_bitmaps (bitbutt, wxT("scratch"));
+ 	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 3);
+
+	// scratch control
 	_scratch_control = slider = new SliderBar(this, ID_ScratchControl, 0.0f, 1.0f, 0.0f);
 	slider->set_units(wxT(""));
-	slider->set_label(wxT("scratch"));
+	slider->set_label(wxT("pos"));
 	slider->set_style (SliderBar::CenterStyle);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 5);
+	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
+	
+	colsizer->Add (rowsizer, 0, wxEXPAND);
 	
 	mainSizer->Add (colsizer, 1, wxEXPAND|wxBOTTOM|wxRIGHT, 5);
 
@@ -306,6 +315,9 @@ LooperPanel::bind_events()
 
 	_rate_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("rate")));
 	_rate_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("rate")));
+
+	_scratch_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("scratch")));
+	_scratch_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("scratch")));
 	
 }
 
@@ -330,11 +342,27 @@ LooperPanel::get_pixmap_path (const wxString & namebase)
 bool
 LooperPanel::load_bitmaps (PixButton * butt, wxString namebase)
 {
+	wxString bpath;
+
+	if(!(bpath = get_pixmap_path(namebase + wxT("_normal.png"))).empty()) {
+		butt->set_normal_bitmap (wxBitmap(bpath));
+	}
 	
-	butt->set_normal_bitmap (wxBitmap(get_pixmap_path(namebase + wxT("_normal.xpm"))));
- 	butt->set_selected_bitmap (wxBitmap(get_pixmap_path(namebase + wxT("_selected.xpm"))));
- 	butt->set_focus_bitmap (wxBitmap(get_pixmap_path(namebase + wxT("_focus.xpm"))));
- 	butt->set_disabled_bitmap (wxBitmap(get_pixmap_path(namebase + wxT("_disabled.xpm"))));
+	if(!(bpath = get_pixmap_path(namebase + wxT("_selected.png"))).empty()) {
+		butt->set_selected_bitmap (wxBitmap(bpath));
+	}
+
+	if(!(bpath = get_pixmap_path(namebase + wxT("_focus.png"))).empty()) {
+		butt->set_focus_bitmap (wxBitmap(bpath));
+	}
+
+	if(!(bpath = get_pixmap_path(namebase + wxT("_disabled.png"))).empty()) {
+		butt->set_disabled_bitmap (wxBitmap(bpath));
+	}
+
+	if(!(bpath = get_pixmap_path(namebase + wxT("_active.png"))).empty()) {
+		butt->set_active_bitmap (wxBitmap(bpath));
+	}
 
 	return true;
 }

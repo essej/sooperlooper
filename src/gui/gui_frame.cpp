@@ -78,6 +78,7 @@ GuiFrame::init()
 	_main_sizer = new wxBoxSizer(wxVERTICAL);
 
 	//wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
+	wxInitAllImageHandlers();
 	
 	SetBackgroundColour(*wxBLACK);
 

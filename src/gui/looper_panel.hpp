@@ -76,6 +76,7 @@ class LooperPanel
 	PixButton * _reverse_button;
 	PixButton * _rate_button;
 	PixButton * _mute_button;
+	PixButton * _scratch_button;
 
 
 	SliderBar * _thresh_control;

@@ -3,7 +3,7 @@ bin_PROGRAMS =  slgui
 
 pixmapdir  = $(datadir)/sooperlooper/pixmaps
 pixmap_DATA = \
-	$(wildcard pixmaps/*.xpm)
+	$(wildcard pixmaps/*.png)
 
 
 DEFS = -DPIXMAPDIR=\""$(pixmapdir)/"\"
@@ -26,4 +26,4 @@ slgui_SOURCES = \
 
 noinst_HEADERS = $(wildcard *.hpp *.h)
 
-EXTRA_DIST = $(wildcard pixmaps/*.xpm)
+EXTRA_DIST = $(wildcard pixmaps/*.png)

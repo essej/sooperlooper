@@ -44,13 +44,18 @@ class PixButton
 	void set_focus_bitmap (const wxBitmap & bm);
 	void set_selected_bitmap (const wxBitmap & bm);
 	void set_disabled_bitmap (const wxBitmap & bm);
+	void set_active_bitmap (const wxBitmap & bm);
 
 	wxBitmap & get_normal_bitmap() { return _normal_bitmap;}
 	wxBitmap & get_focus_bitmap() { return _focus_bitmap; }
 	wxBitmap & get_selected_bitmap() { return _selected_bitmap; }
 	wxBitmap & get_disabled_bitmap() { return _disabled_bitmap; }
+	wxBitmap & get_active_bitmap() { return _active_bitmap; }
 
 
+	void set_active(bool flag);
+	bool get_active() { return _active; }
+	
 	void set_bg_color (const wxColour & col);
 	wxColour & get_bg_color () { return _bgcolor; }
 	
@@ -83,10 +88,12 @@ class PixButton
 	wxBitmap _focus_bitmap;
 	wxBitmap _selected_bitmap;
 	wxBitmap _disabled_bitmap;
+	wxBitmap _active_bitmap;
 
 	ButtonState _bstate;
 	EnterState _estate;
-
+	bool _active;
+	
 	int _width, _height;
 	
 	wxColour _bgcolor;

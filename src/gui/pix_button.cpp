@@ -43,6 +43,7 @@ PixButton::PixButton(wxWindow * parent, wxWindowID id, const wxPoint& pos, const
 	_bstate = Normal;
 	_estate = Outside;
 	_backing_store = 0;
+	_active = false;
 	
 	SetBackgroundColour (_bgcolor);
 	SetThemeEnabled(false);
@@ -88,6 +89,16 @@ void PixButton::set_disabled_bitmap (const wxBitmap & bm)
 	if (!bm.Ok()) return;
 
 	_disabled_bitmap = bm;
+	SetSizeHints (bm.GetWidth(), bm.GetHeight());
+	SetClientSize (bm.GetWidth(), bm.GetHeight());
+	Refresh(false);
+}
+
+void PixButton::set_active_bitmap (const wxBitmap & bm)
+{
+	if (!bm.Ok()) return;
+
+	_active_bitmap = bm;
 	SetSizeHints (bm.GetWidth(), bm.GetHeight());
 	SetClientSize (bm.GetWidth(), bm.GetHeight());
 	Refresh(false);
@@ -182,26 +193,29 @@ void PixButton::draw_area(wxDC & dc)
 {
 	dc.SetBackground(_bgbrush);
 	dc.Clear();
-	
-	switch (_bstate) {
-	case Normal:
-		if (_estate == Outside) {
-			dc.DrawBitmap (_normal_bitmap, 0, 0);
-		}
-		else {
-			dc.DrawBitmap (_focus_bitmap, 0, 0);
-		}
-		break;
 
-	case Selected:
-		dc.DrawBitmap (_selected_bitmap, 0, 0);
-		break;
-
-	case Disabled:
-		dc.DrawBitmap (_disabled_bitmap, 0, 0);
-		break;
-		
-		
+	if (_active) {
+		dc.DrawBitmap (_active_bitmap, 0, 0);
 	}
-
+	else {
+		switch (_bstate) {
+		case Normal:
+			if (_estate == Outside) {
+				dc.DrawBitmap (_normal_bitmap, 0, 0);
+			}
+			else {
+				dc.DrawBitmap (_focus_bitmap, 0, 0);
+			}
+			break;
+			
+		case Selected:
+			dc.DrawBitmap (_selected_bitmap, 0, 0);
+			break;
+			
+		case Disabled:
+			dc.DrawBitmap (_disabled_bitmap, 0, 0);
+			break;
+			
+		}
+	}
 }
