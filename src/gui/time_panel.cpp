@@ -68,16 +68,17 @@ TimePanel::init()
 	normalize_font_size(_state_font, 110, 30, wxT("ooooooooooo"));
 
 	_time_font.SetFamily(wxSWISS);
-	_time_font.SetPointSize(7);
 	_time_font.SetStyle(wxNORMAL);
 	_time_font.SetWeight(wxNORMAL);
 	_time_color.Set(244, 255, 178);
+	_time_font.SetPointSize(7);
+	normalize_font_size(_time_font, 45, 20, wxT("00:00.00"));
 
 	_legend_font.SetFamily(wxSWISS);
-	_legend_font.SetPointSize(7);
 	_legend_font.SetStyle(wxNORMAL);
 	_legend_font.SetWeight(wxNORMAL);
 	_legend_color.Set(225, 225, 225);
+	_legend_font.SetPointSize(_time_font.GetPointSize());
 
 	_bgcolor.Set(34, 49, 71);
 	SetBackgroundColour(_bgcolor);
@@ -206,7 +207,7 @@ TimePanel::draw_area(wxDC & dc)
 	// main pos
 	dc.SetFont(_pos_font);
 	dc.SetTextForeground(_pos_color);
-	dc.DrawText (_pos_str, 5, 5);
+	dc.DrawText (_pos_str, 5, 3);
 	
 	// state
 	dc.SetFont(_state_font);

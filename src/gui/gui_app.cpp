@@ -123,7 +123,7 @@ static void* watchdog_thread(void* arg)
   ::wxGetApp().getFrame()->Close(TRUE);
   
   ::wxGetApp().ExitMainLoop();
-  printf ("bye bye, hope you had fun...\n");
+  // printf ("bye bye, hope you had fun...\n");
 
   /* to keep the compilers happy; never actually executed */
   return(0);
