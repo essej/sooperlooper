@@ -403,12 +403,11 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 	if (ev->Control == Event::TapTempo) {
 		nframes_t thisframe = _running_frames + offset;
 		if (thisframe > _last_tempo_frame) {
-			_tempo = ((double) _driver->get_samplerate() / (double)(thisframe - _last_tempo_frame)) * 60.0f; 
+			double ntempo = ((double) _driver->get_samplerate() / (double)(thisframe - _last_tempo_frame)) * 60.0f; 
 
 			//cerr << "TAP: new tempo: " << _tempo  << "  off: " << offset << endl;
 
-			_tempo_counter = 0;
-			_quarter_counter = 0;
+			set_tempo(ntempo);
 			calculate_tempo_frames ();
 
 			if (_sync_source == InternalTempoSync) {
@@ -682,9 +681,9 @@ Engine::process_nonrt_event (EventNonRT * event)
 			}
 		}
 		else if (gs_event->param == "tempo") {
-			if (gs_event->value > 0.0f) {
-				_tempo = (double) gs_event->value;
-				// _tempo_counter = 0;
+			if ((_sync_source == InternalTempoSync || _sync_source == NoSync)
+			    && gs_event->value > 0.0f) {
+				set_tempo((double) gs_event->value);
 			}
 		}
 		else if (gs_event->param == "eighth_per_cycle") {
@@ -839,6 +838,20 @@ void Engine::update_sync_source ()
 	
 }
 
+
+void
+Engine::set_tempo (double tempo)
+{
+	_tempo = tempo;
+	_quarter_counter = 0;
+	_tempo_counter = 0;
+
+	// update all loops
+	for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i)
+	{
+		(*i)->set_port(TempoInput, _tempo);
+	}
+}
 
 void
 Engine::calculate_tempo_frames ()
@@ -1021,9 +1034,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 
 					if (ntempo != _tempo) {
 						//cerr << "new tempo is: " << ntempo << endl;
-
-						_tempo = ntempo;
-						_quarter_counter = 0;
+						set_tempo(ntempo);
 						_tempo_changed = true;
 						// wake up mainloop safely
 						pthread_cond_signal (&_event_cond);
@@ -1087,10 +1098,9 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			
 			if (ntempo != _tempo) {
 				//cerr << "new tempo is: " << ntempo << endl;
-				
-				_tempo = ntempo;
-				_quarter_counter = 0;
-				_tempo_counter = 0;
+
+				set_tempo(ntempo);
+
 				calculate_tempo_frames ();
 				_tempo_changed = true;
 				// wake up mainloop safely

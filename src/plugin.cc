@@ -596,6 +596,9 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
       case FadeSamples:
 	 pLS->pfXfadeSamples = DataLocation;
 	 break;
+      case TempoInput:
+	 pLS->pfTempo = DataLocation;
+	 break;
       case Round:
 	 pLS->pfRoundMode = DataLocation;
 	 break;
@@ -1276,9 +1279,12 @@ runSooperLooper(LADSPA_Handle Instance,
 
   LADSPA_Data fRate = 1.0f;
   LADSPA_Data fScratchPos = 0.0f;
-  LADSPA_Data rateDelta=0.0f, scratchDelta=0.0f, rateTarget=1.0f, scratchTarget=0.0f;
+  //LADSPA_Data rateDelta=0.0f, rateTarget=1.0f;
+  LADSPA_Data scratchDelta=0.0f, scratchTarget=0.0f;
   LADSPA_Data fTrigThresh = 0.0f;
-
+  LADSPA_Data fTempo;
+  unsigned int eighthSamples = 1;
+  
   int lMultiCtrl=-1;  
   bool useFeedbackPlay = false;
   LADSPA_Data fTapTrig = 0.0f;
@@ -1328,6 +1334,11 @@ runSooperLooper(LADSPA_Handle Instance,
 
   xfadeSamples = (int) (*pLS->pfXfadeSamples);
   if (xfadeSamples < 1) xfadeSamples = 1;
+
+  fTempo = *pLS->pfTempo;
+  if (fTempo > 0.0f) {
+	  eighthSamples = (unsigned int) (pLS->fSampleRate * 30.0 / fTempo);
+  }
   
   if (pLS->pfTrigThresh) {
      fTrigThresh = *pLS->pfTrigThresh;
@@ -2372,7 +2383,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 		 else {
 			 if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (lCurrPos % loop->lCycleLength) == 0)
-			     || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0)))
+			     || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0)) || (fQuantizeMode == QUANT_8TH && (lCurrPos % eighthSamples) == 0))
 			 {
 				 pfSyncOutput[lSampleIndex] = 1.0f;
 			 }
@@ -2687,7 +2698,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			 pfSyncOutput[lSampleIndex] = pfSyncInput[lSampleIndex];
 		 }
 		 else if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (lCurrPos % loop->lCycleLength) == 0)
-			  || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0))) {
+			  || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0)) || (fQuantizeMode == QUANT_8TH && (lCurrPos % eighthSamples) == 0)) {
 			 pfSyncOutput[lSampleIndex] = 1.0f;
 		 }
 		 
@@ -2843,7 +2854,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			 pfSyncOutput[lSampleIndex] = pfSyncInput[lSampleIndex];
 		 }
 		 else if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (lCurrPos % loop->lCycleLength) == 0)
-			  || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0))) {
+			  || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0)) || (fQuantizeMode == QUANT_8TH && (lCurrPos % eighthSamples) == 0)) {
 			 //DBG(fprintf(stderr, "outputtuing sync at %d\n", lCurrPos));
 			 pfSyncOutput[lSampleIndex] = 1.0f;
 		 }
@@ -3239,6 +3250,8 @@ sl_init() {
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
     piPortDescriptors[FadeSamples]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
+    piPortDescriptors[TempoInput]
+      = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
     
     piPortDescriptors[RedoTap]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
@@ -3310,6 +3323,8 @@ sl_init() {
       = strdup("Use Rate Ctrl");
     pcPortNames[FadeSamples] 
       = strdup("Fade samples");
+    pcPortNames[TempoInput] 
+      = strdup("Tempo");
 
     
     pcPortNames[AudioInputPort] 
@@ -3421,6 +3436,13 @@ sl_init() {
       = 0.0f;
     psPortRangeHints[FadeSamples].UpperBound
       = 8192.0f;
+
+    psPortRangeHints[TempoInput].HintDescriptor
+      = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_INTEGER;
+    psPortRangeHints[TempoInput].LowerBound 
+      = 0.0f;
+    psPortRangeHints[TempoInput].UpperBound
+      = 1000.0f;
     
     
     psPortRangeHints[Round].HintDescriptor

@@ -122,6 +122,7 @@ namespace SooperLooper {
 		    SyncMode,
 		    UseRate,
 		    FadeSamples,
+		    TempoInput,
 		    // read only
 		    State,
 		    LoopLength,

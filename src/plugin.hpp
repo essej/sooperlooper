@@ -43,10 +43,11 @@ enum ControlPort {
 	Sync,
 	UseRate,
 	FadeSamples,
+	TempoInput
 };
 
 enum OutputPort {
-	State = 15,
+	State = 16,
 	LoopLength,
 	LoopPosition,
 	CycleLength,
@@ -58,7 +59,7 @@ enum OutputPort {
 };
 
 enum AudioPort {
-	AudioInputPort=23,
+	AudioInputPort=24,
 	AudioOutputPort,
 	SyncInputPort,
 	SyncOutputPort,
@@ -280,6 +281,8 @@ typedef struct {
 	LADSPA_Data *pfRateCtrlActive;
 
 	LADSPA_Data *pfXfadeSamples;
+
+	LADSPA_Data *pfTempo;
 	
 	/* if non zero, the redo command is treated like a tap trigger */
 	LADSPA_Data *pfRedoTapMode;

@@ -108,6 +108,8 @@ class Engine
 	void calculate_midi_tick ();
 
 	void do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes);
+
+	void set_tempo (double tempo);
 	
 	AudioDriver * _driver;
 	
