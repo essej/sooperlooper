@@ -87,6 +87,8 @@ class TimePanel
 	
 	int _width, _height;
 	wxBitmap * _backing_store;
+
+ 	wxMemoryDC _memdc;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

@@ -36,8 +36,11 @@ LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString ex
 	setup_param_map();
 	
 	_osc_server = lo_server_new(NULL, NULL);
-	
-	_our_url = lo_server_get_url (_osc_server);
+
+	char * tmpstr;
+	tmpstr = lo_server_get_url (_osc_server);
+	_our_url = tmpstr;
+	free (tmpstr);
 	
 	/* add handler for control param callbacks, first is loop index , 2nd arg ctrl string, 3nd arg value */
 	lo_server_add_method(_osc_server, "/ctrl", "isf", LoopControl::_control_handler, this);
@@ -85,6 +88,8 @@ LoopControl::~LoopControl()
 
 	lo_server_free (_osc_server);
 	lo_address_free (_osc_addr);
+
+	delete _updatetimer;
 }
 
 void

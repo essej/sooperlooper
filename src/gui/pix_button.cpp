@@ -52,7 +52,9 @@ PixButton::PixButton(wxWindow * parent, wxWindowID id, const wxPoint& pos, const
 
 PixButton::~PixButton()
 {
-
+	if (_backing_store) {
+		delete _backing_store;
+	}
 }
 
 void PixButton::set_normal_bitmap (const wxBitmap & bm)
@@ -127,29 +129,28 @@ PixButton::OnSize(wxSizeEvent & event)
 {
 	GetClientSize(&_width, &_height);
 
+	_memdc.SelectObject (wxNullBitmap);
 	if (_backing_store) {
 		delete _backing_store;
 	}
 	_backing_store = new wxBitmap(_width, _height);
 
+ 	_memdc.SelectObject(*_backing_store);
 	
 	event.Skip();
 }
 
 void PixButton::OnPaint(wxPaintEvent & event)
 {
-	wxPaintDC pdc(this);
-	wxMemoryDC dc;
+ 	wxPaintDC pdc(this);
 
 	if (!_backing_store) {
 		return;
 	}
-   
-	dc.SelectObject(*_backing_store);
 	
-	draw_area(dc);
+ 	draw_area(_memdc);
 
-	pdc.Blit(0, 0, _width, _height, &dc, 0, 0);
+ 	pdc.Blit(0, 0, _width, _height, &_memdc, 0, 0);
 }
 
 

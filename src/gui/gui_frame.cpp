@@ -79,8 +79,6 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 
 	EVT_MENU(ID_KeybindingsMenu, GuiFrame::on_view_menu)
 	
-	EVT_CHECKBOX (ID_RoundCheck, GuiFrame::on_round_check)
-	
 END_EVENT_TABLE()
 
 GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
@@ -848,7 +846,7 @@ void GuiFrame::set_curr_loop (int index)
 	
 	_curr_loop = index;
 
-	cerr << "got loop index " << _curr_loop << endl;
+	// cerr << "got loop index " << _curr_loop << endl;
 	
 	int i=0;
 	for (vector<LooperPanel *>::iterator iter = _looper_panels.begin(); iter != _looper_panels.end(); ++iter, ++i) {

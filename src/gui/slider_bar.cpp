@@ -300,29 +300,28 @@ SliderBar::OnSize(wxSizeEvent & event)
 
 	_val_scale = (_upper_bound - _lower_bound) / (_width);
 
+	_memdc.SelectObject (wxNullBitmap);
 	if (_backing_store) {
 		delete _backing_store;
 	}
 	_backing_store = new wxBitmap(_width, _height);
 
+ 	_memdc.SelectObject(*_backing_store);
 	
 	event.Skip();
 }
 
 void SliderBar::OnPaint(wxPaintEvent & event)
 {
-	wxPaintDC pdc(this);
-	wxMemoryDC dc;
+ 	wxPaintDC pdc(this);
 
 	if (!_backing_store) {
 		return;
 	}
-   
-	dc.SelectObject(*_backing_store);
 	
-	draw_area(dc);
+ 	draw_area(_memdc);
 
-	pdc.Blit(0, 0, _width, _height, &dc, 0, 0);
+ 	pdc.Blit(0, 0, _width, _height, &_memdc, 0, 0);
 }
 
 
@@ -471,7 +470,7 @@ void SliderBar::draw_area(wxDC & dc)
 {
 	wxCoord w,h;
 	int pixw;
-	
+
 	dc.SetFont(GetFont());
 	dc.SetBackground(_bgbrush);
 	dc.Clear();

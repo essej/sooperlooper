@@ -43,7 +43,9 @@ TimePanel::TimePanel(LoopControl * control, wxWindow * parent, wxWindowID id, co
 
 TimePanel::~TimePanel()
 {
-
+	if (_backing_store) {
+		delete _backing_store;
+	}
 }
 
 void
@@ -177,30 +179,29 @@ TimePanel::OnSize (wxSizeEvent &ev)
 {
 	GetClientSize(&_width, &_height);
 
+	_memdc.SelectObject (wxNullBitmap);
 	if (_backing_store) {
 		delete _backing_store;
 	}
 	_backing_store = new wxBitmap(_width, _height);
 
+ 	_memdc.SelectObject(*_backing_store);
+	
 	ev.Skip();
 }
 
 void
 TimePanel::OnPaint(wxPaintEvent &ev)
 {
-	wxPaintDC pdc(this);
-
-	wxMemoryDC dc;
+ 	wxPaintDC pdc(this);
 
 	if (!_backing_store) {
 		return;
 	}
-   
-	dc.SelectObject(*_backing_store);
 	
-	draw_area(dc);
+ 	draw_area(_memdc);
 
-	pdc.Blit(0, 0, _width, _height, &dc, 0, 0);
+ 	pdc.Blit(0, 0, _width, _height, &_memdc, 0, 0);
 }
 
 void
@@ -211,12 +212,13 @@ TimePanel::draw_area(wxDC & dc)
 
 	dc.SetBackground(_bgbrush);
 	dc.Clear();
-	
+
 	// main pos
+
 	dc.SetFont(_pos_font);
 	dc.SetTextForeground(_pos_color);
 	dc.DrawText (_pos_str, 5, 3);
-	
+
 	// state
 	dc.SetFont(_state_font);
 	dc.SetTextForeground(_state_color);
@@ -255,5 +257,6 @@ TimePanel::draw_area(wxDC & dc)
 
 	dc.GetTextExtent(wxT("rem"), &w, &h);
 	dc.DrawText (wxT("rem"), _width - rw - w - 10, _height - rh - 5);
+
 	
 }

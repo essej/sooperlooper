@@ -94,7 +94,7 @@ class ChoiceBox
 	
 	int _width, _height;
 	wxBitmap * _backing_store;
-
+	wxMemoryDC _memdc;
 	
 	wxColour _bgcolor;
 	wxBrush  _bgbrush;

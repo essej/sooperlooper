@@ -76,7 +76,8 @@ class CheckBox
 
 	int _width, _height;
 	wxBitmap * _backing_store;
-
+	wxMemoryDC _memdc;
+	
 	wxString _label_str;
 	wxColour _bgcolor;
 	wxBrush  _bgbrush;

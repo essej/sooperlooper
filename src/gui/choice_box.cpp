@@ -78,7 +78,9 @@ ChoiceBox::ChoiceBox(wxWindow * parent, wxWindowID id, const wxPoint& pos, const
 
 ChoiceBox::~ChoiceBox()
 {
-
+	if (_backing_store) {
+		delete _backing_store;
+	}
 }
 
 
@@ -260,29 +262,27 @@ ChoiceBox::OnSize(wxSizeEvent & event)
 {
 	GetClientSize(&_width, &_height);
 
+	_memdc.SelectObject (wxNullBitmap);
 	if (_backing_store) {
 		delete _backing_store;
 	}
 	_backing_store = new wxBitmap(_width, _height);
-
+ 	_memdc.SelectObject(*_backing_store);
 	
 	event.Skip();
 }
 
 void ChoiceBox::OnPaint(wxPaintEvent & event)
 {
-	wxPaintDC pdc(this);
-	wxMemoryDC dc;
+ 	wxPaintDC pdc(this);
 
 	if (!_backing_store) {
 		return;
 	}
-   
-	dc.SelectObject(*_backing_store);
 	
-	draw_area(dc);
+ 	draw_area(_memdc);
 
-	pdc.Blit(0, 0, _width, _height, &dc, 0, 0);
+ 	pdc.Blit(0, 0, _width, _height, &_memdc, 0, 0);
 }
 
 

@@ -100,6 +100,7 @@ class PixButton
 	wxBrush  _bgbrush;
 
 	wxBitmap * _backing_store;
+	wxMemoryDC _memdc;
 	
   private:
     // any class wishing to process wxWindows events must use this macro
