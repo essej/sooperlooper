@@ -756,7 +756,7 @@ ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **a
 		// save to file:  s:binding_filename s:options
 		string bindstr (&argv[0]->s);
 		string options (&argv[1]->s);
-	
+
 		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::Save, bindstr, options));
 	}
 	else if (info->command == MidiBindCommand::ClearAllBindings)

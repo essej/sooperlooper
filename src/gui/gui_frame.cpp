@@ -553,9 +553,16 @@ GuiFrame::OnClose(wxCloseEvent &event)
 {
 	// send quit command to looper by default
 	save_default_midibindings();
+	_loop_update_connection.disconnect();
+
+	// sleep for a short period before stopping engine
+#if wxCHECK_VERSION(2,5,0)
+	::wxMilliSleep(500);
+#else
+	::wxUsleep(500);
+#endif
 
 	_loop_control->send_quit();
-	_loop_update_connection.disconnect();
 	
 	Destroy();
 }
@@ -568,6 +575,13 @@ GuiFrame::OnQuit(wxCommandEvent& event)
 	save_default_midibindings();
 
 	_loop_update_connection.disconnect();
+
+	// sleep for a short period before stopping engine
+#if wxCHECK_VERSION(2,5,0)
+	::wxMilliSleep(500);
+#else
+	::wxUsleep(500);
+#endif
 	
 	if (id == ID_Quit) {
 		Destroy();
