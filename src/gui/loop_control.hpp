@@ -32,6 +32,24 @@ namespace SooperLooperGui {
 
 class LoopUpdateTimer;	
 
+
+enum LooperState
+{
+	LooperStateOff = 0,
+	LooperStateWaitStart,
+	LooperStateRecording,
+	LooperStateWaitStop,
+	LooperStatePlaying,
+	LooperStateOverdubbing,
+	LooperStateMultiplying,
+	LooperStateInserting,
+	LooperStateReplacing,
+	LooperStateDelay,
+	LooperStateMuted,
+	LooperStateScratching,
+	LooperStateOneShot
+
+};
 	
 class LoopControl
 	: public SigC::Object
@@ -58,7 +76,7 @@ class LoopControl
 	bool is_updated (int index, wxString ctrl);
 	
 	bool get_value (int index, wxString ctrl, float &retval);
-	bool get_state (int index, wxString & state);
+	bool get_state (int index, LooperState & state, wxString & statestr);
 
 	void pingtimer_expired();
 
@@ -92,7 +110,7 @@ class LoopControl
 	typedef std::vector<ControlValMap> ControlValMapList;
         ControlValMapList _params_val_map;
 
-	std::map<int, wxString> state_map;
+	std::map<LooperState, wxString> state_map;
 
 	typedef std::map<wxString, bool> UpdatedCtrlMap;
 	typedef std::vector<ControlValMap> UpdatedCtrlMapList;

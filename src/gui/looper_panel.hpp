@@ -26,6 +26,8 @@
 
 #include <sigc++/sigc++.h>
 
+#include "loop_control.hpp"
+
 
 namespace SooperLooperGui {
 
@@ -60,6 +62,7 @@ class LooperPanel
 	
 	void post_control_event (wxString ctrl, float val);
 	
+	void update_state();
 	void bind_events();
 
 	void pressed_events (wxString cmd);
@@ -88,13 +91,17 @@ class LooperPanel
 
 	wxCheckBox * _quantize_check;
 	wxCheckBox * _round_check;
+
+	wxStaticText *_index_text;
 	
 	TimePanel * _time_panel;
 	
 	LoopControl * _loop_control;
 
 	int _index;
-		
+
+	LooperState _last_state;
+	
   private:
     // any class wishing to process wxWindows events must use this macro
     DECLARE_EVENT_TABLE()

@@ -69,7 +69,7 @@ BEGIN_EVENT_TABLE(LooperPanel, wxPanel)
 END_EVENT_TABLE()
 
 LooperPanel::LooperPanel(LoopControl * control, wxWindow * parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
-	: wxPanel(parent, id, pos, size), _loop_control(control), _index(0)
+	: wxPanel(parent, id, pos, size), _loop_control(control), _index(0), _last_state(LooperStateOff)
 {
 	init();
 }
@@ -132,16 +132,16 @@ LooperPanel::init()
 	slider->set_label(wxT("rec thresh"));
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 5);
+	colsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 5);
 
 	_feedback_control = slider = new SliderBar(this, ID_FeedbackControl, 0.0f, 100.0f, 0.0f);
 	slider->set_units(wxT("%"));
 	slider->set_label(wxT("feedback"));
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 5);
+	colsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 5);
 
-	colsizer->Add (20, 5, 0, wxEXPAND);
+	//colsizer->Add (20, 5, 0, wxEXPAND);
 	
  	_replace_button = bitbutt = new PixButton(this, ID_ReplaceButton);
 	load_bitmaps (bitbutt, wxT("replace"));
@@ -260,6 +260,15 @@ LooperPanel::init()
 	
 	mainSizer->Add (colsizer, 1, wxEXPAND|wxBOTTOM|wxRIGHT, 5);
 
+
+	// add an index static text fixed position
+
+// 	_index_text = new wxStaticText(this, -1, wxString::Format(wxT("%d"), _index+1), wxPoint(4,4), wxDefaultSize);
+// 	_index_text->SetForegroundColour(wxColour(14, 50, 89));
+// 	wxFont textfont(12, wxSWISS, wxNORMAL, wxBOLD);
+// 	_index_text->SetFont(textfont);
+// 	_index_text->Raise();
+	
 	
 	bind_events();
 	
@@ -407,9 +416,87 @@ LooperPanel::update_controls()
 		_round_check->SetValue (val > 0.0);
 	}
 
+	bool state_updated = _loop_control->is_updated(_index, "state");
+	
 	if (_time_panel->update_time()) {
 		_time_panel->Refresh(false);
 	}
+
+	if (state_updated) {
+		update_state();
+	}
+}
+
+
+void
+LooperPanel::update_state()
+{
+	wxString statestr;
+	LooperState state;
+	
+	_loop_control->get_state(_index, state, statestr);
+	
+	// set not active for all state buttons
+	switch(_last_state) {
+	case LooperStateRecording:
+		_record_button->set_active(false);
+		break;
+	case LooperStateOverdubbing:
+		_overdub_button->set_active(false);
+		break;
+	case LooperStateMultiplying:
+		_multiply_button->set_active(false);
+		break;
+	case LooperStateReplacing:
+		_replace_button->set_active(false);
+		break;
+	case LooperStateDelay:
+		_tap_button->set_active(false);
+		break;
+	case LooperStateInserting:
+		_insert_button->set_active(false);
+		break;
+	case LooperStateScratching:
+		_scratch_button->set_active(false);
+		break;
+	case LooperStateMuted:
+		_mute_button->set_active(false);
+		break;
+	default:
+		break;
+	}
+
+	
+	switch(state) {
+	case LooperStateRecording:
+		_record_button->set_active(true);
+		break;
+	case LooperStateOverdubbing:
+		_overdub_button->set_active(true);
+		break;
+	case LooperStateMultiplying:
+		_multiply_button->set_active(true);
+		break;
+	case LooperStateReplacing:
+		_replace_button->set_active(true);
+		break;
+	case LooperStateDelay:
+		_tap_button->set_active(true);
+		break;
+	case LooperStateInserting:
+		_insert_button->set_active(true);
+		break;
+	case LooperStateScratching:
+		_scratch_button->set_active(true);
+		break;
+	case LooperStateMuted:
+		_mute_button->set_active(true);
+		break;
+	default:
+		break;
+	}
+	
+	_last_state = state;
 }
 
 

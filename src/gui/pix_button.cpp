@@ -113,6 +113,14 @@ void PixButton::set_bg_color (const wxColour & col)
 	Refresh(false);
 }
 
+void PixButton::set_active(bool flag)
+{
+	if (_active != flag) {
+		_active = flag;
+		Refresh(false);
+	}
+}
+
 void
 PixButton::OnSize(wxSizeEvent & event)
 {

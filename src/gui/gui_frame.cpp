@@ -76,6 +76,7 @@ void
 GuiFrame::init()
 {
 	_main_sizer = new wxBoxSizer(wxVERTICAL);
+	_topsizer = new wxBoxSizer(wxVERTICAL);
 
 	//wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	wxInitAllImageHandlers();
@@ -83,6 +84,8 @@ GuiFrame::init()
 	SetBackgroundColour(*wxBLACK);
 
 	GuiApp & guiapp = ::wxGetApp();
+
+	_scroller = new wxScrolledWindow(this, -1, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
 	
 	_loop_control = new LoopControl(guiapp.get_host(), guiapp.get_port(), guiapp.get_force_spawn(),
 					guiapp.get_exec_name(), guiapp.get_engine_args());
@@ -116,11 +119,23 @@ GuiFrame::init()
 	// ... and attach this menu bar to the frame
 	SetMenuBar(menuBar);
 
+
+	_topsizer->Add (_scroller, 1, wxEXPAND);
+	
+	_scroller->SetSizer( _main_sizer );      // actually set the sizer
+	_scroller->SetAutoLayout( true );     // tell dialog to use sizer
+
+	_scroller->SetScrollRate (0, 30);
+	_scroller->EnableScrolling (true, true);
+
+	//_main_sizer->Fit( _scroller );            // set size to minimum size as calculated by the sizer
+	_main_sizer->SetSizeHints( _scroller );   // set size hints to honour mininum size
+
 	
 	this->SetAutoLayout( true );     // tell dialog to use sizer
-	this->SetSizer( _main_sizer );      // actually set the sizer
-	_main_sizer->Fit( this );            // set size to minimum size as calculated by the sizer
-	_main_sizer->SetSizeHints( this );   // set size hints to honour mininum size
+	this->SetSizer( _topsizer );      // actually set the sizer
+	_topsizer->Fit( this );            // set size to minimum size as calculated by the sizer
+	_topsizer->SetSizeHints( this );   // set size hints to honour mininum size
 }
 
 void
@@ -130,7 +145,7 @@ GuiFrame::init_loopers (int count)
 
 	if (count > (int) _looper_panels.size()) {
 		while (count > (int) _looper_panels.size()) {
-			looperpan = new LooperPanel(_loop_control, this, -1);
+			looperpan = new LooperPanel(_loop_control, _scroller, -1);
 			looperpan->set_index(_looper_panels.size());
 			_main_sizer->Add (looperpan, 0, wxEXPAND|wxALL, 0);
 			_looper_panels.push_back (looperpan);
@@ -144,10 +159,23 @@ GuiFrame::init_loopers (int count)
 			looperpan->Destroy();
 		}
 	}
+
+	_scroller->SetClientSize(_scroller->GetClientSize());
+	_scroller->Layout();
+	_scroller->SetScrollRate(0,30);
+
+// 	if (!_looper_panels.empty()) {
+// 		wxSize bestsz = _looper_panels[0]->GetBestSize();
 		
-	_main_sizer->Layout();
-	_main_sizer->Fit(this);
-	_main_sizer->SetSizeHints( this );   // set size hints to honour mininum size
+// 		_scroller->SetVirtualSizeHints (bestsz.GetWidth(), -1);
+// 		_topsizer->Fit(this);
+// 		_topsizer->SetSizeHints(this);
+// 	}
+	
+
+	//_main_sizer->Layout();
+	//_main_sizer->Fit(_scroller);
+	//_main_sizer->SetSizeHints( _scroller );   // set size hints to honour mininum size
 	
 	// request all values for initial state
 	for (unsigned int i=0; i < _looper_panels.size(); ++i) {

@@ -314,7 +314,7 @@ bool GuiApp::OnInit()
 
 	
 	// Show it and tell the application that it's our main window
-	_frame->SetSize(690,145);
+	_frame->SetSize(710,145);
 	_frame->Show(TRUE);
 
 	SetTopWindow(_frame);

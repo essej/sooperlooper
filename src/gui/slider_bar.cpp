@@ -44,6 +44,7 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_upper_bound = ub;
 	_value = val;
 	_backing_store = 0;
+	_dragging = false;
 	
 	_bgcolor.Set(30,30,30);
 	_bgbrush.SetColour (_bgcolor);
@@ -54,6 +55,7 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 
 	_textcolor = *wxWHITE;
 	_barcolor.Set(14, 50, 89);
+	_overbarcolor.Set(20, 65, 104);
 	_barbrush.SetColour(_barcolor);
 	
 	_bordercolor.Set(67, 83, 103);
@@ -204,6 +206,17 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		return;
 	}
 
+	if (ev.Entering() && !_dragging) {
+		_barbrush.SetColour(_overbarcolor);
+		Refresh(false);
+	}
+	else if (ev.Leaving() && !_dragging) {
+		_barbrush.SetColour(_barcolor);
+		Refresh(false);
+	}
+	
+
+	
 	if (ev.Dragging() && _dragging)
 	{
 		int delta = ev.GetX() - _last_x;
@@ -261,20 +274,24 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 	else if (ev.ButtonUp())
 	{
 		_dragging = false;
-		
 		ReleaseMouse();
+
+		if (ev.GetX() >= _width || ev.GetX() < 0
+		    || ev.GetY() < 0 || ev.GetY() > _height) {
+			_barbrush.SetColour(_barcolor);
+			Refresh(false);
+		}
+		else {
+			_barbrush.SetColour(_overbarcolor);
+			Refresh(false);
+		}
+		
 	}
 	else if (ev.ButtonDClick()) {
 		// todo editor
 		
 	}
-	else if (ev.Entering())
-	{
-	}
-	else if (ev.Leaving())
-	{
-	}
-	
+
 	ev.Skip();
 }
 

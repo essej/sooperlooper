@@ -84,19 +84,19 @@ LoopControl::~LoopControl()
 void
 LoopControl::setup_param_map()
 {
-	state_map[0] = "off";
-	state_map[1] = "waiting start";
-	state_map[2] = "recording";
-	state_map[3] = "waiting stop";
-	state_map[4] = "playing";
-	state_map[5] = "overdubbing";
-	state_map[6] = "multiplying";
-	state_map[7] = "inserting";
-	state_map[8] = "replacing";
-	state_map[9] = "delay";
-	state_map[10] = "muted";
-	state_map[11] = "scratching";
-	state_map[12] = "one shot";
+	state_map[LooperStateOff] = "off";
+	state_map[LooperStateWaitStart] = "waiting start";
+	state_map[LooperStateRecording] = "recording";
+	state_map[LooperStateWaitStop] = "waiting stop";
+	state_map[LooperStatePlaying] = "playing";
+	state_map[LooperStateOverdubbing] = "overdubbing";
+	state_map[LooperStateMultiplying] = "multiplying";
+	state_map[LooperStateInserting] = "inserting";
+	state_map[LooperStateReplacing] = "replacing";
+	state_map[LooperStateDelay] = "delay";
+	state_map[LooperStateMuted] = "muted";
+	state_map[LooperStateScratching] = "scratching";
+	state_map[LooperStateOneShot] = "one shot";
 }
 
 
@@ -397,7 +397,7 @@ LoopControl::get_value (int index, wxString ctrl, float & retval)
 
 
 bool
-LoopControl::get_state (int index, wxString & state)
+LoopControl::get_state (int index, LooperState & state, wxString & statestr)
 {
 	bool ret = false;
 
@@ -406,7 +406,8 @@ LoopControl::get_state (int index, wxString & state)
 		ControlValMap::iterator iter = _params_val_map[index].find ("state");
 
 		if (iter != _params_val_map[index].end()) {
-			state = state_map[(int) (*iter).second];
+			state = (LooperState) (*iter).second;
+			statestr = state_map[state];
 			// set updated to false
 			_updated[index]["state"] = false;
 			ret = true;

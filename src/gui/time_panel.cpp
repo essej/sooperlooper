@@ -155,7 +155,8 @@ TimePanel::update_time()
 	}
 
 	if (_loop_control->is_updated(_index, "state")) {
-		_loop_control->get_state(_index, _state_str);
+		LooperState tmpstate;
+		_loop_control->get_state(_index, tmpstate, _state_str);
 		ret = true;
 	}
 	

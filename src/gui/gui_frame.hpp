@@ -65,7 +65,10 @@ protected:
 	std::vector<LooperPanel *> _looper_panels;
 	
 	wxTimer * _update_timer;
+
+	wxScrolledWindow * _scroller;
 	wxBoxSizer * _main_sizer;
+	wxBoxSizer * _topsizer;
 	
 private:
     // any class wishing to process wxWindows events must use this macro

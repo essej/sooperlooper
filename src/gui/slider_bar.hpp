@@ -99,6 +99,7 @@ class SliderBar
 	wxBrush  _bgbrush;
 
 	wxColour _barcolor;
+	wxColour _overbarcolor;
 	wxBrush  _barbrush;
 	wxColour _bordercolor;
 	wxBrush  _borderbrush;
