@@ -21,6 +21,7 @@ sooperlooper_SOURCES = \
 	plugin.cc \
 	event.cpp \
 	midi_bridge.cpp \
+	midi_bind_info.cpp \
 	audio_driver.cpp \
 	jack_audio_driver.cpp \
 	$(SYSDEP_SRCS)
@@ -32,4 +33,4 @@ slconsole_LDADD = @LOSC_LIBS@ @NCURSES_LIBS@ -lpthread
 
 noinst_HEADERS = $(wildcard *.hpp *.h)
 
-EXTRA_DIST = oxy8.slb midiwizard.slb
+EXTRA_DIST = oxy8.slb midiwizard.slb bcf2000.slb

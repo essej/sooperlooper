@@ -211,10 +211,22 @@ ControlOSC::register_callbacks()
 		// certain RT global ctrls
 		lo_server_add_method(serv, "/sl/-2/set", "sf", ControlOSC::_set_handler, new CommandInfo(this, -2, Event::type_global_control_change));
 
+		// get all midi bindings:  s:returl s:retpath
+		lo_server_add_method(serv, "/get_all_midi_bindings", "ss", ControlOSC::_midi_binding_handler,
+				     new MidiBindCommand(this, MidiBindCommand::GetAllBinding));
+
+		// remove a specific midi binding:  s:binding_serialization
+		lo_server_add_method(serv, "/remove_midi_binding", "s", ControlOSC::_midi_binding_handler,
+				     new MidiBindCommand(this, MidiBindCommand::RemoveBinding));
+
+		// add a specific midi binding:  s:binding_serialization
+		lo_server_add_method(serv, "/add_midi_binding", "s", ControlOSC::_midi_binding_handler,
+				     new MidiBindCommand(this, MidiBindCommand::AddBinding));
+		
 		// MIDI clock
-		lo_server_add_method(serv, "/sl/midi_start", "", ControlOSC::_midi_start_handler, this);
-		lo_server_add_method(serv, "/sl/midi_stop", "", ControlOSC::_midi_stop_handler, this);
-		lo_server_add_method(serv, "/sl/midi_tick", "", ControlOSC::_midi_tick_handler, this);
+		lo_server_add_method(serv, "/sl/midi_start", NULL, ControlOSC::_midi_start_handler, this);
+		lo_server_add_method(serv, "/sl/midi_stop", NULL, ControlOSC::_midi_stop_handler, this);
+		lo_server_add_method(serv, "/sl/midi_tick", NULL, ControlOSC::_midi_tick_handler, this);
 	
 	}
 }
@@ -603,6 +615,12 @@ int ControlOSC::_midi_tick_handler(const char *path, const char *types, lo_arg *
 	return osc->midi_tick_handler (path, types, argv, argc, data);
 }
 
+int ControlOSC::_midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
+{
+	MidiBindCommand * cp = static_cast<MidiBindCommand*> (user_data);
+	return cp->osc->midi_binding_handler (path, types, argv, argc, data, cp);
+}
+
 
 /* real callbacks */
 
@@ -675,6 +693,14 @@ ControlOSC::global_unregister_update_handler(const char *path, const char *types
 	// push this onto a queue for the main event loop to process
 	// -2 means global
 	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Unregister, -2, to_control_t(ctrl), returl, retpath));
+
+	return 0;
+}
+
+
+int
+ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, MidiBindCommand * info)
+{
 
 	return 0;
 }

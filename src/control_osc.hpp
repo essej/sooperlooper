@@ -74,6 +74,19 @@ class ControlOSC
 		Event::type_t type;
 	};
 
+	struct MidiBindCommand
+	{
+		enum Command {
+			GetAllBinding = 1,
+			RemoveBinding,
+			AddBinding
+		};
+		MidiBindCommand(ControlOSC * os, Command cmd)
+			: osc(os), command(cmd) {}
+
+		ControlOSC * osc;
+		Command command;
+	};
 
 	void on_loop_added(int instance);
 	void on_loop_removed();
@@ -108,6 +121,8 @@ class ControlOSC
 	static int _midi_stop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _midi_tick_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 
+	static int _midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+
 
 	bool init_osc_thread();
 	void terminate_osc_thread();
@@ -130,7 +145,9 @@ class ControlOSC
 	int midi_start_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	int midi_stop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	int midi_tick_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, MidiBindCommand * info);
 
+	
 	int updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo * info);
 	int set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
 	int get_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);

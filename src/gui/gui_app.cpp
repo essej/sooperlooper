@@ -127,15 +127,16 @@ GuiApp::parse_options (int argc, char **argv)
 {
 	int longopt_index = 0;
 	int c;
+	bool stop_proc = false;
 	
-	while ((c = getopt_long (argc, argv, optstring, long_options, &longopt_index)) >= 0) {
+	while (!stop_proc && (c = getopt_long (argc, argv, optstring, long_options, &longopt_index)) >= 0) {
 		if (c >= 255) break;
 		
 		switch (c) {
 		case 1:
 			/* getopt signals end of '-' options */
+			stop_proc = true;
 			break;
-
 		case 'h':
 			_show_usage++;
 			break;
@@ -155,7 +156,7 @@ GuiApp::parse_options (int argc, char **argv)
 			_exec_name = optarg;
 			break;
 		default:
-			fprintf (stderr, "argument error\n");
+			fprintf (stderr, "argument error: %c\n", c);
 			_show_usage++;
 			break;
 		}

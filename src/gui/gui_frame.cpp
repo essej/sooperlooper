@@ -91,7 +91,8 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 	_curr_loop = -1;
 	_tapdelay_val = 1.0f;
 	_keys_dialog = 0;
-
+	_got_new_data = 0;
+	
 	_rcdir = wxGetHomeDir() + wxFileName::GetPathSeparator() + wxT(".sooperlooper");
 
 	intialize_keybindings ();
@@ -198,6 +199,7 @@ GuiFrame::init()
 
 	// todo request how many loopers to construct based on connection
 	_loop_control->LooperConnected.connect (slot (*this, &GuiFrame::init_loopers));
+	_loop_control->NewDataReady.connect (slot (*this, &GuiFrame::osc_data_ready));
 
 
 	wxMenuBar *menuBar = new wxMenuBar();
@@ -332,23 +334,23 @@ GuiFrame::init_loopers (int count)
 	set_curr_loop (_curr_loop);
 }
 
+void
+GuiFrame::osc_data_ready()
+{
+	// cerr << "osc ready" << endl;
+
+	_got_new_data++;
+
+	::wxWakeUpIdle();
+}
 
 void
 GuiFrame::OnUpdateTimer(wxTimerEvent &ev)
 {
-	_loop_control->update_values();
 
 	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
 		_loop_control->request_values ((int)i);
 	}
-
-	_loop_control->update_values();
-
-	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
-		_looper_panels[i]->update_controls();
-	}
-
-	update_controls ();
 }
 
 void
@@ -453,6 +455,19 @@ void GuiFrame::OnPaint(wxPaintEvent & event)
 void
 GuiFrame::OnIdle(wxIdleEvent& event)
 {
+	if (_got_new_data) {
+		//cerr << "idle update" << endl;
+
+		_loop_control->update_values();
+		
+		for (unsigned int i=0; i < _looper_panels.size(); ++i) {
+			_looper_panels[i]->update_controls();
+		}
+		
+		update_controls();
+
+		_got_new_data = 0;
+	}
 	
 	event.Skip();
 }

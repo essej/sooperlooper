@@ -97,6 +97,7 @@ class LoopControl
 	void pingtimer_expired();
 
 	SigC::Signal1<void,int> LooperConnected;
+	SigC::Signal0<void> NewDataReady;
 	
   protected:
 	
@@ -110,7 +111,9 @@ class LoopControl
 
 	int pingack_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	
-
+	static void * _osc_traffic(void * arg);
+	void osc_traffic();
+	
 	void setup_param_map();
 
 	bool spawn_looper();
@@ -145,6 +148,7 @@ class LoopControl
 	bool _failed;
 
 	long _engine_pid;
+	pthread_t _osc_traffic_thread;
 };
 
 class LoopUpdateTimer : public wxTimer

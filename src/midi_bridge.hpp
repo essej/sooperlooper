@@ -33,6 +33,8 @@
 #include <midi++/port.h>
 #include <midi++/port_request.h>
 
+#include "midi_bind_info.hpp"
+
 namespace SooperLooper {
 
 class MidiBridge
@@ -43,9 +45,17 @@ class MidiBridge
 	MidiBridge (std::string name, std::string oscurl, MIDI::PortRequest & req);
 	virtual ~MidiBridge();			
 
+	typedef std::vector<MidiBindInfo> BindingList;
+	
 	virtual void clear_bindings ();
 	virtual bool load_bindings (std::string filename);
 
+	void get_bindings (BindingList & blist);
+	bool add_binding (const MidiBindInfo & info);
+	bool remove_binding (const MidiBindInfo & info);
+
+	int binding_key (const MidiBindInfo & info) const;
+	
 	virtual bool is_ok() { return _port != 0; }
 	
   protected:
@@ -69,38 +79,17 @@ class MidiBridge
 
   private:
 
-	struct EventInfo
-	{
-		enum Style {
-			NormalStyle = 0,
-			GainStyle,
-		};
-		
-		EventInfo() {}
-		EventInfo (std::string tp, std::string cmd, int instc, float lbnd=0.0f, float ubnd=1.0f, Style styl=NormalStyle)
-			: type(tp), command(cmd), instance(instc), lbound(lbnd), ubound(ubnd), style(styl) {}
-
-		std::string type;
-		std::string command;
-		int         instance;
-
-		float       lbound;
-		float       ubound;
-
-		Style       style;
-	};
-
-	void send_osc (EventInfo & info, float val);
+	void send_osc (MidiBindInfo & info, float val);
 	
 	std::FILE * search_open_file (std::string filename);
 
-	typedef std::vector<EventInfo> EventList;
 
 	// the int key here is  (chcmd << 8) | param
 	// or midi byte 1 and 2 in 16 bits
-	typedef std::map<int, EventList> BindingsMap;
+	typedef std::map<int, BindingList> BindingsMap;
 
-	std::map<std::string, int> _typemap;
+	typedef std::map<std::string, int> TypeMap;
+	TypeMap _typemap;
 	
 	BindingsMap _bindings;
 

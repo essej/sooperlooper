@@ -21,6 +21,10 @@
 #include <iostream>
 #include "loop_control.hpp"
 
+#include <sys/poll.h>
+#include <unistd.h>
+#include <time.h>
+
 using namespace std;
 using namespace SooperLooperGui;
 
@@ -36,7 +40,8 @@ LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString ex
 	setup_param_map();
 	
 	_osc_server = lo_server_new(NULL, NULL);
-
+	if (!_osc_server) return;
+	
 	char * tmpstr;
 	tmpstr = lo_server_get_url (_osc_server);
 	_our_url = tmpstr;
@@ -75,6 +80,12 @@ LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString ex
 		_updatetimer->Start(100, true);
 	}
 
+	// thread for watching for new osc traffic
+	pthread_create (&_osc_traffic_thread, NULL, &LoopControl::_osc_traffic, this);
+	if (!_osc_traffic_thread) {
+		return;
+	}
+	pthread_detach(_osc_traffic_thread);
 	
 }
 
@@ -108,6 +119,54 @@ LoopControl::setup_param_map()
 	state_map[LooperStateMuted] = "muted";
 	state_map[LooperStateScratching] = "scratching";
 	state_map[LooperStateOneShot] = "one shot";
+}
+
+void *
+LoopControl::_osc_traffic (void *arg)
+{
+	LoopControl * lc = static_cast<LoopControl *>(arg);
+	lc->osc_traffic();
+	return 0;
+}
+
+void
+LoopControl::osc_traffic()
+{
+	// our only job here in this thread is
+	// to send updates when new data comes in on the osc port
+	int oscfd = lo_server_get_socket_fd(_osc_server);
+	struct pollfd pfd[2];
+	int timeout = -1;
+	int nfds = 1;
+	struct timespec nsleep = { 0, 20000000 };
+	
+	pfd[0].fd = oscfd;
+	pfd[0].events = POLLIN|POLLHUP|POLLERR;
+	
+	while (1)
+	{
+		pfd[0].fd = oscfd;
+		pfd[0].events = POLLIN|POLLHUP|POLLERR;
+
+		if (poll (pfd, nfds, timeout) < 0) {
+			if (errno == EINTR) {
+				/* gdb at work, perhaps */
+				// goto again;
+			}
+			
+			cerr << "OSC thread poll failed: " <<  strerror (errno) << endl;
+			
+			continue;
+		}
+		else {
+			// emit signal
+			NewDataReady(); // emit
+		}
+
+		// sleep for a bit to give someone the chance to read it
+		nanosleep (&nsleep, NULL);
+
+	}
 }
 
 bool

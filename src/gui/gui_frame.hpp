@@ -81,7 +81,7 @@ protected:
 	
 	void init_loopers (int count);
 
-	
+	void osc_data_ready();
 	
 	void on_add_loop (wxCommandEvent &ev);
 	void on_remove_loop (wxCommandEvent &ev);
@@ -135,6 +135,7 @@ protected:
 	KeyboardTarget * _keyboard;
 	int              _curr_loop;
 
+	int     _got_new_data;
 	wxString  _rcdir;
 	
 private:

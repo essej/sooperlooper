@@ -84,21 +84,21 @@ MidiBridge::MidiBridge (string name, string oscurl, PortRequest & req)
 	_typemap["pc"] = 0xc0;
 
 	// temp bindings
-// 	_bindings[0x9000 | 48] = EventInfo("note", "record", -1);
-// 	_bindings[0x9000 | 49] = EventInfo("note", "undo", -1);
-// 	_bindings[0x9000 | 50] = EventInfo("note", "overdub", -1);
-// 	_bindings[0x9000 | 51] = EventInfo("note", "redo", -1);
-// 	_bindings[0x9000 | 52] = EventInfo("note", "multiply", -1);
+// 	_bindings[0x9000 | 48] = MidiBindInfo("note", "record", -1);
+// 	_bindings[0x9000 | 49] = MidiBindInfo("note", "undo", -1);
+// 	_bindings[0x9000 | 50] = MidiBindInfo("note", "overdub", -1);
+// 	_bindings[0x9000 | 51] = MidiBindInfo("note", "redo", -1);
+// 	_bindings[0x9000 | 52] = MidiBindInfo("note", "multiply", -1);
 
-// 	_bindings[0x9000 | 54] = EventInfo("note", "mute", -1);
-// 	_bindings[0x9000 | 55] = EventInfo("note", "scratch", -1);
-// 	_bindings[0x9000 | 56] = EventInfo("note", "reverse", -1);
+// 	_bindings[0x9000 | 54] = MidiBindInfo("note", "mute", -1);
+// 	_bindings[0x9000 | 55] = MidiBindInfo("note", "scratch", -1);
+// 	_bindings[0x9000 | 56] = MidiBindInfo("note", "reverse", -1);
 
 
-// 	_bindings[0xb000 | 1] =  EventInfo("set", "feedback", -1, 0.0, 1.0);
-// 	_bindings[0xb000 | 7] =  EventInfo("set", "scratch_pos", -1, 0.0, 1.0);
-// 	_bindings[0xb000 | 74] =  EventInfo("set", "dry", -1, 0.0, 1.0);
-// 	_bindings[0xb000 | 71] =  EventInfo("set", "wet", -1, 0.0, 1.0);
+// 	_bindings[0xb000 | 1] =  MidiBindInfo("set", "feedback", -1, 0.0, 1.0);
+// 	_bindings[0xb000 | 7] =  MidiBindInfo("set", "scratch_pos", -1, 0.0, 1.0);
+// 	_bindings[0xb000 | 74] =  MidiBindInfo("set", "dry", -1, 0.0, 1.0);
+// 	_bindings[0xb000 | 71] =  MidiBindInfo("set", "wet", -1, 0.0, 1.0);
 
 	PortFactory factory;
 	
@@ -176,6 +176,97 @@ MidiBridge::poke_midi_thread ()
 
 
 void
+MidiBridge::get_bindings (BindingList & blist)
+{
+	for (BindingsMap::iterator biter = _bindings.begin(); biter != _bindings.end(); ++biter) {
+		BindingList & elist = (*biter).second;
+		
+		for (BindingList::iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
+			MidiBindInfo & info = (*eiter);
+			
+			blist.push_back (info);
+		}
+	}
+}
+
+int
+MidiBridge::binding_key (const MidiBindInfo & info) const
+{
+	int typei;
+	int key;
+
+	TypeMap::const_iterator titer = _typemap.find(info.type);
+	if (titer == _typemap.end()) {
+		cerr << "invalid midi type str: " << info.type;
+		return 0;
+	}
+	
+	typei = titer->second;
+	key = ((typei + info.channel) << 8) | info.param;
+
+	return key;
+}
+
+bool
+MidiBridge::add_binding (const MidiBindInfo & info)
+{
+	///  type->typei is { pc = 0xc0 , cc = 0xb0 , on = 0x80 , n = 0x90  }
+	// chcmd = cmd + ch
+	// lookup key = (chcmd << 8) | param
+
+	int key;
+	
+	if ((key = binding_key (info)) == 0) {
+		return false;
+	}
+
+	BindingsMap::iterator biter = _bindings.find(key);
+	if (biter == _bindings.end()) {
+		_bindings.insert (BindingsMap::value_type ( key, BindingList()));
+	}
+
+	// TODO: check for duplicates
+	
+	_bindings[key].push_back (info);
+	// cerr << "added binding: " << info.type << "  "  << info.control << "  " << info.instance << "  " << info.lbound << "  " << info.ubound << endl;
+	
+	cerr << "added binding: " << info.serialize() << endl;
+	return true;
+}
+
+bool
+MidiBridge::remove_binding (const MidiBindInfo & info)
+{
+	int key;
+	
+	if ((key = binding_key (info)) == 0) {
+		return false;
+	}
+
+	BindingsMap::iterator biter = _bindings.find(key);
+	if (biter == _bindings.end()) {
+		return false;
+	}
+
+	BindingList & blist = biter->second;
+
+	for (BindingList::iterator iter = blist.begin(); iter != blist.end(); ++iter) {
+		MidiBindInfo & binfo = (*iter);
+		if (binfo == info) {
+			cerr << "found match to remove" << endl;
+			blist.erase(iter);
+			break;
+		}
+	}
+
+	if (blist.empty()) {
+		_bindings.erase(biter);
+	}
+	
+	return true;
+}
+
+void
 MidiBridge::clear_bindings ()
 {
 	_bindings.clear();
@@ -199,30 +290,9 @@ MidiBridge::search_open_file (std::string filename)
 bool
 MidiBridge::load_bindings (std::string filename)
 {
-	//  ch:cmds:param   type  ctrl  instance  [min_val_bound max_val_bound valstyle]
-	// cmds is one of:  'pc' = program change  'cc' = control change  'n' = note on/off
-
-	// cmd is { pc = 0xc0 , cc = 0xb0 , on = 0x80 , n = 0x90  }
-	// chcmd = cmd + ch
-	// lookup key = (chcmd << 8) | param
-	// valstyle can be 'gain'
-	
 	FILE * bindfile = 0;
 	char  line[200];
 
-	char cmds[10];
-	int chan;
-	int param;
-	char type[32];
-	int typei;
-	char ctrl[32];
-	char stylestr[32];
-	EventInfo::Style style = EventInfo::NormalStyle;
-	int  instance = -1;
-	float lbound = 0.0f;
-	float ubound = 1.0f;
-	int key;
-	int ret;
 
 	if ((bindfile = search_open_file(filename)) == NULL) {
 		cerr << "error: could not open " << filename << endl;
@@ -231,41 +301,18 @@ MidiBridge::load_bindings (std::string filename)
 
 	while (fgets (line, sizeof(line), bindfile) != NULL)
 	{
-		instance = -1;
-		lbound = 0.0f;
-		ubound = 1.0f;
-		stylestr[0] = '\0';
-		style = EventInfo::NormalStyle;
-		
 		// ignore empty lines and # lines
 		if (line[0] == '\n' || line[0] == '#') {
 			continue;
 		}
-		
-		if ((ret=sscanf (line, "%d %3s %d  %30s  %30s  %d  %f  %f  %6s",
-			    &chan, cmds, &param, type, ctrl, &instance, &lbound, &ubound, stylestr) < 5)) {
-			cerr << "ret: " << ret << " invalid input line: " << line;
+
+		MidiBindInfo info;
+
+		if (!info.unserialize(line)) {
 			continue;
 		}
 
-		if (_typemap.find(cmds) == _typemap.end()) {
-			cerr << "invalid midi type str: " << cmds;
-			continue;
-		}
-
-		typei = _typemap[cmds];
-		key = ((typei + chan) << 8) | param;
-
-		if (stylestr[0] == 'g') {
-			style = EventInfo::GainStyle;
-		}
-
-		if (_bindings.find(key) == _bindings.end()) {
-			_bindings.insert (BindingsMap::value_type ( key, EventList()));
-		}
-		
-		_bindings[key].push_back (EventInfo(type, ctrl, instance, lbound, ubound, style));
-		cerr << "added binding: " << type << "  "  << ctrl << "  " << instance << "  " << lbound << "  " << ubound << endl;
+		add_binding (info);
 	}
 
 	fclose(bindfile);
@@ -302,13 +349,13 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 	
 	if (iter != _bindings.end())
 	{
-		EventList & elist = (*iter).second;
+		BindingList & elist = (*iter).second;
 
-		for (EventList::iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
-			EventInfo & info = (*eiter);
+		for (BindingList::iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
+			MidiBindInfo & info = (*eiter);
 			float scaled_val;
 			
-			if (info.style == EventInfo::GainStyle) {
+			if (info.style == MidiBindInfo::GainStyle) {
 				scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
 				scaled_val = uniform_position_to_gain (scaled_val);
 			}
@@ -336,7 +383,7 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 
 
 void
-MidiBridge::send_osc (EventInfo & info, float val)
+MidiBridge::send_osc (MidiBindInfo & info, float val)
 {
 	static char tmpbuf[100];
 
