@@ -139,7 +139,7 @@ AC_ARG_ENABLE(debug,
       [  --enable-debug    not optimized and includes debug symbols],
       [ if test "x$enable_debug" != "xno" ; then
           CXXFLAGS="-g -Wall -D_REENTRANT -DDEBUG "
-          CFLAGS="$CXXFLAGS "
+          CFLAGS="$CFLAGS $CXXFLAGS "
 	fi
       ],
         [
