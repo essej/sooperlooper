@@ -140,7 +140,11 @@ Engine::remove_loop (unsigned int index)
 
 		delete loop;
 		LoopRemoved(); // emit
+
+		return true;
 	}
+
+	return false;
 }
 
 
@@ -192,7 +196,6 @@ Engine::process (nframes_t nframes)
 		nframes_t doframes;
 		size_t num = vec.len[0];
 		size_t n = 0;
-		size_t totn = 0;
 		size_t vecn = 0;
 		nframes_t fragpos;
 		
@@ -322,7 +325,7 @@ Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 	// this should *really* be mutexed
 	// it is a race waiting to happen
 	
-	if (instance >= 0 && instance < _instances.size()) {
+	if (instance >= 0 && instance < (int) _instances.size()) {
 
 		return _instances[instance]->get_control_value (ctrl);
 	}

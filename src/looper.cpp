@@ -59,7 +59,7 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	memset (_input_ports, 0, sizeof(port_id_t) * _chan_count);
 	memset (_output_ports, 0, sizeof(port_id_t) * _chan_count);
 	
-	for (int i=0; i < _chan_count; ++i)
+	for (unsigned int i=0; i < _chan_count; ++i)
 	{
 
 		if ((_instances[i] = descriptor->instantiate (descriptor, _driver->get_samplerate())) == 0) {

@@ -219,7 +219,6 @@ static void setup_signals()
 
 int main(int argc, char** argv)
 {
-	int longopt_index = 0;
 	OptionInfo option_info;
 
 	setup_signals();

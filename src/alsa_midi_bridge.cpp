@@ -51,7 +51,7 @@ AlsaMidiBridge::create_sequencer (string client_name, bool isinput)
 		fprintf (stderr, "Could not open ALSA sequencer, aborting\n\n%s\n\n"
 			   "Make sure you have configure ALSA properly and that\n"
 			   "/proc/asound/seq/clients exists and contains relevant\n"
-			   "devices (%s).", 
+			   "devices.", 
 			   snd_strerror (err));
 		return 0;
 	}

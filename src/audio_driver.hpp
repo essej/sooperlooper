@@ -65,9 +65,10 @@ class AudioDriver
 
 	std::string _client_name;
 
+	Engine *    _engine;
+
 	nframes_t _samplerate;
 
-	Engine *    _engine;
 	
 };
 

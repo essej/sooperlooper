@@ -62,9 +62,9 @@ AC_SUBST(JACK_CFLAGS)
 
 
 
-PKG_CHECK_MODULES(GTKMM, gtkmm-2.0 >= 2.0)
-AC_SUBST(GTKMM_LIBS)
-AC_SUBST(GTKMM_CFLAGS)
+#PKG_CHECK_MODULES(GTKMM, gtkmm-2.0 >= 2.0)
+#AC_SUBST(GTKMM_LIBS)
+#AC_SUBST(GTKMM_CFLAGS)
 
 PKG_CHECK_MODULES(LOSC, liblo >= 0.5)
 AC_SUBST(LOSC_LIBS)
@@ -82,12 +82,47 @@ AC_SUBST(SIGCPP_LIBS)
 AC_SUBST(SIGCPP_CFLAGS)
 
 
+dnl wxwindows
+AC_PATH_PROG(WX_CONFIG, wxgtk2-2.4-config, no, $PATH:/usr/local/bin )
+if [[ "$WX_CONFIG" = "no" ]] ; then
+	AC_PATH_PROG(WX_CONFIG, wx-config, no, $PATH:/usr/local/bin )
+	if [[ "$WX_CONFIG" = "no" ]] ; then
+        	AC_MSG_ERROR("Could not find wx-config: is wxWindows installed? is wx-config in your path?")
+	fi
+fi
+
+WX_LIBS="`$WX_CONFIG --libs`"
+
+if $WX_CONFIG --cxxflags > /dev/null 2>&1 ; then
+    WX_CFLAGS="`$WX_CONFIG --cxxflags`"
+else
+    WX_CFLAGS="`$WX_CONFIG --cflags`"
+fi
+
+AC_SUBST(WX_CFLAGS)
+AC_SUBST(WX_LIBS)
+
+
 EXTRA_LIBS="$JACK_LIBS $XML_LIBS $GTKMM_LIBS $LOSC_LIBS $SIGCPP_LIBS"
 
 AC_LANG_CPLUSPLUS
 
-CFLAGS="$CFLAGS -DSAMPLE_MEMORY=200 $GTKMM_CFLAGS $JACK_CFLAGS $LOSC_CFLAGS $SIGCPP_CFLAGS"
-CXXFLAGS=$CFLAGS
+
+AC_ARG_ENABLE(debug,
+      [  --enable-debug    not optimized and includes debug symbols],
+      [ if test "x$enable_debug" != "xno" ; then
+          CXXFLAGS="-g -Wall -D_REENTRANT "
+          CFLAGS="$CXXFLAGS "
+	fi
+      ],
+        [
+	blah=1
+        ]
+)
+
+
+#CFLAGS="$CFLAGS -DSAMPLE_MEMORY=200 $JACK_CFLAGS $LOSC_CFLAGS $SIGCPP_CFLAGS"
+#CXXFLAGS=$CFLAGS
 #LIBS="$LIBS $EXTRA_LIBS"
 
 #CFLAGS="$CFLAGS -DSAMPLE_MEMORY=200 -I../ardour/libs/sigc++/sigc++/config  -I../ardour/libs/sigc++ -I../ardour/libs/gtkmm -I../ardour/libs/gtkmm/gdk-- -I../ardour/libs/gtkmm/src $GTK_CFLAGS $JACK_CFLAGS $XML_CFLAGS"
@@ -97,5 +132,6 @@ CXXFLAGS=$CFLAGS
 AC_OUTPUT([
 Makefile
 src/Makefile
+src/gui/Makefile
 version.h
 ])

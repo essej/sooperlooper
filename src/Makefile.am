@@ -1,9 +1,10 @@
-bin_PROGRAMS = soop sooperlooper osctest
+SUBDIRS = . gui
 
-soop_SOURCES = soop.cc plugin.cc
 
-soop_LDADD = @JACK_LIBS@ @GTKMM_LIBS@
+bin_PROGRAMS =  sooperlooper osctest
 
+
+AM_CXXFLAGS = -DSAMPLE_MEMORY=200 @JACK_CFLAGS@ @LOSC_CFLAGS@ @SIGCPP_CFLAGS@
 
 sooperlooper_SOURCES = \
 	sooperlooper.cpp \
@@ -23,6 +24,7 @@ sooperlooper_LDADD = @JACK_LIBS@ @LOSC_LIBS@ @SIGCPP_LIBS@ -lasound
 
 osctest_SOURCES = osctest.cpp
 osctest_LDADD = @LOSC_LIBS@ @NCURSES_LIBS@ -lpthread
+
 
 
 noinst_HEADERS = $(wildcard *.hpp *.h)

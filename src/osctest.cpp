@@ -126,6 +126,7 @@ static int do_control_change(char cmd)
 	noecho();
 	curs_set(0);
 
+	return 0;
 }
 
 static int post_event(char cmd)
@@ -249,6 +250,8 @@ static void * osc_receiver(void * arg)
 	{
 		lo_server_recv (osc_server);
 	}
+
+	return 0;
 }
 
 static void cleanup()
