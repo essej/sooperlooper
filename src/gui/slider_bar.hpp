@@ -56,6 +56,8 @@ class SliderBar
 		IntegerSnap
 	};
 
+
+	virtual bool SetFont(const wxFont & fnt);
 	
 	void set_style (BarStyle md);
 	BarStyle get_style () { return _bar_style;}

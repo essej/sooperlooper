@@ -50,6 +50,8 @@ class SpinBox
 		IntegerSnap
 	};
 
+
+	virtual bool SetFont(const wxFont & fnt);
 	
 	void set_bounds (float lb, float ub);
 	void get_bounds (float &lb, float &ub) { lb = _lower_bound; ub = _upper_bound; }

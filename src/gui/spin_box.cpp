@@ -134,7 +134,18 @@ SpinBox::SpinBox(wxWindow * parent, wxWindowID id,  float lb, float ub, float va
 
 SpinBox::~SpinBox()
 {
+	_memdc.SelectObject(wxNullBitmap);
+	if (_backing_store) {
+		delete _backing_store;
+	}
+}
 
+bool
+SpinBox::SetFont(const wxFont & fnt)
+{
+	bool ret = wxWindow::SetFont(fnt);
+	_memdc.SetFont(fnt);
+	return ret;
 }
 
 

@@ -72,6 +72,7 @@ PixButton::PixButton(wxWindow * parent, wxWindowID id, bool bindable, const wxPo
 
 PixButton::~PixButton()
 {
+	_memdc.SelectObject(wxNullBitmap);
 	if (_backing_store) {
 		delete _backing_store;
 	}

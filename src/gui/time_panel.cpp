@@ -45,9 +45,16 @@ TimePanel::TimePanel(LoopControl * control, wxWindow * parent, wxWindowID id, co
 
 TimePanel::~TimePanel()
 {
+	_memdc.SelectObject(wxNullBitmap);
 	if (_backing_store) {
 		delete _backing_store;
 	}
+
+	delete _pos_bm;
+	delete _cyc_bm;
+	delete _state_bm;
+	delete _other_bm;
+	delete _wait_bm;
 }
 
 void

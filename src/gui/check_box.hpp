@@ -40,6 +40,8 @@ class CheckBox
 		  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 	virtual ~CheckBox();
 
+	virtual bool SetFont(const wxFont & fnt);
+	
 	void set_value (bool val);
 	bool get_value () { return _value; }
 	

@@ -48,6 +48,7 @@ class ChoiceBox
 	void clear_choices ();
 	void get_choices (ChoiceList & clist);
 	
+	virtual bool SetFont(const wxFont & fnt);
 	
 	void set_label (const wxString &label);
 	wxString get_label () { return _label_str; }

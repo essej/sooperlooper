@@ -324,7 +324,7 @@ ControlOSC::on_loop_added (int instance)
 
 		// unregister_auto_update args= s:ctrl s:returl s:retpath
 		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/unregister_auto_update", instance);
-		lo_server_add_method(serv, tmpstr, "sss", ControlOSC::_unregister_update_handler, new CommandInfo(this, instance, Event::type_control_request));
+		lo_server_add_method(serv, tmpstr, "sss", ControlOSC::_unregister_auto_update_handler, new CommandInfo(this, instance, Event::type_control_request));
 
 	}
 	
@@ -1165,7 +1165,7 @@ void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 		
 	}
 	else if (event.type == ConfigUpdateEvent::Unregister ||
-		 event.type == ConfigUpdateEvent::RegisterAuto)
+		 event.type == ConfigUpdateEvent::UnregisterAuto)
 	{
 
 		if ((addr = find_or_cache_addr (returl)) == 0) {

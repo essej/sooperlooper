@@ -82,9 +82,18 @@ ChoiceBox::ChoiceBox(wxWindow * parent, wxWindowID id, bool bindable, const wxPo
 
 ChoiceBox::~ChoiceBox()
 {
+	_memdc.SelectObject(wxNullBitmap);
 	if (_backing_store) {
 		delete _backing_store;
 	}
+}
+
+bool
+ChoiceBox::SetFont(const wxFont & fnt)
+{
+	bool ret = wxWindow::SetFont(fnt);
+	_memdc.SetFont(fnt);
+	return ret;
 }
 
 

@@ -429,7 +429,10 @@ LooperPanel::post_init()
 		}
 
 	}
-	
+
+	_toppansizer->Layout();
+	_botpansizer->Layout();
+	Refresh(false);
 }
 
 void
