@@ -165,15 +165,15 @@ LooperPanel::init()
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+	rowsizer->Add (slider, 1, wxALL|wxEXPAND, 0);
 
 	_use_main_in_check = new CheckBox(this, ID_UseMainInCheck, wxT("main in"), true, wxDefaultPosition, wxSize(65, 18));
 	_use_main_in_check->SetFont(sliderFont);
 	_use_main_in_check->SetToolTip(wxT("mix input from Main inputs"));
 	_use_main_in_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("use_common_ins")));
 	_use_main_in_check->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) _use_main_in_check->GetId()));
-
-	rowsizer->Add (slider, 1, wxALL|wxEXPAND, 0);
 	rowsizer->Add (_use_main_in_check, 0, wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL ,0);
+	
 	colsizer->Add (rowsizer, 1, wxEXPAND|wxTOP|wxLEFT, 5);
 
 	_feedback_control = slider = new SliderBar(this, ID_FeedbackControl, 0.0f, 100.0f, 100.0f);
@@ -737,9 +737,12 @@ LooperPanel::update_controls()
 		_loop_control->get_value(_index, "use_feedback_play", val);
 		_play_feed_check->set_value (val > 0.0);
 	}
-	if (_loop_control->is_updated(_index, "use_common_ins")) {
-		_loop_control->get_value(_index, "use_common_ins", val);
-		_use_main_in_check->set_value (val > 0.0);
+
+	if (_use_main_in_check) {
+		if (_loop_control->is_updated(_index, "use_common_ins")) {
+			_loop_control->get_value(_index, "use_common_ins", val);
+			_use_main_in_check->set_value (val > 0.0);
+		}
 	}
 // 	if (_loop_control->is_updated(_index, "use_rate")) {
 // 		_loop_control->get_value(_index, "use_rate", val);

@@ -39,6 +39,7 @@
 #include "plugin.hpp"
 #include "filter.hpp"
 #include "engine.hpp"
+#include "utils.hpp"
 
 using namespace std;
 using namespace SooperLooper;
@@ -511,7 +512,7 @@ Looper::run (nframes_t offset, nframes_t nframes)
 				float * outbuf = _driver->get_output_port_buffer (_output_ports[i], _buffersize);
 				if (inbuf && outbuf) {
 					for (nframes_t n=0; n < nframes; ++n) {
-						outbuf[n] = inbuf[n] * ports[DryLevel];
+						outbuf[n] = flush_to_zero (inbuf[n] * _curr_dry);
 					}
 				}
 			}
@@ -576,6 +577,7 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		else {
 			inbuf = 0;
 			outbuf = _tmp_io_buf;
+			real_inbuf = 0;
 		}
 
 		if (_use_common_ins || !_have_discrete_io) {
@@ -625,20 +627,23 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 			if (_driver->get_engine()->get_common_output(i, comoutport)) {
 				sample_t * comout = _driver->get_output_port_buffer (comoutport, _buffersize) + offset;
 				for (nframes_t pos=0; pos < nframes; ++pos) {
-					comout[pos] += outbuf[pos];
+					comout[pos] += flush_to_zero (outbuf[pos]);
 				}
 			}
 		} 
 		
 		if (_have_discrete_io) {
 			// just mix the dry into the outputs
-			float dry_delta = (_target_dry - _curr_dry) / max((nframes_t) 1, (nframes - 1));
+			float dry_delta = flush_to_zero (_target_dry - _curr_dry) / max((nframes_t) 1, (nframes - 1));
+			float currdry = _curr_dry;
 			
 			for (nframes_t pos=0; pos < nframes; ++pos) {
-				_curr_dry += dry_delta;
+				currdry += dry_delta;
 				
-				outbuf[pos] += _curr_dry * real_inbuf[pos];
+				outbuf[pos] += currdry * real_inbuf[pos];
 			}
+
+			_curr_dry = currdry;
 		}
 
 	}
@@ -681,6 +686,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 		else {
 			inbuf = 0;
 			outbuf = _tmp_io_buf;
+			real_inbuf = 0;
 		}
 
 		if (_use_common_ins || !_have_discrete_io) {
@@ -799,20 +805,22 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 			if (_driver->get_engine()->get_common_output(i, comoutport)) {
 				sample_t * comout = _driver->get_output_port_buffer (comoutport, _buffersize) + offset;
 				for (nframes_t pos=0; pos < nframes; ++pos) {
-					comout[pos] += outbuf[pos];
+					comout[pos] += flush_to_zero (outbuf[pos]);
 				}
 			}
 		} 
 		
 		if (_have_discrete_io) {
 			// just mix the dry into the outputs
-			float dry_delta = (_target_dry - _curr_dry) / max((nframes_t) 1, (nframes - 1));
+			float dry_delta = flush_to_zero (_target_dry - _curr_dry) / max((nframes_t) 1, (nframes - 1));
+			float currdry = _curr_dry;
 			
 			for (nframes_t pos=0; pos < nframes; ++pos) {
-				_curr_dry += dry_delta;
+				currdry += dry_delta;
 				
-				outbuf[pos] += _curr_dry * real_inbuf[pos];
+				outbuf[pos] += currdry * real_inbuf[pos];
 			}
+			_curr_dry = currdry;
 		}
 		
 	}

@@ -30,6 +30,7 @@
 #include "control_osc.hpp"
 #include "midi_bind.hpp"
 #include "midi_bridge.hpp"
+#include "utils.hpp"
 
 using namespace SooperLooper;
 using namespace std;
@@ -228,8 +229,8 @@ Engine::fill_common_outs(nframes_t nframes)
 {
 	sample_t * outbuf;
 	sample_t * inbuf;
-	float dry_delta = (_target_common_dry - _curr_common_dry) / max((nframes_t) 1, (nframes - 1));
-	float wet_delta = (_target_common_wet - _curr_common_wet) / max((nframes_t) 1, (nframes - 1));
+	float dry_delta = flush_to_zero(_target_common_dry - _curr_common_dry) / max((nframes_t) 1, (nframes - 1));
+	float wet_delta = flush_to_zero(_target_common_wet - _curr_common_wet) / max((nframes_t) 1, (nframes - 1));
 	float currdry = 1.0f, currwet = 1.0f;
 
 	// assume ins and out count the same
@@ -243,7 +244,7 @@ Engine::fill_common_outs(nframes_t nframes)
 		for (nframes_t n = 0; n < nframes; ++n) {
 			currdry += dry_delta;
 			currwet += wet_delta;
-			outbuf[n] = (outbuf[n] * currwet) + (inbuf[n] * currdry);
+			outbuf[n] = flush_to_zero ((outbuf[n] * currwet) + (inbuf[n] * currdry));
 		}
 	}
 
