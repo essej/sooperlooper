@@ -314,7 +314,8 @@ int main(int argc, char** argv)
 
 	if (!option_info.quiet) {
 
-		cerr << "OSC server URI is: " << engine->get_osc_url() << endl;
+		cerr << "OSC server URI (network) is: " << engine->get_osc_url() << endl;
+		//cerr << "OSC server URI (local unix socket) is: " << engine->get_osc_url(false) << endl;
 	}
 	
 
@@ -332,8 +333,8 @@ int main(int argc, char** argv)
 	}
 
 	if (!option_info.pingurl.empty()) {
-		// notify whoever asked as to
-		engine->get_control_osc()->send_pingack (option_info.pingurl);
+		// notify whoever asked as to which will be the spawner
+		engine->get_control_osc()->send_pingack (true, option_info.pingurl);
 	}
 
 	MidiBridge * midibridge = 0;

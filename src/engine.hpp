@@ -74,7 +74,7 @@ class Engine
 
 	bool push_sync_event (Event::control_t ctrl);
 	
-	std::string get_osc_url ();
+	std::string get_osc_url (bool udp=true);
 	int get_osc_port ();
 
 	float get_control_value (Event::control_t, int8_t instance);

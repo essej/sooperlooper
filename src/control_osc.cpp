@@ -19,7 +19,12 @@
 
 #include <iostream>
 #include <cstdio>
+#include <cstdlib>
 #include <algorithm>
+
+#include <sys/poll.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include "control_osc.hpp"
 #include "event_nonrt.hpp"
@@ -51,6 +56,7 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	_ok = false;
 	_shutdown = false;
 	_osc_server = 0;
+	_osc_unix_server = 0;
 	_osc_thread = 0;
 	
 	for (int j=0; j < 20; ++j) {
@@ -66,53 +72,30 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 		continue;
 	}
 
-	// create new thread to run server
-	
-	pthread_create (&_osc_thread, NULL, &ControlOSC::_osc_receiver, this);
-	if (!_osc_thread) {
-		return;
+	/*** APPEARS sluggish for now
+	     
+	// attempt to create unix socket server too
+	//snprintf(tmpstr, sizeof(tmpstr), "/tmp/sooperlooper_%d", getpid());
+	snprintf(tmpstr, sizeof(tmpstr), "/tmp/sooperlooper_XXXXXX");
+	int fd = mkstemp(tmpstr);
+	if (fd >=0) {
+		unlink(tmpstr);
+		close(fd);
+		_osc_unix_server = lo_server_new (tmpstr, error_callback);
+		if (_osc_unix_server) {
+			_osc_unix_socket_path = tmpstr;
+		}
 	}
 
-	pthread_detach (_osc_thread);
-	
+	*/
 
 	_engine->LoopAdded.connect(slot (*this, &ControlOSC::on_loop_added));
 	_engine->LoopRemoved.connect(slot (*this, &ControlOSC::on_loop_removed));
 
-	on_loop_added (-1); // to match all
+	register_callbacks();
 
-	/* add method that will match the path /quit with no args */
-	lo_server_add_method(_osc_server, "/quit", "", ControlOSC::_quit_handler, this);
-
-	// add ping handler:  s:returl s:retpath
-	lo_server_add_method(_osc_server, "/ping", "ss", ControlOSC::_ping_handler, this);
-
-	// add loop add handler:  i:channels  i:bytes_per_channel
-	lo_server_add_method(_osc_server, "/loop_add", "if", ControlOSC::_loop_add_handler, this);
-
-	// add loop del handler:  i:index 
-	lo_server_add_method(_osc_server, "/loop_del", "i", ControlOSC::_loop_del_handler, this);
-
-	// un/register config handler:  s:returl  s:retpath
-	lo_server_add_method(_osc_server, "/register", "ss", ControlOSC::_register_config_handler, this);
-	lo_server_add_method(_osc_server, "/unregister", "ss", ControlOSC::_unregister_config_handler, this);
-
-	lo_server_add_method(_osc_server, "/set", "sf", ControlOSC::_global_set_handler, this);
-	lo_server_add_method(_osc_server, "/get", "sss", ControlOSC::_global_get_handler, this);
-
-	// un/register_update args= s:ctrl s:returl s:retpath
-	lo_server_add_method(_osc_server, "/register_update", "sss", ControlOSC::_global_register_update_handler, this);
-	lo_server_add_method(_osc_server, "/unregister_update", "sss", ControlOSC::_global_unregister_update_handler, this);
-
-	// certain RT global ctrls
-	lo_server_add_method(_osc_server, "/sl/-2/set", "sf", ControlOSC::_set_handler, new CommandInfo(this, -2, Event::type_global_control_change));
-
-	// MIDI clock
-	lo_server_add_method(_osc_server, "/sl/midi_start", "", ControlOSC::_midi_start_handler, this);
- 	lo_server_add_method(_osc_server, "/sl/midi_stop", "", ControlOSC::_midi_stop_handler, this);
-	lo_server_add_method(_osc_server, "/sl/midi_tick", "", ControlOSC::_midi_tick_handler, this);
-	
-	
+	// for all loops
+	on_loop_added(-1);
 	
 	// lo_server_thread_add_method(_sthread, NULL, NULL, ControlOSC::_dummy_handler, this);
 
@@ -168,6 +151,10 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	for (map<string, Event::control_t>::iterator iter = _str_ctrl_map.begin(); iter != _str_ctrl_map.end(); ++iter) {
 		_ctrl_str_map[(*iter).second] = (*iter).first;
 	}
+
+	if (!init_osc_thread()) {
+		return;
+	}
 	
 
 	_ok = true;
@@ -175,9 +162,113 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 
 ControlOSC::~ControlOSC()
 {
+	if (!_osc_unix_socket_path.empty()) {
+		// unlink it
+		unlink(_osc_unix_socket_path.c_str());
+	}
+
 	// stop server thread
-	_shutdown = true;
+	terminate_osc_thread();
 }
+
+void
+ControlOSC::register_callbacks()
+{
+	lo_server srvs[2];
+	lo_server serv;
+
+	srvs[0] = _osc_server;
+	srvs[1] = _osc_unix_server;
+	
+	for (size_t i=0; i < 2; ++i) {
+		if (!srvs[i]) continue;
+		serv = srvs[i];
+
+
+		/* add method that will match the path /quit with no args */
+		lo_server_add_method(serv, "/quit", "", ControlOSC::_quit_handler, this);
+
+		// add ping handler:  s:returl s:retpath
+		lo_server_add_method(serv, "/ping", "ss", ControlOSC::_ping_handler, this);
+
+		// add loop add handler:  i:channels  i:bytes_per_channel
+		lo_server_add_method(serv, "/loop_add", "if", ControlOSC::_loop_add_handler, this);
+
+		// add loop del handler:  i:index 
+		lo_server_add_method(serv, "/loop_del", "i", ControlOSC::_loop_del_handler, this);
+
+		// un/register config handler:  s:returl  s:retpath
+		lo_server_add_method(serv, "/register", "ss", ControlOSC::_register_config_handler, this);
+		lo_server_add_method(serv, "/unregister", "ss", ControlOSC::_unregister_config_handler, this);
+
+		lo_server_add_method(serv, "/set", "sf", ControlOSC::_global_set_handler, this);
+		lo_server_add_method(serv, "/get", "sss", ControlOSC::_global_get_handler, this);
+
+		// un/register_update args= s:ctrl s:returl s:retpath
+		lo_server_add_method(serv, "/register_update", "sss", ControlOSC::_global_register_update_handler, this);
+		lo_server_add_method(serv, "/unregister_update", "sss", ControlOSC::_global_unregister_update_handler, this);
+
+		// certain RT global ctrls
+		lo_server_add_method(serv, "/sl/-2/set", "sf", ControlOSC::_set_handler, new CommandInfo(this, -2, Event::type_global_control_change));
+
+		// MIDI clock
+		lo_server_add_method(serv, "/sl/midi_start", "", ControlOSC::_midi_start_handler, this);
+		lo_server_add_method(serv, "/sl/midi_stop", "", ControlOSC::_midi_stop_handler, this);
+		lo_server_add_method(serv, "/sl/midi_tick", "", ControlOSC::_midi_tick_handler, this);
+	
+	}
+}
+
+bool
+ControlOSC::init_osc_thread ()
+{
+	// create new thread to run server
+	if (pipe (_request_pipe)) {
+		cerr << "Cannot create osc request signal pipe" <<  strerror (errno) << endl;
+		return false;
+	}
+
+	if (fcntl (_request_pipe[0], F_SETFL, O_NONBLOCK)) {
+		cerr << "osc: cannot set O_NONBLOCK on signal read pipe " << strerror (errno) << endl;
+		return false;
+	}
+
+	if (fcntl (_request_pipe[1], F_SETFL, O_NONBLOCK)) {
+		cerr << "osc: cannot set O_NONBLOCK on signal write pipe " << strerror (errno) << endl;
+		return false;
+	}
+	
+	pthread_create (&_osc_thread, NULL, &ControlOSC::_osc_receiver, this);
+	if (!_osc_thread) {
+		return false;
+	}
+
+	//pthread_detach (_osc_thread);
+	return true;
+}
+
+void
+ControlOSC::terminate_osc_thread ()
+{
+	void* status;
+
+	_shutdown = true;
+
+	poke_osc_thread ();
+
+	pthread_join (_osc_thread, &status);
+}
+
+void
+ControlOSC::poke_osc_thread ()
+{
+	char c;
+
+	if (write (_request_pipe[1], &c, 1) != 1) {
+		cerr << "cannot send signal to osc thread! " <<  strerror (errno) << endl;
+	}
+}
+
 
 void
 ControlOSC::on_loop_added (int instance)
@@ -187,35 +278,46 @@ ControlOSC::on_loop_added (int instance)
 	char tmpstr[255];
 #ifdef DEBUG
 	cerr << "loop added: " << instance << endl;
-#endif	
-	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/down", instance);
-	lo_server_add_method(_osc_server, tmpstr, "s", ControlOSC::_updown_handler, new CommandInfo(this, instance, Event::type_cmd_down));
-	
-	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/up", instance);
-	lo_server_add_method(_osc_server, tmpstr, "s", ControlOSC::_updown_handler, new CommandInfo(this, instance, Event::type_cmd_up));
-	
-	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/set", instance);
-	lo_server_add_method(_osc_server, tmpstr, "sf", ControlOSC::_set_handler, new CommandInfo(this, instance, Event::type_control_change));
-	
-	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/get", instance);
-	lo_server_add_method(_osc_server, tmpstr, "sss", ControlOSC::_get_handler, new CommandInfo(this, instance, Event::type_control_request));
+#endif
+	lo_server srvs[2];
+	lo_server serv;
 
-	// load loop:  s:filename  s:returl  s:retpath
-	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/load_loop", instance);
-	lo_server_add_method(_osc_server, tmpstr, "sss", ControlOSC::_loadloop_handler, new CommandInfo(this, instance, Event::type_control_request));
-
-	// save loop:  s:filename  s:format s:endian s:returl  s:retpath
-	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/save_loop", instance);
-	lo_server_add_method(_osc_server, tmpstr, "sssss", ControlOSC::_saveloop_handler, new CommandInfo(this, instance, Event::type_control_request));
+	srvs[0] = _osc_server;
+	srvs[1] = _osc_unix_server;
 	
-	// register_update args= s:ctrl s:returl s:retpath
-	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/register_update", instance);
-	lo_server_add_method(_osc_server, tmpstr, "sss", ControlOSC::_register_update_handler, new CommandInfo(this, instance, Event::type_control_request));
+	for (size_t i=0; i < 2; ++i) {
+		if (!srvs[i]) continue;
+		serv = srvs[i];
+		
+		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/down", instance);
+		lo_server_add_method(serv, tmpstr, "s", ControlOSC::_updown_handler, new CommandInfo(this, instance, Event::type_cmd_down));
+	
+		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/up", instance);
+		lo_server_add_method(serv, tmpstr, "s", ControlOSC::_updown_handler, new CommandInfo(this, instance, Event::type_cmd_up));
+	
+		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/set", instance);
+		lo_server_add_method(serv, tmpstr, "sf", ControlOSC::_set_handler, new CommandInfo(this, instance, Event::type_control_change));
+	
+		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/get", instance);
+		lo_server_add_method(serv, tmpstr, "sss", ControlOSC::_get_handler, new CommandInfo(this, instance, Event::type_control_request));
 
-	// unregister_update args= s:ctrl s:returl s:retpath
-	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/unregister_update", instance);
-	lo_server_add_method(_osc_server, tmpstr, "sss", ControlOSC::_unregister_update_handler, new CommandInfo(this, instance, Event::type_control_request));
+		// load loop:  s:filename  s:returl  s:retpath
+		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/load_loop", instance);
+		lo_server_add_method(serv, tmpstr, "sss", ControlOSC::_loadloop_handler, new CommandInfo(this, instance, Event::type_control_request));
 
+		// save loop:  s:filename  s:format s:endian s:returl  s:retpath
+		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/save_loop", instance);
+		lo_server_add_method(serv, tmpstr, "sssss", ControlOSC::_saveloop_handler, new CommandInfo(this, instance, Event::type_control_request));
+	
+		// register_update args= s:ctrl s:returl s:retpath
+		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/register_update", instance);
+		lo_server_add_method(serv, tmpstr, "sss", ControlOSC::_register_update_handler, new CommandInfo(this, instance, Event::type_control_request));
+
+		// unregister_update args= s:ctrl s:returl s:retpath
+		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/unregister_update", instance);
+		lo_server_add_method(serv, tmpstr, "sss", ControlOSC::_unregister_update_handler, new CommandInfo(this, instance, Event::type_control_request));
+	}
+	
 	send_all_config();
 }
 
@@ -242,6 +344,21 @@ ControlOSC::get_server_url()
 	return url;
 }
 
+std::string
+ControlOSC::get_unix_server_url()
+{
+	string url;
+	char * urlstr;
+
+	if (_osc_unix_server) {
+		urlstr = lo_server_get_url (_osc_unix_server);
+		url = urlstr;
+		free (urlstr);
+	}
+	
+	return url;
+}
+
 
 /* server thread */
 
@@ -255,14 +372,80 @@ ControlOSC::_osc_receiver(void * arg)
 void
 ControlOSC::osc_receiver()
 {
-	while (!_shutdown)
-	{
-		// blocks receiving requests that will be serviced
-		// by registered handlers
-		lo_server_recv (_osc_server);
+	struct pollfd pfd[3];
+	int fds[3];
+	lo_server srvs[3];
+	int nfds = 0;
+	int timeout = -1;
+
+	fds[0] = _request_pipe[0];
+	nfds++;
+	
+	if (_osc_server && lo_server_get_socket_fd(_osc_server) >= 0) {
+		fds[nfds] = lo_server_get_socket_fd(_osc_server);
+		srvs[nfds] = _osc_server;
+		nfds++;
 	}
-	lo_server_free (_osc_server);
-	_osc_server = 0;
+
+	if (_osc_unix_server && lo_server_get_socket_fd(_osc_unix_server) >= 0) {
+		fds[nfds] = lo_server_get_socket_fd(_osc_unix_server);
+		srvs[nfds] = _osc_unix_server;
+		nfds++;
+	}
+	
+	
+	while (!_shutdown) {
+
+		for (int i=0; i < nfds; ++i) {
+			pfd[i].fd = fds[i];
+			pfd[i].events = POLLIN|POLLHUP|POLLERR;
+		}
+		
+	again:
+		// cerr << "poll on " << nfds << " for " << timeout << endl;
+		if (poll (pfd, nfds, timeout) < 0) {
+			if (errno == EINTR) {
+				/* gdb at work, perhaps */
+				goto again;
+			}
+			
+			cerr << "OSC thread poll failed: " <<  strerror (errno) << endl;
+			
+			break;
+		}
+
+		if (_shutdown) {
+			break;
+		}
+		
+		if ((pfd[0].revents & ~POLLIN)) {
+			cerr << "OSC: error polling extra port" << endl;
+			break;
+		}
+
+		for (int i=1; i < nfds; ++i) {
+			if (pfd[i].revents & POLLIN)
+			{
+				// this invokes callbacks
+				lo_server_recv (srvs[i]);
+			}
+		}
+
+	}
+
+	cerr << "got shutdown" << endl;
+	
+	if (_osc_server) {
+		lo_server_free (_osc_server);
+		_osc_server = 0;
+	}
+
+	if (_osc_unix_server) {
+		cerr << "freeing unix server" << endl;
+		lo_server_free (_osc_unix_server);
+		_osc_unix_server = 0;
+	}
+	
 }
 
 
@@ -892,12 +1075,12 @@ void ControlOSC::send_all_config ()
 	// for now just send pingacks to all registered addresses
 	for (AddressList::iterator iter = _config_registrations.begin(); iter != _config_registrations.end(); ++iter)
 	{
-		send_pingack ((*iter).first, (*iter).second);
+		send_pingack (true, (*iter).first, (*iter).second);
 	}
 }
 
 
-void ControlOSC::send_pingack (string returl, string retpath)
+void ControlOSC::send_pingack (bool useudp, string returl, string retpath)
 {
 	lo_address addr;
 
@@ -905,9 +1088,20 @@ void ControlOSC::send_pingack (string returl, string retpath)
 	if (!addr) {
 		return;
 	}
+
+	string oururl;
+
+	if (!useudp) {
+		oururl = get_unix_server_url();
+	}
+
+	// default to udp
+	if (oururl.empty()) {
+		oururl = get_server_url();
+	}
 	
 	// cerr << "sending to " << returl << "  path: " << retpath  << endl;
-	if (lo_send(addr, retpath.c_str(), "ssi", get_server_url().c_str(), sooperlooper_version, _engine->loop_count_unsafe()) == -1) {
+	if (lo_send(addr, retpath.c_str(), "ssi", oururl.c_str(), sooperlooper_version, _engine->loop_count_unsafe()) == -1) {
 		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
 	}
 }

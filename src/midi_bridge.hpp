@@ -50,6 +50,8 @@ class MidiBridge
 	
   protected:
 	bool init_thread();
+	void terminate_midi_thread();
+	void poke_midi_thread();
 	
 	void incoming_midi (MIDI::Parser &p, MIDI::byte *msg, size_t len);
 	
@@ -93,6 +95,9 @@ class MidiBridge
 	std::FILE * search_open_file (std::string filename);
 
 	typedef std::vector<EventInfo> EventList;
+
+	// the int key here is  (chcmd << 8) | param
+	// or midi byte 1 and 2 in 16 bits
 	typedef std::map<int, EventList> BindingsMap;
 
 	std::map<std::string, int> _typemap;

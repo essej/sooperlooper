@@ -117,7 +117,9 @@ MidiBridge::~MidiBridge()
 {
 	lo_address_free (_addr);
 
-	// the port will be freed by the subclass
+	// the port will be freed by the work thread
+	
+	terminate_midi_thread();
 }
 
 
@@ -145,10 +147,33 @@ MidiBridge::init_thread()
 		return false;
 	}
 	
-	pthread_detach(_midi_thread);
+	//pthread_detach(_midi_thread);
 
 	return true;
 }
+
+void
+MidiBridge::terminate_midi_thread ()
+{
+	void* status;
+
+	_done = true;
+
+	poke_midi_thread ();
+
+	pthread_join (_midi_thread, &status);
+}
+
+void
+MidiBridge::poke_midi_thread ()
+{
+	char c;
+
+	if (write (_midi_request_pipe[1], &c, 1) != 1) {
+		cerr << "cannot send signal to midi thread! " <<  strerror (errno) << endl;
+	}
+}
+
 
 void
 MidiBridge::clear_bindings ()
@@ -384,6 +409,10 @@ void  MidiBridge::midi_receiver()
 			
 			cerr << "MIDI thread poll failed: " <<  strerror (errno) << endl;
 			
+			break;
+		}
+
+		if (_done) {
 			break;
 		}
 		

@@ -47,10 +47,12 @@ class ControlOSC
 	std::string get_server_url();
 	int get_server_port () { return _port; }
 
+	std::string get_unix_server_url();
+	
 	bool is_ok() { return _ok; }
 
 	void send_all_config ();
-	void send_pingack (std::string returl, std::string retpath="/pingack");
+	void send_pingack (bool useudp, std::string returl, std::string retpath="/pingack");
 	
 
 	void finish_get_event (GetParamEvent & event);
@@ -75,6 +77,8 @@ class ControlOSC
 
 	void on_loop_added(int instance);
 	void on_loop_removed();
+
+	void register_callbacks();
 	
 	lo_address find_or_cache_addr(std::string returl);
 
@@ -105,6 +109,9 @@ class ControlOSC
 	static int _midi_tick_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 
 
+	bool init_osc_thread();
+	void terminate_osc_thread();
+	void poke_osc_thread();
 
 	static void * _osc_receiver(void * arg);
 	void osc_receiver();
@@ -141,8 +148,12 @@ class ControlOSC
 	Engine * _engine;
 
 	pthread_t _osc_thread;
+	int       _request_pipe[2];
+	
 	lo_server _osc_server;
-
+	lo_server _osc_unix_server;
+	std::string _osc_unix_socket_path;
+	
 	int _port;
 	bool _ok;
 	bool _shutdown;

@@ -205,10 +205,15 @@ Engine::remove_loop (unsigned int index)
 
 
 std::string
-Engine::get_osc_url ()
+Engine::get_osc_url (bool udp)
 {
 	if (_osc && _osc->is_ok()) {
-		return _osc->get_server_url();
+		if (udp) {
+			return _osc->get_server_url();
+		}
+		else {
+			return _osc->get_unix_server_url();
+		}
 	}
 
 	return "";
@@ -649,7 +654,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 	}
 	else if ((ping_event = dynamic_cast<PingEvent*> (event)) != 0)
 	{
-		_osc->send_pingack(ping_event->ret_url, ping_event->ret_path);
+		_osc->send_pingack(true, ping_event->ret_url, ping_event->ret_path);
 	}
 	else if ((rc_event = dynamic_cast<RegisterConfigEvent*> (event)) != 0)
 	{
