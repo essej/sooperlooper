@@ -109,7 +109,7 @@ static void usage(char *argv0)
 static void parse_options (int argc, char **argv, OptionInfo & option_info)
 {
 	int longopt_index = 0;
-	char c;
+	int c;
 	
 	while ((c = getopt_long (argc, argv, optstring, long_options, &longopt_index)) >= 0) {
 		if (c >= 255) {
