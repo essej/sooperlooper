@@ -44,20 +44,27 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	char tmpstr[255];
 
 	_ok = false;
+	_shutdown = false;
+	_osc_server = 0;
+	_osc_thread = 0;
 	
 	for (int j=0; j < 20; ++j) {
 		snprintf(tmpstr, sizeof(tmpstr), "%d", _port);
-		
-		if ((_sthread = lo_server_thread_new(tmpstr, error_callback))) {
+
+		if ((_osc_server = lo_server_new (tmpstr, error_callback))) {
 			break;
 		}
-
+		
 		cerr << "can't get osc at port: " << _port << endl;
 		_port++;
 		continue;
 	}
 
-	if (!_sthread) {
+	// create new thread to run server
+	
+	pthread_create (&_osc_thread, NULL, &ControlOSC::_osc_receiver, this);
+	
+	if (!_osc_thread) {
 		return;
 	}
 
@@ -68,7 +75,7 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	on_loop_added (-1); // to match all
 
 	/* add method that will match the path /quit with no args */
-	lo_server_thread_add_method(_sthread, "/quit", "", ControlOSC::_quit_handler, this);
+	lo_server_add_method(_osc_server, "/quit", "", ControlOSC::_quit_handler, this);
 
 	// lo_server_thread_add_method(_sthread, NULL, NULL, ControlOSC::_dummy_handler, this);
 
@@ -109,20 +116,23 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 		_ctrl_str_map[(*iter).second] = (*iter).first;
 	}
 	
-	
-	lo_server_thread_start(_sthread);
 
 	_ok = true;
 }
 
 ControlOSC::~ControlOSC()
 {
-	// stop server thread??  how?
+	// stop server thread
 
-// 	if (_sthread) {
-// 		// this will block
-// 		lo_server_thread_stop (_sthread);
-// 	}
+	_shutdown = true;
+	
+	// send an event to self
+	lo_address addr = lo_address_new_from_url (get_server_url().c_str());
+	lo_send(addr, "/ping", "");
+	lo_address_free (addr);
+
+	pthread_join (_osc_thread, NULL);
+	lo_server_free (_osc_server);
 }
 
 void
@@ -132,16 +142,16 @@ ControlOSC::on_loop_added (int instance)
 	cerr << "loop added: " << instance << endl;
 	
 	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/down", instance);
-	lo_server_thread_add_method(_sthread, tmpstr, "s", ControlOSC::_updown_handler, new CommandInfo(this, instance, Event::type_cmd_down));
+	lo_server_add_method(_osc_server, tmpstr, "s", ControlOSC::_updown_handler, new CommandInfo(this, instance, Event::type_cmd_down));
 	
 	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/up", instance);
-	lo_server_thread_add_method(_sthread, tmpstr, "s", ControlOSC::_updown_handler, new CommandInfo(this, instance, Event::type_cmd_up));
+	lo_server_add_method(_osc_server, tmpstr, "s", ControlOSC::_updown_handler, new CommandInfo(this, instance, Event::type_cmd_up));
 	
 	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/set", instance);
-	lo_server_thread_add_method(_sthread, tmpstr, "sf", ControlOSC::_set_handler, new CommandInfo(this, instance, Event::type_control_change));
+	lo_server_add_method(_osc_server, tmpstr, "sf", ControlOSC::_set_handler, new CommandInfo(this, instance, Event::type_control_change));
 	
 	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/get", instance);
-	lo_server_thread_add_method(_sthread, tmpstr, "sss", ControlOSC::_get_handler, new CommandInfo(this, instance, Event::type_control_request));
+	lo_server_add_method(_osc_server, tmpstr, "sss", ControlOSC::_get_handler, new CommandInfo(this, instance, Event::type_control_request));
 	
 }
 
@@ -159,8 +169,8 @@ ControlOSC::get_server_url()
 	string url;
 	char * urlstr;
 
-	if (_sthread) {
-		urlstr = lo_server_thread_get_url (_sthread);
+	if (_osc_server) {
+		urlstr = lo_server_get_url (_osc_server);
 		url = urlstr;
 		free (urlstr);
 	}
@@ -169,8 +179,30 @@ ControlOSC::get_server_url()
 }
 
 
+/* server thread */
+
+void *
+ControlOSC::_osc_receiver(void * arg)
+{
+	static_cast<ControlOSC*> (arg)->osc_receiver();
+	return 0;
+}
+
+void
+ControlOSC::osc_receiver()
+{
+	while (!_shutdown)
+	{
+		// blocks receiving requests that will be serviced
+		// by registered handlers
+		lo_server_recv (_osc_server);
+	}
+}
+
+
 
 /* STATIC callbacks */
+
 
 int ControlOSC::_dummy_handler(const char *path, const char *types, lo_arg **argv, int argc,
 			 void *data, void *user_data)
@@ -214,15 +246,12 @@ int ControlOSC::_get_handler(const char *path, const char *types, lo_arg **argv,
 
 int ControlOSC::quit_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
 {
-	cerr << "got quit!" << endl;
 	_engine->quit();
 	return 0;
 }
 
 int ControlOSC::updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
 {
-	cerr << "updown " << path << "  " << info->type << endl;
-
 	// first arg is a string
 	
 	string cmd(&argv[0]->s);
@@ -235,7 +264,6 @@ int ControlOSC::updown_handler(const char *path, const char *types, lo_arg **arg
 
 int ControlOSC::set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
 {
-	cerr << "set " << path << endl;
 
 	// first arg is a control string, 2nd is float val
 

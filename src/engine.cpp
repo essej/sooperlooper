@@ -18,7 +18,6 @@
 */
 #include <iostream>
 
-#include <jack/jack.h>
 
 #include "engine.hpp"
 #include "looper.hpp"
@@ -31,24 +30,27 @@ using namespace PBD;
 #define MAX_EVENTS 1024
 
 
-Engine::Engine (string jack_name)
-	: _jack_name(jack_name)
+Engine::Engine ()
 {
 	_ok = false;
-	_jack = 0;
+	_driver = 0;
 	_osc = 0;
+	_event_generator = 0;
+	_event_queue = 0;
 }
 
-bool Engine::initialize(int port)
+bool Engine::initialize(AudioDriver * driver, int port)
 {
-	if (connect_to_jack ()) {
-		cerr << "cannot connect to jack" << endl;
+	_driver = driver;
+	_driver->set_engine(this);
+	
+	if (!_driver->initialize()) {
+		cerr << "cannot connect to audio driver" << endl;
 		return false;
 	}
+	
 
-	_samplerate = jack_get_sample_rate (_jack);
-
-	_event_generator = new EventGenerator(_samplerate);
+	_event_generator = new EventGenerator(_driver->get_samplerate());
 	_event_queue = new RingBuffer<Event> (MAX_EVENTS);
 
 	_osc = new ControlOSC(this, port);
@@ -56,60 +58,31 @@ bool Engine::initialize(int port)
 	if (!_osc->is_ok()) {
 		return false;
 	}
-
-	
-	if (jack_set_process_callback (_jack, _process_callback, this) != 0) {
-		return false;
-	}
-	
 	
 	_ok = true;
 
 	return true;
 }
 
-bool Engine::activate()
-{
-	if (_jack) {
-		if (jack_activate (_jack)) {
-			cerr << "cannot activate JACK" << endl;
-			return false;
-		}
-		return true;
-	}
-
-	return false;
-}
-
-bool Engine::deactivate()
-{
-	if (_jack) {
-		if (jack_deactivate (_jack)) {
-			cerr << "cannot deactivate JACK" << endl;
-			return false;
-		}
-		return true;
-	}
-
-	return false;
-}
 
 void
 Engine::cleanup()
 {
-	if (_ok) {
-		jack_client_close (_jack);
-		
+	if (_osc) {
 		delete _osc;
-		
+	}
+
+	if (_event_queue) {
 		delete _event_queue;
 		_event_queue = 0;
-		
+	}
+	if (_event_generator) {
 		delete _event_generator;
 		_event_generator = 0;
-
-		_ok = false;
 	}
+
+	_ok = false;
+	
 }
 
 Engine::~Engine ()
@@ -134,7 +107,7 @@ Engine::add_loop (unsigned int chans)
 
 		Looper * instance;
 		
-		instance = new Looper (_jack, (unsigned int) _instances.size(), chans);
+		instance = new Looper (_driver, (unsigned int) _instances.size(), chans);
 		n = _instances.size();
 		
 		if (!(*instance)()) {
@@ -191,70 +164,8 @@ Engine::get_osc_port ()
 	return 0;
 }
 
-
-static void
-our_jack_error(const char * err)
-{
-
-}
-
 int
-Engine::connect_to_jack ()
-{
-	char namebuf[100];
-
-	jack_set_error_function (our_jack_error);
-
-	_jack = 0;
-	
-	/* try to become a client of the JACK server */
-	if (_jack_name.empty()) {
-		// find a name predictably
-		for (int i=1; i < 10; i++) {
-			snprintf(namebuf, sizeof(namebuf)-1, "sooperlooper_%d", i);
-			if ((_jack = jack_client_new (namebuf)) != 0) {
-				_jack_name = namebuf;
-				break;
-			}
-		}
-	}
-	else {
-		// try the passed name, or base a predictable name from it
-		if ((_jack = jack_client_new (_jack_name.c_str())) == 0) {
-			for (int i=1; i < 10; i++) {
-				snprintf(namebuf, sizeof(namebuf)-1, "%s_%d", _jack_name.c_str(), i);
-				if ((_jack = jack_client_new (namebuf)) != 0) {
-					_jack_name = namebuf;
-					break;
-				}
-			}
-		}
-	}
-
-	if (!_jack) {
-		return -1;
-	}
-
-	jack_set_xrun_callback (_jack, _xrun_callback, this);
-	
-	return 0;
-}
-
-int
-Engine::_xrun_callback (void* arg)
-{
-	cerr << "got xrun" << endl;
-}
-
-
-int
-Engine::_process_callback (jack_nframes_t nframes, void* arg)
-{
-	return static_cast<Engine*> (arg)->process_callback (nframes);
-}
-
-int
-Engine::process_callback (jack_nframes_t nframes)
+Engine::process (nframes_t nframes)
 {
 	TentativeLockMonitor lm (_instance_lock, __LINE__, __FILE__);
 
@@ -277,20 +188,20 @@ Engine::process_callback (jack_nframes_t nframes)
 	else
 	{
 		// process events
-		jack_nframes_t usedframes = 0;
-		jack_nframes_t doframes;
+		nframes_t usedframes = 0;
+		nframes_t doframes;
 		size_t num = vec.len[0];
 		size_t n = 0;
 		size_t totn = 0;
 		size_t vecn = 0;
-		jack_nframes_t fragpos;
+		nframes_t fragpos;
 		
 		if (num > 0) {
 		
 			while (n < num)
 			{ 
 				evt = vec.buf[vecn] + n;
-				fragpos = (jack_nframes_t) evt->FragmentPos();
+				fragpos = (nframes_t) evt->FragmentPos();
 
 				++n;
 				// to avoid code copying
@@ -355,7 +266,7 @@ Engine::push_command_event (Event::type_t type, Event::command_t cmd, int8_t ins
 	// todo support more than one simulataneous pusher safely
 	RingBuffer<Event>::rw_vector vec;
 
-	get_event_queue().get_write_vector (&vec);
+	_event_queue->get_write_vector (&vec);
 
 	if (vec.len[0] == 0) {
 		cerr << "event queue full, dropping event" << endl;
@@ -369,7 +280,7 @@ Engine::push_command_event (Event::type_t type, Event::command_t cmd, int8_t ins
 	evt->Command = cmd;
 	evt->Instance = instance;
 
-	get_event_queue().increment_write_ptr (1);
+	_event_queue->increment_write_ptr (1);
 
 	cerr << "posted event" << endl;
 	
@@ -384,7 +295,7 @@ Engine::push_control_event (Event::type_t type, Event::control_t ctrl, float val
 	
 	RingBuffer<Event>::rw_vector vec;
 
-	get_event_queue().get_write_vector (&vec);
+	_event_queue->get_write_vector (&vec);
 
 	if (vec.len[0] == 0) {
 		cerr << "event queue full, dropping event" << endl;
@@ -399,7 +310,7 @@ Engine::push_control_event (Event::type_t type, Event::control_t ctrl, float val
 	evt->Value = val;
 	evt->Instance = instance;
 
-	get_event_queue().increment_write_ptr (1);
+	_event_queue->increment_write_ptr (1);
 
 	return true;
 }

@@ -23,12 +23,12 @@
 #include <vector>
 #include <string>
 
-#include <jack/jack.h>
 #include <sigc++/sigc++.h>
 
 #include "lockmonitor.hpp"
 #include "ringbuffer.hpp"
 #include "event.hpp"
+#include "audio_driver.hpp"
 
 namespace SooperLooper {
 
@@ -39,15 +39,12 @@ class Engine
 {
   public:
 	
-	Engine(std::string jack_name="");
+	Engine();
 	virtual ~Engine();
 
-	bool initialize(int port=9351);
+	bool initialize(AudioDriver * driver, int port=9351);
 
-	bool activate();
-	bool deactivate();
-
-	std::string get_name() { return _jack_name; }
+	AudioDriver * get_audio_driver () { return _driver; }
 	
 	bool is_ok() const { return _ok; }
 
@@ -58,7 +55,10 @@ class Engine
 	
 	unsigned int loop_count() { PBD::LockMonitor lm(_instance_lock, __LINE__, __FILE__); return _instances.size(); }
 
-	RingBuffer<Event> & get_event_queue() { return *_event_queue; }
+	int process (nframes_t);
+
+	//RingBuffer<Event> & get_event_queue() { return *_event_queue; }
+	
 
 	EventGenerator & get_event_generator() { return *_event_generator;}
 
@@ -77,16 +77,8 @@ class Engine
   protected:	
 
 	void cleanup();
+	AudioDriver * _driver;
 	
-	int connect_to_jack ();
-
-	int process_callback (jack_nframes_t);
-	static int _process_callback (jack_nframes_t, void*);
-	static int _xrun_callback (void*);
-
-	jack_client_t *_jack;
-	std::string _jack_name;
-
 	ControlOSC * _osc;
 	
 	typedef std::vector<Looper*> Instances;
@@ -98,8 +90,6 @@ class Engine
 	RingBuffer<Event> * _event_queue;
 
 	EventGenerator * _event_generator;
-
-	jack_nframes_t _samplerate;
 };
 
 };  // sooperlooper namespace

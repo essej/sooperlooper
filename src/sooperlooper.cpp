@@ -29,6 +29,7 @@
 #include "engine.hpp"
 
 #include "alsa_midi_bridge.hpp"
+#include "jack_audio_driver.hpp"
 
 using namespace SooperLooper;
 using namespace std;
@@ -249,33 +250,38 @@ int main(int argc, char** argv)
 	
 	sl_init ();
 
-	Engine engine(option_info.jack_name);
+	// create audio driver
+	// todo: a factory
+	AudioDriver * driver = new JackAudioDriver(option_info.jack_name);
+	
+	
+	Engine * engine = new Engine();
 
 	
-	if (!engine.initialize(option_info.oscport)) {
+	if (!engine->initialize(driver, option_info.oscport)) {
 		cerr << "cannot initialize sooperlooper\n";
 		exit (1);
 	}
 
 	if (!option_info.quiet) {
 
-		cerr << "OSC server URI is: " << engine.get_osc_url() << endl;
+		cerr << "OSC server URI is: " << engine->get_osc_url() << endl;
 	}
 	
 	for (int i=0; i < option_info.loop_count; ++i)
 	{
-		engine.add_loop ((unsigned int) option_info.channels);
+		engine->add_loop ((unsigned int) option_info.channels);
 	}
 	
 
-	if (!engine.activate()) {
+	if (!driver->activate()) {
 		exit(1);
 	}
 	
 
 	// start up alsamidi bridge
 	// todo: a factory or optional other type
-	MidiBridge * midibridge = new AlsaMidiBridge(engine.get_name(), engine.get_osc_url());
+	MidiBridge * midibridge = new AlsaMidiBridge(driver->get_name(), engine->get_osc_url());
 
 	if (!option_info.bindfile.empty()) {
 		midibridge->load_bindings (option_info.bindfile);
@@ -283,13 +289,16 @@ int main(int argc, char** argv)
 	
 	// todo proper event loop ?
 
-	while (engine.is_ok() && !do_shutdown)
+	while (engine->is_ok() && !do_shutdown)
 	{
 		usleep(1000);
 	}
 	
 	sl_fini ();
 
+	delete midibridge;
+	delete driver;
+	delete engine;
 	
 	return 0;
 }

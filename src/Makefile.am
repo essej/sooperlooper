@@ -13,7 +13,9 @@ sooperlooper_SOURCES = \
 	plugin.cc \
 	event.cpp \
 	midi_bridge.cpp \
-	alsa_midi_bridge.cpp
+	alsa_midi_bridge.cpp \
+	audio_driver.cpp \
+	jack_audio_driver.cpp
 
 
 sooperlooper_LDADD = @JACK_LIBS@ @LOSC_LIBS@ @SIGCPP_LIBS@ -lasound

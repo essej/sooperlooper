@@ -20,7 +20,7 @@
 #ifndef __sooperlooper_looper__
 #define __sooperlooper_looper__
 
-#include <jack/jack.h>
+#include "audio_driver.hpp"
 #include "ladspa.h"
 
 #include "event.hpp"
@@ -55,11 +55,11 @@ enum OutputPort {
 class Looper 
 {
   public:
-	Looper (jack_client_t*, unsigned int index, unsigned int channel_count=1);
+	Looper (AudioDriver * driver, unsigned int index, unsigned int channel_count=1);
 	~Looper ();
 	
 	bool operator() () const { return _ok; }
-	void run (jack_nframes_t offset, jack_nframes_t nframes);
+	void run (nframes_t offset, nframes_t nframes);
 
 	void do_event (Event *ev);
 
@@ -75,10 +75,11 @@ class Looper
 	int last_requested_cmd;
 
   protected:
-	
-	jack_client_t*     _jack;
-	jack_port_t**       _input_ports;
-	jack_port_t**       _output_ports;
+
+	AudioDriver *      _driver;
+
+	port_id_t*       _input_ports;
+	port_id_t*       _output_ports;
 
 	unsigned int _index;
 	unsigned int _chan_count;

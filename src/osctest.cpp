@@ -20,6 +20,7 @@
 #include <iostream>
 
 #include <unistd.h>
+#include <pthread.h>
 
 #include <curses.h>
 
@@ -33,11 +34,14 @@ using namespace std;
 
 static lo_address addr;
 
-string our_url;
+static string our_url;
+static lo_server osc_server = 0;
+static pthread_t osc_thread = 0;
 
 map<string, float> params_val_map;
 map<int, string> state_map;
 volatile bool updated = false;
+volatile bool do_shutdown = false;
 
 static int do_control_change(char cmd)
 {
@@ -236,8 +240,26 @@ static void update_values()
 	}
 }
 
+static void * osc_receiver(void * arg)
+{
+	while (!do_shutdown)
+	{
+		lo_server_recv (osc_server);
+	}
+}
+
 static void cleanup()
 {
+	do_shutdown = true;
+	
+	// send an event to self
+	lo_address addr = lo_address_new_from_url (our_url.c_str());
+	lo_send(addr, "/ping", "");
+	lo_address_free (addr);
+
+	pthread_join (osc_thread, NULL);
+	lo_server_free (osc_server);
+	
 	endwin();
 }
 
@@ -246,6 +268,7 @@ int main(int argc, char *argv[])
     int done = 0;
     char ch;
     int ret;
+
     
     /* an address to send messages to. sometimes it is better to let the server
      * pick a port number for you by passing NULL as the last argument */
@@ -267,14 +290,15 @@ int main(int argc, char *argv[])
     setup_param_map();
     
     /* start a new server on a free port to recieve param callbacks */
-    lo_server_thread st = lo_server_thread_new(NULL, NULL);
+    osc_server = lo_server_new(NULL, NULL);
 
-    our_url = lo_server_thread_get_url (st);
+    our_url = lo_server_get_url (osc_server);
     
     /* add handler for control param callbacks, first arg ctrl string, 2nd arg value */
-    lo_server_thread_add_method(st, "/ctrl", "sf", ctrl_handler, NULL);
+    lo_server_add_method(osc_server, "/ctrl", "sf", ctrl_handler, NULL);
 
-    lo_server_thread_start(st);
+    // start up our thread
+    pthread_create (&osc_thread, NULL, osc_receiver, NULL);
     
     /* now do some basic curses stuff */
 

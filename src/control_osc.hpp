@@ -62,7 +62,7 @@ class ControlOSC
 	void on_loop_added(int instance);
 	void on_loop_removed();
 	
-	
+
 	static int _quit_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
@@ -70,6 +70,9 @@ class ControlOSC
 	static int _dummy_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 
 
+	static void * _osc_receiver(void * arg);
+	void osc_receiver();
+	
 	int quit_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data);
 
 	int updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo * info);
@@ -84,10 +87,12 @@ class ControlOSC
 	
 	Engine * _engine;
 
-	lo_server_thread _sthread;
+	pthread_t _osc_thread;
+	lo_server _osc_server;
+
 	int _port;
 	bool _ok;
-
+	bool _shutdown;
 
 	std::map<std::string, lo_address> _retaddr_map;
 

@@ -540,10 +540,10 @@ activateSooperLooper(LADSPA_Handle Instance) {
   pLS->lTapTrigSamples = 0;
   pLS->lRampSamples = 0;
   pLS->bPreTap = 1; // first tap init
-  pLS->fLastScratchVal = 0.0;
+  pLS->fLastScratchVal = 0.0f;
   pLS->fLastTapCtrl = -1;
-  pLS->fCurrRate = 1.0;
-  pLS->fNextCurrRate = 0.0;
+  pLS->fCurrRate = 1.0f;
+  pLS->fNextCurrRate = 0.0f;
   pLS->fQuantizeMode = 0;
   pLS->fRoundMode = 0;  
   pLS->bHoldMode = 0;
@@ -1128,18 +1128,18 @@ runSooperLooper(LADSPA_Handle Instance,
   LADSPA_Data * pfBuffer;
   LADSPA_Data * pfInput;
   LADSPA_Data * pfOutput;
-  LADSPA_Data fDry=1.0, fWet=1.0, tmpWet;
+  LADSPA_Data fDry=1.0f, fWet=1.0f, tmpWet;
   LADSPA_Data fInputSample;
   LADSPA_Data fOutputSample;
 
-  LADSPA_Data fRate = 1.0;
-  LADSPA_Data fScratchPos = 0.0;
-  LADSPA_Data fTrigThresh = 0.0;
+  LADSPA_Data fRate = 1.0f;
+  LADSPA_Data fScratchPos = 0.0f;
+  LADSPA_Data fTrigThresh = 0.0f;
   
   int lMultiCtrl=-1, lMultiTens=0;  
-  LADSPA_Data fTapTrig = 0.0;
+  LADSPA_Data fTapTrig = 0.0f;
   
-  LADSPA_Data fFeedback = 1.0;
+  LADSPA_Data fFeedback = 1.0f;
   unsigned int lCurrPos = 0;
   unsigned int lpCurrPos = 0;  
   long slCurrPos;
@@ -1646,7 +1646,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // this restarts the loop from beginnine
 		 pLS->state = STATE_PLAY;
 		 if (loop) {
-		    loop->dCurrPos = 0.0;
+		    loop->dCurrPos = 0.0f;
 		 }
 		 DBG(fprintf(stderr,"Entering PLAY state from top\n"));
 		 break;
@@ -1665,10 +1665,10 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_TRIG_STOP:
 		 // THIS puts it into reverse and does a ONE_SHOT after TRIG_STOP
 		 if (loop) {
-		    fRate = pLS->fCurrRate = -1.0;
+		    fRate = pLS->fCurrRate = -1.0f;
 		    pLS->state = STATE_ONESHOT;
 		    if (pLS->fCurrRate > 0)
-		       loop->dCurrPos = 0.0;
+		       loop->dCurrPos = 0.0f;
 		    else
 		       loop->dCurrPos = loop->lLoopLength - 1;
 		    
@@ -1757,7 +1757,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_TRIG_STOP:
 		 // ends the record operation NOW
 		 // and starts playing in reverse
-		 fRate = pLS->fCurrRate *= -1.0;
+		 fRate = pLS->fCurrRate *= -1.0f;
 		 pLS->state = STATE_PLAY;
 		 DBG(fprintf(stderr,"Entering PLAY state by reversing\n"));
 		 break;
@@ -1780,7 +1780,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 		 else {
 		    // simply negate the current rate
-		    fRate = pLS->fCurrRate *= -1.0;
+		    fRate = pLS->fCurrRate *= -1.0f;
 		    DBG(fprintf(stderr,"Reversing Rate\n"));
 		 }
 	   }		 
@@ -1793,7 +1793,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	   // changing input param!!! Not strictly allowed!
 	   if (pLS->pfQuantMode) {
 	      if (*pLS->pfQuantMode == 0)
-		 *pLS->pfQuantMode = 1.0;
+		 *pLS->pfQuantMode = 1.0f;
 	      else
 		 *pLS->pfQuantMode = 0;
 	   
@@ -1807,7 +1807,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      // toggle roundmode
 	      // changing input param!!!   Not strictly allowed!
 	      if (*pLS->pfRoundMode == 0)
-		 *pLS->pfRoundMode = 1.0;
+		 *pLS->pfRoundMode = 1.0f;
 	      else
 		 *pLS->pfRoundMode = 0;
 
@@ -1858,7 +1858,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    DBG(fprintf(stderr,"Entering RECORD state\n"));
 		    pLS->state = STATE_RECORD;
 		    // force rate to be 1.0
-		    fRate = pLS->fCurrRate = 1.0;
+		    fRate = pLS->fCurrRate = 1.0f;
 
 		    loop->pLoopStop = loop->pLoopStart;
 		    loop->lLoopLength = 0;
@@ -1951,7 +1951,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 loop->lLoopLength = (unsigned long) (loop->pLoopStop - loop->pLoopStart);
 		 loop->lCycles = 1;
 		 loop->lCycleLength = loop->lLoopLength;
-		 loop->dCurrPos = 0.0;
+		 loop->dCurrPos = 0.0f;
 		 break;
 	      }
 	      
@@ -1968,7 +1968,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 pLS->state = STATE_PLAY;
 		 //undoLoop(pLS);
 		 DBG(fprintf(stderr,"Record Stopped early! Out of memory!\n"));
-		 loop->dCurrPos = 0.0;
+		 loop->dCurrPos = 0.0f;
 		 break;
 	      }
 
@@ -2012,7 +2012,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		       + fDry * fInputSample;
 		    
 		    *(loop->pLoopStart + lCurrPos) =  
-		       (fInputSample + 0.95 * fFeedback *  *(loop->pLoopStart + lCurrPos));
+		       (fInputSample + 0.96f * fFeedback *  *(loop->pLoopStart + lCurrPos));
 		 }
 		 else {
 		    // state REPLACE use only the new input
@@ -2037,7 +2037,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    if (pLS->fNextCurrRate != 0) {
 		       // commit the new rate at boundary (quantized)
 		       pLS->fCurrRate = pLS->fNextCurrRate;
-		       pLS->fNextCurrRate = 0.0;
+		       pLS->fNextCurrRate = 0.0f;
 		       DBG(fprintf(stderr, "Starting quantized rate change\n"));
 		    }
 
@@ -2048,7 +2048,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    if (pLS->fNextCurrRate != 0) {
 		       // commit the new rate at boundary (quantized)
 		       pLS->fCurrRate = pLS->fNextCurrRate;
-		       pLS->fNextCurrRate = 0.0;
+		       pLS->fNextCurrRate = 0.0f;
 		       DBG(fprintf(stderr, "Starting quantized rate change\n"));
 		    }
 		 }
@@ -2076,7 +2076,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
 	      if (pLS->nextState == STATE_MUTE) {
 		 // no loop output
-		 fWet = 0.0;
+		 fWet = 0.0f;
 	      }
 	      
 
@@ -2111,7 +2111,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 		 else {
 		    *(loop->pLoopStart + slCurrPos)
-		       = (fInputSample + 0.95 *  fFeedback *  *(srcloop->pLoopStart + lpCurrPos));
+		       = (fInputSample + 0.96f *  fFeedback *  *(srcloop->pLoopStart + lpCurrPos));
 		 }
 		 
 		 pfOutput[lSampleIndex] = fOutputSample;
@@ -2138,7 +2138,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		       loop->lMarkEndH = MAXLONG;
 		       backfill = loop->backfill = 0;
 		       // do adjust it for our new length
-		       loop->dCurrPos = 0.0;
+		       loop->dCurrPos = 0.0f;
 
 		       loop->lLoopLength = loop->lCycles * loop->lCycleLength;
 		       loop->pLoopStop = loop->pLoopStart + loop->lLoopLength;
@@ -2205,7 +2205,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    // insert zeros, we finishing an insert with nothingness
 		    fOutputSample = fDry * fInputSample;
 
-		    *(loop->pLoopStart + lCurrPos) = 0.0;
+		    *(loop->pLoopStart + lCurrPos) = 0.0f;
 
 		 }
 		 else {
@@ -2293,7 +2293,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      
 	      if (pLS->state == STATE_MUTE) {
 		 if (pLS->lRampSamples <= 0)
-		    tmpWet = 0.0;
+		    tmpWet = 0.0f;
 		 // otherwise the ramp takes care of it
 	      }
 	      else if(pLS->state == STATE_SCRATCH)
@@ -2327,20 +2327,20 @@ runSooperLooper(LADSPA_Handle Instance,
 		    //   pLS->fCurrScratchRate);
 		 
 		 }
-		 else if (fabs(pLS->fCurrScratchRate) < 0.2
+		 else if (fabs(pLS->fCurrScratchRate) < 0.2f
 			  || ( pLS->lScratchSamples > 14000)
-			  || ( pLS->fCurrScratchRate > 0.0 && (fPosRatio >= pLS->fLastScratchVal ))
-			  || ( pLS->fCurrScratchRate < 0.0 && (fPosRatio <= pLS->fLastScratchVal )))
+			  || ( pLS->fCurrScratchRate > 0.0f && (fPosRatio >= pLS->fLastScratchVal ))
+			  || ( pLS->fCurrScratchRate < 0.0f && (fPosRatio <= pLS->fLastScratchVal )))
 		 {
 		    // we have reached the destination, no more scratching
-		    pLS->fCurrScratchRate = 0.0;
+		    pLS->fCurrScratchRate = 0.0f;
 
 		    if (pLS->bRateCtrlActive && pLS->pfRate) {
 		       fRate = *pLS->pfRate;
 		    }
 		    else {
 		       // pure scratching
-		       fRate = 0.0;
+		       fRate = 0.0f;
 		    }
 		    //fprintf(stderr, "fScratchPos: %f   fCurrScratchRate: %f  ******\n", fScratchPos,
 		    //	   pLS->fCurrScratchRate);
@@ -2367,12 +2367,12 @@ runSooperLooper(LADSPA_Handle Instance,
 		 if (pLS->lRampSamples > 0) {
 		    if (pLS->state == STATE_MUTE) {
 		       //negative linear ramp
-		       tmpWet = fWet * (pLS->lRampSamples * 1.0) / XFADE_SAMPLES;
+		       tmpWet = fWet * (pLS->lRampSamples * 1.0f) / XFADE_SAMPLES;
 		    }
 		    else {
 		       // positive linear ramp
 		       tmpWet = fWet * (XFADE_SAMPLES - pLS->lRampSamples)
-			  * 1.0 / XFADE_SAMPLES;
+			  * 1.0f / XFADE_SAMPLES;
 		    }
 
 		    pLS->lRampSamples -= 1;
@@ -2405,7 +2405,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    if (pLS->fNextCurrRate != 0) {
 		       // commit the new rate at boundary (quantized)
 		       pLS->fCurrRate = pLS->fNextCurrRate;
-		       pLS->fNextCurrRate = 0.0;
+		       pLS->fNextCurrRate = 0.0f;
 		       DBG(fprintf(stderr, "Starting quantized rate change\n"));
 		    }
 		    
@@ -2426,7 +2426,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    if (pLS->fNextCurrRate != 0) {
 		       // commit the new rate at boundary (quantized)
 		       pLS->fCurrRate = pLS->fNextCurrRate;
-		       pLS->fNextCurrRate = 0.0;
+		       pLS->fNextCurrRate = 0.0f;
 		       DBG(fprintf(stderr, "Starting quantized rate change\n"));
 		    }
 
@@ -2464,7 +2464,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
 		 if (backfill && lCurrPos >= loop->lMarkEndL && lCurrPos <= loop->lMarkEndH) {
 		    // our delay buffer is invalid here, clear it
-		    *(loop->pLoopStart + lCurrPos) = 0.0;
+		    *(loop->pLoopStart + lCurrPos) = 0.0f;
 
 		    if (fRate > 0) {
 		       loop->lMarkEndL = lCurrPos;
@@ -2573,11 +2573,11 @@ runSooperLooper(LADSPA_Handle Instance,
   }
   else {
      if (pLS->pfLoopPos)
-	*pLS->pfLoopPos = 0.0;
+	*pLS->pfLoopPos = 0.0f;
      if (pLS->pfLoopLength)
-	*pLS->pfLoopLength = 0.0;     
+	*pLS->pfLoopLength = 0.0f;     
      if (pLS->pfCycleLength)
-	*pLS->pfCycleLength = 0.0;
+	*pLS->pfCycleLength = 0.0f;
 
      if (pLS->pfStateOut && pLS->state != STATE_MUTE && pLS->state != STATE_TRIG_START)
 	*pLS->pfStateOut = (LADSPA_Data) STATE_OFF;
