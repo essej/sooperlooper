@@ -20,6 +20,7 @@
 #include "keyboard_target.hpp"
 
 #include <iostream>
+#include <algorithm>
 
 // #define DEBUG_KEYBOARD
 
