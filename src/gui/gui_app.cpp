@@ -403,6 +403,9 @@ GetExecutablePath(wxString argv0)
     path = filename.GetFullPath();
     path = path.BeforeLast('/') + "/";
 
+    // escape all spaces with
+    path.Replace (wxT(" "), wxT("\ "), true);
+    
     return path;
 }
 #endif // __WXMAC__
