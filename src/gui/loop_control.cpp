@@ -912,7 +912,9 @@ LoopControl::post_ctrl_change (int index, wxString ctrl, float val)
 	char buf[30];
 
 	// go ahead and update our local copy
-	_params_val_map[index][ctrl] = val;
+	if (index >= 0 && index < _params_val_map.size()) {
+		_params_val_map[index][ctrl] = val;
+	}
 	
 	snprintf(buf, sizeof(buf), "/sl/%d/set", index);
 

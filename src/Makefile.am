@@ -30,6 +30,7 @@ libslcore_a_SOURCES      = \
 	jack_audio_driver.cpp \
 	command_map.cpp \
 	filter.cpp \
+	panner.cpp \
 	$(SYSDEP_SRCS)
 
 sooperlooper_SOURCES = \

@@ -41,6 +41,7 @@
 namespace SooperLooper {
 
 class OnePoleFilter;	
+class Panner;
 	
 class Looper 
 {
@@ -112,6 +113,7 @@ class Looper
 
 	LADSPA_Data        * _tmp_io_buf;
 
+	Panner             * _panner; 
 
 	LADSPA_Data         _slave_sync_port;
 	LADSPA_Data         _slave_dummy_port;

@@ -854,6 +854,7 @@ GuiFrame::on_round_check (bool val)
 void
 GuiFrame::on_taptempo_press (int button)
 {
+	// needs to be a normal ctrl change for RTness
 	_loop_control->post_ctrl_change (-2, wxT("tap_tempo"), 1.0f);
 }
 
