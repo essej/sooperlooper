@@ -317,6 +317,15 @@ ControlOSC::on_loop_added (int instance)
 		// unregister_update args= s:ctrl s:returl s:retpath
 		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/unregister_update", instance);
 		lo_server_add_method(serv, tmpstr, "sss", ControlOSC::_unregister_update_handler, new CommandInfo(this, instance, Event::type_control_request));
+
+		// register_audo_update args= s:ctrl i:millisec s:returl s:retpath
+		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/register_auto_update", instance);
+		lo_server_add_method(serv, tmpstr, "siss", ControlOSC::_register_auto_update_handler, new CommandInfo(this, instance, Event::type_control_request));
+
+		// unregister_auto_update args= s:ctrl s:returl s:retpath
+		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/unregister_auto_update", instance);
+		lo_server_add_method(serv, tmpstr, "sss", ControlOSC::_unregister_update_handler, new CommandInfo(this, instance, Event::type_control_request));
+
 	}
 	
 	send_all_config();
@@ -535,6 +544,20 @@ int ControlOSC::_unregister_update_handler(const char *path, const char *types, 
 {
 	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
 	return cp->osc->unregister_update_handler (path, types, argv, argc, data, cp);
+}
+
+int ControlOSC::_register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
+	return cp->osc->register_auto_update_handler (path, types, argv, argc, data, cp);
+}
+
+int ControlOSC::_unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
+	return cp->osc->unregister_auto_update_handler (path, types, argv, argc, data, cp);
 }
 
 int ControlOSC::_loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
@@ -984,6 +1007,35 @@ int ControlOSC::unregister_update_handler(const char *path, const char *types, l
 	return 0;
 }
 
+int ControlOSC::register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+{
+	// first arg is control string, 2nd is every int millisecs, 3rd is return URL string 4th is retpath
+	string ctrl (&argv[0]->s);
+	//int    millisec  = argv[1]->i;  // unused for now
+	string returl (&argv[2]->s);
+	string retpath (&argv[3]->s);
+
+	// push this onto a queue for the main event loop to process
+	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::RegisterAuto, info->instance, _cmd_map->to_control_t(ctrl), returl, retpath));
+	
+	return 0;
+}
+
+int ControlOSC::unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+{
+
+	// first arg is control string, 2nd is return URL string 3rd is retpath
+	string ctrl (&argv[0]->s);
+	string returl (&argv[1]->s);
+	string retpath (&argv[2]->s);
+
+	// push this onto a queue for the main event loop to process
+	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::UnregisterAuto, info->instance, _cmd_map->to_control_t(ctrl), returl, retpath));
+	
+	return 0;
+}
+
+
 int
 ControlOSC::register_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
 {
@@ -1074,7 +1126,8 @@ void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 		}
 
 	}
-	else if (event.type == ConfigUpdateEvent::Register)
+	else if (event.type == ConfigUpdateEvent::Register ||
+		 event.type == ConfigUpdateEvent::RegisterAuto)
 	{
 		if ((addr = find_or_cache_addr (returl)) == 0) {
 			return;
@@ -1082,12 +1135,22 @@ void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 				
 		// add this to register_ctrl map
 		InstancePair ipair(event.instance, ctrl);
-		ControlRegistrationMap::iterator iter = _registration_map.find (ipair);
+		ControlRegistrationMap::iterator iter;
+		ControlRegistrationMap * regmap;
 		
-		if (iter == _registration_map.end()) {
-			_registration_map[ipair] = UrlList();
-			iter = _registration_map.find (ipair);
+		if (event.type == ConfigUpdateEvent::Register) {
+			regmap = &_registration_map;
 		}
+		else {
+			regmap = &_auto_registration_map;
+		}
+
+		iter = regmap->find (ipair);
+		if (iter == regmap->end()) {
+			(*regmap)[ipair] = UrlList();
+			iter = regmap->find (ipair);
+		}
+
 		
 		UrlList & ulist = (*iter).second;
 		UrlPair upair(addr, retpath);
@@ -1101,7 +1164,9 @@ void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 		
 		
 	}
-	else if (event.type == ConfigUpdateEvent::Unregister) {
+	else if (event.type == ConfigUpdateEvent::Unregister ||
+		 event.type == ConfigUpdateEvent::RegisterAuto)
+	{
 
 		if ((addr = find_or_cache_addr (returl)) == 0) {
 			return;
@@ -1109,9 +1174,19 @@ void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 		
 		// add this to register_ctrl map
 		InstancePair ipair(event.instance, ctrl);
-		ControlRegistrationMap::iterator iter = _registration_map.find (ipair);
+		ControlRegistrationMap * regmap;
+		ControlRegistrationMap::iterator iter;
+
+		if (event.type == ConfigUpdateEvent::Unregister) {
+			regmap = &_registration_map;
+		}
+		else {
+			regmap = &_auto_registration_map;
+		}
+
+		iter = regmap->find (ipair);
 		
-		if (iter != _registration_map.end()) {
+		if (iter != regmap->end()) {
 			UrlList & ulist = (*iter).second;
 			UrlPair upair(addr, retpath);
 			UrlList::iterator uiter = find(ulist.begin(), ulist.end(), upair);
@@ -1183,46 +1258,100 @@ ControlOSC::send_registered_updates(string ctrl, float val, int instance, int so
 {
 	InstancePair ipair(instance, ctrl);
 	ControlRegistrationMap::iterator iter = _registration_map.find (ipair);
-	UrlList::iterator tmpurl;
+	LastValueMap::iterator lastval;
 	
-	if (iter != _registration_map.end()) {
-		UrlList & ulist = (*iter).second;
-
-		for (UrlList::iterator url = ulist.begin(); url != ulist.end();)
-		{
-		        lo_address addr = (*url).first;
-			const char * port = lo_address_get_port(addr);
-			int aport = atoi (port);
-
-			if (aport == source) {
-				// ignore if this was caused by a set from this addr
-				//cerr << "ignoreing address to send update for " << ctrl << "  port: " << aport << "  " << port << endl;
-			}
-
-			else if (lo_send(addr, (*url).second.c_str(), "isf", instance, ctrl.c_str(), val) == -1) {
-#ifdef DEBUG
-				fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
-#endif
-				// auto-unregister
-				tmpurl = url;
-				++url;
-
-				ulist.erase(tmpurl);
-				continue;
-			}
-
-			++url;
-		}
-		
-		if (ulist.empty()) {
+	if (iter != _registration_map.end())
+	{
+		if ( ! send_registered_updates (iter, ctrl, val, instance, source)) {
+			// remove ipair if false is returned.. no more good registrations
 			_registration_map.erase(ipair);
 		}
 	}
 	else {
 #ifdef DEBUG
-		cerr << "not in map: " << instance << " ctrL: " << ctrl << endl;
+		//cerr << "not in map: " << instance << " ctrL: " << ctrl << endl;
 #endif
 	}
+}
+
+
+void ControlOSC::send_auto_updates ()
+{
+	ControlRegistrationMap::iterator iter = _auto_registration_map.begin();
+	ControlRegistrationMap::iterator tmpiter;
+	LastValueMap::iterator  lastval;
+	
+	while (iter != _auto_registration_map.end())
+	{
+		const InstancePair & ipair = (*iter).first;
+		float val = _engine->get_control_value (_cmd_map->to_control_t(ipair.second), ipair.first);
+		
+		// optimize out unnecessary updates
+		lastval = _last_value_map.find (ipair);
+		if (lastval != _last_value_map.end()) {
+			if (val == (*lastval).second) {
+				// same as last update, don't send
+				++iter;
+				continue;
+			}
+		}
+		_last_value_map[ipair] = val;
+
+		//cerr << "ctrl " << ipair.second << " is new: " << val << endl;
+		
+		if ( ! send_registered_updates (iter, ipair.second, val, ipair.first, -1)) {
+			// remove ipair if false is returned.. no more good registrations
+			tmpiter = iter;
+			++iter;
+			_auto_registration_map.erase(tmpiter);
+		}
+		else {
+			++iter;
+		}
+
+	}
+}
+
+
+bool
+ControlOSC::send_registered_updates(ControlRegistrationMap::iterator & iter,
+				    string ctrl, float val, int instance, int source)
+{
+	UrlList::iterator tmpurl;
+	
+	UrlList & ulist = (*iter).second;
+	
+	for (UrlList::iterator url = ulist.begin(); url != ulist.end();)
+	{
+		lo_address addr = (*url).first;
+		const char * port = lo_address_get_port(addr);
+		int aport = atoi (port);
+		
+		if (aport == source) {
+			// ignore if this was caused by a set from this addr
+			//cerr << "ignoreing address to send update for " << ctrl << "  port: " << aport << "  " << port << endl;
+		}
+		
+		else if (lo_send(addr, (*url).second.c_str(), "isf", instance, ctrl.c_str(), val) == -1) {
+#ifdef DEBUG
+			fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
+#endif
+			// auto-unregister
+			tmpurl = url;
+			++url;
+			
+			ulist.erase(tmpurl);
+			continue;
+		}
+		
+		++url;
+	}
+	
+	if (ulist.empty()) {
+		return false;
+	}
+
+	return true;
 }
 
 

@@ -146,7 +146,7 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 #endif
 
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
-	_update_timer->Start(100);
+	//_update_timer->Start(100);
 
 	_taptempo_button_timer = new wxTimer(this, ID_TapTempoTimer);
 
@@ -158,6 +158,7 @@ GuiFrame::~GuiFrame()
 	
 	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
 		// unregister
+		_loop_control->register_auto_updates((int) i, true);
 		_loop_control->register_input_controls((int) i, true);
 	}
 
@@ -447,6 +448,7 @@ GuiFrame::init_loopers (int count)
 	
 	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
 		_looper_panels[i]->set_index(i);
+		_loop_control->register_auto_updates((int) i);
 		_loop_control->register_input_controls((int) i);
 		_loop_control->request_all_values ((int)i);
 	}
@@ -471,7 +473,7 @@ GuiFrame::OnUpdateTimer(wxTimerEvent &ev)
 {
 
 	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
-		_loop_control->request_values ((int)i);
+		//_loop_control->request_values ((int)i);
 	}
 
 	ev.Skip();

@@ -778,8 +778,10 @@ void
 Engine::mainloop()
 {
 	struct timespec timeout;
-	struct timeval now;
-
+	struct timeval now = {0, 0};
+	struct timeval timeoutv = {0, 0};
+	int  wait_ret;
+	
 	EventNonRT * event;
 	Event  * evt;
 	
@@ -855,14 +857,30 @@ Engine::mainloop()
 			_osc->finish_midi_binding_event (_learn_event);
 			_received_done = false;
 		}
+
+		gettimeofday(&now, NULL);
+
+		// if now is >= then the last timeout target, we should update
+		if (wait_ret == ETIMEDOUT || timercmp (&now, &timeoutv, >=)) {
+			//cerr << "timed out, sending updates" << endl;
+			_osc->send_auto_updates();
+
+			// wake up every 100 ms for servicing auto-update parameters
+			// TODO: make it more flexible
+			timeout.tv_sec = now.tv_sec;
+			timeout.tv_nsec = (now.tv_usec + 100000) * 1000;
+			if (timeout.tv_nsec > 1000000000) {
+				timeout.tv_sec += 1;
+				timeout.tv_nsec = (timeout.tv_nsec % 1000000000);
+			}
+			timeoutv.tv_sec = timeout.tv_sec;
+			timeoutv.tv_usec = timeout.tv_nsec / 1000;
+		}
 		
 		// sleep on condition
 		{
 			LockMonitor mon(_event_loop_lock, __LINE__, __FILE__);
-			gettimeofday(&now, NULL);
-			timeout.tv_sec = now.tv_sec + 5;
-			timeout.tv_nsec = now.tv_usec * 1000;
-			pthread_cond_timedwait (&_event_cond, _event_loop_lock.mutex(), &timeout);
+			wait_ret = pthread_cond_timedwait (&_event_cond, _event_loop_lock.mutex(), &timeout);
 		}
 	}
 

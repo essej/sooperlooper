@@ -57,6 +57,8 @@ class ControlOSC
 	void send_pingack (bool useudp, std::string returl, std::string retpath="/pingack");
 	
 	void send_all_midi_bindings (MidiBindings * bind, std::string returl, std::string retpath);
+
+	void send_auto_updates ();
 	
 	void finish_get_event (GetParamEvent & event);
 	void finish_update_event (ConfigUpdateEvent & event);
@@ -107,8 +109,6 @@ class ControlOSC
 	lo_address find_or_cache_addr(std::string returl);
 
 	
-	void send_registered_updates(std::string ctrl, float val, int instance, int source=0);
-	
 	static int _quit_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _global_set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _global_get_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
@@ -118,6 +118,8 @@ class ControlOSC
 	static int _dummy_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _ping_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
@@ -164,6 +166,8 @@ class ControlOSC
 	int get_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
 	int register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
 	int unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
+	int register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
+	int unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
 	int loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
 	int saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
 
@@ -194,8 +198,20 @@ class ControlOSC
 	typedef std::pair<lo_address, std::string> UrlPair;
 	typedef std::list<UrlPair> UrlList;
 	typedef std::map<InstancePair, UrlList > ControlRegistrationMap;
+	typedef std::map<InstancePair, float> LastValueMap;
+	
 	ControlRegistrationMap _registration_map;
+	ControlRegistrationMap _auto_registration_map;
 
+	LastValueMap     _last_value_map;
+
+	void send_registered_updates(std::string ctrl, float val, int instance, int source=-1);
+
+	bool send_registered_updates(ControlRegistrationMap::iterator & iter,
+				     std::string ctrl, float val, int instance, int source=-1);
+	
+
+	
 	typedef std::pair<std::string, std::string> AddrPathPair;
 	typedef std::list<AddrPathPair> AddressList;
 	AddressList _config_registrations;

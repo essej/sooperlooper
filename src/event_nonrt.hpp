@@ -117,7 +117,9 @@ namespace SooperLooper {
 		{
 			Register,
 			Unregister,
-			Send
+			Send,
+			RegisterAuto,
+			UnregisterAuto
 		} type;
 
 		ConfigUpdateEvent(Type tp, int8_t inst,  Event::control_t ctrl, std::string returl="", std::string retpath="", float val=0.0, int src=-1)

@@ -140,7 +140,8 @@ class LooperPanel
 
 	ChoiceBox  * _quantize_choice;
 	
-	wxBoxSizer * _pansizer;
+	wxBoxSizer * _toppansizer;
+	wxBoxSizer * _botpansizer;
 	SliderBar  ** _panners;
 	
 	wxStaticText *_index_text;

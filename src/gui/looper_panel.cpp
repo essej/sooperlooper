@@ -216,7 +216,7 @@ LooperPanel::init()
 	colsizer->Add (_time_panel, 0, wxLEFT|wxTOP, 5);
 
 	//colsizer->Add (20, -1, 1);
-	_pansizer = new wxBoxSizer(wxHORIZONTAL);
+	_toppansizer = new wxBoxSizer(wxHORIZONTAL);
 
 	_dry_control = slider = new SliderBar(this, ID_DryControl, 0.0f, 1.0f, 1.0f);
 	slider->set_units(wxT("dB"));
@@ -225,11 +225,13 @@ LooperPanel::init()
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
-	_pansizer->Add (slider, 1, wxEXPAND, 0);
+	_toppansizer->Add (slider, 1, wxEXPAND, 0);
 
 	// panners are added later
 	
-	colsizer->Add (_pansizer, 1, wxEXPAND|wxTOP|wxLEFT, 4);
+	colsizer->Add (_toppansizer, 1, wxEXPAND|wxTOP|wxLEFT, 4);
+
+	_botpansizer = new wxBoxSizer(wxHORIZONTAL);
 	
 	_wet_control = slider = new SliderBar(this, ID_WetControl, 0.0f, 1.0f, 1.0f);
 	slider->set_units(wxT("dB"));
@@ -238,7 +240,9 @@ LooperPanel::init()
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
-	colsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 4);
+	_botpansizer->Add (slider, 1, wxEXPAND, 0);
+
+	colsizer->Add (_botpansizer, 1, wxEXPAND|wxTOP|wxLEFT, 4);
 	
 	
 	mainSizer->Add (colsizer, 0, wxEXPAND|wxBOTTOM, 5);
@@ -416,7 +420,13 @@ LooperPanel::post_init()
 		slider->SetFont(sliderFont);
 		slider->value_changed.connect (bind (slot (*this, &LooperPanel::pan_events), (int) i));
 		slider->bind_request.connect (bind (slot (*this, &LooperPanel::pan_bind_events), (int) i));
-		_pansizer->Add (slider, 0, wxEXPAND|wxLEFT, 2);
+
+		if (i > 1) {
+			_botpansizer->Add (slider, 0, wxEXPAND|wxLEFT, 2);
+		}
+		else {
+			_toppansizer->Add (slider, 0, wxEXPAND|wxLEFT, 2);
+		}
 
 	}
 	

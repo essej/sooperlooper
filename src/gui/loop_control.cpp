@@ -813,6 +813,40 @@ LoopControl::save_midi_bindings(const wxString & filename)
 }
 
 void
+LoopControl::register_auto_updates(int index, bool unreg)
+{
+	if (!_osc_addr) return;
+	char buf[30];
+
+	if (unreg) {
+		snprintf(buf, sizeof(buf), "/sl/%d/unregister_auto_update", index);
+		lo_send(_osc_addr, buf, "sss", "state", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "sss", "loop_pos", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "sss", "loop_len", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "sss", "cycle_len", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "sss", "free_time", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "sss", "total_time", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "sss", "waiting", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "sss", "rate_output", _our_url.c_str(), "/ctrl");
+
+	} else {
+		snprintf(buf, sizeof(buf), "/sl/%d/register_auto_update", index);
+		// send request for auto updates
+		lo_send(_osc_addr, buf, "siss", "state",     100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "siss", "loop_pos",  100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "siss", "loop_len",  100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "siss", "cycle_len", 100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "siss", "free_time", 100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "siss", "total_time",100,  _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "siss", "waiting",   100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "siss", "rate_output",100, _our_url.c_str(), "/ctrl");
+	}
+
+	
+
+}
+
+void
 LoopControl::register_input_controls(int index, bool unreg)
 {
 	if (!_osc_addr) return;
@@ -921,7 +955,7 @@ LoopControl::post_ctrl_change (int index, wxString ctrl, float val)
 	char buf[30];
 
 	// go ahead and update our local copy
-	if (index >= 0 && index < _params_val_map.size()) {
+	if (index >= 0 && index < (int) _params_val_map.size()) {
 		_params_val_map[index][ctrl] = val;
 	}
 	
