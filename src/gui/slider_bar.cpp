@@ -308,6 +308,7 @@ SliderBar::OnSize(wxSizeEvent & event)
 	_backing_store = new wxBitmap(_width, _height);
 
  	_memdc.SelectObject(*_backing_store);
+	_memdc.SetFont(GetFont());
 	
 	event.Skip();
 }
