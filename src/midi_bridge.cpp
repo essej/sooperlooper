@@ -27,6 +27,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cmath>
+#include <cerrno>
 
 #include <midi++/parser.h>
 #include <midi++/factory.h>
@@ -180,14 +181,14 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 
 	int key = (chcmd << 8) | param;
 
-	MidiBindings::BindingsMap::iterator iter = _midi_bindings.bindings_map().find(key);
+	MidiBindings::BindingsMap::const_iterator iter = _midi_bindings.bindings_map().find(key);
 	
 	if (iter != _midi_bindings.bindings_map().end())
 	{
-		MidiBindings::BindingList & elist = (*iter).second;
+		const MidiBindings::BindingList & elist = (*iter).second;
 
-		for (MidiBindings::BindingList::iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
-			MidiBindInfo & info = (*eiter);
+		for (MidiBindings::BindingList::const_iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
+			const MidiBindInfo & info = (*eiter);
 			float scaled_val;
 			
 			if (info.style == MidiBindInfo::GainStyle) {
@@ -219,7 +220,7 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 
 
 void
-MidiBridge::send_osc (MidiBindInfo & info, float val)
+MidiBridge::send_osc (const MidiBindInfo & info, float val)
 {
 	static char tmpbuf[100];
 

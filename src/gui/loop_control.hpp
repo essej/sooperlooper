@@ -28,6 +28,12 @@
 
 #include <lo/lo.h>
 
+namespace SooperLooper {
+	class MidiBindings;
+	class MidiBindInfo;
+};
+
+
 namespace SooperLooperGui {
 
 class LoopUpdateTimer;	
@@ -80,6 +86,13 @@ class LoopControl
 	void request_all_values (int index);
 	void request_global_values ();
 
+	void add_midi_binding(const SooperLooper::MidiBindInfo & info, bool exclusive=false);
+	void remove_midi_binding(const SooperLooper::MidiBindInfo & info);
+	void request_all_midi_bindings();
+
+	// for read only
+	const SooperLooper::MidiBindings & midi_bindings() { return *_midi_bindings; }
+	
 	void update_values();
 
 	void register_input_controls(int index, bool unreg=false);
@@ -110,6 +123,11 @@ class LoopControl
 				    void *data, void *user_data);
 
 	int pingack_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+
+	static int _midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc,
+				    void *data, void *user_data);
+
+	int midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	
 	static void * _osc_traffic(void * arg);
 	void osc_traffic();
@@ -149,6 +167,11 @@ class LoopControl
 
 	long _engine_pid;
 	pthread_t _osc_traffic_thread;
+
+	// midi bindings
+	SooperLooper::MidiBindings * _midi_bindings;
+	
+	
 };
 
 class LoopUpdateTimer : public wxTimer

@@ -26,6 +26,8 @@
 #include "engine.hpp"
 #include "looper.hpp"
 #include "control_osc.hpp"
+#include "midi_bind.hpp"
+#include "midi_bridge.hpp"
 
 using namespace SooperLooper;
 using namespace std;
@@ -51,7 +53,8 @@ Engine::Engine ()
 	_tempo_frames = 0;
 	_midi_ticks = 0;
 	_midi_loop_tick = 12;
-
+	_midi_bridge = 0;
+	
 	_running_frames = 0;
 	_last_tempo_frame = 0;
 	_tempo_changed = false;
@@ -653,18 +656,25 @@ Engine::process_nonrt_event (EventNonRT * event)
 			_osc->finish_loop_config_event (*cl_event);
 		}
 	}
-	else if ((mb_event = dynamic_cast<MidiBindingEvent*> (event)) != 0)
+	else if ((mb_event = dynamic_cast<MidiBindingEvent*> (event)) != 0  && _midi_bridge)
 	{
 		if (mb_event->type == MidiBindingEvent::Add) {
-			
+			MidiBindInfo info;
+			if (info.unserialize (mb_event->bind_str)) {
+				bool exclus = (mb_event->options.find("exclusive") != string::npos);
+				_midi_bridge->bindings().add_binding (info, exclus);
+			}
 		}
 		else if (mb_event->type == MidiBindingEvent::Remove)
 		{
-
+			MidiBindInfo info;
+			if (info.unserialize (mb_event->bind_str)) {
+				_midi_bridge->bindings().remove_binding (info);
+			}
 		}
 		else if (mb_event->type == MidiBindingEvent::GetAll)
 		{
-			
+			_osc->send_all_midi_bindings (&_midi_bridge->bindings(), mb_event->ret_url, mb_event->ret_path);
 		}
 	}
 	else if ((ping_event = dynamic_cast<PingEvent*> (event)) != 0)

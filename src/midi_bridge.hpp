@@ -70,7 +70,7 @@ class MidiBridge
 
   private:
 
-	void send_osc (MidiBindInfo & info, float val);
+	void send_osc (const MidiBindInfo & info, float val);
 	
 
 	MidiBindings _midi_bindings;

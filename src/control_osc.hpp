@@ -35,6 +35,7 @@
 namespace SooperLooper {
 
 class Engine;
+class MidiBindings;
 	
 class ControlOSC
 	: public SigC::Object
@@ -54,7 +55,8 @@ class ControlOSC
 	void send_all_config ();
 	void send_pingack (bool useudp, std::string returl, std::string retpath="/pingack");
 	
-
+	void send_all_midi_bindings (MidiBindings * bind, std::string returl, std::string retpath);
+	
 	void finish_get_event (GetParamEvent & event);
 	void finish_update_event (ConfigUpdateEvent & event);
 	void finish_register_event (RegisterConfigEvent &event);

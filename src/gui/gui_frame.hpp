@@ -39,6 +39,7 @@ class CheckBox;
 class PixButton;
 class KeyboardTarget;
 class KeysDialog;
+class MidiBindDialog;
 	
 class GuiFrame
 	: public wxFrame,  public SigC::Object
@@ -64,6 +65,8 @@ public:
 
 	KeyboardTarget & get_keyboard() { return *_keyboard; }
 
+	LoopControl & get_loop_control() { return *_loop_control; }
+	
 	void command_action (bool release, wxString cmd);
 	void misc_action (bool release, wxString cmd);
 	void select_loop_action (bool release, int index);
@@ -135,6 +138,9 @@ protected:
 	KeyboardTarget * _keyboard;
 	int              _curr_loop;
 
+	MidiBindDialog * _midi_bind_dialog;
+
+	
 	int     _got_new_data;
 	wxString  _rcdir;
 	

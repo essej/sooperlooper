@@ -20,6 +20,7 @@
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
+#include <cerrno>
 #include <algorithm>
 
 #include <sys/poll.h>
@@ -30,6 +31,7 @@
 #include "event_nonrt.hpp"
 #include "engine.hpp"
 #include "ringbuffer.hpp"
+#include "midi_bind.hpp"
 #include "version.h"
 
 #include <lo/lo.h>
@@ -707,7 +709,7 @@ ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **a
 		string returl (&argv[0]->s);
 		string retpath (&argv[1]->s);
 	
-		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::GetAll, returl, retpath));
+		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::GetAll, "", "", returl, retpath));
 	}
 	else if (info->command == MidiBindCommand::RemoveBinding)
 	{
@@ -1156,6 +1158,27 @@ void ControlOSC::send_pingack (bool useudp, string returl, string retpath)
 	}
 }
 
+
+	
+void ControlOSC::send_all_midi_bindings (MidiBindings * bindings, string returl, string retpath)
+{
+	lo_address addr = find_or_cache_addr (returl);
+	if (!addr) {
+		return;
+	}
+
+	MidiBindings::BindingList blist;
+	bindings->get_bindings (blist);
+
+	for (MidiBindings::BindingList::iterator biter = blist.begin(); biter != blist.end(); ++biter) {
+		MidiBindInfo & info = (*biter);
+
+		if (lo_send(addr, retpath.c_str(), "s", info.serialize().c_str()) == -1) {
+			fprintf(stderr, "OSC error sending binding %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
+			break;
+		}
+	}
+}
 
 
 Event::command_t  ControlOSC::to_command_t (std::string cmd)

@@ -24,7 +24,8 @@ slgui_SOURCES = \
 	choice_box.cpp \
 	keyboard_target.cpp \
 	keys_dialog.cpp \
-	check_box.cpp
+	check_box.cpp \
+	midi_bind_dialog.cpp
 
 
 

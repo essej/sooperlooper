@@ -64,13 +64,13 @@ MidiBindings::~MidiBindings()
 }
 
 void
-MidiBindings::get_bindings (BindingList & blist)
+MidiBindings::get_bindings (BindingList & blist) const
 {
-	for (BindingsMap::iterator biter = _bindings.begin(); biter != _bindings.end(); ++biter) {
-		BindingList & elist = (*biter).second;
+	for (BindingsMap::const_iterator biter = _bindings.begin(); biter != _bindings.end(); ++biter) {
+		const BindingList & elist = (*biter).second;
 		
-		for (BindingList::iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
-			MidiBindInfo & info = (*eiter);
+		for (BindingList::const_iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
+			const MidiBindInfo & info = (*eiter);
 			
 			blist.push_back (info);
 		}
@@ -96,7 +96,7 @@ MidiBindings::binding_key (const MidiBindInfo & info) const
 }
 
 bool
-MidiBindings::add_binding (const MidiBindInfo & info)
+MidiBindings::add_binding (const MidiBindInfo & info, bool exclusive)
 {
 	///  type->typei is { pc = 0xc0 , cc = 0xb0 , on = 0x80 , n = 0x90  }
 	// chcmd = cmd + ch

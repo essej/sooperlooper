@@ -35,6 +35,7 @@ namespace SooperLooper {
 
 class Looper;
 class ControlOSC;
+class MidiBridge;
 	
 class Engine
 {
@@ -51,6 +52,7 @@ class Engine
 	void set_default_loop_secs (float secs) { _def_loop_secs = secs; }
 	void set_default_channels (int chan) { _def_channel_cnt = chan; }
 	
+	void set_midi_bridge (MidiBridge * bridge) { _midi_bridge = bridge; }
 	
 	bool is_ok() const { return _ok; }
 
@@ -105,6 +107,8 @@ class Engine
 	AudioDriver * _driver;
 	
 	ControlOSC * _osc;
+
+	MidiBridge * _midi_bridge;
 	
 	typedef std::vector<Looper*> Instances;
 	Instances _instances;

@@ -197,12 +197,14 @@ namespace SooperLooper {
 			Add
 		} type;
 
-		MidiBindingEvent(Type tp, std::string bindstr, std::string opt)
-			: type(tp), bind_str(bindstr), options(opt)  {}
+		MidiBindingEvent(Type tp, std::string bindstr, std::string opt, std::string returl="", std::string retpath="")
+			: type(tp), bind_str(bindstr), options(opt), ret_url(returl), ret_path(retpath) {}
 		virtual ~MidiBindingEvent() {}
 		
 		std::string      bind_str;
 		std::string      options;
+		std::string      ret_url;
+		std::string      ret_path;
 	};
 	
 	

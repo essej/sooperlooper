@@ -90,8 +90,8 @@ public:
 	void clear_bindings ();
 	bool load_bindings (std::string filename);
 
-	void get_bindings (BindingList & blist);
-	bool add_binding (const MidiBindInfo & info);
+	void get_bindings (BindingList & blist) const;
+	bool add_binding (const MidiBindInfo & info, bool exclusive=false);
 	bool remove_binding (const MidiBindInfo & info);
 
 	int binding_key (const MidiBindInfo & info) const;
@@ -101,7 +101,7 @@ public:
 	typedef std::map<int, BindingList> BindingsMap;
 	
 	// for direct use... be careful
-	BindingsMap & bindings_map() { return _bindings; }
+	const BindingsMap & bindings_map() { return _bindings; }
 	
 protected:
 

@@ -19,14 +19,18 @@
 
 #include <cstdio>
 #include <iostream>
+#include <cerrno>
 #include "loop_control.hpp"
 
 #include <sys/poll.h>
 #include <unistd.h>
 #include <time.h>
 
+#include <midi_bind.hpp>
+
 using namespace std;
 using namespace SooperLooperGui;
+using namespace SooperLooper;
 
 
 LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString execname, char **engine_argv)
@@ -36,6 +40,8 @@ LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString ex
 	_force_spawn = force_spawn;
 	_exec_name = execname;
 	_engine_argv = engine_argv;
+
+	_midi_bindings = new MidiBindings();
 	
 	setup_param_map();
 	
@@ -52,7 +58,10 @@ LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString ex
 
 	// pingack expects: s:engine_url s:version i:loopcount
 	lo_server_add_method(_osc_server, "/pingack", "ssi", LoopControl::_pingack_handler, this);
-	    
+
+	/* add handler for recving midi bindings, s:serialized binding */
+	lo_server_add_method(_osc_server, "/recv_midi_bindings", "s", LoopControl::_midi_binding_handler, this);
+	
 	if (host.empty()) {
 		_osc_addr = lo_address_new(NULL, wxString::Format(wxT("%d"), port).c_str());
 	}
@@ -101,6 +110,7 @@ LoopControl::~LoopControl()
 	lo_address_free (_osc_addr);
 
 	delete _updatetimer;
+	delete _midi_bindings;
 }
 
 void
@@ -287,6 +297,8 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 		lo_send(_osc_addr, "/register_update", "sss", "tempo", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_update", "sss", "sync_source", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_update", "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
+
+		lo_send(_osc_addr, "/get_all_midi_bindings", "ss", _our_url.c_str(), "/recv_midi_bindings");
 		
 		_pingack = true;
 	}
@@ -351,6 +363,29 @@ LoopControl::control_handler(const char *path, const char *types, lo_arg **argv,
 	return 0;
 }
 
+int
+LoopControl::_midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			      void *data, void *user_data)
+{
+	LoopControl * lc = static_cast<LoopControl*> (user_data);
+	return lc->midi_binding_handler (path, types, argv, argc, data);
+}
+
+int
+LoopControl::midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+{
+	// s:serialized binding
+	string bindstr(&argv[0]->s);
+	
+	MidiBindInfo info;
+
+	if (info.unserialize (bindstr)) {
+		_midi_bindings->add_binding(info);
+	}
+	
+	return 0;
+}
+
 void
 LoopControl::request_global_values()
 {
@@ -409,6 +444,23 @@ LoopControl::request_all_values(int index)
 
 }
 
+void
+LoopControl::request_all_midi_bindings()
+{
+	lo_send(_osc_addr, "/get_all_midi_bindings", "ss", _our_url.c_str(), "/recv_midi_bindings");
+}
+
+void
+LoopControl::add_midi_binding(const MidiBindInfo & info, bool exclusive)
+{
+	lo_send(_osc_addr, "/add_midi_binding", "ss", info.serialize().c_str(), exclusive?"exclusive":"");
+}
+
+void
+LoopControl::remove_midi_binding(const MidiBindInfo & info)
+{
+	lo_send(_osc_addr, "/remove_midi_binding", "ss", info.serialize().c_str(),"");
+}
 
 void
 LoopControl::register_input_controls(int index, bool unreg)

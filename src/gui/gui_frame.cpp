@@ -40,6 +40,7 @@
 #include "pix_button.hpp"
 #include "keyboard_target.hpp"
 #include "keys_dialog.hpp"
+#include "midi_bind_dialog.hpp"
 
 #include <pbd/xml++.h>
 
@@ -80,6 +81,7 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 	EVT_MENU(ID_RemoveLoop, GuiFrame::on_remove_loop)
 
 	EVT_MENU(ID_KeybindingsMenu, GuiFrame::on_view_menu)
+	EVT_MENU(ID_MidiBindingsMenu, GuiFrame::on_view_menu)
 	
 END_EVENT_TABLE()
 
@@ -91,6 +93,7 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 	_curr_loop = -1;
 	_tapdelay_val = 1.0f;
 	_keys_dialog = 0;
+	_midi_bind_dialog = 0;
 	_got_new_data = 0;
 	
 	_rcdir = wxGetHomeDir() + wxFileName::GetPathSeparator() + wxT(".sooperlooper");
@@ -681,7 +684,7 @@ void GuiFrame::on_view_menu (wxCommandEvent &ev)
 {
 	if (ev.GetId() == ID_KeybindingsMenu) {
 		if (!_keys_dialog) {
-			_keys_dialog = new KeysDialog(this, -1, wxT("SooperLooper Key bindings"));
+			_keys_dialog = new KeysDialog(this, -1, wxT("SooperLooper Key Bindings"));
 			_keys_dialog->SetSize (230,410);
 		}
 		else if (!_keys_dialog->IsShown()) {
@@ -689,6 +692,18 @@ void GuiFrame::on_view_menu (wxCommandEvent &ev)
 		}
 
 		_keys_dialog->Show(true);
+		
+	}
+	else if (ev.GetId() == ID_MidiBindingsMenu) {
+		if (!_midi_bind_dialog) {
+			_midi_bind_dialog = new MidiBindDialog(this, -1, wxT("SooperLooper MIDI Bindings"));
+			_midi_bind_dialog->SetSize (380,410);
+		}
+		else if (!_midi_bind_dialog->IsShown()) {
+			_midi_bind_dialog->refresh_state();
+		}
+
+		_midi_bind_dialog->Show(true);
 		
 	}
 }

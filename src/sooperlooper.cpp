@@ -352,6 +352,8 @@ int main(int argc, char** argv)
 	if (midibridge && midibridge->is_ok() && !option_info.bindfile.empty()) {
 		midibridge->bindings().load_bindings (option_info.bindfile);
 	}
+
+	engine->set_midi_bridge(midibridge);
 	
 	// go into engine's non-rt event loop
 	// this returns when we quit or signal handler causes it to
