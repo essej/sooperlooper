@@ -256,10 +256,10 @@ MidiBridge::incoming_midi (Parser &p, byte *msg, size_t len)
 	byte b1 = msg[0];
 	byte b2 = len>1 ? msg[1]: 0;
 	byte b3 = len>2 ? msg[2]: 0;
-		
-	if ((msg[0] & 0xF0) < 0x80 || (msg[0] & 0xF0) > 0xE0) {
-		return;
-	}
+
+// 	if ((msg[0] & 0xF0) < 0x80 || (msg[0] & 0xF0) > 0xE0) {
+// 		return;
+// 	}
 
 	queue_midi (b1, b2, b3);
 }
@@ -295,13 +295,13 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 			send_osc (info, scaled_val);
 		}
 	}
-	else if (chcmd == 0xfa) {  // MIDI start
+	else if (chcmd == MIDI::start) {  // MIDI start
 		lo_send(_addr, "/sl/midi_start", "");
 	}
-	else if (chcmd == 0xfc) { // MIDI stop
+	else if (chcmd == MIDI::stop) { // MIDI stop
 		lo_send(_addr, "/sl/midi_stop", "");
 	}
-	else if (chcmd == 0xf8) {  // MIDI clock tick
+	else if (chcmd == MIDI::timing) {  // MIDI clock tick
 		lo_send(_addr, "/sl/midi_tick", "");
 	}
 	else {

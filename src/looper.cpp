@@ -220,10 +220,10 @@ Looper::~Looper ()
 	if (_dummy_buf)
 		delete [] _dummy_buf;
 
+#ifdef HAVE_SAMPLERATE
 	delete [] _in_src_states;
 	delete [] _out_src_states;
 
-#ifdef HAVE_SAMPLERATE
 	if (_insync_src_state)
 		src_delete (_insync_src_state);
 	if (_outsync_src_state)
