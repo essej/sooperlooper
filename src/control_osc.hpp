@@ -90,6 +90,12 @@ class ControlOSC
 
 
 	std::map<std::string, lo_address> _retaddr_map;
+
+	std::map<std::string, Event::command_t> _str_cmd_map;
+	std::map<Event::command_t, std::string> _cmd_str_map;
+
+	std::map<std::string, Event::control_t> _str_ctrl_map;
+	std::map<Event::control_t, std::string> _ctrl_str_map;
 };
 
 };  // sooperlooper namespace

@@ -102,6 +102,7 @@ namespace SooperLooper {
 
 
 	    enum control_t {
+		    Unknown = -1,
 		    TriggerThreshold = 0,
 		    DryLevel,
 		    WetLevel,

@@ -71,7 +71,43 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	lo_server_thread_add_method(_sthread, "/quit", "", ControlOSC::_quit_handler, this);
 
 	// lo_server_thread_add_method(_sthread, NULL, NULL, ControlOSC::_dummy_handler, this);
-			      
+
+	// initialize string maps
+	_str_cmd_map["record"]  = Event::RECORD;
+	_str_cmd_map["overdub"]  = Event::OVERDUB;
+	_str_cmd_map["multiply"]  = Event::MULTIPLY;
+	_str_cmd_map["insert"]  = Event::INSERT;
+	_str_cmd_map["replace"]  = Event::REPLACE;
+	_str_cmd_map["reverse"]  = Event::REVERSE;
+	_str_cmd_map["mute"]  = Event::MUTE;
+	_str_cmd_map["undo"]  = Event::UNDO;
+	_str_cmd_map["redo"]  = Event::REDO;
+	_str_cmd_map["scratch"]  = Event::SCRATCH;
+
+	for (map<string, Event::command_t>::iterator iter = _str_cmd_map.begin(); iter != _str_cmd_map.end(); ++iter) {
+		_cmd_str_map[(*iter).second] = (*iter).first;
+	}
+
+	_str_ctrl_map["rec_thresh"]  = Event::TriggerThreshold;
+	_str_ctrl_map["feedback"]  = Event::Feedback;
+	_str_ctrl_map["dry"]  = Event::DryLevel;
+	_str_ctrl_map["wet"]  = Event::WetLevel;
+	_str_ctrl_map["rate"]  = Event::Rate;
+	_str_ctrl_map["scratch_pos"]  = Event::ScratchPosition;
+	_str_ctrl_map["tap_trigger"]  = Event::TapDelayTrigger;
+	_str_ctrl_map["quantize"]  = Event::Quantize;
+	_str_ctrl_map["round"]  = Event::Round;
+	_str_ctrl_map["redo_is_tap"]  = Event::RedoTap;
+	_str_ctrl_map["state"]  = Event::State;
+	_str_ctrl_map["loop_len"]  = Event::LoopLength;
+	_str_ctrl_map["loop_pos"]  = Event::LoopPosition;
+	_str_ctrl_map["cycle_len"]  = Event::CycleLength;
+	_str_ctrl_map["free_time"]  = Event::FreeTime;
+	_str_ctrl_map["total_time"]  = Event::TotalTime;
+	
+	for (map<string, Event::control_t>::iterator iter = _str_ctrl_map.begin(); iter != _str_ctrl_map.end(); ++iter) {
+		_ctrl_str_map[(*iter).second] = (*iter).first;
+	}
 	
 	
 	lo_server_thread_start(_sthread);
@@ -250,167 +286,49 @@ int ControlOSC::get_handler(const char *path, const char *types, lo_arg **argv, 
 
 Event::command_t  ControlOSC::to_command_t (std::string cmd)
 {
-	if (cmd == "record") {
-	        return Event::RECORD;
-	}
-	else if (cmd == "overdub") {
-		return Event::OVERDUB;
-	}
-	else if (cmd == "multiply") {
-		return Event::MULTIPLY;
-	}
-	else if (cmd == "insert") {
-		return Event::INSERT;
-	}
-	else if (cmd == "replace") {
-		return Event::REPLACE;
-	}
-	else if (cmd == "reverse") {
-		return Event::REVERSE;
-	}
-	else if (cmd == "mute") {
-		return Event::MUTE;
-	}
-	else if (cmd == "undo") {
-		return Event::UNDO;
-	}
-	else if (cmd == "redo") {
-		return Event::REDO;
-	}
-	else if (cmd == "scratch") {
-		return Event::SCRATCH;
-	}
-	else {
+	map<string,Event::command_t>::iterator result = _str_cmd_map.find(cmd);
+
+	if (result == _str_cmd_map.end()) {
 		return Event::UNKNOWN;
 	}
+
+	return (*result).second;
 }
 
 std::string  ControlOSC::to_command_str (Event::command_t cmd)
 {
-	switch (cmd)
-	{
-	case Event::RECORD:
-		return "record";
-	case Event::OVERDUB:
-		return "overdub";
-	case Event::MULTIPLY:
-		return "multiply";
-	case Event::INSERT:
-		return "insert";
-	case Event::REPLACE:
-		return "replace";
-	case Event::REVERSE:
-		return "reverse";
-	case Event::MUTE:
-		return "mute";
-	case Event::UNDO:
-		return "undo";
-	case Event::REDO:
-		return "redo";
-	case Event::SCRATCH:
-		return "scratch";
+	map<Event::command_t, string>::iterator result = _cmd_str_map.find(cmd);
 
-	default:
+	if (result == _cmd_str_map.end()) {
 		return "unknown";
 	}
+
+	return (*result).second;
 }
 
 
 Event::control_t
 ControlOSC::to_control_t (std::string cmd)
 {
-	if (cmd == "rec_thresh") {
-	        return Event::TriggerThreshold;
+	map<string, Event::control_t>::iterator result = _str_ctrl_map.find(cmd);
+
+	if (result == _str_ctrl_map.end()) {
+		return Event::Unknown;
 	}
-	else if (cmd == "feedback") {
-		return Event::Feedback;
-	}
-	else if (cmd == "dry") {
-		return Event::DryLevel;
-	}
-	else if (cmd == "wet") {
-		return Event::WetLevel;
-	}
-	else if (cmd == "rate") {
-		return Event::Rate;
-	}
-	else if (cmd == "scratch_pos") {
-		return Event::ScratchPosition;
-	}
-	else if (cmd == "tap_trigger") {
-		return Event::TapDelayTrigger;
-	}
-	else if (cmd == "quantize") {
-		return Event::Quantize;
-	}
-	else if (cmd == "round") {
-		return Event::Round;
-	}
-	else if (cmd == "redo_is_tap") {
-		return Event::RedoTap;
-	}
-	// the output ones
-	else if (cmd == "state") {
-		return Event::State;
-	}
-	else if (cmd == "loop_len") {
-		return Event::LoopLength;
-	}
-	else if (cmd == "loop_pos") {
-		return Event::LoopPosition;
-	}
-	else if (cmd == "cycle_len") {
-		return Event::CycleLength;
-	}
-	else if (cmd == "free_time") {
-		return Event::FreeTime;
-	}
-	else if (cmd == "total_time") {
-		return Event::TotalTime;
-	}
+
+	return (*result).second;
+
 	
 }
 
 std::string
 ControlOSC::to_control_str (Event::control_t cmd)
 {
-	switch (cmd)
-	{
-	case Event::TriggerThreshold:
-		return "rec_thresh";
-	case Event::DryLevel:
-		return "dry";
-	case Event::WetLevel:
-		return "wet";
-	case Event::Feedback:
-		return "feedback";
-	case Event::Rate:
-		return "rate";
-	case Event::ScratchPosition:
-		return "scratch_pos";
-	case Event::TapDelayTrigger:
-		return "tap_trigger";
-	case Event::Quantize:
-		return "quantize";
-	case Event::Round:
-		return "round";
-	case Event::RedoTap:
-		return "redo_is_tap";
+	map<Event::control_t,string>::iterator result = _ctrl_str_map.find(cmd);
 
-	case Event::State:
-		return "state";
-	case Event::LoopLength:
-		return "loop_len";
-	case Event::LoopPosition:
-		return "loop_pos";
-	case Event::CycleLength:
-		return "cycle_len";
-	case Event::FreeTime:
-		return "free_time";
-	case Event::TotalTime:
-		return "total_time";
-
-	default:
+	if (result == _ctrl_str_map.end()) {
 		return "unknown";
 	}
+
+	return (*result).second;
 }
