@@ -274,7 +274,7 @@ Engine::process (nframes_t nframes)
 #endif
 				continue;
 			}
-				
+
 			doframes = fragpos - usedframes;
 
 			// handle special global RT events

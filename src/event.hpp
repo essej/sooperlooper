@@ -40,7 +40,7 @@ namespace SooperLooper {
 		Event createEvent();
 		
 	protected:
-		typedef uint32_t time_stamp_t; ///< We read the processor's cycle count register as a reference for the real time. These are of course only abstract values with arbitrary time entity, but that's not a problem as we calculate relatively.
+		typedef double time_stamp_t; 
 
 		inline uint32_t toFragmentPos(time_stamp_t timeStamp) {
 			return uint32_t ((timeStamp - fragmentTime.begin) * fragmentTime.sample_ratio);
@@ -58,6 +58,7 @@ namespace SooperLooper {
 		} fragmentTime;
 		
 		time_stamp_t createTimeStamp();
+		
     };
 
     /**
