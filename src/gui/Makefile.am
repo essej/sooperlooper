@@ -9,9 +9,9 @@ pixmap_DATA = \
 DEFS = -DPIXMAPDIR=\""$(pixmapdir)/"\"
 
 
-AM_CXXFLAGS = @LOSC_CFLAGS@ @SIGCPP_CFLAGS@ @XML_CFLAGS@ @WX_CFLAGS@
+AM_CXXFLAGS = -I.. @LOSC_CFLAGS@ @SIGCPP_CFLAGS@ @XML_CFLAGS@ @WX_CFLAGS@
 
-slgui_LDADD = @LOSC_LIBS@ @WX_LIBS@ @SIGCPP_LIBS@ @XML_LIBS@
+slgui_LDADD = ../libslcore.a  @LOSC_LIBS@ @WX_LIBS@ @SIGCPP_LIBS@ @XML_LIBS@
 
 slgui_SOURCES = \
 	gui_app.cpp \

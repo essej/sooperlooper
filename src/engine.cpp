@@ -585,7 +585,8 @@ Engine::process_nonrt_event (EventNonRT * event)
 	LoopFileEvent      * lf_event;
 	GlobalGetEvent     * gg_event;
 	GlobalSetEvent     * gs_event;
-
+	MidiBindingEvent   * mb_event;
+	
 	if ((gp_event = dynamic_cast<GetParamEvent*> (event)) != 0)
 	{
 		gp_event->ret_value = get_control_value (gp_event->control, gp_event->instance);
@@ -650,6 +651,20 @@ Engine::process_nonrt_event (EventNonRT * event)
 			}
 			remove_loop (cl_event->index);
 			_osc->finish_loop_config_event (*cl_event);
+		}
+	}
+	else if ((mb_event = dynamic_cast<MidiBindingEvent*> (event)) != 0)
+	{
+		if (mb_event->type == MidiBindingEvent::Add) {
+			
+		}
+		else if (mb_event->type == MidiBindingEvent::Remove)
+		{
+
+		}
+		else if (mb_event->type == MidiBindingEvent::GetAll)
+		{
+			
 		}
 	}
 	else if ((ping_event = dynamic_cast<PingEvent*> (event)) != 0)

@@ -186,6 +186,24 @@ namespace SooperLooper {
 		std::string      param;
 		float            value;
 	};
+
+	class MidiBindingEvent : public EventNonRT
+	{
+	public:
+		enum Type
+		{
+			GetAll,
+			Remove,
+			Add
+		} type;
+
+		MidiBindingEvent(Type tp, std::string bindstr, std::string opt)
+			: type(tp), bind_str(bindstr), options(opt)  {}
+		virtual ~MidiBindingEvent() {}
+		
+		std::string      bind_str;
+		std::string      options;
+	};
 	
 	
 } // namespace SooperLooper

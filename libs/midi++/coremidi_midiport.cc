@@ -78,19 +78,19 @@ int CoreMidi_MidiPort::Open (PortRequest &req)
 {
 	OSStatus err;
 	
-	err = MIDIClientCreate(CFSTR("ardour"), NULL, NULL, &midi_client);
+	err = MIDIClientCreate(CFSTR(req.devname), NULL, NULL, &midi_client);
     if (!midi_client) {
 		//error << "Cannot open CoreMidi client : " << err << endmsg.
         goto error;
     }
   	
-	err = MIDIDestinationCreate(midi_client, CFSTR("Ardour_in"), read_proc, this, &midi_destination);
+	err = MIDIDestinationCreate(midi_client, CFSTR(req.tagname + string("_in")), read_proc, this, &midi_destination);
 	if (!midi_destination) {
 		//error << "Cannot create CoreMidi destination : " << err << endmsg.
 		goto error;
 	}
 	
-	err = MIDISourceCreate(midi_client, CFSTR("Ardour_out"), &midi_source);
+	err = MIDISourceCreate(midi_client, CFSTR(req.tagname + string("_out")), &midi_source);
 	if (!midi_source) {
 		//error << "Cannot create CoreMidi source : " << err << endmsg.
 		goto error;

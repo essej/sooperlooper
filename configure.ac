@@ -34,6 +34,8 @@ if test "$ac_cv_prog_cxx" = "no" ; then
    AC_MSG_ERROR([*** SooperLooper is written in C++. You don't appear to have a C++ compiler])
 fi
 
+AC_PROG_RANLIB
+
 if test x"$GXX" = xyes ; then
    CXXFLAGS="$CXXFLAGS -Wall"
 fi

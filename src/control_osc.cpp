@@ -215,12 +215,12 @@ ControlOSC::register_callbacks()
 		lo_server_add_method(serv, "/get_all_midi_bindings", "ss", ControlOSC::_midi_binding_handler,
 				     new MidiBindCommand(this, MidiBindCommand::GetAllBinding));
 
-		// remove a specific midi binding:  s:binding_serialization
-		lo_server_add_method(serv, "/remove_midi_binding", "s", ControlOSC::_midi_binding_handler,
+		// remove a specific midi binding:  s:binding_serialization s:options
+		lo_server_add_method(serv, "/remove_midi_binding", "ss", ControlOSC::_midi_binding_handler,
 				     new MidiBindCommand(this, MidiBindCommand::RemoveBinding));
 
-		// add a specific midi binding:  s:binding_serialization
-		lo_server_add_method(serv, "/add_midi_binding", "s", ControlOSC::_midi_binding_handler,
+		// add a specific midi binding:  s:binding_serialization s:options
+		lo_server_add_method(serv, "/add_midi_binding", "ss", ControlOSC::_midi_binding_handler,
 				     new MidiBindCommand(this, MidiBindCommand::AddBinding));
 		
 		// MIDI clock
@@ -701,6 +701,30 @@ ControlOSC::global_unregister_update_handler(const char *path, const char *types
 int
 ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, MidiBindCommand * info)
 {
+	if (info->command == MidiBindCommand::GetAllBinding)
+	{
+		// get all midi bindings:  s:returl s:retpath
+		string returl (&argv[0]->s);
+		string retpath (&argv[1]->s);
+	
+		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::GetAll, returl, retpath));
+	}
+	else if (info->command == MidiBindCommand::RemoveBinding)
+	{
+		// remove a specific midi binding:  s:binding_serialization s:options
+		string bindstr (&argv[0]->s);
+		string options (&argv[1]->s);
+	
+		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::Remove, bindstr, options));
+	}
+	else if (info->command == MidiBindCommand::AddBinding)
+	{
+		// add a specific midi binding:  s:binding_serialization s:options
+		string bindstr (&argv[0]->s);
+		string options (&argv[1]->s);
+	
+		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::Add, bindstr, options));
+	}
 
 	return 0;
 }
