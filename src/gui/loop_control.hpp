@@ -212,7 +212,8 @@ class LoopControl
 	bool _pingack;
 	int  _waiting;
 	bool _failed;
-
+	bool _lastchance;
+	
 	long _engine_pid;
 
 	bool init_traffic_thread();

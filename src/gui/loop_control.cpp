@@ -150,6 +150,7 @@ LoopControl::LoopControl (const wxString & rcdir)
 	_midi_bindings = new MidiBindings();
 	_rcdir = rcdir;
 	_sentinel = true;
+	_lastchance = false;
 	
 	setup_param_map();
 	
@@ -436,14 +437,32 @@ LoopControl::pingtimer_expired()
 	else if (_waiting > 0)
 	{
 		if (_waiting > 80) {
-			// give up
-			cerr << "slgui: gave up on spawned engine" << endl;
-			if (_osc_addr) {
-				lo_address_free(_osc_addr);
+			if (_lastchance) {
+				// give up
+				cerr << "slgui: gave up on spawned engine" << endl;
+				if (_osc_addr) {
+					lo_address_free(_osc_addr);
+				}
+				_osc_addr = 0;
+				_failed = true;
+				ConnectFailed("No response from SooperLooper engine process.\nPlease make sure the JACK server is running.\nAlso check that the system's hostname resolves properly."); // emit
 			}
-			_osc_addr = 0;
-			_failed = true;
-			ConnectFailed("No response from SooperLooper engine process.\nPlease make sure the JACK server is running.\nAlso check that the system's hostname resolves properly."); // emit
+			else {
+				// last ditch effort with 127.0.0.1 all around
+				_osc_addr = lo_address_new("127.0.0.1", wxString::Format(wxT("%ld"), _spawn_config.port).c_str());
+
+				int sport = lo_server_get_port (_osc_server);
+				_our_url = wxString::Format(wxT("osc.udp://127.0.0.1:%d/"), sport); 
+
+				//cerr << "last chance effort: with oururl " << _our_url << endl;
+				
+				// send off a ping.  
+				_pingack = false;
+				_waiting = 60;
+				lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
+				_lastchance = 1;
+				_updatetimer->Start(100, true);
+			}
 		}
 		else {
 			// cerr << "waiting" << endl;
@@ -545,16 +564,26 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 
 	cerr << "slgui: remote looper is at " << hosturl << " version=" << version << "   loopcount=" << loopcount << endl;
 
-	_osc_url = hosturl;
-	char * remhost = lo_url_get_hostname(_osc_url.c_str());
-	_host = remhost;
-	free(remhost);
-	_spawn_config.host = _host;
-	
-	char * remport = lo_url_get_port(_osc_url.c_str());
+	char * remport = lo_url_get_port(hosturl.c_str());
 	wxString tmpstr(remport);
 	tmpstr.ToLong(&_spawn_config.port);
 	free(remport);
+	
+	if (_lastchance) {
+		// force a 127.0.0.1 hostname if this was on our last chance
+		//cerr << "forced a 127" << endl;
+		_osc_url = wxString::Format(wxT("osc.udp://127.0.0.1:%ld/"), _spawn_config.port);
+	}
+	else {
+		_osc_url = hosturl;
+	}
+	
+	char * remhost = lo_url_get_hostname(_osc_url.c_str());
+	_host = remhost;
+	free(remhost);
+
+
+	_spawn_config.host = _host;
 
 	_port = (int) _spawn_config.port;
 

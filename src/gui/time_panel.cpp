@@ -183,8 +183,12 @@ TimePanel::update_cyc()
 	_loop_control->get_value(_index, wxT("cycle_len"), clen);
 	
 	if (clen > 0.0f) {
-		_cyc_cnt_str.Printf(wxT("%2d"), (int) roundf (llen / clen));
-		_cyc_curr_str.Printf(wxT("%2d"), (int) ceilf (lpos / (clen)));
+		int cntc =  (int) roundf (llen / clen);
+		int currc = (int) ceilf (lpos / (clen));
+		if (currc > cntc) currc = cntc;
+
+		_cyc_cnt_str.Printf(wxT("%2d"), cntc);
+		_cyc_curr_str.Printf(wxT("%2d"), currc);
 	}
 	else {
 		_cyc_curr_str.Printf(wxT("-"));
