@@ -321,10 +321,10 @@ GuiFrame::init()
 	wxMenu *menuFile = new wxMenu(wxT(""));
 
 	//menuFile->Append(ID_AddLoop, wxT("Add Default Loop"), wxT("Add one default loop"));
-	menuFile->Append(ID_AddMonoLoop, wxT("Add Mono Loop"), wxT("Add one default mono loop"));
-	menuFile->Append(ID_AddStereoLoop, wxT("Add Stereo Loop"), wxT("Add one default stereo loop"));
-	menuFile->Append(ID_AddCustomLoop, wxT("Add Custom Loop(s)..."), wxT("Add one or more custom loops, where loop memory can be specified"));
-	menuFile->Append(ID_RemoveLoop, wxT("Remove Last Loop"), wxT("Remove last loop"));
+	menuFile->Append(ID_AddMonoLoop, wxT("Add Mono Loop\tCtrl-1"), wxT("Add one default mono loop"));
+	menuFile->Append(ID_AddStereoLoop, wxT("Add Stereo Loop\tCtrl-2"), wxT("Add one default stereo loop"));
+	menuFile->Append(ID_AddCustomLoop, wxT("Add Custom Loop(s)...\tCtrl-A"), wxT("Add one or more custom loops, where loop memory can be specified"));
+	menuFile->Append(ID_RemoveLoop, wxT("Remove Last Loop\tCtrl-D"), wxT("Remove last loop"));
 
 	menuFile->AppendSeparator();
 	menuFile->Append(ID_PreferencesMenu, wxT("&Preferences...\tCtrl-P"), wxT("Preferences..."));
@@ -727,7 +727,7 @@ GuiFrame::on_add_custom_loop (wxCommandEvent &ev)
 	// it takes care of itself
 	if (dial->ShowModal() == wxID_OK) {
 		for (int i=0; i < dial->num_loops; ++i) {
-			cerr << "adding loop with " << dial->num_channels << "  secs: " << dial->secs_channel << endl;
+			//cerr << "adding loop with " << dial->num_channels << "  secs: " << dial->secs_channel << endl;
 			_loop_control->post_add_loop (dial->num_channels, dial->secs_channel, dial->discrete);
 		}
 	}

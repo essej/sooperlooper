@@ -65,10 +65,9 @@ class Engine
 	void quit();
 
 	bool add_loop (unsigned int chans, float loopsecs=40.0f, bool discrete = true);
-	bool remove_loop (unsigned int index);
+	bool remove_loop (Looper * loop);
 	
-	unsigned int loop_count() { PBD::LockMonitor lm(_instance_lock, __LINE__, __FILE__); return _instances.size(); }
-	unsigned int loop_count_unsafe() { return _instances.size(); }
+	size_t loop_count() { return _instances.size(); }
 
 	int process (nframes_t);
 
@@ -109,24 +108,41 @@ class Engine
 	
   protected:	
 
+	struct LoopManageEvent
+	{
+		enum EventType {
+			AddLoop = 0,
+			RemoveLoop
+		};
+
+		LoopManageEvent () {}
+		LoopManageEvent (EventType et, Looper *loop) : etype(et), looper(loop) {}
+
+		EventType etype;
+		Looper * looper;
+	};
+	
 	void cleanup();
 
 	bool process_nonrt_event (EventNonRT * event);
-
+	void process_rt_loop_manage_events ();
+	
 	// returns >= 0 offset position on tempo beats
 	int generate_sync (nframes_t offset, nframes_t nframes);
 	
 	void update_sync_source ();
 	void calculate_tempo_frames ();
-	void calculate_midi_tick ();
+	void calculate_midi_tick (bool rt=true);
 
 	void do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes);
 
 	bool do_push_command_event (RingBuffer<Event> * rb, Event::type_t type, Event::command_t cmd, int8_t instance);
 	bool do_push_control_event (RingBuffer<Event> * rb, Event::type_t type, Event::control_t ctrl, float val, int8_t instance, int src=0);
 
+	bool push_loop_manage_to_rt (LoopManageEvent & lme);
+	bool push_loop_manage_to_main (LoopManageEvent & lme);
 	
-	void set_tempo (double tempo);
+	void set_tempo (double tempo, bool rt=true);
 
 	inline double avg_tempo(double tempo);
 	inline void reset_avg_tempo(double tempo=0.0);
@@ -141,9 +157,17 @@ class Engine
 	MidiBridge * _midi_bridge;
 	
 	typedef std::vector<Looper*> Instances;
+	// the rt thread keeps this one
+	Instances _rt_instances;
+
+	// the non-rt keeps this copy
 	Instances _instances;
 	PBD::NonBlockingLock _instance_lock;
 
+	// looper (de)allocation event
+	RingBuffer<LoopManageEvent> * _loop_manage_to_rt_queue;
+	RingBuffer<LoopManageEvent> * _loop_manage_to_main_queue;
+	
 	volatile bool _ok;
 
 	volatile bool _learn_done;

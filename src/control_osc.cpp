@@ -1118,7 +1118,7 @@ void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 	if (event.type == ConfigUpdateEvent::Send)
 	{
 		if (event.instance == -1) {
-			for (unsigned int i = 0; i < _engine->loop_count_unsafe(); ++i) {
+			for (unsigned int i = 0; i < _engine->loop_count(); ++i) {
 				send_registered_updates (ctrl, event.value, (int) i, source);
 			}
 		} else {
@@ -1397,7 +1397,7 @@ void ControlOSC::send_pingack (bool useudp, string returl, string retpath)
 	}
 	
 	cerr << "sooperlooper: sending ping response to " << returl << endl;
-	if (lo_send(addr, retpath.c_str(), "ssi", oururl.c_str(), sooperlooper_version, _engine->loop_count_unsafe()) < 0) {
+	if (lo_send(addr, retpath.c_str(), "ssi", oururl.c_str(), sooperlooper_version, _engine->loop_count()) < 0) {
 		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
 	}
 }

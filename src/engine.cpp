@@ -71,6 +71,10 @@ Engine::Engine ()
 	_last_tempo_frame = 0;
 	_tempo_changed = false;
 	_beat_occurred = false;
+
+	_loop_manage_to_rt_queue = 0;
+	_loop_manage_to_main_queue = 0;
+	
 	
 	pthread_cond_init (&_event_cond, NULL);
 
@@ -113,6 +117,13 @@ bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 
 	_nonrt_event_queue = new RingBuffer<EventNonRT *> (MAX_EVENTS);
 
+	_loop_manage_to_rt_queue = new RingBuffer<LoopManageEvent> (16);
+	_loop_manage_to_main_queue = new RingBuffer<LoopManageEvent> (16);
+
+	// reserve space in instance vectors to try to be RT safe
+	_instances.reserve(128);
+	_rt_instances.reserve(128);
+	
 	_internal_sync_buf = new float[driver->get_buffersize()];
 	memset(_internal_sync_buf, 0, sizeof(float) * driver->get_buffersize());
 
@@ -169,6 +180,13 @@ Engine::cleanup()
 
 	if (_internal_sync_buf) {
 		delete [] _internal_sync_buf;
+	}
+
+	if (_loop_manage_to_rt_queue) {
+		delete _loop_manage_to_rt_queue;
+	}
+	if (_loop_manage_to_main_queue) {
+		delete _loop_manage_to_main_queue;
 	}
 	
 	_ok = false;
@@ -270,67 +288,68 @@ Engine::add_loop (unsigned int chans, float loopsecs, bool discrete)
 {
 	int n;
 	
-	{
-		LockMonitor lm (_instance_lock, __LINE__, __FILE__);
-		n = _instances.size();
-
-		Looper * instance;
-
-		instance = new Looper (_driver, (unsigned int) n, chans, loopsecs, discrete);
-		
-		if (!(*instance)()) {
-			cerr << "can't create a new loop!\n";
-			delete instance;
-			return false;
-		}
-
-		// set some initial controls
-		float quantize_value = QUANT_OFF;
-		float round_value = 0.0f;
-		
-		if (!_instances.empty()) {
-			quantize_value = _instances[0]->get_control_value (Event::Quantize);
-			round_value = _instances[0]->get_control_value (Event::Round);
-		}
-
-		instance->set_port (Quantize, quantize_value);
-		instance->set_port (Round, round_value);
-		instance->set_port (EighthPerCycleLoop, _eighth_cycle);
-		instance->set_port (TempoInput, _tempo);
-		
-		_instances.push_back (instance);
-
-		update_sync_source();
+	n = _instances.size();
+	
+	Looper * instance;
+	
+	instance = new Looper (_driver, (unsigned int) n, chans, loopsecs, discrete);
+	
+	if (!(*instance)()) {
+		cerr << "can't create a new loop!\n";
+		delete instance;
+		return false;
 	}
 	
+	// set some initial controls
+	float quantize_value = QUANT_OFF;
+	float round_value = 0.0f;
+	
+	if (!_instances.empty()) {
+		quantize_value = _instances[0]->get_control_value (Event::Quantize);
+		round_value = _instances[0]->get_control_value (Event::Round);
+	}
+	
+	instance->set_port (Quantize, quantize_value);
+	instance->set_port (Round, round_value);
+	instance->set_port (EighthPerCycleLoop, _eighth_cycle);
+	instance->set_port (TempoInput, _tempo);
+	
+	_instances.push_back (instance);
+	
+	update_sync_source();
+	
 	LoopAdded (n); // emit
+
+	// now we push the added loop to the RT thread
+	LoopManageEvent lmev(LoopManageEvent::AddLoop, _instances.back());
+	push_loop_manage_to_rt (lmev);
 	
 	return true;
 }
 
 
 bool
-Engine::remove_loop (unsigned int index)
+Engine::remove_loop (Looper * looper)
 {
-	LockMonitor lm (_instance_lock, __LINE__, __FILE__);
 
-	if (index < _instances.size()) {
-
-		Instances::iterator iter = _instances.begin();
-		iter += index;
-		
-		Looper * loop = (*iter);
-		_instances.erase (iter);
-
-		delete loop;
-		LoopRemoved(); // emit
-
-		update_sync_source();
-		
-		return true;
+	if (_instances.back() == looper) {
+		_instances.pop_back();
 	}
-
-	return false;
+	else {
+		// less efficient
+		Instances::iterator iter = find (_instances.begin(), _instances.end(), looper);
+		if (iter == _instances.end()) {
+			return false;
+		}
+		_instances.erase(iter);
+	}
+	
+	delete looper;
+	LoopRemoved(); // emit
+	
+	update_sync_source();
+	
+	return true;
 }
 
 
@@ -404,20 +423,53 @@ static inline Event * next_rt_event (RingBuffer<Event>::rw_vector & vec, size_t 
 	return 0;
 }
 	
+void Engine::process_rt_loop_manage_events ()
+{
+	// pull off all loop management events from the main thread
+	LoopManageEvent * lmevt;
+	
+	while (is_ok() && _loop_manage_to_rt_queue->read_space() > 0)
+	{
+		RingBuffer<LoopManageEvent>::rw_vector vec;
+		_loop_manage_to_rt_queue->get_read_vector(&vec);
+		lmevt = vec.buf[0];
+		
+		// we must remove/add this loop from our copy of the vector
+		if (lmevt->etype == LoopManageEvent::RemoveLoop)
+		{
+			if (_rt_instances.back() == lmevt->looper) {
+				_rt_instances.pop_back();
+			}
+			else {
+				// less efficient
+				Instances::iterator iter = find (_rt_instances.begin(), _rt_instances.end(), lmevt->looper);
+				if (iter != _rt_instances.end()) {
+					_rt_instances.erase(iter);
+				}
+			}
+			
+			// signal mainloop it is safe to delete
+			push_loop_manage_to_main (*lmevt);
+			
+		}
+		else if (lmevt->etype == LoopManageEvent::AddLoop)
+		{
+			_rt_instances.push_back (lmevt->looper);
+		}
+		
+		_loop_manage_to_rt_queue->increment_read_ptr(1);
+	}
+	
+}
+
 
 int
 Engine::process (nframes_t nframes)
 {
-	TentativeLockMonitor lm (_instance_lock, __LINE__, __FILE__);
-
-	if (!lm.locked()) {
-		// todo pass silence
-		//cerr << "already locked!" << endl;
-
-		//_driver->process_silence (nframes);
-		
-		return 0;
-	}
+	//TentativeLockMonitor lm (_instance_lock, __LINE__, __FILE__);
+	//if (!lm.locked()) {
+	//	return 0;
+	//}
 
 	// process events
 	//cerr << "process"  << endl;
@@ -433,6 +485,8 @@ Engine::process (nframes_t nframes)
 	// update event generator
 	_event_generator->updateFragmentTime (nframes);
 
+	// process loop instance rt events
+	process_rt_loop_manage_events();
 	
 	// update internal sync
 	calculate_tempo_frames ();
@@ -476,18 +530,18 @@ Engine::process (nframes_t nframes)
 			m = 0;
 			syncm = -1;
 			
-			if ((int)_sync_source > 0 && (int)_sync_source <= (int)_instances.size()) {
+			if ((int)_sync_source > 0 && (int)_sync_source <= (int)_rt_instances.size()) {
 				// we need to run the sync source loop first
 				syncm = (int) _sync_source - 1;
-				_instances[syncm]->run (usedframes, doframes);
+				_rt_instances[syncm]->run (usedframes, doframes);
 				
 				if (evt->Instance == -1 || evt->Instance == syncm) {
-					_instances[syncm]->do_event (evt);
+					_rt_instances[syncm]->do_event (evt);
 				}
 			}
 
 			
-			for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i, ++m)
+			for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i, ++m)
 			{
 				if (syncm == m) continue; // skip if we already ran it
 				
@@ -513,15 +567,15 @@ Engine::process (nframes_t nframes)
 		m = 0;
 		syncm = -1;
 		
-		if ((int)_sync_source > 0 && (int)_sync_source <= (int) _instances.size()) {
+		if ((int)_sync_source > 0 && (int)_sync_source <= (int) _rt_instances.size()) {
 			// we need to run the sync source loop first
 			syncm = (int) _sync_source - 1;
-			_instances[syncm]->run (usedframes, nframes - usedframes);
+			_rt_instances[syncm]->run (usedframes, nframes - usedframes);
 		}
 		
 		
 		// run the rest of the frames
-		for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i ,++m) {
+		for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i ,++m) {
 			if (syncm == m) continue;
 
 			(*i)->run (usedframes, nframes - usedframes);
@@ -534,13 +588,13 @@ Engine::process (nframes_t nframes)
 		int m = 0;
 		int syncm = -1;
 		
-		if ((int)_sync_source > 0 && (int) _sync_source <= (int)_instances.size()) {
+		if ((int)_sync_source > 0 && (int) _sync_source <= (int)_rt_instances.size()) {
 			// we need to run the sync source loop first
 			syncm = (int) _sync_source - 1;
-			_instances[syncm]->run (0, nframes);
+			_rt_instances[syncm]->run (0, nframes);
 		}
 
-		for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i, ++m) {
+		for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i, ++m) {
 			if (syncm == m) continue;
 			(*i)->run (0, nframes);
 		}
@@ -566,7 +620,7 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			//cerr << "TAP: new tempo: " << _tempo  << "  off: " << offset << endl;
 			ntempo = avg_tempo(ntempo);
 			
-			set_tempo(ntempo);
+			set_tempo(ntempo, true);
 			calculate_tempo_frames ();
 
 			if (_sync_source == InternalTempoSync) {
@@ -592,6 +646,28 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 	{
 		_target_common_wet = ev->Value;
 	}
+}
+
+bool Engine::push_loop_manage_to_rt (LoopManageEvent & lme)
+{
+	if (_loop_manage_to_rt_queue->write (&lme, 1) != 1) {
+#ifdef DEBUG
+		cerr << "event loopmanage_to_main full, dropping event" << endl;
+#endif
+		return false;
+	}
+	return true;
+}
+
+bool Engine::push_loop_manage_to_main (LoopManageEvent & lme)
+{
+	if (_loop_manage_to_main_queue->write (&lme, 1) != 1) {
+#ifdef DEBUG
+		cerr << "event loopmanage_to_main full, dropping event" << endl;
+#endif
+		return false;
+	}
+	return true;
 }
 
 
@@ -717,9 +793,6 @@ Engine::push_sync_event (Event::control_t ctrl)
 float
 Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 {
-	// this should *really* be mutexed
-	// it is a race waiting to happen
-
 	// not really anymore, this is only called from the nonrt work thread
 	// that does the allocating of instances
 	
@@ -780,15 +853,31 @@ Engine::mainloop()
 	struct timespec timeout;
 	struct timeval now = {0, 0};
 	struct timeval timeoutv = {0, 0};
-	int  wait_ret;
+	int  wait_ret = 0;
 	
 	EventNonRT * event;
 	Event  * evt;
+	LoopManageEvent * lmevt;
 	
 	// non-rt event processing loop
 
 	while (is_ok())
 	{
+		// pull off all loop management events from the rt thread
+		while (is_ok() && _loop_manage_to_main_queue->read_space() > 0)
+		{
+			RingBuffer<LoopManageEvent>::rw_vector vec;
+			_loop_manage_to_main_queue->get_read_vector(&vec);
+			lmevt = vec.buf[0];
+
+			// we must finish the removal
+			if (lmevt->etype == LoopManageEvent::RemoveLoop) {
+				remove_loop (lmevt->looper);
+			}
+			
+			_loop_manage_to_main_queue->increment_read_ptr(1);
+		}
+		
 		// pull off all events from nonrt ringbuffer
 		while (is_ok() && _nonrt_event_queue->read(&event, 1) == 1)
 		{
@@ -796,6 +885,7 @@ Engine::mainloop()
 			delete event;
 		}
 
+		// now pull off special update events
 		while (is_ok() && _nonrt_update_event_queue->read_space() > 0)
 		{
 			RingBuffer<Event>::rw_vector vec;
@@ -942,7 +1032,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 		}
 		else if (gs_event->param == "tempo") {
 			    if (gs_event->value > 0.0f) {
-				    set_tempo((double) gs_event->value);
+				    set_tempo((double) gs_event->value, false);
 			    }
 		}
 		else if (gs_event->param == "eighth_per_cycle") {
@@ -980,7 +1070,15 @@ Engine::process_nonrt_event (EventNonRT * event)
 			if (cl_event->index == -1) {
 				cl_event->index = _instances.size() - 1;
 			}
-			remove_loop (cl_event->index);
+
+			// post a new loop remove event to the rt thread
+			// we do the real cleanup when it tells us to
+			if (cl_event->index >= 0 && cl_event->index < (int) _instances.size())
+			{
+				LoopManageEvent lmev (LoopManageEvent::RemoveLoop, _instances[cl_event->index]);
+				push_loop_manage_to_rt (lmev);
+			}
+			
 			_osc->finish_loop_config_event (*cl_event);
 		}
 	}
@@ -1109,12 +1207,12 @@ void Engine::update_sync_source ()
 
 	_quarter_counter = 0;
 
-	set_tempo(_tempo);
+	set_tempo(_tempo, false);
 }
 
 
 void
-Engine::set_tempo (double tempo)
+Engine::set_tempo (double tempo, bool rt)
 {
 	_tempo = tempo;
 	_quarter_counter = 0;
@@ -1126,9 +1224,17 @@ Engine::set_tempo (double tempo)
 	}
 	
 	// update all loops
-	for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i)
-	{
-		(*i)->set_port(TempoInput, tempo);
+	if (rt) {
+		for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i)
+		{
+			(*i)->set_port(TempoInput, tempo);
+		}
+	}
+	else {
+		for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i)
+		{
+			(*i)->set_port(TempoInput, tempo);
+		}
 	}
 }
 
@@ -1137,8 +1243,8 @@ Engine::calculate_tempo_frames ()
 {
 	float quantize_value = (float) QUANT_8TH;
 		
-	if (!_instances.empty()) {
-		quantize_value = _instances[0]->get_control_value (Event::Quantize);
+	if (!_rt_instances.empty()) {
+		quantize_value = _rt_instances[0]->get_control_value (Event::Quantize);
 	}
 	
 	if (_sync_source == InternalTempoSync || _sync_source == JackSync)
@@ -1167,7 +1273,7 @@ Engine::calculate_tempo_frames ()
 		// cerr << "tempo frames is " << _tempo_frames << endl;
 	}
 	else if (_sync_source == MidiClockSync) {
-		calculate_midi_tick ();
+		calculate_midi_tick (true);
 	}
 
 	if (_tempo > 0.0) {
@@ -1182,12 +1288,18 @@ Engine::calculate_tempo_frames ()
 
 // Calculate the number of ticks to sync loops to
 void
-Engine::calculate_midi_tick ()
+Engine::calculate_midi_tick (bool rt)
 {
 	float quantize_value = (float) QUANT_8TH;
-	if (!_instances.empty())
-		quantize_value = _instances[0]->get_control_value (Event::Quantize);
-
+	if (rt) {
+		if (!_rt_instances.empty())
+			quantize_value = _rt_instances[0]->get_control_value (Event::Quantize);
+	}
+	else {
+		if (!_instances.empty())
+			quantize_value = _instances[0]->get_control_value (Event::Quantize);
+	}
+	
 	if (quantize_value == QUANT_8TH)
 		_midi_loop_tick = 12; // 12 ticks per 8th note
 	else if (quantize_value == QUANT_CYCLE)
@@ -1323,7 +1435,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 
 					if (ntempo != _tempo) {
 						//cerr << "new tempo is: " << ntempo << "   tcount = " << tcount << "  used: " << usedframes << endl;
-						set_tempo(ntempo);
+						set_tempo(ntempo, true);
 						_tempo_changed = true;
 						// wake up mainloop safely
 						pthread_cond_signal (&_event_cond);
@@ -1382,7 +1494,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 
 			
 			if (_tempo != info.bpm) {
-				set_tempo(info.bpm);
+				set_tempo(info.bpm, true);
 				calculate_tempo_frames ();
 				_tempo_changed = true;
 				// wake up mainloop safely
@@ -1418,15 +1530,15 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			}
 		}
 	}
-	else if ((int)_sync_source > 0 && (size_t)_sync_source <= _instances.size()) {
+	else if ((int)_sync_source > 0 && (size_t)_sync_source <= _rt_instances.size()) {
 		// a loop
 		for (nframes_t n=offset; n < nframes; ++n) {
 			_internal_sync_buf[n]  = 1.0;
 		}
 
-		if (_instances[_sync_source-1]->get_control_value(Event::State) != LooperStateRecording) {
+		if (_rt_instances[_sync_source-1]->get_control_value(Event::State) != LooperStateRecording) {
 			// calc new tempo
-			nframes_t cycleframes = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::CycleLength) * _driver->get_samplerate());
+			nframes_t cycleframes = (nframes_t) (_rt_instances[_sync_source-1]->get_control_value(Event::CycleLength) * _driver->get_samplerate());
 			double ntempo = 0.0;
 			if (cycleframes > 0) {
 				ntempo = (_driver->get_samplerate() * 30.0 * _eighth_cycle / cycleframes);
@@ -1435,7 +1547,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			if (ntempo != _tempo) {
 				//cerr << "new tempo is: " << ntempo << endl;
 
-				set_tempo(ntempo);
+				set_tempo(ntempo, true);
 
 				calculate_tempo_frames ();
 				_tempo_changed = true;
@@ -1445,8 +1557,8 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			
 			// just calculate quarter note beats for update
 			if (_quarter_note_frames > 0.0) {
-				nframes_t currpos  = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::LoopPosition) * _driver->get_samplerate());
-				nframes_t loopframes = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::LoopLength) * _driver->get_samplerate());
+				nframes_t currpos  = (nframes_t) (_rt_instances[_sync_source-1]->get_control_value(Event::LoopPosition) * _driver->get_samplerate());
+				nframes_t loopframes = (nframes_t) (_rt_instances[_sync_source-1]->get_control_value(Event::LoopLength) * _driver->get_samplerate());
 				if (loopframes > 0) {
 					nframes_t testval = (((currpos + nframes) % loopframes) % (nframes_t)_quarter_note_frames);
 					

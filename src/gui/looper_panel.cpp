@@ -399,7 +399,8 @@ LooperPanel::post_init()
 	wxFont sliderFont = *wxSMALL_FONT;
 	
 	_panners = new SliderBar*[_chan_count];
-
+	int barwidth = _chan_count <= 4 ? 50 : 30;
+	
 	for (int i=0; i < _chan_count; ++i)
 	{
 		float defval = 0.5f;
@@ -407,9 +408,14 @@ LooperPanel::post_init()
 			defval = (i == 0) ? 0.0f : 1.0f;
 		}
 		
-		_panners[i] = slider =  new SliderBar(this, ID_Panner, 0.0f, 1.0f, defval, true, wxDefaultPosition, wxSize(50,-1));
+		_panners[i] = slider =  new SliderBar(this, ID_Panner, 0.0f, 1.0f, defval, true, wxDefaultPosition, wxSize(barwidth,-1));
 		slider->set_units(wxT(""));
-		slider->set_label(wxString::Format(wxT("pan %d"), i+1));
+		if (_chan_count > 1) {
+			slider->set_label(wxString::Format(wxT("pan %d"), i+1));
+		}
+		else {
+			slider->set_label(wxString::Format(wxT("pan")));
+		}
 		slider->set_style (SliderBar::CenterStyle);
 		slider->set_decimal_digits (3);
 		slider->set_show_value (false);
@@ -417,11 +423,11 @@ LooperPanel::post_init()
 		slider->value_changed.connect (bind (slot (*this, &LooperPanel::pan_events), (int) i));
 		slider->bind_request.connect (bind (slot (*this, &LooperPanel::pan_bind_events), (int) i));
 
-		if (i > 1) {
-			_botpansizer->Add (slider, 0, wxEXPAND|wxLEFT, 2);
+		if (_chan_count <= 2 || i < (int) ceil(_chan_count*0.5)) {
+			_toppansizer->Add (slider, 0, wxEXPAND|wxLEFT, 2);
 		}
 		else {
-			_toppansizer->Add (slider, 0, wxEXPAND|wxLEFT, 2);
+			_botpansizer->Add (slider, 0, wxEXPAND|wxLEFT, 2);
 		}
 
 	}
