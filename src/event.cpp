@@ -84,7 +84,7 @@ namespace SooperLooper {
 	    struct timeval tv;
 	    gettimeofday(&tv, NULL);
 
-	    return (time_stamp_t)(tv.tv_usec * 10e-6) + (time_stamp_t)(tv.tv_sec);
+	    return (time_stamp_t)(tv.tv_usec * 1e-6) + (time_stamp_t)(tv.tv_sec);
     }
 
     /**
