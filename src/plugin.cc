@@ -2514,7 +2514,7 @@ runSooperLooper(LADSPA_Handle Instance,
 // 		 }
 
 		 
-		 if (pLS->waitingForSync && (fSyncMode == 0.0f || pfSyncInput[lSampleIndex] != 0.0f))
+		 if (pLS->waitingForSync && (fSyncMode == 0.0f || pfSyncInput[lSampleIndex] != 0.0f || loop->dCurrPos  >= (loop->lLoopLength)))
 		 {
 			 DBG(fprintf(stderr,"Finishing synced multiply\n"));
 			 loop = endMultiply (pLS, loop, pLS->nextState);
