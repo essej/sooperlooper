@@ -1730,6 +1730,12 @@ runSooperLooper(LADSPA_Handle Instance,
 			      pLS->state = STATE_PLAY;
 			      DBG(fprintf(stderr,"Entering PLAY state\n"));
 			      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+
+			      if (fQuantizeMode == QUANT_OFF) {
+				      // then send out a sync here for any slaves
+				      pfSyncOutput[0] = 1.0f;
+			      }
+			      
 		      } else {
 			      pLS->nextState = STATE_PLAY;
 			      pLS->waitingForSync = 1;
@@ -2392,7 +2398,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 if (pLS->waitingForSync && ((fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) || pfSyncInput[lSampleIndex] != 0.0f))
 		 {
 			 DBG(fprintf(stderr,"Finishing synced overdub/replace\n"));
-			 pLS->state = pLS->nextState;
+			 loop = transitionToNext (pLS, loop, pLS->nextState);
 			 pLS->nextState = -1;
 			 pLS->waitingForSync = 0;
 			 break;
