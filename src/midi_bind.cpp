@@ -143,7 +143,7 @@ MidiBindings::add_binding (const MidiBindInfo & info, bool exclusive)
 	_bindings[key].push_back (info);
 	// cerr << "added binding: " << info.type << "  "  << info.control << "  " << info.instance << "  " << info.lbound << "  " << info.ubound << endl;
 	
-	cerr << "added binding: " << info.serialize() << endl;
+	//cerr << "added binding: " << info.serialize() << endl;
 	return true;
 }
 
@@ -197,7 +197,7 @@ MidiBindings::load_bindings (string filename, bool append)
 	bindfile.open(filename.c_str(), ios::in);
 	
 	if (!bindfile.is_open()) {
-		cerr << "error: could not open for writing: " << filename << endl;
+		cerr << "error: could not open for reading: " << filename << endl;
 		return false;
 	}
 	// todo: look for is in systemwide and ~/.sooperlooper/bindings/

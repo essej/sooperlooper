@@ -77,6 +77,7 @@ namespace SooperLooper {
 		    type_cmd_down,
 		    type_cmd_up,
 		    type_cmd_upforce,
+		    type_cmd_hit,
 		    type_control_change,
 		    type_control_request,
 		    type_global_control_change,

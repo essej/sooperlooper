@@ -81,17 +81,17 @@ class MidiBindDialog
 	wxListCtrl * _listctrl;
 	wxButton * _learn_button;
 
-	wxPanel *   _edit_panel;
-	wxChoice * _control_combo;
-	wxChoice * _loopnum_combo;
+	wxPanel *    _edit_panel;
+	wxChoice *   _control_combo;
+	wxChoice *   _loopnum_combo;
 	wxSpinCtrl * _chan_spin;
-	wxChoice * _type_combo;
+	wxChoice *   _type_combo;
 	wxSpinCtrl * _param_spin;
-	wxPanel   * _range_panel;
+	wxPanel   *  _range_panel;
 	wxTextCtrl * _lbound_ctrl;
 	wxTextCtrl * _ubound_ctrl;
-	wxChoice * _style_combo;
-	
+	wxChoice *   _style_combo;
+	wxCheckBox * _sus_check;
 	
 	GuiFrame * _parent;
 	bool       _justResized;

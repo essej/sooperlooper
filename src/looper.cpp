@@ -309,7 +309,11 @@ Looper::get_control_value (Event::control_t ctrl)
 void
 Looper::do_event (Event *ev)
 {
-	if (ev->Type == Event::type_cmd_down)
+	if (ev->Type == Event::type_cmd_hit) {
+		requested_cmd = ev->Command;
+		request_pending = true;
+	}
+	else if (ev->Type == Event::type_cmd_down)
 	{
 		Event::command_t cmd = ev->Command;
 		if ((int) cmd >= 0 && (int) cmd < (int) Event::LAST_COMMAND) {

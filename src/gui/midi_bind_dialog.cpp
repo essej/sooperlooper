@@ -56,7 +56,8 @@ enum {
 	ID_RemoveButton,
 	ID_ClearAllButton,
 	ID_LoadButton,
-	ID_SaveButton
+	ID_SaveButton,
+	ID_SusCheck
 
 };
 
@@ -179,7 +180,7 @@ void MidiBindDialog::init()
 	_edit_panel = new wxPanel(this, -1);
 	wxBoxSizer * editsizer = new wxBoxSizer(wxHORIZONTAL);
 
-	wxStaticBox * shotBox = new wxStaticBox(_edit_panel, -1, "Command/Control", wxDefaultPosition, wxDefaultSize);
+	wxStaticBox * shotBox = new wxStaticBox(_edit_panel, -1, wxT("Command/Control"), wxDefaultPosition, wxDefaultSize);
         wxStaticBoxSizer * colsizer = new wxStaticBoxSizer(shotBox, wxVERTICAL);
 	
 	//wxBoxSizer * colsizer = new wxBoxSizer(wxVERTICAL);
@@ -194,16 +195,19 @@ void MidiBindDialog::init()
 	colsizer->Add (_control_combo, 0, wxALL|wxALIGN_CENTRE|wxEXPAND, 2);
 
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
-	staticText = new wxStaticText(_edit_panel, -1, "Loop #", wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
+	staticText = new wxStaticText(_edit_panel, -1, wxT("Loop #"), wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
 	rowsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
 	_loopnum_combo =  new wxChoice(_edit_panel, ID_LoopNumCombo, wxDefaultPosition, wxSize(100, -1), 0, 0);
 	_loopnum_combo->Append (wxT("All"), (void *) 0);
 	for (int i=1; i <= 16; ++i) {
-		_loopnum_combo->Append (wxString::Format("%d", i), (void *) i);
+		_loopnum_combo->Append (wxString::Format(wxT("%d"), i), (void *) i);
 	}
 	rowsizer->Add (_loopnum_combo, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
 
+	_sus_check = new wxCheckBox(_edit_panel, ID_SusCheck, wxT("SUS"));
+	rowsizer->Add (_sus_check, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
+	
 	colsizer->Add (rowsizer, 0, wxALL|wxEXPAND, 0);
 
 	editsizer->Add (colsizer, 0, wxALL|wxEXPAND, 4);
@@ -211,17 +215,17 @@ void MidiBindDialog::init()
 	
 	
 	// midi event stuff
-	shotBox = new wxStaticBox(_edit_panel, -1, "MIDI Event", wxDefaultPosition, wxDefaultSize);
+	shotBox = new wxStaticBox(_edit_panel, -1, wxT("MIDI Event"), wxDefaultPosition, wxDefaultSize);
         colsizer = new wxStaticBoxSizer(shotBox, wxVERTICAL);
 	
 	//staticText = new wxStaticText(_edit_panel, -1, "MIDI Event", wxDefaultPosition, wxSize(-1, -1), wxALIGN_CENTRE);
 	//colsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE, 2);
 
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
-	staticText = new wxStaticText(_edit_panel, -1, "Ch#", wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
+	staticText = new wxStaticText(_edit_panel, -1, wxT("Ch#"), wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
 	rowsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
-	_chan_spin =  new wxSpinCtrl(_edit_panel, ID_ChanSpin, "1", wxDefaultPosition, wxSize(50,-1), wxSP_ARROW_KEYS, 1, 16, 1, wxT("KeyAware"));
+	_chan_spin =  new wxSpinCtrl(_edit_panel, ID_ChanSpin, wxT("1"), wxDefaultPosition, wxSize(50,-1), wxSP_ARROW_KEYS, 1, 16, 1, wxT("KeyAware"));
 	rowsizer->Add (_chan_spin, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 	
 	_type_combo = new wxChoice(_edit_panel, ID_TypeCombo,  wxDefaultPosition, wxSize(100, -1), 0, 0);
@@ -231,7 +235,7 @@ void MidiBindDialog::init()
 	_type_combo->Append (PcString);
 	rowsizer->Add (_type_combo, 1, wxALL|wxALIGN_CENTRE_VERTICAL|wxEXPAND, 2);
 
-	_param_spin =  new wxSpinCtrl(_edit_panel, ID_ParamSpin, "0", wxDefaultPosition, wxSize(50,-1), wxSP_ARROW_KEYS, 0, 127, 0, wxT("KeyAware"));
+	_param_spin =  new wxSpinCtrl(_edit_panel, ID_ParamSpin, wxT("0"), wxDefaultPosition, wxSize(50,-1), wxSP_ARROW_KEYS, 0, 127, 0, wxT("KeyAware"));
 	rowsizer->Add (_param_spin, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
 	_learn_button = new wxButton (_edit_panel, ID_LearnButton, wxT("Learn"), wxDefaultPosition, wxSize(-1, -1));
@@ -241,16 +245,16 @@ void MidiBindDialog::init()
 
 	_range_panel = new wxPanel(_edit_panel);
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
-	staticText = new wxStaticText(_range_panel, -1, "Range", wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
+	staticText = new wxStaticText(_range_panel, -1, wxT("Range"), wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
 	rowsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
-	_lbound_ctrl = new wxTextCtrl(_range_panel, ID_LBoundCtrl, "", wxDefaultPosition, wxSize(40, -1), 0, wxDefaultValidator, wxT("KeyAware"));
+	_lbound_ctrl = new wxTextCtrl(_range_panel, ID_LBoundCtrl, wxT(""), wxDefaultPosition, wxSize(40, -1), 0, wxDefaultValidator, wxT("KeyAware"));
 	rowsizer->Add (_lbound_ctrl, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
 
-	staticText = new wxStaticText(_range_panel, -1, " to ", wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
+	staticText = new wxStaticText(_range_panel, -1, wxT(" to "), wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
 	rowsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
-	_ubound_ctrl = new wxTextCtrl(_range_panel, ID_UBoundCtrl, "", wxDefaultPosition, wxSize(40, -1), 0, wxDefaultValidator, wxT("KeyAware"));
+	_ubound_ctrl = new wxTextCtrl(_range_panel, ID_UBoundCtrl, wxT(""), wxDefaultPosition, wxSize(40, -1), 0, wxDefaultValidator, wxT("KeyAware"));
 	rowsizer->Add (_ubound_ctrl, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
 
 	_style_combo =  new wxChoice(_range_panel, ID_StyleCombo,  wxDefaultPosition, wxSize(30, -1), 0, 0);
@@ -348,7 +352,7 @@ void MidiBindDialog::cancelled_next_midi()
 void MidiBindDialog::recvd_next_midi(SooperLooper::MidiBindInfo & info)
 {
 	if (_learning) {
-		cerr << "got next: " << info.serialize() << endl;
+		//cerr << "got next: " << info.serialize() << endl;
 		MidiBindInfo ninfo = _currinfo;
 		ninfo.channel = info.channel;
 		ninfo.param = info.param;
@@ -425,7 +429,12 @@ void MidiBindDialog::refresh_state()
 			item.SetText (wxString::Format(wxT("%g - %g %s"), info.lbound, info.ubound, info.style == MidiBindInfo::GainStyle ? wxT("gain") : wxT("")));
 		}
 		else {
-			item.SetText(wxT(""));
+			if (info.command == "susnote") {
+				item.SetText(wxT("SUS"));
+			}
+			else {
+				item.SetText(wxT(""));
+			}
 		}
 		_listctrl->SetItem (item);
 		
@@ -501,6 +510,12 @@ void MidiBindDialog::update_entry_area(MidiBindInfo * usethis)
 	}
 	else {
 		_range_panel->Enable(false);
+		if (info->command == "susnote") {
+			_sus_check->SetValue(true);
+		}
+		else {
+			_sus_check->SetValue(false);
+		}
 	}
 	
 	_param_spin->SetValue(info->param);
@@ -541,11 +556,16 @@ void MidiBindDialog::update_curr_binding()
 	}
 
 	if (cmap.is_command(_currinfo.control)) {
-		if (_currinfo.type == "n") {
-			_currinfo.command = "note";
+		if (_currinfo.type == "pc") {
+			_currinfo.command = "hit";
 		}
 		else {
-			_currinfo.command = "down";
+			if (_sus_check->GetValue()) {
+				_currinfo.command = "susnote";
+			}
+			else {
+				_currinfo.command = "note";
+			}
 		}
 	}
 	else {

@@ -300,7 +300,6 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 		lo_send(_osc_addr, "/register_update", "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_update", "sss", "tap_tempo", _our_url.c_str(), "/ctrl");
 
-		cerr << "ask for bindings" << endl;
 		lo_send(_osc_addr, "/get_all_midi_bindings", "ss", _our_url.c_str(), "/recv_midi_bindings");
 		
 		_pingack = true;
@@ -393,7 +392,6 @@ LoopControl::midi_binding_handler(const char *path, const char *types, lo_arg **
 		MidiBindingChanged(info); // emit
 	}
 	else if (status == "recv") {
-		cerr << "got recieve" << endl;
 		info.unserialize (bindstr);
 		ReceivedNextMidi(info); // emit
 	}

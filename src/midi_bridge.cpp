@@ -186,13 +186,19 @@ MidiBridge::finish_learn(MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 			_learninfo.param = param;
 
 			// if type is n, then lets force the command to be note as well
-			if (_learninfo.type == "n" && CommandMap::instance().is_command(_learninfo.control)) {
-				_learninfo.command = "note";
+			if (CommandMap::instance().is_command(_learninfo.control)) {
+				if (_learninfo.type == "pc") {
+					_learninfo.command = "hit";
+				}
+				else {
+					_learninfo.command = "note";
+				}
 			}
 			
 			//_bindings.add_binding(_learninfo);
 			// notify of new learn
-			cerr << "learned new one: " << _learninfo.serialize() << endl;
+			//cerr << "learned new one: " << _learninfo.serialize() << endl;
+
 			BindingLearned(_learninfo); // emit
 		}
 		else {
@@ -209,11 +215,11 @@ MidiBridge::finish_learn(MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 			info.param = param;
 
 			// notify of new learn
-			cerr << "recvd new one: " << info.serialize() << endl;
+			//cerr << "recvd new one: " << info.serialize() << endl;
 			NextMidiReceived (info); // emit
 		}
 		else {
-			cerr << "invalid event to get: " << (int) chcmd  << endl;
+			//cerr << "invalid event to get: " << (int) chcmd  << endl;
 		}
 		_getnext = false;
 	}
@@ -222,14 +228,14 @@ MidiBridge::finish_learn(MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 void
 MidiBridge::cancel_learn()
 {
-	cerr << "cancel learn" << endl;
+	//cerr << "cancel learn" << endl;
 	_learning = false;
 }
 
 void
 MidiBridge::cancel_get_next()
 {
-	cerr << "cancel get next" << endl;
+	//cerr << "cancel get next" << endl;
 	_getnext = false;
 }
 
@@ -247,6 +253,13 @@ MidiBridge::incoming_midi (Parser &p, byte *msg, size_t len)
 // 		return;
 // 	}
 
+	// convert noteoffs to noteons with val = 0
+	if ((msg[0] & 0xF0) == MIDI::off) {
+ 		b1 = MIDI::on | (b1 & 0x0F);
+		b3 = 0;
+	}
+	
+	
 	if (_learning || _getnext) {
 		finish_learn(b1, b2, b3);
 	}
@@ -325,6 +338,14 @@ MidiBridge::send_osc (const MidiBindInfo & info, float val)
 			}
 			else {
 				cmd = "up";
+			}
+		}
+		else if (cmd == "susnote") {
+			if (val > 0.0f) {
+				cmd = "down";
+			}
+			else {
+				cmd = "upforce";
 			}
 		}
 

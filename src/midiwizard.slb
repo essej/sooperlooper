@@ -5,16 +5,16 @@
 #    cmd is one of:  note down up set
 #    scale_style is one of:  gain 
 
-0 pc 0	down	undo		0
-0 pc 1	down	redo		0
-0 pc 2	down	replace		0
-0 pc 3	down	reverse		0
-0 pc 4	down	scratch		0
-0 pc 5	down	record		0
-0 pc 6	down	overdub		0
-0 pc 7	down	multiply  	0
-0 pc 8	down	insert  	0
-0 pc 9	down	mute	  	0
+0 pc 0	hit	undo		0
+0 pc 1	hit	redo		0
+0 pc 2	hit	replace		0
+0 pc 3	hit	reverse		0
+0 pc 4	hit	scratch		0
+0 pc 5	hit	record		0
+0 pc 6	hit	overdub		0
+0 pc 7	hit	multiply  	0
+0 pc 8	hit	insert  	0
+0 pc 9	hit	mute	  	0
 
 # 0 cc 0  set	feedback	0	0.0	1.0		
 # 0 cc 1  set	dry		0	0.0	1.0	gain	
