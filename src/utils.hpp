@@ -52,7 +52,7 @@ static inline float flush_to_zero(float f)
 static inline float f_max(float x, float a)
 {
 	x -= a;
-	x += fabs(x);
+	x += fabsf(x);
 	x *= 0.5;
 	x += a;
 
@@ -62,7 +62,7 @@ static inline float f_max(float x, float a)
 static inline float f_min(float x, float b)
 {
 	x = b - x;
-	x += fabs(x);
+	x += fabsf(x);
 	x *= 0.5;
 	x = b - x;
 
@@ -71,8 +71,8 @@ static inline float f_min(float x, float b)
 
 static inline float f_clamp(float x, float a, float b)
 {
-	const float x1 = fabs(x - a);
-	const float x2 = fabs(x - b);
+	const float x1 = fabsf(x - a);
+	const float x2 = fabsf(x - b);
 
 	x = x1 + a + b;
 	x -= x2;
