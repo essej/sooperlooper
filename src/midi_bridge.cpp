@@ -181,8 +181,12 @@ MidiBridge::load_bindings (std::string filename)
 		if (stylestr[0] == 'g') {
 			style = EventInfo::GainStyle;
 		}
+
+		if (_bindings.find(key) == _bindings.end()) {
+			_bindings.insert (BindingsMap::value_type ( key, EventList()));
+		}
 		
-		_bindings[key] =  EventInfo(type, ctrl, instance, lbound, ubound, style);
+		_bindings[key].push_back (EventInfo(type, ctrl, instance, lbound, ubound, style));
 		cerr << "added binding: " << type << "  "  << ctrl << "  " << instance << "  " << lbound << "  " << ubound << endl;
 	}
 
@@ -204,20 +208,23 @@ MidiBridge::queue_midi (int chcmd, int param, int val)
 	
 	if (iter != _bindings.end())
 	{
-		EventInfo & info = (*iter).second;
-		float scaled_val;
-		
-		if (info.style == EventInfo::GainStyle) {
-			scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
-			scaled_val = uniform_position_to_gain (scaled_val);
+		EventList & elist = (*iter).second;
+
+		for (EventList::iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
+			EventInfo & info = (*eiter);
+			float scaled_val;
+			
+			if (info.style == EventInfo::GainStyle) {
+				scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
+				scaled_val = uniform_position_to_gain (scaled_val);
+			}
+			else {
+				scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
+			}
+			// cerr << "found binding: val is " << val << "  scaled: " << scaled_val << endl;
+			
+			send_osc (info, scaled_val);
 		}
-		else {
-			scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
-		}
-		// cerr << "found binding: val is " << val << "  scaled: " << scaled_val << endl;
-		
-		send_osc (info, scaled_val);
-		
 	}
 	else if (chcmd == 0xfa) {  // MIDI start
 		lo_send(_addr, "/sl/midi_start", "");

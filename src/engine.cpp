@@ -309,6 +309,7 @@ Engine::process (nframes_t nframes)
 					_instances[syncm]->do_event (evt);
 				}
 			}
+
 			
 			for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i, ++m)
 			{
@@ -338,7 +339,8 @@ Engine::process (nframes_t nframes)
 			syncm = (int) _sync_source - 1;
 			_instances[syncm]->run (usedframes, nframes - usedframes);
 		}
-
+		
+		
 		// run the rest of the frames
 		for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i ,++m) {
 			if (syncm == m) continue;

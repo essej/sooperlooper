@@ -37,11 +37,14 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
    
 /*****************************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <values.h>
 #include <string.h>
-#include <math.h>
+
+#include <cstdio>
+#include <cmath>
+#include <cstdlib>
+
+using namespace std;
 
 /*****************************************************************************/
 
@@ -174,6 +177,10 @@ enum {
 
 #define LIMIT_BETWEEN_0_AND_MAX_DELAY(x)  \
 (((x) < 0) ? 0 : (((x) > MAX_DELAY) ? MAX_DELAY : (x)))
+
+#define MAX(x,y) \
+(((x) < (y)) ? (y) : (x))
+
 
 // Convert a value in dB's to a coefficent
 #define DB_CO(g) ((g) > -90.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
@@ -1362,7 +1369,7 @@ runSooperLooper(LADSPA_Handle Instance,
   if (pLS->pfScratchPos) {
 	  scratchTarget = LIMIT_BETWEEN_0_AND_1(*(pLS->pfScratchPos));
 	  fScratchPos =  LIMIT_BETWEEN_0_AND_1(pLS->fScratchPosCurr);
-	  scratchDelta = (scratchTarget - fScratchPos) / (SampleCount - 1);
+	  scratchDelta = (scratchTarget - fScratchPos) / MAX(1, (SampleCount - 1));
   }
   
   // the rate switch is ON if it is below 1 but not 0
@@ -1377,7 +1384,7 @@ runSooperLooper(LADSPA_Handle Instance,
   if (pLS->pfWet) {
 	  wetTarget = LIMIT_BETWEEN_0_AND_1(*(pLS->pfWet));
 	  fWet =  LIMIT_BETWEEN_0_AND_1(pLS->fWetCurr);
-	  wetDelta = (wetTarget - fWet) / (SampleCount - 1);
+	  wetDelta = (wetTarget - fWet) / MAX(1, (SampleCount - 1));
 
 // 	  wetTarget += wetDelta;
 // 	  fWet = fWet * 0.1f + wetTarget * 0.9f;
@@ -1387,13 +1394,13 @@ runSooperLooper(LADSPA_Handle Instance,
   if (pLS->pfDry) {
 	  dryTarget = LIMIT_BETWEEN_0_AND_1(*(pLS->pfDry));
 	  fDry =  LIMIT_BETWEEN_0_AND_1(pLS->fDryCurr);
-	  dryDelta = (dryTarget - fDry) / (SampleCount - 1);
+	  dryDelta = (dryTarget - fDry) / MAX(1, (SampleCount - 1));
   }
 
   if (pLS->pfFeedback) {
 	  feedbackTarget = LIMIT_BETWEEN_0_AND_1(*(pLS->pfFeedback));
 	  fFeedback =  LIMIT_BETWEEN_0_AND_1(pLS->fFeedbackCurr);
-	  feedbackDelta = (feedbackTarget - fFeedback) / (SampleCount - 1);
+	  feedbackDelta = (feedbackTarget - fFeedback) / MAX(1, (SampleCount - 1));
 	  
 	  // probably against the rules, but I'm doing it anyway
 	  *pLS->pfFeedback = feedbackTarget;

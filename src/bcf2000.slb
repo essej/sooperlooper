@@ -20,6 +20,7 @@
 9 n 42	note	oneshot	  	0
 
 0 cc 7  set	dry		0	0.0	1.0	gain
+0 cc 7  set	wet		0	0.0	1.0	gain	
 1 cc 7  set	wet		0	0.0	1.0	gain	
 2 cc 7  set	feedback	0	0.0	1.0		
 3 cc 7  set	rec_thresh	0	0.0	1.0	gain	

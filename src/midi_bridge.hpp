@@ -25,6 +25,7 @@
 #include <cstdio>
 
 #include <string>
+#include <vector>
 #include <map>
 
 namespace SooperLooper {
@@ -76,8 +77,9 @@ class MidiBridge
 	void send_osc (EventInfo & info, float val);
 	
 	std::FILE * search_open_file (std::string filename);
-	
-	typedef std::map<int, EventInfo> BindingsMap;
+
+	typedef std::vector<EventInfo> EventList;
+	typedef std::map<int, EventList> BindingsMap;
 
 	std::map<std::string, int> _typemap;
 	
