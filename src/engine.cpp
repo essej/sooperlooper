@@ -92,12 +92,12 @@ bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 	// create common io ports
 	for (int i=0; i < 2; ++i) 
 	{
-		snprintf(tmpstr, sizeof(tmpstr), "master_in_%d", i+1);
+		snprintf(tmpstr, sizeof(tmpstr), "Maain_in_%d", i+1);
 		if (_driver->create_input_port (tmpstr, tmpport)) {
 			_common_inputs.push_back (tmpport);
 		}
 
-		snprintf(tmpstr, sizeof(tmpstr), "master_out_%d", i+1);
+		snprintf(tmpstr, sizeof(tmpstr), "Main_out_%d", i+1);
 		if (_driver->create_output_port (tmpstr, tmpport)) {
 			_common_outputs.push_back (tmpport);
 		}
@@ -825,7 +825,7 @@ Engine::mainloop()
 		{
 			ConfigUpdateEvent cu_event(ConfigUpdateEvent::Send, -2, Event::Tempo, "", "", (float) _tempo);
 			_osc->finish_update_event (cu_event);
-			
+			cerr << "sent tempo changed event: " << _tempo << endl;
 			_tempo_changed = false;
 		}
 
@@ -1415,7 +1415,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			}
 			
 			if (ntempo != _tempo) {
-				//cerr << "new tempo is: " << ntempo << endl;
+				cerr << "new tempo is: " << ntempo << endl;
 
 				set_tempo(ntempo);
 

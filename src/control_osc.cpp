@@ -1197,11 +1197,10 @@ ControlOSC::send_registered_updates(string ctrl, float val, int instance, int so
 
 			if (aport == source) {
 				// ignore if this was caused by a set from this addr
-				cerr << "ignoreing address to send update" << endl;
-				continue;
+				//cerr << "ignoreing address to send update for " << ctrl << "  port: " << aport << "  " << port << endl;
 			}
 
-			if (lo_send(addr, (*url).second.c_str(), "isf", instance, ctrl.c_str(), val) == -1) {
+			else if (lo_send(addr, (*url).second.c_str(), "isf", instance, ctrl.c_str(), val) == -1) {
 #ifdef DEBUG
 				fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
 #endif

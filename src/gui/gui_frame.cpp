@@ -181,15 +181,15 @@ GuiFrame::init()
 	wxFont sliderFont = *wxSMALL_FONT;
 
 	wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
-	wxPanel * toppanel = new wxPanel(this);
-	toppanel->SetThemeEnabled(false);
-	toppanel->SetBackgroundColour(*wxBLACK);
+	_top_panel = new wxPanel(this);
+	_top_panel->SetThemeEnabled(false);
+	_top_panel->SetBackgroundColour(*wxBLACK);
 
 	wxBoxSizer * topcolsizer = new wxBoxSizer(wxVERTICAL);
 	
 	rowsizer->Add (1, 1, 1);
 
-	_sync_choice = new ChoiceBox (toppanel, ID_SyncChoice, true, wxDefaultPosition, wxSize (130, 22));
+	_sync_choice = new ChoiceBox (_top_panel, ID_SyncChoice, true, wxDefaultPosition, wxSize (130, 22));
 	_sync_choice->set_label (wxT("sync to"));
 	_sync_choice->SetFont (sliderFont);
 	_sync_choice->value_changed.connect (slot (*this,  &GuiFrame::on_syncto_change));
@@ -197,7 +197,7 @@ GuiFrame::init()
 	
 	rowsizer->Add (_sync_choice, 0, wxALL, 2);
 	
-	_tempo_bar = new SpinBox(toppanel, ID_TempoSlider, 0.0f, 10000.0f, 110.0f, true, wxDefaultPosition, wxSize(120, 22));
+	_tempo_bar = new SpinBox(_top_panel, ID_TempoSlider, 0.0f, 10000.0f, 110.0f, true, wxDefaultPosition, wxSize(120, 22));
 	_tempo_bar->set_units(wxT("bpm"));
 	_tempo_bar->set_label(wxT("tempo"));
 	_tempo_bar->set_snap_mode (SpinBox::IntegerSnap);
@@ -207,7 +207,7 @@ GuiFrame::init()
 	_tempo_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("tempo")));
 	rowsizer->Add (_tempo_bar, 0, wxALL, 2);
 
- 	_taptempo_button = new PixButton(toppanel, ID_TapTempoButton, true);
+ 	_taptempo_button = new PixButton(_top_panel, ID_TapTempoButton, true);
 	_taptempo_button->set_normal_bitmap (wxBitmap(tap_tempo_normal));
 	_taptempo_button->set_selected_bitmap (wxBitmap(tap_tempo_selected));
 	_taptempo_button->set_focus_bitmap (wxBitmap(tap_tempo_focus));
@@ -219,7 +219,7 @@ GuiFrame::init()
  	rowsizer->Add (_taptempo_button, 0, wxALL, 2);
 	
 
-	_eighth_cycle_bar = new SpinBox(toppanel, ID_EighthSlider, 1.0f, 1024.0f, 16.0f, true, wxDefaultPosition, wxSize(110, 22));
+	_eighth_cycle_bar = new SpinBox(_top_panel, ID_EighthSlider, 1.0f, 1024.0f, 16.0f, true, wxDefaultPosition, wxSize(110, 22));
 	_eighth_cycle_bar->set_units(wxT(""));
 	_eighth_cycle_bar->set_label(wxT("8th/cycle"));
 	_eighth_cycle_bar->set_snap_mode (SpinBox::IntegerSnap);
@@ -230,7 +230,7 @@ GuiFrame::init()
 	rowsizer->Add (_eighth_cycle_bar, 0, wxALL, 2);
 	
 
-	_quantize_choice = new ChoiceBox (toppanel, ID_QuantizeChoice, true, wxDefaultPosition, wxSize (110, 22));
+	_quantize_choice = new ChoiceBox (_top_panel, ID_QuantizeChoice, true, wxDefaultPosition, wxSize (110, 22));
 	_quantize_choice->SetFont (sliderFont);
 	_quantize_choice->set_label (wxT("quantize"));
 	_quantize_choice->value_changed.connect (slot (*this,  &GuiFrame::on_quantize_change));
@@ -244,7 +244,7 @@ GuiFrame::init()
 	
 	rowsizer->Add (1, 1, 1);
 
-	wxStaticBitmap * logobit = new wxStaticBitmap(toppanel, -1, wxBitmap(sl_logo_xpm));
+	wxStaticBitmap * logobit = new wxStaticBitmap(_top_panel, -1, wxBitmap(sl_logo_xpm));
 	rowsizer->Add (logobit, 0, wxALIGN_BOTTOM);
 
 	topcolsizer->Add (rowsizer, 0, wxEXPAND|wxTOP, 3);
@@ -252,7 +252,7 @@ GuiFrame::init()
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	rowsizer->Add (1, 1, 1);
 
-	_xfade_bar = new SpinBox(toppanel, ID_XfadeSlider, 0.0f, 128000.0f, 64.0f, true, wxDefaultPosition, wxSize(100, 22));
+	_xfade_bar = new SpinBox(_top_panel, ID_XfadeSlider, 0.0f, 128000.0f, 64.0f, true, wxDefaultPosition, wxSize(100, 22));
 	_xfade_bar->set_units(wxT(""));
 	_xfade_bar->set_label(wxT("xfade"));
 	_xfade_bar->SetToolTip(wxT("operation crossfade length in samples"));
@@ -263,7 +263,7 @@ GuiFrame::init()
 	_xfade_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("fade_samples")));
 	rowsizer->Add (_xfade_bar, 0, wxALL, 2);
 
-	_common_dry_bar = new SliderBar(toppanel, ID_DryControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(200,22));
+	_common_dry_bar = new SliderBar(_top_panel, ID_DryControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(200,22));
 	_common_dry_bar->set_units(wxT("dB"));
 	_common_dry_bar->set_label(wxT("main dry"));
 	_common_dry_bar->set_scale_mode(SliderBar::ZeroGainMode);
@@ -272,7 +272,7 @@ GuiFrame::init()
 	_common_dry_bar->bind_request.connect (bind (slot (*this, &GuiFrame::on_bind_request), wxT("dry")));
 	rowsizer->Add (_common_dry_bar, 0, wxALL, 2);
 
-	_common_wet_bar = new SliderBar(toppanel, ID_WetControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(200,22));
+	_common_wet_bar = new SliderBar(_top_panel, ID_WetControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(200,22));
 	_common_wet_bar->set_units(wxT("dB"));
 	_common_wet_bar->set_label(wxT("main wet"));
 	_common_wet_bar->set_scale_mode(SliderBar::ZeroGainMode);
@@ -283,7 +283,7 @@ GuiFrame::init()
 	
 
 	
-	_round_check = new CheckBox (toppanel, ID_RoundCheck, wxT("round"), true, wxDefaultPosition, wxSize(80, 22));
+	_round_check = new CheckBox (_top_panel, ID_RoundCheck, wxT("round"), true, wxDefaultPosition, wxSize(80, 22));
 	_round_check->SetFont (sliderFont);
 	_round_check->value_changed.connect (slot (*this, &GuiFrame::on_round_check));
 	_round_check->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("round")));
@@ -294,11 +294,11 @@ GuiFrame::init()
 	topcolsizer->Add (rowsizer, 0, wxEXPAND|wxBOTTOM, 3);
 
 	
-	toppanel->SetSizer( topcolsizer );      // actually set the sizer
-	topcolsizer->Fit( toppanel );            // set size to minimum size as calculated by the sizer
-	topcolsizer->SetSizeHints( toppanel );   // set size hints to honour mininum size
+	_top_panel->SetSizer( topcolsizer );      // actually set the sizer
+	topcolsizer->Fit( _top_panel );            // set size to minimum size as calculated by the sizer
+	topcolsizer->SetSizeHints( _top_panel );   // set size hints to honour mininum size
 
-	_topsizer->Add (toppanel, 0, wxEXPAND);
+	_topsizer->Add (_top_panel, 0, wxEXPAND);
 
 	
 	_scroller = new wxScrolledWindow(this, -1, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
@@ -424,7 +424,14 @@ GuiFrame::init_loopers (int count)
 
 		// maybe resize
 		if (_looper_panels.size() <= 4) {
-			SetSize(GetSize().GetWidth(), bestsz.GetHeight() * _looper_panels.size()  + 64); 
+			int topheight = _top_panel->GetSize().GetHeight();
+#ifndef __WXMAC__
+			if (GetMenuBar()) {
+				topheight += GetMenuBar()->GetSize().GetHeight();
+			}
+#endif
+			cerr << "topheight = " <<  topheight << endl;
+			SetSize(GetSize().GetWidth(), bestsz.GetHeight() * _looper_panels.size()  + topheight); 
 		}
 
  	}
@@ -496,6 +503,7 @@ GuiFrame::update_controls()
 	float val;
 
 	if (_loop_control->is_global_updated("tempo")) {
+		cerr << "setting tempo" << endl;
 		_loop_control->get_global_value("tempo", val);
 		_tempo_bar->set_value (val);
 	}

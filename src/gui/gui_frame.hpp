@@ -138,6 +138,7 @@ protected:
 	wxScrolledWindow * _scroller;
 	wxBoxSizer * _main_sizer;
 	wxBoxSizer * _topsizer;
+	wxPanel    * _top_panel;
 
 	SpinBox * _tempo_bar;
 	ChoiceBox * _sync_choice;

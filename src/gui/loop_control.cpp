@@ -586,10 +586,11 @@ LoopControl::control_handler(const char *path, const char *types, lo_arg **argv,
 		    || _global_val_map[ctrl] != val)
 		{
 			_global_updated[ctrl] = true;
+
 		}
 	
 		_global_val_map[ctrl] = val;
-
+		
 		return 0;
 	}
 	else if (index < 0) {
@@ -905,6 +906,9 @@ LoopControl::post_ctrl_change (int index, wxString ctrl, float val)
 	if (!_osc_addr) return false;
 	char buf[30];
 
+	// go ahead and update our local copy
+	_params_val_map[index][ctrl] = val;
+	
 	snprintf(buf, sizeof(buf), "/sl/%d/set", index);
 
 	if (lo_send(_osc_addr, buf, "sf", ctrl.c_str(), val) == -1) {
@@ -919,6 +923,9 @@ LoopControl::post_global_ctrl_change (wxString ctrl, float val)
 {
 	if (!_osc_addr) return false;
 
+	// go ahead and update our local copy
+	_global_val_map[ctrl] = val;
+	
 	if (lo_send(_osc_addr, "/set", "sf", ctrl.c_str(), val) == -1) {
 		return false;
 	}

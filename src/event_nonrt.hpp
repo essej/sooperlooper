@@ -120,8 +120,8 @@ namespace SooperLooper {
 			Send
 		} type;
 
-		ConfigUpdateEvent(Type tp, int8_t inst,  Event::control_t ctrl, std::string returl="", std::string retpath="", float val=0.0, int source=0)
-			: type(tp), control(ctrl), instance(inst), ret_url(returl), ret_path(retpath), value(val) {}
+		ConfigUpdateEvent(Type tp, int8_t inst,  Event::control_t ctrl, std::string returl="", std::string retpath="", float val=0.0, int src=-1)
+			: type(tp), control(ctrl), instance(inst), ret_url(returl), ret_path(retpath), value(val), source(src) {}
 		virtual ~ConfigUpdateEvent() {}
 
 		

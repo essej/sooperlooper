@@ -942,6 +942,8 @@ LooperPanel::rate_button_event (int button, float rate)
 // 	post_control_event (wxString("use_rate"), val);
 
 	post_control_event (wxString("rate"), rate);
+	update_rate_buttons (rate);
+	_rate_control->set_value (rate);
 }
 
 void
