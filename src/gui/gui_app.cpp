@@ -341,7 +341,9 @@ bool GuiApp::OnInit()
 	_frame = new GuiFrame (wxT("SooperLooper"), wxPoint(100, 100), wxDefaultSize);
 
 #ifdef __WXMAC__
-	_exec_name = GetExecutablePath(argv[0]) + "sooperlooper";
+	if (_exec_name.empty()) {
+		_exec_name = GetExecutablePath(argv[0]) + "sooperlooper";
+	}
 #endif
 	// escape all spaces with
 	_exec_name.Replace (wxT(" "), wxT("\\ "), true);
