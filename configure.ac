@@ -7,7 +7,7 @@ SOOP_MAJOR_VERSION=1
 SOOP_MINOR_VERSION=0
 SOOP_MICRO_VERSION=0
 
-BETA=dev15
+BETA=dev16
 
 AC_SUBST(SOOP_MAJOR_VERSION)
 AC_SUBST(SOOP_MINOR_VERSION)
@@ -93,20 +93,26 @@ AC_SUBST(SNDFILE_CFLAGS)
 AC_SUBST(SNDFILE_LIBS)
 
 dnl wxwindows
-AC_PATH_PROG(WX_CONFIG1, wxgtk2-2.4-config, no, $PATH:/usr/local/bin )
+AC_PATH_PROG(WX_CONFIG1, wxgtk2-2.5-config, no, $PATH:/usr/local/bin )
 if [[ "$WX_CONFIG1" = "no" ]] ; then
 
-	AC_PATH_PROG(WX_CONFIG2, wxgtk-2.4-config, no, $PATH:/usr/local/bin )
+	AC_PATH_PROG(WX_CONFIG2, wxgtk2-2.4-config, no, $PATH:/usr/local/bin )
 	if [[ "$WX_CONFIG2" = "no" ]] ; then
 
-		AC_PATH_PROG(WX_CONFIG3, wx-config, no, $PATH:/usr/local/bin )
+		AC_PATH_PROG(WX_CONFIG3, wxgtk-2.4-config, no, $PATH:/usr/local/bin )
 		if [[ "$WX_CONFIG3" = "no" ]] ; then
-        		AC_MSG_ERROR("Could not find any wx-config scripts: is wxWindows installed?")
-		else	
+
+			AC_PATH_PROG(WX_CONFIG4, wx-config, no, $PATH:/usr/local/bin )
+			if [[ "$WX_CONFIG4" = "no" ]] ; then
+        			AC_MSG_ERROR("Could not find any wx-config scripts: is wxWindows installed?")
+			else	
+	   			WX_CONFIG=$WX_CONFIG4
+			fi
+		else
 	   		WX_CONFIG=$WX_CONFIG3
 		fi
 	else
-	   WX_CONFIG=$WX_CONFIG2
+		WX_CONFIG=$WX_CONFIG2
 	fi
 else	
    WX_CONFIG=$WX_CONFIG1
