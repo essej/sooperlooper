@@ -1,5 +1,5 @@
 /* SooperLooper.c  :  
-   Copyright (C) 2002 Jesse Chappell <jesse@essej.net>
+   Copyright (C) 2002-2005 Jesse Chappell <jesse@essej.net>
 
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,22 +17,8 @@
 // ------------------------------------------------------------------------
 
 
-   This LADSPA plugin provides an Echoplex like realtime sampling
-   looper.  Plus some extra features.
+   This is still based on the original LADSPA plugin, yeah it's a mess.
 
-   There is a fixed maximum sample memory.  The featureset is derived
-   from the Gibson-Oberheim Echoplex Digital Pro.
-
-
-Example ecasound call assuming the following MIDI controllers on channel 0:
-  CC0 - footswitch for setting tap tempo
-  CC2 - Wet level
-  CC3 - Feedback (and Rate for scratch mode)
-  CC5 - Scratch position
-  MIDI Program changes for MultiControl triggering.
-
-ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/dsp -f:s16_le,1,44100 -o:/dev/dsp -b:128 -el:SooperLooper,0.1,1,1,1,1,0,-1,0,0,0,0,0  -km:3,1,0,2,0 -km:5,0,2,3,0 -km:6,-1,1,5,0 -km:7,0,127,32,0,1 -km:4,1,0,3,0 -km:8,0,1,0,0
-   
 */
    
 /*****************************************************************************/
@@ -264,7 +250,8 @@ static LoopChunk * ensureLoopSpace(SooperLooperI* pLS, LoopChunk *loop, unsigned
 		loop->frontfill = 0;
 		loop->backfill = 0;
 		loop->valid = 1;
-		
+		loop->mult_out = 0;
+			
 		loop->next = NULL;
 		loop->prev = pLS->headLoopChunk;
 		if (loop->prev) {
@@ -766,9 +753,27 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
    LoopChunk * srcloop = loop;
    int xfadeSamples = (int) (*pLS->pfXfadeSamples);
    if (xfadeSamples < 1) xfadeSamples = 1;
-   
-   // make new loop chunk
-   loop = pushNewLoopChunk(pLS, loop->lCycleLength, loop);
+
+   // first check if this is a multi-increase
+   if (loop && loop->mult_out == (int)loop->lCycles && loop->backfill) {
+	   //fprintf(stderr, "got a first multi-increase\n");
+	   // increase by one cycle length
+
+	   loop->mult_out += 1;
+	   pLS->state = STATE_MULTIPLY;
+	   
+	   pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
+	   pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+	   
+	   pLS->nextState = STATE_PLAY;
+
+	   return loop;
+   }
+   else {
+	   // make new loop chunk
+	   loop = pushNewLoopChunk(pLS, loop->lCycleLength, loop);
+   }
+	   
    if (loop) {
       // if there is no source bail
       if (!loop->prev) {
@@ -1633,7 +1638,16 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // set mark
 		      if (fSyncMode == 0.0f) {
 			      if (loop) {
-				      loop = endMultiply(pLS, loop, STATE_PLAY);
+				      if (loop->mult_out > 0) {
+					      // we're in a multiincrease
+					      loop->mult_out += 1;
+					      //fprintf(stderr, "mult out added for %d\n", loop->mult_out);
+				      }
+				      else {
+					      loop->mult_out = loop->lCycles;
+					      //fprintf(stderr, "mult out initiated\n");
+					      loop = endMultiply(pLS, loop, STATE_PLAY);
+				      }
 			      }
 
 			      // put a sync marker at the beginning here
@@ -2746,7 +2760,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		 if ((unsigned long)loop->dCurrPos  > (loop->lLoopLength)) {
 
 
-			 if ((unsigned long)loop->dCurrPos >= loop->lMarkEndH) {
+			 if (loop->mult_out == (int) loop->lCycles
+			     || (unsigned long)loop->dCurrPos >= loop->lMarkEndH) {
 				 // we be done this only happens in round mode
 				 // adjust curr position
 				 loop->lMarkEndH = LONG_MAX;
@@ -2756,10 +2771,12 @@ runSooperLooper(LADSPA_Handle Instance,
 				 
 				 loop->lLoopLength = loop->lCycles * loop->lCycleLength;
 				 
-				 
+				 // fprintf(stderr, "mult is over with %d cyc\n", loop->lCycles);
 				 loop = transitionToNext(pLS, loop, pLS->nextState);
 				 break;
 			 }
+
+			 
 			 // increment cycle and looplength
 			 loop->lCycles += 1;
 			 loop->lLoopLength += loop->lCycleLength;

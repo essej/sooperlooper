@@ -128,6 +128,7 @@ typedef struct _LoopChunk {
 	int frontfill;
 	int backfill;
 	int valid;
+	int mult_out; // used for multi-increase
 	
 	unsigned long lCycles;
 	unsigned long lCycleLength;

@@ -422,12 +422,14 @@ SpinBox::OnMouseEvents (wxMouseEvent &ev)
 
 	if (ev.Entering() && !_dragging) {
 		//_borderbrush.SetColour(_overbarcolor);
+		_direction = ev.GetX() < _width/2 ? -1.0f : 1.0f; 
 		_barbrush.SetColour(_overbarcolor);
 		Refresh(false);
 	}
 	else if (ev.Leaving() && !_dragging) {
 		_barbrush.SetColour(_bgcolor);
 		//_borderbrush.SetColour(_bgcolor);
+		_direction = 0;
 		Refresh(false);
 	}
 	
@@ -605,11 +607,12 @@ void SpinBox::draw_area(wxDC & dc)
 
 	dc.DrawPolygon (8, _border_shape);
 	
-	
 	dc.SetPen(*wxTRANSPARENT_PEN);
 	dc.SetBrush(_barbrush);
 
-	dc.DrawPolygon (5, _bar_shape);
+	if (_direction != 0.0f) {
+		dc.DrawPolygon (5, _bar_shape);
+	}
 	
 	dc.SetTextForeground(_textcolor);
 	dc.GetTextExtent(_label_str, &w, &h);
