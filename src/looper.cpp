@@ -124,7 +124,7 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	ports[Sync] = 0.0f;
 	ports[Quantize] = 0.0f;
 	ports[UseRate] = 0.0f;
-	ports[FadeSamples] = nearbyint(srate * 0.001f); // 1ms
+	ports[FadeSamples] = 64.0f;
 	ports[PlaybackSync] = 0.0f;
 	
 	_slave_sync_port = 1.0f;

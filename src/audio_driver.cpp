@@ -23,8 +23,8 @@
 using namespace SooperLooper;
 using namespace std;
 
-AudioDriver::AudioDriver(string client_name)
-	: _client_name(client_name), _engine(0), _samplerate(0)
+AudioDriver::AudioDriver(string client_name, string serv_name)
+	: _client_name(client_name), _server_name(serv_name), _engine(0), _samplerate(0)
 {
 
 }

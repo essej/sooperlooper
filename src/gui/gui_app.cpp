@@ -122,6 +122,7 @@ GuiApp::usage(char *argv0)
 	fprintf(stderr, "  -t <numsecs> , --looptime=<num>  number of seconds of loop memory per channel (default is %g)\n", DEFAULT_LOOP_TIME);
 	fprintf(stderr, "  -p <num> , --osc-port=<num>  udp port number for OSC server (default is %d)\n", DEFAULT_OSC_PORT);
 	fprintf(stderr, "  -j <str> , --jack-name=<str> jack client name, default is sooperlooper_1\n");
+	fprintf(stderr, "  -S <str> , --jack-server-name=<str> specify jack server name\n");
 	fprintf(stderr, "  -m <str> , --load-midi-binding=<str> loads midi binding from file or preset\n");
 	fprintf(stderr, "  -q , --quiet                 do not output status to stderr\n");
 	fprintf(stderr, "  -h , --help                  this usage output\n");

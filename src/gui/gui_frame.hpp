@@ -102,6 +102,7 @@ protected:
 	
 	void on_tempo_change (float value);
 	void on_eighth_change (float value);
+	void on_xfade_change (float value);
 	void on_syncto_change (int index, wxString val);
 
 	void on_quantize_change (int index, wxString val);
@@ -140,6 +141,7 @@ protected:
 	SliderBar * _eighth_cycle_bar;
 	ChoiceBox * _quantize_choice;
 	//wxCheckBox * _round_check;
+	SliderBar * _xfade_bar;
 	CheckBox * _round_check;
 	PixButton * _taptempo_button;
 	float _tapdelay_val;

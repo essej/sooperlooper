@@ -36,7 +36,7 @@ class JackAudioDriver
 	: public AudioDriver
 {
   public:
-	JackAudioDriver(std::string client_name="");
+	JackAudioDriver(std::string client_name="", std::string serv_name="");
 	virtual ~JackAudioDriver();
 
 	bool initialize(std::string client_name="");

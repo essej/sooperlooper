@@ -71,6 +71,7 @@ struct option long_options[] = {
 	{ "looptime", 1, 0, 't' },
 	{ "osc-port", 1, 0, 'p' },
 	{ "jack-name", 1, 0, 'j' },
+	{ "jack-server-name", 1, 0, 'S' },
 	{ "load-midi-binding", 1, 0, 'm' },
 	{ "ping-url", 1, 0, 'U' },
 	{ "version", 0, 0, 'V' },
@@ -89,6 +90,7 @@ struct OptionInfo
 	int channels;
 	bool quiet;
 	string jack_name;
+	string jack_server_name;
 	int oscport;
 	string bindfile;
 	float loopsecs;
@@ -112,6 +114,7 @@ static void usage(char *argv0)
 	fprintf(stderr, "  -t <numsecs> , --looptime=<num>  number of seconds of loop memory per channel (default is %g), at least\n", DEFAULT_LOOP_TIME);
 	fprintf(stderr, "  -p <num> , --osc-port=<num>  udp port number for OSC server (default is %d)\n", DEFAULT_OSC_PORT);
 	fprintf(stderr, "  -j <str> , --jack-name=<str> jack client name, default is sooperlooper_1\n");
+	fprintf(stderr, "  -S <str> , --jack-server-name=<str> specify jack server name\n");
 	fprintf(stderr, "  -m <str> , --load-midi-binding=<str> loads midi binding from file or preset\n");
 	fprintf(stderr, "  -q , --quiet                 do not output status to stderr\n");
 	fprintf(stderr, "  -h , --help                  this usage output\n");
@@ -145,6 +148,9 @@ static void parse_options (int argc, char **argv, OptionInfo & option_info)
 			break;
 		case 'j':
 			option_info.jack_name = optarg;
+			break;
+		case 'S':
+			option_info.jack_server_name = optarg;
 			break;
 		case 'm':
 			option_info.bindfile = optarg;
@@ -294,7 +300,7 @@ int main(int argc, char** argv)
 
 	// create audio driver
 	// todo: a factory
-	AudioDriver * driver = new JackAudioDriver(option_info.jack_name);
+	AudioDriver * driver = new JackAudioDriver(option_info.jack_name, option_info.jack_server_name);
 	
 	
 	engine = new Engine();

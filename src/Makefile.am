@@ -36,6 +36,7 @@ sooperlooper_SOURCES = \
 	sooperlooper.cpp
 
 sooperlooper_LDADD =  libslcore.a @JACK_LIBS@ @LOSC_LIBS@ @SIGCPP_LIBS@ @SNDFILE_LIBS@ @SAMPLERATE_LIBS@ @AUDIO_LIBS@
+sooperlooper_LDFLAGS = 
 
 slconsole_SOURCES = slconsole.cpp
 slconsole_LDADD = @LOSC_LIBS@ @NCURSES_LIBS@ -lpthread

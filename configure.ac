@@ -71,7 +71,16 @@ AC_LANG_CPLUSPLUS
 #   AC_MSG_ERROR([*** soop requires GTK+, but it doesn't appear to be installed])
 #])
 
-PKG_CHECK_MODULES(JACK, jack >= 0.80.0)
+PKG_CHECK_MODULES(JACK, jack >= 0.80.0, have_jack=yes, have_jack=no)
+
+if test "x$have_jack" != "xno"
+then
+AC_CHECK_LIB(jack, jack_client_open, 
+		   [ AC_DEFINE([HAVE_JACK_CLIENT_OPEN], 1, [Have newer JACK connect call])], 
+		   [],
+		   [])
+fi
+
 AC_SUBST(JACK_LIBS)
 AC_SUBST(JACK_CFLAGS)
 

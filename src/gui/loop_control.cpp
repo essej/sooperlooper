@@ -60,6 +60,7 @@ XMLNode& LoopControl::SpawnConfig::get_state () const
 
 	node->add_property ("exec_name", exec_name.c_str());
 	node->add_property ("jack_name", jack_name.c_str());
+	node->add_property ("jack_serv_name", jack_serv_name.c_str());
 	node->add_property ("midi_bind_path", midi_bind_path.c_str());
 
 	node->add_property ("force_spawn", force_spawn ? "yes": "no");
@@ -108,6 +109,9 @@ int LoopControl::SpawnConfig::set_state (const XMLNode& node)
 			}
 			if ((prop = child_node->property ("jack_name")) != 0) {
 				jack_name.Printf(wxT("%s"), prop->value().c_str());
+			}
+			if ((prop = child_node->property ("jack_serv_name")) != 0) {
+				jack_serv_name.Printf(wxT("%s"), prop->value().c_str());
 			}
 			if ((prop = child_node->property ("midi_bind_path")) != 0) {
 			        midi_bind_path.Printf(wxT("%s"), prop->value().c_str());
@@ -273,7 +277,7 @@ LoopControl::connect(char **engine_argv)
 		_waiting = 0;
 		lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
 		//cerr << "sending ping" << endl;
-		_updatetimer->Start(3000, true);
+		_updatetimer->Start(700, true);
 	}
 	// spawn now
 	else if (!_spawn_config.never_spawn && spawn_looper()) {
@@ -475,6 +479,10 @@ bool LoopControl::spawn_looper()
 		cmdstr += wxString::Format(wxT(" -j \"%s\""), _spawn_config.jack_name.c_str());
 	}
 
+	if (!_spawn_config.jack_serv_name.empty()) {
+		cmdstr += wxString::Format(wxT(" -S \"%s\""), _spawn_config.jack_serv_name.c_str());
+	}
+	
 	if (argv) {
 		while (*argv) {
 			cmdstr += wxT(" ") + wxString(*argv);
@@ -702,6 +710,7 @@ LoopControl::request_all_values(int index)
 	lo_send(_osc_addr, buf, "sss", "scratch_pos", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "delay_trigger", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "quantize", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "fade_samples", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "round", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "sync", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "redo_is_tap", _our_url.c_str(), "/ctrl");
@@ -820,6 +829,7 @@ LoopControl::register_input_controls(int index, bool unreg)
 	lo_send(_osc_addr, buf, "sss", "scratch_pos", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "delay_trigger", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "quantize", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "fade_samples", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "round", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "sync", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "redo_is_tap", _our_url.c_str(), "/ctrl");

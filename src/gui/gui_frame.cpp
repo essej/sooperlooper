@@ -79,7 +79,8 @@ enum {
 	ID_RoundCheck,
 	ID_TapTempoButton,
 	ID_TapTempoTimer,
-	ID_AddCustomLoop
+	ID_AddCustomLoop,
+	ID_XfadeSlider
 };
 
 
@@ -185,7 +186,7 @@ GuiFrame::init()
 	
 	rowsizer->Add (1, 1, 1);
 
-	_sync_choice = new ChoiceBox (toppanel, ID_SyncChoice, true, wxDefaultPosition, wxSize (140, 22));
+	_sync_choice = new ChoiceBox (toppanel, ID_SyncChoice, true, wxDefaultPosition, wxSize (130, 22));
 	_sync_choice->set_label (wxT("sync to"));
 	_sync_choice->SetFont (sliderFont);
 	_sync_choice->value_changed.connect (slot (*this,  &GuiFrame::on_syncto_change));
@@ -236,6 +237,16 @@ GuiFrame::init()
 	_quantize_choice->append_choice (wxT("loop"), 3);
 	rowsizer->Add (_quantize_choice, 0, wxALL, 2);
 
+	_xfade_bar = new SliderBar(toppanel, ID_XfadeSlider, 0.0f, 6400.0f, 64.0f, true, wxDefaultPosition, wxSize(100, 22));
+	_xfade_bar->set_units(wxT(""));
+	_xfade_bar->set_label(wxT("xfade"));
+	_xfade_bar->SetToolTip(wxT("operation crossfade length in samples"));
+	_xfade_bar->set_snap_mode (SliderBar::IntegerSnap);
+	_xfade_bar->SetFont (sliderFont);
+	_xfade_bar->value_changed.connect (slot (*this,  &GuiFrame::on_xfade_change));
+	_xfade_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("fade_samples")));
+	rowsizer->Add (_xfade_bar, 0, wxALL, 2);
+	
 	_round_check = new CheckBox (toppanel, ID_RoundCheck, wxT("round"), true, wxDefaultPosition, wxSize(80, 22));
 	_round_check->SetFont (sliderFont);
 	_round_check->value_changed.connect (slot (*this, &GuiFrame::on_round_check));
@@ -496,6 +507,11 @@ GuiFrame::update_controls()
  		_round_check->set_value (val > 0.0);
 	}
 	
+	if (_loop_control->is_updated(0, "fade_samples")) {
+		_loop_control->get_value(0, "fade_samples", val);
+		_xfade_bar->set_value (val);
+	}
+
 	
 }
 
@@ -665,6 +681,11 @@ GuiFrame::on_bind_request (wxString val)
 		info.lbound = 1.0f;
 		info.ubound = 128.0f;
 	}
+	else if (val == wxT("fade_samples")) {
+		info.control = "fade_samples";
+		info.lbound = 0.0f;
+		info.ubound = 16384.0f;
+	}
 	else if (val == wxT("round")) {
 		info.instance = -1;
 		info.control = "round";
@@ -703,6 +724,11 @@ GuiFrame::on_eighth_change (float value)
 	_loop_control->post_global_ctrl_change ("eighth_per_cycle", value);
 }
 
+void
+GuiFrame::on_xfade_change (float value)
+{
+	_loop_control->post_ctrl_change (-1, wxT("fade_samples"), value);
+}
 
 void
 GuiFrame::on_syncto_change (int index, wxString val)

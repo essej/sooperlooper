@@ -68,6 +68,7 @@ class LoopControl
 		bool       force_spawn;
 		bool       never_spawn;
 		wxString   jack_name;
+		wxString   jack_serv_name;
 	};
 	
 	// ctor(s)

@@ -29,8 +29,8 @@ using namespace SooperLooper;
 using namespace PBD;
 using namespace std;
 
-JackAudioDriver::JackAudioDriver(string client_name)
-	: AudioDriver(client_name)
+JackAudioDriver::JackAudioDriver(string client_name, string serv_name)
+	: AudioDriver(client_name, serv_name)
 {
 
 }
@@ -105,11 +105,40 @@ our_jack_error(const char * err)
 int
 JackAudioDriver::connect_to_jack ()
 {
-	char namebuf[100];
-
 	jack_set_error_function (our_jack_error);
 
 	_jack = 0;
+
+#ifdef HAVE_JACK_CLIENT_OPEN
+	jack_options_t options = JackNullOption;
+	jack_status_t status;
+	const char *server_name = NULL;
+
+	// support for server name
+	if (!_server_name.empty()) {
+		server_name = _server_name.c_str();
+	}
+	
+	if (_client_name.empty()) {
+		_client_name = "sooperlooper";
+	}
+	
+	_jack = jack_client_open (_client_name.c_str(), options, &status, server_name);
+	
+	if (!_jack) {
+		return -1;
+	}
+	
+	if (status & JackServerStarted) {
+		cerr << "JACK server started" << endl;
+	}
+
+	if (status & JackNameNotUnique) {
+		_client_name = jack_get_client_name (_jack);
+	}
+
+#else
+	char namebuf[100];
 	
 	/* try to become a client of the JACK server */
 	if (_client_name.empty()) {
@@ -134,11 +163,12 @@ JackAudioDriver::connect_to_jack ()
 			}
 		}
 	}
-
+	
 	if (!_jack) {
 		return -1;
 	}
-
+#endif
+	
 	jack_set_xrun_callback (_jack, _xrun_callback, this);
 	jack_on_shutdown (_jack, _shutdown_callback, this);
 	

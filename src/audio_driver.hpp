@@ -51,7 +51,7 @@ struct TransportInfo
 class AudioDriver
 {
   public:
-	AudioDriver(std::string client_name="");
+	AudioDriver(std::string client_name="", std::string serv_name="");
 	virtual ~AudioDriver();
 
 	virtual bool initialize(std::string client_name="") = 0;
@@ -85,6 +85,7 @@ class AudioDriver
   protected:
 
 	std::string _client_name;
+	std::string _server_name;
 
 	Engine *    _engine;
 
