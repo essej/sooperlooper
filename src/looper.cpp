@@ -128,6 +128,7 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 			descriptor->connect_port (_instances[i], CycleLength, &_slave_dummy_port);
 			descriptor->connect_port (_instances[i], LoopFreeMemory, &_slave_dummy_port);
 			descriptor->connect_port (_instances[i], LoopMemory, &_slave_dummy_port);
+			descriptor->connect_port (_instances[i], Waiting, &_slave_dummy_port);
 		}
 		
 		descriptor->activate (_instances[i]);

@@ -48,6 +48,7 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 #include "ladspa.h"
 
 /*****************************************************************************/
+//#define LOOPDEBUG
 
 #ifdef LOOPDEBUG
 #define DBG(x) x
@@ -74,7 +75,7 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 
 /* The port numbers for the plugin: */
 
-#define PORT_COUNT  25
+#define PORT_COUNT  26
 
 #define SDL_THRESH       0
 #define SDL_DRY          1
@@ -100,12 +101,13 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 #define SDL_CYCLELEN_OUT  18
 #define SDL_SECSFREE_OUT  19
 #define SDL_SECSTOTAL_OUT 20
+#define SDL_WAITING       21
 
 /* audio */
-#define SDL_INPUT        21
-#define SDL_OUTPUT       22
-#define SDL_SYNC_INPUT        23
-#define SDL_SYNC_OUTPUT       24
+#define SDL_INPUT        22
+#define SDL_OUTPUT       23
+#define SDL_SYNC_INPUT        24
+#define SDL_SYNC_OUTPUT       25
 
 
 
@@ -124,6 +126,8 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 #define STATE_MUTE       10
 #define STATE_SCRATCH    11
 #define STATE_ONESHOT    12
+
+#define STATE_TRIGGER_PLAY 16
 
 /* 1s digit of
  * Multicontroller parameter functions */
@@ -243,6 +247,8 @@ typedef struct {
 
     int nextState;
 
+    int waitingForSync;
+	
     long lLastMultiCtrl;
 
     // initial location of params
@@ -377,7 +383,9 @@ typedef struct {
     /* how many seconds of loop memory free and total */
     LADSPA_Data * pfSecsFree;
     LADSPA_Data * pfSecsTotal;    
-    
+
+    LADSPA_Data * pfWaiting;    
+	
 } SooperLooper;
 
 
@@ -606,6 +614,8 @@ activateSooperLooper(LADSPA_Handle Instance) {
   pLS->fRedoTapMode = 1;
   pLS->bRateCtrlActive = (int) *pLS->pfRateCtrlActive;
 
+  pLS->waitingForSync = 0;
+  
   pLS->fWetCurr = pLS->fWetTarget = *pLS->pfWet;
   pLS->fDryCurr = pLS->fDryTarget = *pLS->pfDry;
   pLS->fFeedbackCurr = pLS->fFeedbackTarget = *pLS->pfFeedback;
@@ -718,6 +728,9 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
 	 break;
       case SDL_SECSTOTAL_OUT:
 	 pLS->pfSecsTotal= DataLocation;
+	 break;
+      case SDL_WAITING:
+	 pLS->pfWaiting= DataLocation;
 	 break;
 
 
@@ -874,7 +887,7 @@ static LoopChunk* beginMultiply(SooperLooper *pLS, LoopChunk *loop)
       
       DBG(fprintf(stderr,"Mark at L:%lu  h:%lu\n",loop->lMarkL, loop->lMarkH);
 	  fprintf(stderr,"EndMark at L:%lu  h:%lu\n",loop->lMarkEndL, loop->lMarkEndH);
-	  fprintf(stderr,"Entering MULTIPLY state\n"));
+	  fprintf(stderr,"Entering MULTIPLY state  with cyclecount=%lu   curpos=%g   looplen=%lu\n", loop->lCycles, loop->dCurrPos, loop->lLoopLength));
    }
 
    return loop;
@@ -1177,6 +1190,16 @@ static LoopChunk * transitionToNext(SooperLooper *pLS, LoopChunk *loop, int next
 	 newloop = beginMultiply(pLS, loop);
 	 break;
 
+      case STATE_TRIGGER_PLAY:
+	      if (loop) {
+		      pLS->state = STATE_PLAY;
+		      nextstate = STATE_PLAY;
+		      if (pLS->fCurrRate > 0)
+			      loop->dCurrPos = 0.0;
+		      else
+			      loop->dCurrPos = loop->lLoopLength - 1;
+	      }
+	      break;
       case STATE_ONESHOT:
 	      // play the loop one_shot mode
 	      if (loop) {
@@ -1246,6 +1269,7 @@ runSooperLooper(LADSPA_Handle Instance,
   LoopChunk *loop, *srcloop;
 
   LADSPA_Data fSyncMode = 0.0f;
+  LADSPA_Data fQuantizeMode = 0.0f;
 
   unsigned long lSampleIndex;
 
@@ -1282,6 +1306,9 @@ runSooperLooper(LADSPA_Handle Instance,
   }
   if (pLS->pfSyncMode) {
 	  fSyncMode = *pLS->pfSyncMode;
+  }
+  if (pLS->pfQuantMode) {
+	  fQuantizeMode = *pLS->pfQuantMode;
   }
   
   if (pLS->pfMultiCtrl && pLS->pfMultiTens) {
@@ -1375,6 +1402,9 @@ runSooperLooper(LADSPA_Handle Instance,
 
   loop = pLS->headLoopChunk;
 
+  // clear sync out
+  memset(pfSyncOutput, 0, SampleCount * sizeof(LADSPA_Data));
+  
      
   // transitions due to control triggering
   
@@ -1483,9 +1513,11 @@ runSooperLooper(LADSPA_Handle Instance,
 	{
 	   switch(pLS->state) {
 	      case STATE_OVERDUB:
-		 pLS->state = STATE_PLAY;
-		 DBG(fprintf(stderr,"Entering PLAY state\n"));
-		 break;
+		      // don't sync overdub ops
+		      pLS->state = STATE_PLAY;
+		      DBG(fprintf(stderr,"Entering PLAY state\n"));
+		      
+		      break;
 	      case STATE_MULTIPLY:
 		 if (loop) {
 		    loop = endMultiply(pLS, loop, STATE_OVERDUB);
@@ -1509,13 +1541,21 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // continue through to default
 		 
 	      default:
-		 if (loop) {
-		    loop = beginOverdub(pLS, loop);
-		    if (loop)
-		       srcloop = loop->srcloop;
-		    else
-		       srcloop = NULL;
-		 }
+		      // lets not sync overdub ops
+		      
+//		      if (fSyncMode == 0.0f) {
+			      if (loop) {
+				      loop = beginOverdub(pLS, loop);
+				      if (loop)
+					      srcloop = loop->srcloop;
+				      else
+					      srcloop = NULL;
+			      }
+// 		      } else {
+// 			      DBG(fprintf(stderr, "starting syncwait for overdub:  %f\n", fSyncMode));
+// 			      pLS->nextState = STATE_OVERDUB;
+// 			      pLS->waitingForSync = 1;
+// 		      }
 	   }
 	} break;
 
@@ -1524,10 +1564,21 @@ runSooperLooper(LADSPA_Handle Instance,
 	   switch(pLS->state) {
 	      case STATE_MULTIPLY:
 		 // set mark
-		 if (loop) {
-		    loop = endMultiply(pLS, loop, STATE_PLAY);
-		 }
-		 break;
+		      if (fSyncMode == 0.0f) {
+			      if (loop) {
+				      loop = endMultiply(pLS, loop, STATE_PLAY);
+			      }
+
+			      // put a sync marker at the beginning here
+			      // mostly for slave purposes, it might screw up others
+			      pfSyncOutput[0] = 1.0f;
+			      
+		      } else {
+			      DBG(fprintf(stderr, "waiting for sync multi end\n"));
+			      pLS->nextState = STATE_PLAY;
+			      pLS->waitingForSync = 1;
+		      }
+		      break;
 
 	      case STATE_INSERT:
 		 if (loop) {
@@ -1545,13 +1596,29 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // continue through to default
 
 	      default:
-		 if (loop) {
-		    loop = beginMultiply(pLS, loop);
-		    if (loop)
-		       srcloop = loop->srcloop;
-		    else
-		       srcloop = NULL;
-		 }
+		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
+			      if (loop) {
+				      loop = beginMultiply(pLS, loop);
+				      if (loop)
+					      srcloop = loop->srcloop;
+				      else
+					      srcloop = NULL;
+			      }
+
+			      if (fQuantizeMode == QUANT_OFF) {
+				      // then send out a sync here for any slaves
+				      pfSyncOutput[0] = 1.0f;
+			      }
+
+		      } else {
+			      if (pLS->state == STATE_RECORD) {
+				      pLS->state = STATE_TRIG_STOP;
+			      }
+			      
+			      DBG(fprintf(stderr, "starting syncwait for multiply\n"));
+			      pLS->nextState = STATE_MULTIPLY;
+			      pLS->waitingForSync = 1;
+		      }
 	   }
 	} break;
 
@@ -1593,12 +1660,18 @@ runSooperLooper(LADSPA_Handle Instance,
 
 	      default:
 		 // make new loop chunk
-		 if (loop)
-		 {
-		    loop = beginInsert(pLS, loop);
-		    if (loop) srcloop = loop->srcloop;
-		    else srcloop = NULL;
-		 }
+		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
+			      if (loop)
+			      {
+				      loop = beginInsert(pLS, loop);
+				      if (loop) srcloop = loop->srcloop;
+				      else srcloop = NULL;
+			      }
+		      } else {
+			      DBG(fprintf(stderr, "starting syncwait for insert\n"));
+			      pLS->nextState = STATE_INSERT;
+			      pLS->waitingForSync = 1;
+		      }
 	   }
 
 	} break;
@@ -1608,9 +1681,14 @@ runSooperLooper(LADSPA_Handle Instance,
 	   
 	   switch(pLS->state) {
 	      case STATE_REPLACE:
-		 pLS->state = STATE_PLAY;
-		 DBG(fprintf(stderr,"Entering PLAY state\n"));
-		 break;
+		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
+			      pLS->state = STATE_PLAY;
+			      DBG(fprintf(stderr,"Entering PLAY state\n"));
+		      } else {
+			      pLS->nextState = STATE_PLAY;
+			      pLS->waitingForSync = 1;
+		      }
+		      break;
 
 
 	      case STATE_MULTIPLY:
@@ -1632,12 +1710,25 @@ runSooperLooper(LADSPA_Handle Instance,
 		 break;
 		 
 	      default:
-		 if (loop)
-		 {
-		    loop = beginReplace(pLS, loop);
-		    if (loop) srcloop = loop->srcloop;
-		    else srcloop = NULL;
-		 }
+		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
+			      if (loop)
+			      {
+				      DBG(fprintf(stderr, "starting replace immediately\n"));
+				      loop = beginReplace(pLS, loop);
+				      if (loop) srcloop = loop->srcloop;
+				      else srcloop = NULL;
+			      }
+
+			      if (fQuantizeMode == QUANT_OFF) {
+				      // then send out a sync here for any slaves
+				      pfSyncOutput[0] = 1.0f;
+			      }
+		      }
+		      else {
+			      DBG(fprintf(stderr, "starting syncwait for replace\n"));
+			      pLS->nextState = STATE_REPLACE;
+			      pLS->waitingForSync = 1;
+		      }
 	   }
 
 	} break;
@@ -1926,15 +2017,21 @@ runSooperLooper(LADSPA_Handle Instance,
 			
 		default:
 			// play the loop one_shot mode
-			if (loop) {
-				DBG(fprintf(stderr,"Starting ONESHOT state\n"));
-				pLS->state = STATE_ONESHOT;
-				if (pLS->fCurrRate > 0)
-					loop->dCurrPos = 0.0;
-				else
-					loop->dCurrPos = loop->lLoopLength - 1;		       
-			}
-			break;
+		      if (fSyncMode == 0.0f) {
+			      if (loop) {
+				      DBG(fprintf(stderr,"Starting ONESHOT state\n"));
+				      pLS->state = STATE_ONESHOT;
+				      if (pLS->fCurrRate > 0)
+					      loop->dCurrPos = 0.0;
+				      else
+					      loop->dCurrPos = loop->lLoopLength - 1;		       
+			      }
+		      }	else {
+			      DBG(fprintf(stderr, "starting syncwait for ONESHOT\n"));
+			      pLS->nextState = STATE_ONESHOT;
+			      pLS->waitingForSync = 1;
+		      }
+		      break;
 		}
 	} break;
 
@@ -1955,15 +2052,15 @@ runSooperLooper(LADSPA_Handle Instance,
 			
 		default:
 			// play the loop from the start
-			if (loop) {
-				DBG(fprintf(stderr,"Starting PLAY state\n"));
-				pLS->state = STATE_PLAY;
-				if (pLS->fCurrRate > 0)
-					loop->dCurrPos = 0.0;
-				else
-					loop->dCurrPos = loop->lLoopLength - 1;		       
-			}
-			break;
+		      if (fSyncMode == 0.0f) {
+
+			      transitionToNext (pLS, loop, STATE_TRIGGER_PLAY);
+		      }	else {
+			      DBG(fprintf(stderr, "starting syncwait for trigger\n"));
+			      pLS->nextState = STATE_TRIGGER_PLAY;
+			      pLS->waitingForSync = 1;
+		      }
+		      break;
 		}
 	} break;
 	
@@ -2007,9 +2104,6 @@ runSooperLooper(LADSPA_Handle Instance,
   //fprintf(stderr,"before play\n");  
   //fprintf(stderr, "fRateSwitch: %f\n", fRateSwitch);
 
-  // clear sync out
-  memset(pfSyncOutput, 0, SampleCount * sizeof(LADSPA_Data));
-  
   // the run loop
   
   lSampleIndex = 0;
@@ -2087,6 +2181,14 @@ runSooperLooper(LADSPA_Handle Instance,
 	      fFeedback += feedbackDelta;
 	      fScratchPos += scratchDelta;
 		   
+// 	      if (pLS->waitingForSync && (fSyncMode == 0.0 || pfSyncInput[lSampleIndex] != 0.0))
+// 	      {
+// 		      DBG(fprintf(stderr,"Finishing synced record\n"));
+// 		      pLS->state = pLS->nextState;
+// 		      pLS->nextState = -1;
+// 		      pLS->waitingForSync = 0;
+// 		      break;
+// 	      }
 		   
 	      // wrap at the proper loop end
 	      lCurrPos = (unsigned int)loop->dCurrPos;
@@ -2148,14 +2250,13 @@ runSooperLooper(LADSPA_Handle Instance,
 		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0))
 	      {
 		 DBG(fprintf(stderr,"Entering %d state\n", pLS->nextState));
-		 pLS->state = pLS->nextState;
+		 //pLS->state = pLS->nextState;
 		 // reset for audio ramp
 		 pLS->lRampSamples = xfadeSamples;
-		 loop->pLoopStop = loop->pLoopStart + lCurrPos;
-		 loop->lLoopLength = (unsigned long) (loop->pLoopStop - loop->pLoopStart);
-		 loop->lCycles = 1;
-		 loop->lCycleLength = loop->lLoopLength;
-		 loop->dCurrPos = 0.0f;
+		 //loop->dCurrPos = 0.0f;
+
+		 loop = transitionToNext (pLS, loop, pLS->nextState);
+		 pLS->waitingForSync = 0;
 		 break;
 	      }
 
@@ -2184,10 +2285,12 @@ runSooperLooper(LADSPA_Handle Instance,
 	   }
 
 	   // update loop values (in case we get stopped by an event)
-	   loop->pLoopStop = loop->pLoopStart + lCurrPos;
-	   loop->lLoopLength = (unsigned long) (loop->pLoopStop - loop->pLoopStart);
-	   loop->lCycleLength = loop->lLoopLength;
-	   loop->lCycles = 1;
+	   if (loop) {
+		   loop->pLoopStop = loop->pLoopStart + lCurrPos;
+		   loop->lLoopLength = (unsigned long) (loop->pLoopStop - loop->pLoopStart);
+		   loop->lCycleLength = loop->lLoopLength;
+		   loop->lCycles = 1;
+	   }
 	   
 	} break;
 
@@ -2208,7 +2311,31 @@ runSooperLooper(LADSPA_Handle Instance,
 	         fFeedback += feedbackDelta;
 	         fScratchPos += scratchDelta;
 
+
 		 lCurrPos =(unsigned int) fmod(loop->dCurrPos, loop->lLoopLength);
+
+		 
+		 if (fSyncMode != 0) {
+			 pfSyncOutput[lSampleIndex] = pfSyncInput[lSampleIndex];
+		 }
+		 else {
+			 if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (lCurrPos % loop->lCycleLength) == 0)
+			     || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0)))
+			 {
+				 pfSyncOutput[lSampleIndex] = 1.0f;
+			 }
+		 }
+		 
+		 if (pLS->waitingForSync && ((fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) || pfSyncInput[lSampleIndex] != 0.0f))
+		 {
+			 DBG(fprintf(stderr,"Finishing synced overdub/replace\n"));
+			 pLS->state = pLS->nextState;
+			 pLS->nextState = -1;
+			 pLS->waitingForSync = 0;
+			 break;
+		 }
+
+		 
 		 
 		 fInputSample = pfInput[lSampleIndex];
 		 
@@ -2234,13 +2361,18 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 pfOutput[lSampleIndex] = fOutputSample;
 		 
-		 if ((lCurrPos % loop->lCycleLength) == 0) {
-			 pfSyncOutput[lSampleIndex] = 1.0f;
-		 }
 
 		 // increment and wrap at the proper loop end
 		 loop->dCurrPos = loop->dCurrPos + fRate;
-	      
+
+		 if (fSyncMode != 0.0 && pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
+		       // commit the new rate at boundary (quantized)
+		       pLS->fCurrRate = pLS->fNextCurrRate;
+		       pLS->fNextCurrRate = 0.0f;
+		       DBG(fprintf(stderr, "Starting quantized rate change\n"));
+		 }
+
+		 
 		 if (loop->dCurrPos < 0)
 		 {
 		    // our rate must be negative
@@ -2303,14 +2435,37 @@ runSooperLooper(LADSPA_Handle Instance,
 	         fScratchPos += scratchDelta;
 
 
+		 if (pLS->waitingForSync && (fSyncMode == 0.0f || pfSyncInput[lSampleIndex] != 0.0f))
+		 {
+			 DBG(fprintf(stderr,"Finishing synced multiply\n"));
+			 loop = endMultiply (pLS, loop, pLS->nextState);
+
+			 pfSyncOutput[lSampleIndex] = pfSyncInput[lSampleIndex];
+			 
+			 pLS->waitingForSync = 0;
+			 break;
+		 }
+
+		 
 		 lpCurrPos =(unsigned int) fmod(loop->dCurrPos + loop->lStartAdj, srcloop->lLoopLength);
 		 slCurrPos =(long) loop->dCurrPos;
 
 		 fillLoops(pLS, loop, lpCurrPos);
 		 
 		 fInputSample = pfInput[lSampleIndex];
-		 
 
+		 if (fSyncMode != 0) {
+			 pfSyncOutput[lSampleIndex] = pfSyncInput[lSampleIndex];
+		 }
+		 else {
+			 if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (lCurrPos % loop->lCycleLength) == 0))
+			 {
+				 pfSyncOutput[lSampleIndex] = 1.0f;
+			 }
+		 }
+
+		 
+		 
 		 // always use the source loop as the source
 		 
 		 fOutputSample = (fWet *  *(srcloop->pLoopStart + lpCurrPos)
@@ -2335,9 +2490,6 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 pfOutput[lSampleIndex] = fOutputSample;
 
-		 if ((lCurrPos % loop->lCycleLength) == 0) {
-			 pfSyncOutput[lSampleIndex] = 1.0f;
-		 }
 		 
 		 // increment 
 		 loop->dCurrPos = loop->dCurrPos + fRate;
@@ -2377,7 +2529,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    //loop->lLoopStop = loop->lLoopStart + loop->lLoopLength;
 		    // this signifies the end of the original cycle
 		    loop->firsttime = 0;
-		    DBG(fprintf(stderr,"Multiply added cycle %lu\n", loop->lCycles));
+		    DBG(fprintf(stderr,"Multiply added cycle %lu  at %g\n", loop->lCycles, loop->dCurrPos));
 
 		 }
 	      }
@@ -2447,7 +2599,11 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 pfOutput[lSampleIndex] = fOutputSample;
 
-		 if ((lCurrPos % loop->lCycleLength) == 0) {
+		 if (fSyncMode != 0) {
+			 pfSyncOutput[lSampleIndex] = pfSyncInput[lSampleIndex];
+		 }
+		 else if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (lCurrPos % loop->lCycleLength) == 0)
+			  || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0))) {
 			 pfSyncOutput[lSampleIndex] = 1.0f;
 		 }
 		 
@@ -2469,6 +2625,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    loop->lLoopLength = loop->lCycles * loop->lCycleLength;
 		    loop->pLoopStop = loop->pLoopStart + loop->lLoopLength;
 		    
+		    DBG(fprintf(stderr, "Looplength = %d   cycles=%d\n", loop->lLoopLength, loop->lCycles));
 		    
 		    loop = transitionToNext(pLS, loop, pLS->nextState);
 		    DBG(fprintf(stderr,"Entering state %d from insert\n", pLS->state));
@@ -2587,18 +2744,44 @@ runSooperLooper(LADSPA_Handle Instance,
 
 
 	      srcloop = loop->srcloop;
+
+	      bool recenter = true;
 	      
 	      for (;lSampleIndex < SampleCount;
 		   lSampleIndex++)
 	      {
-	         fWet += wetDelta;
-                 fDry += dryDelta;
-     	         fFeedback += feedbackDelta;
-	         fScratchPos += scratchDelta;
-		 
+
 		 lCurrPos =(unsigned int) fmod(loop->dCurrPos, loop->lLoopLength);
 		 //fprintf(stderr, "curr = %u\n", lCurrPos);
 
+
+		 if (fSyncMode != 0.0f) {
+			 pfSyncOutput[lSampleIndex] = pfSyncInput[lSampleIndex];
+		 }
+		 else if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (lCurrPos % loop->lCycleLength) == 0)
+			  || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0))) {
+			 pfSyncOutput[lSampleIndex] = 1.0f;
+		 }
+
+		 
+		 if (pLS->waitingForSync && ((fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) || pfSyncInput[lSampleIndex] != 0.0f))
+		 {
+			 fprintf(stderr, "transition to next at: %lu\n", lSampleIndex);
+			 loop = transitionToNext (pLS, loop, pLS->nextState);
+			 if (loop)  srcloop = loop->srcloop;
+			 else srcloop = NULL;
+			 pLS->waitingForSync = 0;
+			 recenter = false;
+			 break;
+		 }
+
+		 fWet += wetDelta;
+                 fDry += dryDelta;
+     	         fFeedback += feedbackDelta;
+	         fScratchPos += scratchDelta;
+
+		 
+		      
 
 
 		 // modify fWet if we are in a ramp up/down
@@ -2625,11 +2808,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		 fOutputSample =   tmpWet *  *(loop->pLoopStart + lCurrPos)
 		    + fDry * fInputSample;
 
-		 
-		 if ((lCurrPos % loop->lCycleLength) == 0) {
-			 pfSyncOutput[lSampleIndex] = 1.0f;
-		 }
 
+
+		 
 		 
 		 // increment and wrap at the proper loop end
 		 loop->dCurrPos = loop->dCurrPos + fRate;
@@ -2637,6 +2818,13 @@ runSooperLooper(LADSPA_Handle Instance,
 		 pfOutput[lSampleIndex] = fOutputSample;
 		 
 
+		 if (fSyncMode != 0.0 && pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
+		       // commit the new rate at boundary (quantized)
+		       pLS->fCurrRate = pLS->fNextCurrRate;
+		       pLS->fNextCurrRate = 0.0f;
+		       DBG(fprintf(stderr, "Starting quantized rate change\n"));
+		 }
+		 
 		 if (loop->dCurrPos >= loop->lLoopLength) {
 		    if (pLS->state == STATE_ONESHOT) {
 		       // done with one shot
@@ -2682,8 +2870,10 @@ runSooperLooper(LADSPA_Handle Instance,
 	      
 	      // recenter around the mod
 	      lCurrPos = (unsigned int) fabs(fmod(loop->dCurrPos, loop->lLoopLength));
-	      
-	      loop->dCurrPos = lCurrPos + modf(loop->dCurrPos, &dDummy); 
+
+	      if (recenter) {
+		      loop->dCurrPos = lCurrPos + modf(loop->dCurrPos, &dDummy);
+	      }
 	   }
 	   else {
 	      goto passthrough;
@@ -2736,7 +2926,10 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 pfOutput[lSampleIndex] = fOutputSample;
 
-		 if ((lCurrPos % loop->lCycleLength) == 0) {
+		 if (fSyncMode != 0 || fQuantizeMode == QUANT_OFF) {
+			 pfSyncOutput[lSampleIndex] = pfSyncInput[lSampleIndex];
+		 }
+		 else if ((lCurrPos % loop->lCycleLength) == 0) {
 			 pfSyncOutput[lSampleIndex] = 1.0f;
 		 }
 
@@ -2825,6 +3018,8 @@ runSooperLooper(LADSPA_Handle Instance,
      *pLS->pfStateOut = (LADSPA_Data) pLS->state;
   }
 
+  *pLS->pfWaiting = pLS->waitingForSync ? 1.0f: 0.0f;
+  
   if (pLS->pfSecsFree) {
      *pLS->pfSecsFree = (pLS->fTotalSecs) -
 	(pLS->headLoopChunk ?
@@ -2970,6 +3165,8 @@ sl_init() {
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
     piPortDescriptors[SDL_SECSFREE_OUT]
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
+    piPortDescriptors[SDL_WAITING]
+      = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
 
 
     
@@ -3036,6 +3233,8 @@ sl_init() {
       = strdup("Total Sample Mem (s)");
     pcPortNames[SDL_SECSFREE_OUT]
       = strdup("Free Sample Mem (s)");
+    pcPortNames[SDL_WAITING]
+      = strdup("Waiting");
 
     
     psPortRangeHints = ((LADSPA_PortRangeHint *)
@@ -3163,6 +3362,9 @@ sl_init() {
       = LADSPA_HINT_BOUNDED_BELOW;
     psPortRangeHints[SDL_SECSFREE_OUT].LowerBound 
       = 0.0;
+
+    psPortRangeHints[SDL_WAITING].HintDescriptor
+      = LADSPA_HINT_TOGGLED;
     
     
     g_psDescriptor->instantiate

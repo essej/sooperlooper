@@ -83,7 +83,8 @@ TimePanel::init()
 	_bgcolor.Set(34, 49, 71);
 	SetBackgroundColour(_bgcolor);
 	_bgbrush.SetColour(_bgcolor);
-	
+
+	_waiting = false;
 }
 
 void
@@ -154,6 +155,12 @@ TimePanel::update_time()
 		ret = true;
 	}
 
+	if (_loop_control->is_updated(_index, "waiting")) {
+		_loop_control->get_value(_index, "waiting", val);
+		_waiting = (val > 0.0f) ? true : false;
+		ret = true;
+	}
+	
 	if (_loop_control->is_updated(_index, "state")) {
 		LooperState tmpstate;
 		_loop_control->get_state(_index, tmpstate, _state_str);
@@ -216,6 +223,12 @@ TimePanel::draw_area(wxDC & dc)
 	dc.GetTextExtent(_state_str, &sw, &sh);
 	dc.DrawText (_state_str, 5, _height - sh - 5);
 
+	// waiting string
+	if (_waiting) {
+		dc.SetFont(_legend_font);
+		dc.DrawText (wxT("waiting for sync"), 5, _height - sh - 17);
+	}
+	
 	// other times
 	dc.SetFont(_time_font);
 	dc.SetTextForeground(_time_color);

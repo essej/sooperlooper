@@ -58,6 +58,9 @@ class KeyboardTarget
 	
 	string name() const { return _name; }
 
+	void set_enabled (bool flag);
+	bool get_enabled () { return _enabled; }
+	
 	void process_key_event (wxKeyEvent &ev);
 
 	static KeyState  translate_key_name (const string&);
@@ -99,6 +102,7 @@ class KeyboardTarget
 
 	KeyState      _state;
 
+	bool       _enabled;
 	bool       _learning;
 	string     _learn_action;
 	

@@ -147,6 +147,7 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	_str_ctrl_map["sync"]  = Event::SyncMode;
 	_str_ctrl_map["use_rate"]  = Event::UseRate;
 	_str_ctrl_map["fade_samples"]  = Event::FadeSamples;
+	_str_ctrl_map["waiting"]  = Event::Waiting;
 	_str_ctrl_map["state"]  = Event::State;
 	_str_ctrl_map["loop_len"]  = Event::LoopLength;
 	_str_ctrl_map["loop_pos"]  = Event::LoopPosition;

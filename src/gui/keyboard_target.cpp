@@ -33,7 +33,9 @@ KeyboardTarget::KeyboardTarget (wxWindow *win, string name)
 {
 	_window = win;
 	_name = name;
-
+	_enabled = true;
+	_learning = false;
+	
 	// todo register some events for the win
 }
 
@@ -42,11 +44,24 @@ KeyboardTarget::~KeyboardTarget ()
 }
 
 void
+KeyboardTarget::set_enabled (bool flag)
+{
+	if (flag != _enabled) {
+		_enabled = flag;
+	}
+}
+
+void
 KeyboardTarget::process_key_event (wxKeyEvent &event)
 {
 	KeyMap::iterator result;
 	bool changed = true;
 
+	if (!_enabled) {
+		event.Skip();
+		return;
+	}
+	
 	if (event.GetEventType() == wxEVT_KEY_DOWN)
 	{
 		changed = update_state (event);

@@ -56,11 +56,12 @@ enum OutputPort {
 	CycleLength,
 	LoopFreeMemory,
 	LoopMemory,
+	Waiting,
 	LASTPORT
 };
 
 enum AudioPort {
-	AudioInputPort=21,
+	AudioInputPort=22,
 	AudioOutputPort,
 	SyncInputPort,
 	SyncOutputPort

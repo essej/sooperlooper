@@ -35,6 +35,7 @@
 #include "loop_control.hpp"
 #include "slider_bar.hpp"
 #include "choice_box.hpp"
+#include "check_box.hpp"
 #include "pix_button.hpp"
 #include "keyboard_target.hpp"
 #include "keys_dialog.hpp"
@@ -90,7 +91,7 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 	_curr_loop = -1;
 	_tapdelay_val = 1.0f;
 	_keys_dialog = 0;
-	
+
 	_rcdir = wxGetHomeDir() + wxFileName::GetPathSeparator() + wxT(".sooperlooper");
 
 	intialize_keybindings ();
@@ -168,8 +169,8 @@ GuiFrame::init()
 	
 
 	_quantize_choice = new ChoiceBox (this, ID_QuantizeChoice, wxDefaultPosition, wxSize (110, 22));
-	_quantize_choice->set_label (wxT("quantize"));
 	_quantize_choice->SetFont (sliderFont);
+	_quantize_choice->set_label (wxT("quantize"));
 	_quantize_choice->value_changed.connect (slot (*this,  &GuiFrame::on_quantize_change));
 	_quantize_choice->append_choice (wxT("off"), 0);
 	_quantize_choice->append_choice (wxT("cycle"), 1);
@@ -177,10 +178,9 @@ GuiFrame::init()
 	_quantize_choice->append_choice (wxT("loop"), 3);
 	rowsizer->Add (_quantize_choice, 0, wxALL, 2);
 
-	_round_check = new wxCheckBox(this, ID_RoundCheck, wxT("round"));
-	_round_check->SetFont(sliderFont);
-	_round_check->SetBackgroundColour(wxColour(90,90,90));
-	_round_check->SetForegroundColour(*wxWHITE);
+	_round_check = new CheckBox (this, ID_RoundCheck, wxT("round"), wxDefaultPosition, wxSize(80, 22));
+	_round_check->SetFont (sliderFont);
+	_round_check->value_changed.connect (slot (*this, &GuiFrame::on_round_check));
 	rowsizer->Add (_round_check, 0, wxALL, 2);
 	
 	rowsizer->Add (1, 1, 1);
@@ -271,7 +271,8 @@ GuiFrame::init_syncto_choice()
 	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
 		_sync_choice->append_choice (wxString::Format(wxT("Loop %d"), i+1), i+1);
 	}
-	
+
+	update_syncto_choice ();
 }
 
     
@@ -327,6 +328,8 @@ GuiFrame::init_loopers (int count)
 	}
 
 	init_syncto_choice ();
+
+	set_curr_loop (_curr_loop);
 }
 
 
@@ -365,30 +368,7 @@ GuiFrame::update_controls()
 	}
 	
 	if (_loop_control->is_global_updated("sync_source")) {
-		_loop_control->get_global_value("sync_source", val);
-
-		long data = (long) val;
-		int index = -1;
-// 		BrotherSync = -4,
-// 		InternalTempoSync = -3,
-// 		MidiClockSync = -2,
-// 		JackSync = -1,
-// 		NoSync = 0
-		
-		wxString sval;
-		ChoiceBox::ChoiceList chlist;
-		_sync_choice->get_choices(chlist);
-		int i=0;
-		
-		for (ChoiceBox::ChoiceList::iterator iter = chlist.begin(); iter != chlist.end(); ++iter, ++i)
-		{
-			if ((*iter).second == data) {
-				index = i;
-				break;
-			}
-		}
-
-		_sync_choice->set_index_value (index);
+		update_syncto_choice ();
 	}
 
 	// quantize from first loop
@@ -399,10 +379,40 @@ GuiFrame::update_controls()
 
  	if (_loop_control->is_updated(0, "round")) {
 		_loop_control->get_value(0, "round", val);
- 		_round_check->SetValue (val > 0.0);
+ 		_round_check->set_value (val > 0.0);
 	}
 	
 	
+}
+
+void
+GuiFrame::update_syncto_choice()
+{
+	float val = 0.0f;
+	_loop_control->get_global_value("sync_source", val);
+	
+	long data = (long) val;
+	int index = -1;
+// 		BrotherSync = -4,
+// 		InternalTempoSync = -3,
+// 		MidiClockSync = -2,
+// 		JackSync = -1,
+// 		NoSync = 0
+		
+	wxString sval;
+	ChoiceBox::ChoiceList chlist;
+	_sync_choice->get_choices(chlist);
+	int i=0;
+	
+	for (ChoiceBox::ChoiceList::iterator iter = chlist.begin(); iter != chlist.end(); ++iter, ++i)
+	{
+		if ((*iter).second == data) {
+			index = i;
+			break;
+		}
+	}
+	
+	_sync_choice->set_index_value (index);
 }
 
 
@@ -499,10 +509,10 @@ GuiFrame::on_quantize_change (int index, wxString val)
 }
 
 void
-GuiFrame::on_round_check (wxCommandEvent &ev)
+GuiFrame::on_round_check (bool val)
 {
 	// send for all loops
-	_loop_control->post_ctrl_change (-1, wxT("round"), _round_check->GetValue() ? 1.0f: 0.0f);
+	_loop_control->post_ctrl_change (-1, wxT("round"), val ? 1.0f: 0.0f);
 }
 
 void
@@ -609,6 +619,17 @@ void GuiFrame::intialize_keybindings ()
 	KeyboardTarget::add_action ("load", bind (slot (*this, &GuiFrame::misc_action), wxT("load")));
 	KeyboardTarget::add_action ("save", bind (slot (*this, &GuiFrame::misc_action), wxT("save")));
 
+	KeyboardTarget::add_action ("select_loop_1", bind (slot (*this, &GuiFrame::select_loop_action), 1));
+	KeyboardTarget::add_action ("select_loop_2", bind (slot (*this, &GuiFrame::select_loop_action), 2));
+	KeyboardTarget::add_action ("select_loop_3", bind (slot (*this, &GuiFrame::select_loop_action), 3));
+	KeyboardTarget::add_action ("select_loop_4", bind (slot (*this, &GuiFrame::select_loop_action), 4));
+	KeyboardTarget::add_action ("select_loop_5", bind (slot (*this, &GuiFrame::select_loop_action), 5));
+	KeyboardTarget::add_action ("select_loop_6", bind (slot (*this, &GuiFrame::select_loop_action), 6));
+	KeyboardTarget::add_action ("select_loop_7", bind (slot (*this, &GuiFrame::select_loop_action), 7));
+	KeyboardTarget::add_action ("select_loop_8", bind (slot (*this, &GuiFrame::select_loop_action), 8));
+	KeyboardTarget::add_action ("select_loop_9", bind (slot (*this, &GuiFrame::select_loop_action), 9));
+	KeyboardTarget::add_action ("select_loop_all", bind (slot (*this, &GuiFrame::select_loop_action), -1));
+	
 	// these are the defaults... they get overridden by rc file
 
 	_keyboard->add_binding ("r", "record");
@@ -627,6 +648,17 @@ void GuiFrame::intialize_keybindings ()
 	_keyboard->add_binding ("t", "taptempo");
 	_keyboard->add_binding ("Control-s", "save");
 	_keyboard->add_binding ("Control-o", "load");
+
+	_keyboard->add_binding ("1", "select_loop_1");
+	_keyboard->add_binding ("2", "select_loop_2");
+	_keyboard->add_binding ("3", "select_loop_3");
+	_keyboard->add_binding ("4", "select_loop_4");
+	_keyboard->add_binding ("5", "select_loop_5");
+	_keyboard->add_binding ("6", "select_loop_6");
+	_keyboard->add_binding ("7", "select_loop_7");
+	_keyboard->add_binding ("8", "select_loop_8");
+	_keyboard->add_binding ("9", "select_loop_9");
+	_keyboard->add_binding ("0", "select_loop_all");
 	
 }
 
@@ -657,12 +689,27 @@ void GuiFrame::command_action (bool release, wxString cmd)
 	}
 }
 
+void GuiFrame::select_loop_action (bool release, int index)
+{
+	if (release) return;
+
+	index--;
+	
+	if (index < (int) _looper_panels.size()) {
+
+		set_curr_loop (index);
+	}
+}
+
+
 void GuiFrame::misc_action (bool release, wxString cmd)
 {
 	int index = _curr_loop;
 
 	// only on press
 	if (release) return;
+
+	if (index < 0) index = -1;
 	
 	if (cmd == wxT("taptempo")) {
 
@@ -793,4 +840,25 @@ bool GuiFrame::save_rc()
 		return false;
 	}
 
+}
+
+void GuiFrame::set_curr_loop (int index)
+{
+	if (index < 0) index = -1;
+	
+	_curr_loop = index;
+
+	cerr << "got loop index " << _curr_loop << endl;
+	
+	int i=0;
+	for (vector<LooperPanel *>::iterator iter = _looper_panels.begin(); iter != _looper_panels.end(); ++iter, ++i) {
+
+		if (_curr_loop == i) {
+
+			(*iter)->set_selected (true);
+		}
+		else {
+			(*iter)->set_selected (false);
+		}
+	}
 }

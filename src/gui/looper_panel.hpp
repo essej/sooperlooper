@@ -36,6 +36,8 @@ class LoopControl;
 class TimePanel;
 class SliderBar;
 class ChoiceBox;
+class CheckBox;
+
 	
 class LooperPanel
 	: public wxPanel, public SigC::Object
@@ -50,6 +52,8 @@ class LooperPanel
 	int get_index() { return _index; }
 
 	void update_controls();
+
+	void set_selected (bool flag);
 	
   protected:
 
@@ -59,7 +63,7 @@ class LooperPanel
 	wxString get_pixmap_path (const wxString & namebase);
 
 	void slider_events(float val, int id);
-	void check_events(wxCommandEvent &ev);
+	void check_events(bool val, wxString  which); 
 	
 	void post_control_event (wxString ctrl, float val);
 	
@@ -73,6 +77,11 @@ class LooperPanel
 	void rate_button_event();
 
 	void on_quantize_change (int index, wxString strval);
+
+	wxPanel   * _selbar;
+	wxColour   _bgcolor;
+	wxColour   _selbgcolor;
+	
 	
 	PixButton * _undo_button;
 	PixButton * _redo_button;
@@ -99,9 +108,9 @@ class LooperPanel
 	SliderBar * _scratch_control;
 	SliderBar * _rate_control;
 
-	wxCheckBox * _quantize_check;
-	wxCheckBox * _round_check;
-	wxCheckBox * _sync_check;
+	CheckBox * _quantize_check;
+	CheckBox * _round_check;
+	CheckBox * _sync_check;
 
 	ChoiceBox  * _quantize_choice;
 	

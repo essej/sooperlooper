@@ -23,12 +23,16 @@
 
 #include <iostream>
 
+#include "gui_app.hpp"
+#include "gui_frame.hpp"
+#include "keyboard_target.hpp"
 #include "looper_panel.hpp"
 #include "pix_button.hpp"
 #include "loop_control.hpp"
 #include "time_panel.hpp"
 #include "slider_bar.hpp"
 #include "choice_box.hpp"
+#include "check_box.hpp"
 
 using namespace SooperLooperGui;
 using namespace std;
@@ -69,9 +73,6 @@ enum {
 
 BEGIN_EVENT_TABLE(LooperPanel, wxPanel)
 
-	EVT_CHECKBOX (ID_QuantizeCheck, LooperPanel::check_events)
-	EVT_CHECKBOX (ID_RoundCheck, LooperPanel::check_events)
-	EVT_CHECKBOX (ID_SyncCheck, LooperPanel::check_events)
 	
 END_EVENT_TABLE()
 
@@ -99,6 +100,17 @@ LooperPanel::init()
 	wxBoxSizer * rowsizer;
 	PixButton * bitbutt;
 
+	// add selbar
+	_bgcolor.Set(0,0,0);
+	_selbgcolor.Set(244, 255, 158);
+
+	_selbar = new wxPanel(this, -1, wxDefaultPosition, wxSize(4,-1));
+	_selbar->SetThemeEnabled(false);
+	_selbar->SetBackgroundColour (_bgcolor);
+	
+	mainSizer->Add (_selbar, 0, wxEXPAND|wxBOTTOM|wxLEFT, 0);
+	
+	
  	_undo_button = bitbutt = new PixButton(this, ID_UndoButton);
 	load_bitmaps (bitbutt, wxT("undo"));
  	colsizer->Add (bitbutt, 0, wxTOP, 5);
@@ -237,10 +249,11 @@ LooperPanel::init()
 // 	_round_check->SetForegroundColour(*wxWHITE);
 // 	lilrowsizer->Add (_round_check, 0, wxEXPAND);
 
-	_sync_check = new wxCheckBox(this, ID_SyncCheck, "sync");
+	_sync_check = new CheckBox(this, ID_SyncCheck, wxT("sync"), wxDefaultPosition, wxSize(55, 22));
 	_sync_check->SetFont(sliderFont);
-	_sync_check->SetBackgroundColour(wxColour(90,90,90));
-	_sync_check->SetForegroundColour(*wxWHITE);
+// 	_sync_check->SetBackgroundColour(wxColour(90,90,90));
+// 	_sync_check->SetForegroundColour(*wxWHITE);
+	_sync_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("sync")));
 	lilrowsizer->Add (_sync_check, 0, wxEXPAND|wxLEFT, 3);
 
 	lilcolsizer->Add (lilrowsizer, 0, wxTOP, 2);
@@ -341,6 +354,18 @@ LooperPanel::init()
 
 }
 
+void
+LooperPanel::set_selected (bool flag)
+{
+	if (flag) {
+		_selbar->SetBackgroundColour (_selbgcolor);
+	}
+	else {
+		_selbar->SetBackgroundColour (_bgcolor);
+	}
+
+	_selbar->Refresh();
+}
 
 void
 LooperPanel::set_index(int ind)
@@ -491,7 +516,7 @@ LooperPanel::update_controls()
 // 	}
 	if (_loop_control->is_updated(_index, "sync")) {
 		_loop_control->get_value(_index, "sync", val);
-		_sync_check->SetValue (val > 0.0);
+		_sync_check->set_value (val > 0.0);
 	}
 	if (_loop_control->is_updated(_index, "use_rate")) {
 		_loop_control->get_value(_index, "use_rate", val);
@@ -523,6 +548,7 @@ LooperPanel::update_state()
 	// set not active for all state buttons
 	switch(_last_state) {
 	case LooperStateRecording:
+	case LooperStateWaitStop:
 		_record_button->set_active(false);
 		break;
 	case LooperStateOverdubbing:
@@ -553,6 +579,7 @@ LooperPanel::update_state()
 	
 	switch(state) {
 	case LooperStateRecording:
+	case LooperStateWaitStop:
 		_record_button->set_active(true);
 		break;
 	case LooperStateOverdubbing:
@@ -623,15 +650,22 @@ LooperPanel::clicked_events (wxString cmd)
 		// popup local file dialog if we are local
 		if (_loop_control->is_engine_local()) {
 
+			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
+
 			wxString filename = ::wxFileSelector(wxT("Choose file to save loop"), wxT(""), wxT(""), wxT(".wav"), wxT("*.*"), wxSAVE|wxCHANGE_DIR);
 			if ( !filename.empty() )
 			{
 				// todo: specify format
 				_loop_control->post_save_loop (_index, filename);
 			}
+
+			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
+			
 		}
 		else {
 			// popup basic filename text entry
+			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
+
 			wxString filename = ::wxGetTextFromUser(wxString::Format("Choose file to save on remote host '%s'",
 										 _loop_control->get_engine_host().c_str())
 								, wxT("Save Loop"));
@@ -640,6 +674,8 @@ LooperPanel::clicked_events (wxString cmd)
 				// todo: specify format
 				_loop_control->post_save_loop (_index, filename);
 			}
+
+			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
 		}
 
 		
@@ -648,15 +684,20 @@ LooperPanel::clicked_events (wxString cmd)
 	else if (cmd == wxT("load"))
 	{
 		if (_loop_control->is_engine_local()) {
+			
+			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
 
 			wxString filename = wxFileSelector(wxT("Choose file to open"), wxT(""), wxT(""), wxT(""), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
 			if ( !filename.empty() )
 			{
 				_loop_control->post_load_loop (_index, filename);
 			}
+			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
 		}
 		else {
 			// popup basic filename text entry
+			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
+
 			wxString filename = ::wxGetTextFromUser(wxString::Format("Choose file to load on remote host '%s'",
 										 _loop_control->get_engine_host().c_str())
 								, wxT("Save Loop"));
@@ -665,6 +706,9 @@ LooperPanel::clicked_events (wxString cmd)
 				// todo: specify format
 				_loop_control->post_load_loop (_index, filename);
 			}
+
+			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
+			
 		}
 	}
 }
@@ -711,24 +755,9 @@ LooperPanel::slider_events(float val, int id)
 }
 
 void
-LooperPanel::check_events(wxCommandEvent &ev)
+LooperPanel::check_events(bool val, wxString which)
 {
-	int id = ev.GetId();
-
-	switch (id) {
-// 	case ID_RoundCheck:
-// 		post_control_event (wxT("round"), _round_check->GetValue() ? 1.0f: 0.0f);
-// 		break;
-// 	case ID_QuantizeCheck:
-// 		post_control_event (wxT("quantize"), _quantize_check->GetValue() ? 1.0f: 0.0f);
-// 		break;
-	case ID_SyncCheck:
-		post_control_event (wxT("sync"), _sync_check->GetValue() ? 1.0f: 0.0f);
-		break;
-	default:
-		break;
-	}
-
+	post_control_event (which, val ? 1.0f: 0.0f);
 }
 
 void LooperPanel::on_quantize_change (int index, wxString strval)

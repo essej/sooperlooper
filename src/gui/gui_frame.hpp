@@ -35,6 +35,7 @@ class LoopControl;
 class LooperPanel;
 class SliderBar;
 class ChoiceBox;	
+class CheckBox;
 class PixButton;
 class KeyboardTarget;
 class KeysDialog;
@@ -65,7 +66,10 @@ public:
 
 	void command_action (bool release, wxString cmd);
 	void misc_action (bool release, wxString cmd);
+	void select_loop_action (bool release, int index);
 
+	void set_curr_loop (int index);
+	
 protected:
 
 	void init();
@@ -87,16 +91,20 @@ protected:
 	void on_syncto_change (int index, wxString val);
 
 	void on_quantize_change (int index, wxString val);
-	void on_round_check (wxCommandEvent &ev);
+	//void on_round_check (wxCommandEvent &ev);
+	void on_round_check (bool val);
 
 	void on_view_menu (wxCommandEvent &ev);
 	
 	void on_taptempo_event ();
 	
 	void init_syncto_choice();
+	void update_syncto_choice();
 	
 	void update_controls();
 
+	
+	
 	// these should be static somewhere
 	bool load_bitmaps (PixButton * butt, wxString namebase);
 	wxString get_pixmap_path (const wxString & namebase);
@@ -116,10 +124,11 @@ protected:
 	ChoiceBox * _sync_choice;
 	SliderBar * _eighth_cycle_bar;
 	ChoiceBox * _quantize_choice;
-	wxCheckBox * _round_check;
+	//wxCheckBox * _round_check;
+	CheckBox * _round_check;
 	PixButton * _taptempo_button;
 	float _tapdelay_val;
-	
+
 	// keybindings
 
 	KeysDialog * _keys_dialog;

@@ -20,6 +20,15 @@
 #include "alsa_midi_bridge.hpp"
 #include <pthread.h>
 
+
+//#define MIDIDEBUG
+
+#ifdef MIDIDEBUG
+#define DBG(x) x
+#else
+#define DBG(x)
+#endif
+
 using namespace SooperLooper;
 using namespace std;
 
@@ -110,32 +119,32 @@ void  AlsaMidiBridge::midi_receiver()
 		switch(event->type){
 		case SND_SEQ_EVENT_NOTEON:
 			queue_midi(0x90+event->data.note.channel,event->data.note.note,event->data.note.velocity);
-			//printf("Noteon, channel: %d note: %d vol: %d\n",event->data.note.channel,event->data.note.note,event->data.note.velocity);
+			DBG (printf("Noteon, channel: %d note: %d vol: %d\n",event->data.note.channel,event->data.note.note,event->data.note.velocity);)
 			break;
 		case SND_SEQ_EVENT_NOTEOFF:
 			queue_midi(0x90+event->data.note.channel,event->data.note.note,0);
-			//printf("Noteoff, channel: %d note: %d vol: %d\n",event->data.note.channel,event->data.note.note,event->data.note.velocity);
+			DBG(printf("Noteoff, channel: %d note: %d vol: %d\n",event->data.note.channel,event->data.note.note,event->data.note.velocity);)
 			break;
 		case SND_SEQ_EVENT_KEYPRESS:
-			//printf("Keypress, channel: %d note: %d vol: %d\n",event->data.note.channel,event->data.note.note,event->data.note.velocity);
 			queue_midi(0xa0+event->data.note.channel,event->data.note.note,event->data.note.velocity);
+			DBG(printf("Keypress, channel: %d note: %d vol: %d\n",event->data.note.channel,event->data.note.note,event->data.note.velocity);)
 			break;
 		case SND_SEQ_EVENT_CONTROLLER:
 			queue_midi(0xb0+event->data.control.channel,event->data.control.param,event->data.control.value);
-			//printf("Control: %d %d %d\n",event->data.control.channel,event->data.control.param,event->data.control.value);
+			DBG(printf("Control: %d %3d %3d\n",event->data.control.channel,event->data.control.param,event->data.control.value);)
 			break;
 		case SND_SEQ_EVENT_PITCHBEND:
 			val=event->data.control.value + 0x2000;
 			queue_midi(0xe0+event->data.control.channel,val&127,val>>7);
-			//printf("Pitch: %d %d %d\n",event->data.control.channel,event->data.control.param,event->data.control.value);
+			DBG(printf("Pitch: %d %d %d\n",event->data.control.channel,event->data.control.param,event->data.control.value);)
 			break;
 		case SND_SEQ_EVENT_CHANPRESS:
-			//printf("chanpress: %d %d %d\n",event->data.control.channel,event->data.control.param,event->data.control.value);
 			queue_midi(0xc0+event->data.control.channel,event->data.control.value,0);
+			DBG(printf("chanpress: %d %d %d\n",event->data.control.channel,event->data.control.param,event->data.control.value);)
 			break;
 		case SND_SEQ_EVENT_PGMCHANGE:
-			//printf("pgmchange: %d %d %d\n",event->data.control.channel,event->data.control.param,event->data.control.value);
 			queue_midi(0xc0+event->data.control.channel,event->data.control.value,0);
+			DBG(printf("pgmchange: %d %d %d\n",event->data.control.channel,event->data.control.param,event->data.control.value);)
 			break;
 		case SND_SEQ_EVENT_START:
 			queue_midi(0xfa,0,0);

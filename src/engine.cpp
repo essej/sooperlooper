@@ -154,6 +154,19 @@ Engine::add_loop (unsigned int chans)
 			delete instance;
 			return false;
 		}
+
+		// set some initial controls
+		float quantize_value = QUANT_OFF;
+		float round_value = 0.0f;
+		
+		if (!_instances.empty()) {
+			quantize_value = _instances[0]->get_control_value (Event::Quantize);
+			round_value = _instances[0]->get_control_value (Event::Round);
+		}
+
+		instance->set_port (Quantize, quantize_value);
+		instance->set_port (Round, round_value);
+		
 		
 		_instances.push_back (instance);
 
@@ -230,13 +243,14 @@ Engine::process (nframes_t nframes)
 
 	Event * evt;
 	RingBuffer<Event>::rw_vector vec;
-		
+
 	// get available events
 	_event_queue->get_read_vector (&vec);
 		
 	// update event generator
 	_event_generator->updateFragmentTime (nframes);
 
+	
 	
 	// update internal sync
 	calculate_tempo_frames ();
@@ -249,7 +263,8 @@ Engine::process (nframes_t nframes)
 	size_t n = 0;
 	size_t vecn = 0;
 	nframes_t fragpos;
-		
+	int m, syncm;
+	
 	if (num > 0) {
 		
 		while (n < num)
@@ -282,9 +297,23 @@ Engine::process (nframes_t nframes)
 				do_global_rt_event (evt, usedframes + doframes, nframes - (usedframes + doframes));
 			}
 
-			int m = 0;
+			m = 0;
+			syncm = -1;
+			
+			if ((int)_sync_source > 0 && (int)_sync_source <= (int)_instances.size()) {
+				// we need to run the sync source loop first
+				syncm = (int) _sync_source - 1;
+				_instances[syncm]->run (usedframes, doframes);
+				
+				if (evt->Instance == -1 || evt->Instance == syncm) {
+					_instances[syncm]->do_event (evt);
+				}
+			}
+			
 			for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i, ++m)
 			{
+				if (syncm == m) continue; // skip if we already ran it
+				
 				// run for the time before this event
 				(*i)->run (usedframes, doframes);
 					
@@ -299,16 +328,39 @@ Engine::process (nframes_t nframes)
 
 		// advance events
 		_event_queue->increment_read_ptr (vec.len[0] + vec.len[1]);
-			
+
+
+		m = 0;
+		syncm = -1;
+		
+		if ((int)_sync_source > 0 && (int)_sync_source <= (int) _instances.size()) {
+			// we need to run the sync source loop first
+			syncm = (int) _sync_source - 1;
+			_instances[syncm]->run (usedframes, nframes - usedframes);
+		}
+
 		// run the rest of the frames
-		for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i) {
+		for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i ,++m) {
+			if (syncm == m) continue;
+
 			(*i)->run (usedframes, nframes - usedframes);
 		}
 
 	}
 	else {
 		// no events
-		for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i) {
+
+		int m = 0;
+		int syncm = -1;
+		
+		if ((int)_sync_source > 0 && (int) _sync_source <= (int)_instances.size()) {
+			// we need to run the sync source loop first
+			syncm = (int) _sync_source - 1;
+			_instances[syncm]->run (0, nframes);
+		}
+
+		for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i, ++m) {
+			if (syncm == m) continue;
 			(*i)->run (0, nframes);
 		}
 
@@ -637,6 +689,7 @@ void Engine::update_sync_source ()
 	}
 	else if (_sync_source > 0 && (int)_sync_source <= (int) _instances.size()) {
 		sync_buf = _instances[(int)_sync_source - 1]->get_sync_out_buf();
+		cerr << "using sync from " << _sync_source -1 << endl;
 	}
 	
 	
@@ -813,6 +866,9 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 		}
 	}
 	else {
-		memset (_internal_sync_buf, 0, nframes * sizeof(float));
+		for (nframes_t n=offset; n < nframes; ++n) {
+			_internal_sync_buf[n]  = 1.0;
+		}
+		//memset (_internal_sync_buf, 0, nframes * sizeof(float));
 	}
 }
