@@ -545,7 +545,7 @@ LooperPanel::slider_events(float val, int id)
 		break;
 	case ID_RateControl:
 		ctrl = "rate";
-		val = (_rate_control->get_value() / 100.0f) * 4.0f;
+		val = _rate_control->get_value();
 		break;
 	default:
 		break;

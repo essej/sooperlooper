@@ -119,16 +119,15 @@ Looper::~Looper ()
 			_instances[i] = 0;
 		}
 
-		// TODO
-// 		if (_input_ports[i]) {
-// 			jack_port_unregister (_jack, _input_ports[i]);
-// 			_input_ports[i] = 0;
-// 		}
+		if (_input_ports[i]) {
+			_driver->destroy_input_port (_input_ports[i]);
+			_input_ports[i] = 0;
+		}
 		
-// 		if (_output_ports[i]) {
-// 			jack_port_unregister (_jack, _output_ports[i]);
-// 			_output_ports[i] = 0;
-// 		}
+		if (_output_ports[i]) {
+			_driver->destroy_output_port (_output_ports[i]);
+			_output_ports[i] = 0;
+		}
 	}
 
 	delete [] _instances;

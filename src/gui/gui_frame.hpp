@@ -59,6 +59,8 @@ protected:
 
 	void init_loopers (int count);
 
+	void on_add_loop (wxCommandEvent &ev);
+	void on_remove_loop (wxCommandEvent &ev);
 	
 	LoopControl * _loop_control;
 

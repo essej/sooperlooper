@@ -45,6 +45,9 @@ class JackAudioDriver
 	bool  create_input_port (std::string name, port_id_t & portid);
 	bool  create_output_port (std::string name, port_id_t & portid);
 
+	bool destroy_input_port (port_id_t portid);
+	bool destroy_output_port (port_id_t portid);
+	
 	sample_t * get_input_port_buffer (port_id_t port, nframes_t nframes);
 	sample_t * get_output_port_buffer (port_id_t port, nframes_t nframes);
 	

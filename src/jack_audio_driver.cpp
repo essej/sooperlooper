@@ -205,6 +205,35 @@ JackAudioDriver::create_output_port (std::string name, port_id_t & portid)
 
 }
 
+bool
+JackAudioDriver::destroy_output_port (port_id_t portid)
+{
+	jack_port_t * port = 0;
+
+	if (portid < _output_ports.size()) {
+		port = _output_ports[portid];
+		_output_ports[portid] = 0;
+		return (jack_port_unregister (_jack, port) == 0);
+	}
+	
+	return false;
+}
+
+bool
+JackAudioDriver::destroy_input_port (port_id_t portid)
+{
+	jack_port_t * port = 0;
+
+	if (portid < _input_ports.size()) {
+		port = _input_ports[portid];
+		_input_ports[portid] = 0;
+		return (jack_port_unregister (_jack, port) == 0);
+	}
+	
+	return false;
+}
+
+
 sample_t *
 JackAudioDriver::get_input_port_buffer (port_id_t port, nframes_t nframes)
 {

@@ -30,6 +30,7 @@
 #include <sigc++/object.h>
 
 #include "event.hpp"
+#include "event_nonrt.hpp"
 
 namespace SooperLooper {
 
@@ -48,8 +49,13 @@ class ControlOSC
 
 	bool is_ok() { return _ok; }
 
+	void send_all_config ();
 	void send_pingack (std::string returl, std::string retpath="/pingack");
 	
+
+	void finish_get_event (GetParamEvent & event);
+	void finish_update_event (ConfigUpdateEvent & event);
+	void finish_register_event (RegisterConfigEvent &event);
 	
   private:
 
@@ -80,6 +86,10 @@ class ControlOSC
 	static int _register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _ping_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _register_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 
 
 	static void * _osc_receiver(void * arg);
@@ -87,6 +97,10 @@ class ControlOSC
 	
 	int quit_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data);
 	int ping_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data);
+	int loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int register_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 
 	int updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo * info);
 	int set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
@@ -122,6 +136,10 @@ class ControlOSC
 	typedef std::list<UrlPair> UrlList;
 	typedef std::map<InstancePair, UrlList > ControlRegistrationMap;
 	ControlRegistrationMap _registration_map;
+
+	typedef std::pair<std::string, std::string> AddrPathPair;
+	typedef std::list<AddrPathPair> AddressList;
+	AddressList _config_registrations;
 };
 
 };  // sooperlooper namespace

@@ -18,6 +18,9 @@
 */
 #include <iostream>
 
+#include <unistd.h>
+#include <sys/time.h>
+#include <pthread.h>
 
 #include "engine.hpp"
 #include "looper.hpp"
@@ -37,10 +40,16 @@ Engine::Engine ()
 	_osc = 0;
 	_event_generator = 0;
 	_event_queue = 0;
+	_def_channel_cnt = 2;
+	_def_loop_secs = 200;
+	
+	pthread_cond_init (&_event_cond, NULL);
+
 }
 
 bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 {
+
 	_driver = driver;
 	_driver->set_engine(this);
 	
@@ -53,6 +62,9 @@ bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 	_event_generator = new EventGenerator(_driver->get_samplerate());
 	_event_queue = new RingBuffer<Event> (MAX_EVENTS);
 
+	_nonrt_event_queue = new RingBuffer<EventNonRT *> (MAX_EVENTS);
+
+	
 	_osc = new ControlOSC(this, port);
 
 	if (!_osc->is_ok()) {
@@ -69,7 +81,6 @@ void
 Engine::cleanup()
 {
 	if (_osc) {
-		//cerr << "deleting osc" << endl;
 		delete _osc;
 	}
 
@@ -95,6 +106,9 @@ void Engine::quit()
 {
 	
 	_ok = false;
+
+	LockMonitor mon(_event_loop_lock, __LINE__, __FILE__);
+	pthread_cond_signal (&_event_cond);
 }
 
 
@@ -337,3 +351,92 @@ Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 
 	return 0.0f;
 }
+
+
+bool
+Engine::push_nonrt_event (EventNonRT * event)
+{
+
+	_nonrt_event_queue->write(&event, 1);
+	
+	LockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
+	pthread_cond_signal (&_event_cond);
+
+	return true;
+}
+
+
+void
+Engine::mainloop()
+{
+	struct timespec timeout;
+	struct timeval now;
+
+	EventNonRT * event;
+	ConfigUpdateEvent * cu_event;
+	GetParamEvent *     gp_event;
+	ConfigLoopEvent *   cl_event;
+	PingEvent *         ping_event;
+	RegisterConfigEvent * rc_event;
+	
+	// non-rt event processing loop
+
+	while (is_ok())
+	{
+		// pull off all events from nonrt ringbuffer
+		while (is_ok() && _nonrt_event_queue->read(&event, 1) == 1)
+		{
+			if ((gp_event = dynamic_cast<GetParamEvent*> (event)) != 0)
+			{
+				gp_event->ret_value = get_control_value (gp_event->control, gp_event->instance);
+				_osc->finish_get_event (*gp_event);
+			}
+			else if ((cu_event = dynamic_cast<ConfigUpdateEvent*> (event)) != 0)
+			{
+				_osc->finish_update_event (*cu_event);
+			}
+			else if ((cl_event = dynamic_cast<ConfigLoopEvent*> (event)) != 0)
+			{
+				if (cl_event->type == ConfigLoopEvent::Add) {
+					// todo: use secs
+					if (cl_event->channels == 0) {
+						cl_event->channels = _def_channel_cnt;
+					}
+					
+					add_loop (cl_event->channels);
+				}
+				else if (cl_event->type == ConfigLoopEvent::Remove)
+				{
+					if (cl_event->index == -1) {
+						cl_event->index = _instances.size() - 1;
+					}
+					remove_loop (cl_event->index);
+				}
+			}
+			else if ((ping_event = dynamic_cast<PingEvent*> (event)) != 0)
+			{
+				_osc->send_pingack(ping_event->ret_url, ping_event->ret_path);
+			}
+			else if ((rc_event = dynamic_cast<RegisterConfigEvent*> (event)) != 0)
+			{
+				_osc->finish_register_event (*rc_event);
+			}
+			
+			delete event;
+		}
+		
+
+		if (!is_ok()) break;
+		
+		// sleep on condition
+		{
+			LockMonitor mon(_event_loop_lock, __LINE__, __FILE__);
+			gettimeofday(&now, NULL);
+			timeout.tv_sec = now.tv_sec + 5;
+			timeout.tv_nsec = now.tv_usec * 1000;
+			pthread_cond_timedwait (&_event_cond, _event_loop_lock.mutex(), &timeout);
+		}
+	}
+
+}
+

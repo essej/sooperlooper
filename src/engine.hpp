@@ -28,6 +28,7 @@
 #include "lockmonitor.hpp"
 #include "ringbuffer.hpp"
 #include "event.hpp"
+#include "event_nonrt.hpp"
 #include "audio_driver.hpp"
 
 namespace SooperLooper {
@@ -46,6 +47,10 @@ class Engine
 
 	AudioDriver * get_audio_driver () { return _driver; }
 	ControlOSC  * get_control_osc () { return _osc; }
+
+	void set_default_loop_secs (float secs) { _def_loop_secs = secs; }
+	void set_default_channels (int chan) { _def_channel_cnt = chan; }
+	
 	
 	bool is_ok() const { return _ok; }
 
@@ -75,6 +80,11 @@ class Engine
 	SigC::Signal1<void, int> LoopAdded;
 	SigC::Signal0<void> LoopRemoved;
 
+	// the main non-rt event processing loop
+	void mainloop();
+	
+	bool push_nonrt_event (EventNonRT * event);
+	
 	
   protected:	
 
@@ -92,6 +102,16 @@ class Engine
 	RingBuffer<Event> * _event_queue;
 
 	EventGenerator * _event_generator;
+
+	// non-rt event stuff
+
+	RingBuffer<EventNonRT *> * _nonrt_event_queue;
+	
+	PBD::Lock _event_loop_lock;
+	pthread_cond_t  _event_cond;
+
+	int _def_channel_cnt;
+	float _def_loop_secs;
 };
 
 };  // sooperlooper namespace

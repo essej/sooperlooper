@@ -77,6 +77,8 @@ LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString ex
 
 LoopControl::~LoopControl()
 {
+	lo_send(_osc_addr, "/unregister", "ss", _our_url.c_str(), "/pingack");
+
 	lo_server_free (_osc_server);
 	lo_address_free (_osc_addr);
 }
@@ -183,8 +185,14 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 
 	lo_address_free(_osc_addr);
 	_osc_addr = lo_address_new_from_url (hosturl.c_str());
-	
-	_pingack = true;
+
+	if (!_pingack) {
+		// register future configs with it once
+		lo_send(_osc_addr, "/register", "ss", _our_url.c_str(), "/pingack");
+		
+		_pingack = true;
+	}
+
 	
 	LooperConnected (loopcount); // emit
 
@@ -415,4 +423,30 @@ LoopControl::get_state (int index, LooperState & state, wxString & statestr)
 	}
 
 	return ret;
+}
+
+bool
+LoopControl::post_add_loop()
+{
+	// todo specify loop channels etc
+	int channels = 0;
+	float secs = 0.0;
+	
+	if (lo_send(_osc_addr, "/loop_add", "if", channels, secs) == -1) {
+		return false;
+	}
+
+	return true;
+}
+
+bool
+LoopControl::post_remove_loop()
+{
+	// todo specify loop channels etc
+	int index = -1;
+	
+	if (lo_send(_osc_addr, "/loop_del", "i", index) == -1) {
+		return false;
+	}
+	return true;
 }

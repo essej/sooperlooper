@@ -37,7 +37,9 @@ enum {
 	ID_KeybindingsMenu,
 	ID_MidiBindingsMenu,
 	ID_Quit,
-	ID_QuitStop
+	ID_QuitStop,
+	ID_AddLoop,
+	ID_RemoveLoop
 };
 
 
@@ -50,6 +52,10 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 
 	EVT_MENU(ID_Quit, GuiFrame::OnQuit)
 	EVT_MENU(ID_QuitStop, GuiFrame::OnQuit)
+
+	EVT_MENU(ID_AddLoop, GuiFrame::on_add_loop)
+	EVT_MENU(ID_RemoveLoop, GuiFrame::on_remove_loop)
+
 	
 END_EVENT_TABLE()
 
@@ -70,6 +76,7 @@ GuiFrame::~GuiFrame()
 		_loop_control->register_input_controls((int) i, true);
 	}
 
+	delete _loop_control;
 }
 
 void
@@ -98,6 +105,11 @@ GuiFrame::init()
 
 	wxMenu *menuFile = new wxMenu(wxT(""));
 
+	menuFile->Append(ID_AddLoop, wxT("Add Loop"), wxT("Add one default loop"));
+	menuFile->Append(ID_RemoveLoop, wxT("Remove Loop"), wxT("Remove last loop"));
+
+	menuFile->AppendSeparator();
+	
 	menuFile->Append(ID_Quit, wxT("Quit but Leave Engine Running\tCtrl-Shift-Q"), wxT("Exit from GUI and leave engine running"));
 	menuFile->Append(ID_QuitStop, wxT("Quit and Stop Engine\tCtrl-Q"), wxT("Exit from GUI and stop engine"));
 	
@@ -247,3 +259,14 @@ GuiFrame::OnIdle(wxIdleEvent& event)
 	event.Skip();
 }
 
+void
+GuiFrame::on_add_loop (wxCommandEvent &ev)
+{
+	_loop_control->post_add_loop();
+}
+
+void
+GuiFrame::on_remove_loop (wxCommandEvent &ev)
+{
+	_loop_control->post_remove_loop();
+}

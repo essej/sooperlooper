@@ -27,6 +27,7 @@ AlsaMidiBridge::AlsaMidiBridge (string name, string oscurl)
 	: MidiBridge (name, oscurl), _seq(0)
 {
 	_done = false;
+	_midi_thread = 0;
 	
 	if ((_seq = create_sequencer (name, true)) == 0) {
 		return;
@@ -34,11 +35,17 @@ AlsaMidiBridge::AlsaMidiBridge (string name, string oscurl)
 	
 	
 	pthread_create (&_midi_thread, NULL, &AlsaMidiBridge::_midi_receiver, this);
+	if (!_midi_thread) {
+		return;
+	}
+	
+	pthread_detach(_midi_thread);
 }
 
 AlsaMidiBridge::~AlsaMidiBridge()
 {
-	stop_midireceiver();
+	_done = true;
+	// don't try too hard
 }
 
 snd_seq_t *
@@ -127,40 +134,9 @@ void  AlsaMidiBridge::midi_receiver()
 			break;
 		}
 	}
-	
-}
 
-
-void AlsaMidiBridge::stop_midireceiver ()
-{
-	int err; 
-	snd_seq_event_t event;
-	snd_seq_t *seq2 = create_sequencer ("slquit", true);
-
-	
-	_done = true;
-
-	if (seq2 == 0) {
-		// oh well
-		return;
-	}
-	
-	snd_seq_connect_to (seq2, 0, snd_seq_client_id (_seq),0);
-	snd_seq_ev_clear      (&event);
-	snd_seq_ev_set_direct (&event);
-	snd_seq_ev_set_subs   (&event);
-	snd_seq_ev_set_source (&event, 0);
-	snd_seq_ev_set_controller (&event,1,0x80,50);
-	
-	if ((err = snd_seq_event_output (seq2, &event)) < 0) {
-		fprintf (stderr, "cannot send stop event to midi thread: %s\n",
-			   snd_strerror (err));
-	}
-
-	snd_seq_drain_output (seq2);
-	snd_seq_close (seq2);
-	pthread_join (_midi_thread,NULL);
 	snd_seq_close (_seq);
-
 	_seq = 0;
 }
+
+

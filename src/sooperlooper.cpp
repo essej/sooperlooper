@@ -39,7 +39,7 @@ using namespace std;
 extern void sl_init ();
 extern	void sl_fini ();
 
-
+Engine * engine = 0;
 int do_shutdown = 0;
 
 
@@ -170,6 +170,7 @@ static void* watchdog_thread(void* arg)
 	  sigaddset(&signalset, SIGINT);
 	  sigaddset(&signalset, SIGHUP);
 	  sigaddset(&signalset, SIGPIPE);
+	  sigaddset(&signalset, SIGABRT);
 	  
 	  /* block until a signal received */
 	  sigwait(&signalset, &signalno);
@@ -184,14 +185,14 @@ static void* watchdog_thread(void* arg)
 	  }
   }
 
-  
-  do_shutdown = 1;
+
+  if (engine) {
+	  engine->quit();
+  }
   
   /* to keep the compilers happy; never actually executed */
   return(0);
 }
-
-
 
 /**
  * Sets up a signal mask with sigaction() that blocks 
@@ -201,33 +202,33 @@ static void* watchdog_thread(void* arg)
  */
 static void setup_signals()
 {
-  pthread_t watchdog;
-  int res;
-
-  /* man pthread_sigmask:
-   *  "...signal actions and signal handlers, as set with
-   *   sigaction(2), are shared between all threads"
-   */
-
-  struct sigaction blockaction;
-  blockaction.sa_handler = SIG_IGN;
-  sigemptyset(&blockaction.sa_mask);
-  blockaction.sa_flags = 0;
-
-  /* ignore the following signals */
-  sigaction(SIGTERM, &blockaction, 0);
-  sigaction(SIGINT, &blockaction, 0);
-  sigaction(SIGHUP, &blockaction, 0);
-  sigaction(SIGPIPE, &blockaction, 0);
-  sigaction(SIGABRT, &blockaction, 0);
-
-  res = pthread_create(&watchdog, 
-			   NULL, 
-			   watchdog_thread, 
-			   NULL);
-  if (res != 0) {
-     fprintf(stderr, "sooperlooper: Warning! Unable to create watchdog thread.\n");
-  }
+	pthread_t watchdog;
+	int res;
+	
+	/* man pthread_sigmask:
+	 *  "...signal actions and signal handlers, as set with
+	 *   sigaction(2), are shared between all threads"
+	 */
+	
+	struct sigaction blockaction;
+	blockaction.sa_handler = SIG_IGN;
+	sigemptyset(&blockaction.sa_mask);
+	blockaction.sa_flags = 0;
+	
+	/* ignore the following signals */
+	sigaction(SIGTERM, &blockaction, 0);
+	sigaction(SIGINT, &blockaction, 0);
+	sigaction(SIGHUP, &blockaction, 0);
+	sigaction(SIGPIPE, &blockaction, 0);
+	sigaction(SIGABRT, &blockaction, 0);
+  
+	res = pthread_create(&watchdog, 
+			     NULL, 
+			     watchdog_thread, 
+			     NULL);
+	if (res != 0) {
+		fprintf(stderr, "sooperlooper: Warning! Unable to create watchdog thread.\n");
+	}
 }
 
 
@@ -279,8 +280,10 @@ int main(int argc, char** argv)
 	AudioDriver * driver = new JackAudioDriver(option_info.jack_name);
 	
 	
-	Engine * engine = new Engine();
+	engine = new Engine();
 
+	engine->set_default_loop_secs (option_info.loopsecs);
+	engine->set_default_channels (option_info.channels);
 	
 	if (!engine->initialize(driver, option_info.oscport, option_info.pingurl)) {
 		cerr << "cannot initialize sooperlooper\n";
@@ -316,12 +319,9 @@ int main(int argc, char** argv)
 		midibridge->load_bindings (option_info.bindfile);
 	}
 	
-	// todo proper event loop ?
-
-	while (engine->is_ok() && !do_shutdown)
-	{
-		usleep(1000);
-	}
+	// go into engine's non-rt event loop
+	// this returns when we quit or signal handler causes it to
+	engine->mainloop();
 
 	delete midibridge;
 	delete driver;

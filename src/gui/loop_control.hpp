@@ -64,6 +64,10 @@ class LoopControl
 	bool post_up_event (int index, wxString cmd);
 
 	bool post_ctrl_change (int index, wxString ctrl, float val);
+
+	bool post_add_loop();
+	bool post_remove_loop();
+	
 	
 	void request_values (int index);
 	void request_all_values (int index);
