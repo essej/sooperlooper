@@ -46,7 +46,6 @@ class GuiApp : public wxApp
 	
 	GuiFrame * getFrame() { return _frame; }
 
-	void setupSignals();
 
 	wxString get_host() { return _host; }
 	int get_port() { return _port; }
@@ -57,8 +56,7 @@ class GuiApp : public wxApp
 	
   protected:
 	
-	void  usage(char *argv0);
-	void  parse_options (int argc, char **argv);
+	bool  parse_options (int argc, wxChar **argv);
 
 	void process_key_event (wxKeyEvent &ev);
 
@@ -71,7 +69,15 @@ class GuiApp : public wxApp
 	int _show_version;
 	wxString _exec_name;
 	bool  _force_spawn;
-	char ** _engine_argv;
+	bool  _never_spawn;
+	int  _loop_count;
+	int  _channels;
+	float _mem_secs;
+	wxString _midi_bind_file;
+	wxString _server_name;
+	wxString _client_name;
+	
+	wxChar ** _engine_argv;
 
 	DECLARE_EVENT_TABLE()
 	

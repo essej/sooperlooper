@@ -254,9 +254,8 @@ LoopControl::setup_param_map()
 
 
 bool
-LoopControl::connect(char **engine_argv)
+LoopControl::connect()
 {
-	_engine_argv = engine_argv;
 
 	if (_osc_addr) {
 		lo_address_free (_osc_addr);
@@ -455,7 +454,6 @@ bool LoopControl::spawn_looper()
 {
 	// use wxExecute
 	wxString cmdstr = _spawn_config.exec_name;
-	char ** argv  = _engine_argv;
 
 	if (cmdstr.empty()) {
 		cmdstr = wxT("sooperlooper"); // always force something
@@ -486,12 +484,6 @@ bool LoopControl::spawn_looper()
 		cmdstr += wxString::Format(wxT(" -S \"%s\""), _spawn_config.jack_serv_name.c_str());
 	}
 	
-	if (argv) {
-		while (*argv) {
-			cmdstr += wxT(" ") + wxString(*argv);
-			argv++;
-		}
-	}
 
 
 #ifdef DEBUG

@@ -61,7 +61,7 @@ Transmitter  error (Transmitter::Error);
 #define DEFAULT_LOOP_TIME 40.0f
 
 
-char *optstring = "c:l:j:p:m:t:U:qVh";
+char *optstring = "c:l:j:p:m:t:U:S:qVh";
 
 struct option long_options[] = {
 	{ "help", 0, 0, 'h' },

@@ -78,7 +78,7 @@ class LoopControl
 	SpawnConfig & get_spawn_config() { return _spawn_config; }
 	SpawnConfig & get_default_spawn_config() { return _default_spawn_config; }
 
-	bool connect(char **engine_argv=0);
+	bool connect();
 	bool disconnect(bool killit=false);
 	
 	bool post_down_event (int index, wxString cmd);
@@ -187,7 +187,6 @@ class LoopControl
 	int      _port;
 	bool     _force_spawn;
 	wxString _exec_name;
-	char **  _engine_argv;
 	wxString _rcdir;
 	
 	LoopUpdateTimer * _updatetimer;

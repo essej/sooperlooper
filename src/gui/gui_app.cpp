@@ -24,10 +24,10 @@
 
 #include <signal.h>
 #include <pthread.h>
-#include <getopt.h>
 
 #include <cstdio>
 #include <iostream>
+#include <cstring>
 
 #ifdef __WXMAC__
 #include <wx/filename.h>
@@ -44,6 +44,8 @@ wxString GetExecutablePath(wxString argv0);
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
 #endif
+
+#include <wx/cmdline.h>
 
 #include "version.h"
 
@@ -81,103 +83,98 @@ END_EVENT_TABLE()
 #define DEFAULT_LOOP_TIME 200.0f
 
 
-char *optstring = "H:P:E:SVh";
-
-struct option long_options[] = {
-	{ "help", 0, 0, 'h' },
-	{ "connect-host", 1, 0, 'H' },
-	{ "connect-port", 1, 0, 'P' },
-	{ "spawn-engine", 0, 0, 'S' },
-	{ "exec-name", 1, 0, 'E' },
-	{ "version", 0, 0, 'V' },
-	{ 0, 0, 0, 0 }
+static const wxCmdLineEntryDesc cmdLineDesc[] =
+{
+	{ wxCMD_LINE_SWITCH, wxT("h"), wxT("help"), wxT("show this help"), wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+	{ wxCMD_LINE_SWITCH, wxT("V"), wxT("version"), wxT("show version only"), wxCMD_LINE_VAL_NONE },
+	{ wxCMD_LINE_OPTION, wxT("l"), wxT("loopcount"), wxT("number of loopers to create (default is 1)"), wxCMD_LINE_VAL_NUMBER },
+	{ wxCMD_LINE_OPTION, wxT("c"), wxT("channels"), wxT("channel count for each looper (default is 2)"), wxCMD_LINE_VAL_NUMBER },
+	{ wxCMD_LINE_OPTION, wxT("t"), wxT("looptime"), wxT("number of seconds of loop memory per channel"), wxCMD_LINE_VAL_NUMBER },
+	{ wxCMD_LINE_OPTION, wxT("H"), wxT("connect-host"), wxT("connect to sooperlooper engine on given host (default is localhost)")},
+	{ wxCMD_LINE_OPTION, wxT("P"), wxT("connect-port"), wxT("connect to sooperlooper engine on given port (default is 9951)"), wxCMD_LINE_VAL_NUMBER },
+	{ wxCMD_LINE_OPTION, wxT("m"), wxT("load-midi-binding"), wxT("loads midi binding from file")},
+	{ wxCMD_LINE_SWITCH, wxT("s"), wxT("force-spawn"), wxT("force the execution of a new engine")},
+	{ wxCMD_LINE_SWITCH, wxT("N"), wxT("never-spawn"), wxT("never start a new engine"), wxCMD_LINE_VAL_NONE },
+	{ wxCMD_LINE_OPTION, wxT("E"), wxT("exec-name"), wxT("use name as binary to execute as sooperlooper engine (default is sooperlooper)")},
+	{ wxCMD_LINE_OPTION, wxT("J"), wxT("jack-name"), wxT("jack client name, default is sooperlooper_1")},
+	{ wxCMD_LINE_OPTION, wxT("S"), wxT("jack-server-name"), wxT("specify JACK server name")},
+	{ wxCMD_LINE_NONE }
 };
-
-
-
-void
-GuiApp::usage(char *argv0)
-{
-	fprintf(stderr, "SooperLooper %s GUI\nCopyright 2004 Jesse Chappell\nSooperLooper comes with ABSOLUTELY NO WARRANTY\n", sooperlooper_version);
-	fprintf(stderr, "This is free software, and you are welcome to redistribute it\n");
-	fprintf(stderr, "under certain conditions; see the file COPYING for details\n\n");
-
-	fprintf(stderr, "Usage: %s [gui_options...] [ --  engine_options... ] \n", argv0);
-	fprintf(stderr, "GUI Options:\n");
-	fprintf(stderr, "  -H host,  --connect-host=host    connect to sooperlooper engine on given host (default is localhost)\n");
-	fprintf(stderr, "  -P <num>, --connect-port=<num>   connect to sooperlooper engine on given port (default is %d)\n", DEFAULT_OSC_PORT);
-	fprintf(stderr, "  -S , --spawn-engine              force the execution of a new sooperlooper engine.\n");
-	fprintf(stderr, "  -E name,  --exec-name=name       use name as binary to execute as sooperlooper engine (default is sooperlooper)\n");
-	fprintf(stderr, "  -h , --help                      this usage output\n");
-	fprintf(stderr, "  -V , --version                   show version only\n");
-
-	fprintf(stderr, "\nBy default, the gui will try to connect to an engine running\n"); 
-	fprintf(stderr, "at the given (or default) host and port.  If there isn't one running\n"); 
-	fprintf(stderr, "then it will attempt to execute sooperlooper passing it the following engine options.\n");
 	
-	fprintf(stderr, "\n");
-	fprintf(stderr, "Engine Options:\n");
-	fprintf(stderr, "  -l <num> , --loopcount=<num> number of loopers to create (default is 1)\n");
-	fprintf(stderr, "  -c <num> , --channels=<num>  channel count for each looper (default is 2)\n");
-	fprintf(stderr, "  -t <numsecs> , --looptime=<num>  number of seconds of loop memory per channel (default is %g)\n", DEFAULT_LOOP_TIME);
-	fprintf(stderr, "  -p <num> , --osc-port=<num>  udp port number for OSC server (default is %d)\n", DEFAULT_OSC_PORT);
-	fprintf(stderr, "  -j <str> , --jack-name=<str> jack client name, default is sooperlooper_1\n");
-	fprintf(stderr, "  -S <str> , --jack-server-name=<str> specify jack server name\n");
-	fprintf(stderr, "  -m <str> , --load-midi-binding=<str> loads midi binding from file or preset\n");
-	fprintf(stderr, "  -q , --quiet                 do not output status to stderr\n");
-	fprintf(stderr, "  -h , --help                  this usage output\n");
-	fprintf(stderr, "  -V , --version               show version only\n");
-}
 
-void
-GuiApp::parse_options (int argc, char **argv)
+bool
+GuiApp::parse_options (int argc, wxChar **argv)
 {
-	int longopt_index = 0;
-	int c;
-	bool stop_proc = false;
-	
-	while (!stop_proc && (c = getopt_long (argc, argv, optstring, long_options, &longopt_index)) >= 0) {
-		if (c >= 255) break;
-		
-		switch (c) {
-		case 1:
-			/* getopt signals end of '-' options */
-			stop_proc = true;
-			break;
-		case 'h':
-			_show_usage++;
-			break;
-		case 'V':
-			_show_version++;
-			break;
-		case 'H':
-			_host = optarg;
-			break;
-		case 'S':
-			_force_spawn = true;
-			break;
-		case 'P':
-			sscanf(optarg, "%d", &_port);
-			break;
-		case 'E':
-			_exec_name = optarg;
-			break;
-		default:
-			fprintf (stderr, "argument error: %c\n", c);
-			_show_usage++;
-			break;
-		}
+	wxCmdLineParser parser(argc, argv);
+	parser.SetDesc(cmdLineDesc);
 
-		if (_show_usage > 0) {
-			break;
-		}
-		
+	wxString logotext = wxT("SooperLooper ") +
+		wxString::FromAscii (sooperlooper_version) +
+		wxT("\nCopyright 2005 Jesse Chappell\n")
+		wxT("SooperLooper comes with ABSOLUTELY NO WARRANTY\n")
+		wxT("This is free software, and you are welcome to redistribute it\n")
+		wxT("under certain conditions; see the file COPYING for details\n");
+
+	parser.SetLogo (logotext);
+
+
+	int ret = parser.Parse();
+
+	if (ret != 0) {
+		// help or error
+		return false;
 	}
 
-	_engine_argv = argv + optind;
+	wxString strval;
+	long longval;
+
+	if (parser.Found (wxT("V"))) {
+		cerr << logotext << endl;
+		return false;
+	}
+	
+	if (parser.Found (wxT("c"), &longval)) {
+		if (longval < 1) {
+			fprintf(stderr, "Error: channel count must be > 0\n");
+			parser.Usage();
+			return false;
+		}
+		_channels = longval;
+	}
+	if (parser.Found (wxT("l"), &longval)) {
+		if (longval < 0) {
+			fprintf(stderr, "Error: loop count must be >= 0\n");
+			parser.Usage();
+			return false;
+		}
+		_loop_count = longval;
+	}
+	if (parser.Found (wxT("t"), &longval)) {
+		if (longval < 1) {
+			fprintf(stderr, "Error: loop memory must be > 0\n");
+			parser.Usage();
+			return false;
+		}
+		_mem_secs = (float) longval;
+	}
+
+	parser.Found (wxT("H"), &_host);
+
+	if (parser.Found (wxT("P"), &longval)) {
+		_port = longval;
+	}
+
+	parser.Found (wxT("m"), &_midi_bind_file);
+
+	_force_spawn = parser.Found (wxT("s"));
+	_never_spawn = parser.Found (wxT("N"));
+	parser.Found (wxT("E"), &_exec_name);
+
+	parser.Found (wxT("S"), &_server_name);
+	parser.Found (wxT("J"), &_client_name);
+
+	return true;
 }
-
-
 	
 	
 GuiApp::GuiApp()
@@ -187,108 +184,13 @@ GuiApp::GuiApp()
 	_show_version = 0;
 	_exec_name = wxT("");
 	_force_spawn = false;
+	_loop_count = 0;
+	_channels = 0;
+	_mem_secs = 0.0f;
 }
 
 GuiApp::~GuiApp()
 {
-}
-
-static void* watchdog_thread(void* arg)
-{
-  sigset_t signalset;
-  //struct ecasound_state* state = reinterpret_cast<struct ecasound_state*>(arg);
-  int signalno;
-  bool exiting = false;
-  
-  /* register cleanup routine */
-  //atexit(&ecasound_atexit_cleanup);
-
-  // cerr << "Watchdog-thread created, pid=" << getpid() << "." << endl;
-
-  while (!exiting)
-  {
-	  sigemptyset(&signalset);
-	  
-	  /* handle the following signals explicitly */
-	  sigaddset(&signalset, SIGTERM);
-	  sigaddset(&signalset, SIGINT);
-	  sigaddset(&signalset, SIGHUP);
-	  sigaddset(&signalset, SIGPIPE);
-	  
-	  /* block until a signal received */
-	  sigwait(&signalset, &signalno);
-	  
-	  //cerr << endl << "freqtweak: watchdog-thread received signal " << signalno << ". Cleaning up..." << endl;
-
-	  if (signalno == SIGHUP) {
-		  // reinit iosupport
-// 		  cerr << "freqtweak got SIGHUP... reiniting" << endl;
-// 		  wxThread::Sleep(200);
-
-// 		  FTioSupport * iosup = FTioSupport::instance();
-// 		  if (!iosup->isInited()) {
-// 			  iosup->init();
-// 			  if (iosup->startProcessing()) {
-// 				  iosup->reinit();
-// 			  }
-// 		  }
-
-// 		  if (::wxGetApp().getMainwin()) {
-// 			  ::wxGetApp().getMainwin()->updateDisplay();
-// 		  }
-		  exiting = false;
-	  }
-	  else {
-		  exiting = true;
-	  }
-  }
-
-  if (::wxGetApp().getFrame()) {
-	  ::wxGetApp().getFrame()->Close(TRUE);
-  }
-  
-  ::wxGetApp().ExitMainLoop();
-  // printf ("bye bye, hope you had fun...\n");
-
-  /* to keep the compilers happy; never actually executed */
-  return(0);
-}
-
-
-
-/**
- * Sets up a signal mask with sigaction() that blocks 
- * all common signals, and then launces an watchdog
- * thread that waits on the blocked signals using
- * sigwait().
- */
-void GuiApp::setupSignals()
-{
-  pthread_t watchdog;
-
-  /* man pthread_sigmask:
-   *  "...signal actions and signal handlers, as set with
-   *   sigaction(2), are shared between all threads"
-   */
-
-  struct sigaction blockaction;
-  blockaction.sa_handler = SIG_IGN;
-  sigemptyset(&blockaction.sa_mask);
-  blockaction.sa_flags = 0;
-
-  /* ignore the following signals */
-  sigaction(SIGTERM, &blockaction, 0);
-  sigaction(SIGINT, &blockaction, 0);
-  sigaction(SIGHUP, &blockaction, 0);
-  sigaction(SIGPIPE, &blockaction, 0);
-
-  int res = pthread_create(&watchdog, 
-			   NULL, 
-			   watchdog_thread, 
-			   NULL);
-  if (res != 0) {
-    cerr << "sooperlooper: Warning! Unable to create watchdog thread." << endl;
-  }
 }
 
 
@@ -296,11 +198,6 @@ void GuiApp::setupSignals()
 // `Main program' equivalent: the program execution "starts" here
 bool GuiApp::OnInit()
 {
-
-// 	signal (SIGTERM, onTerminate);
-// 	signal (SIGINT, onTerminate);
-
-// 	signal (SIGHUP, onHangup);
 
 	
 	wxString jackname;
@@ -310,33 +207,19 @@ bool GuiApp::OnInit()
 	
 	SetExitOnFrameDelete(TRUE);
 
-	// this seems to cause trouble on some systems.
-	// let's just not set any
-	//setupSignals();
-
 	
 	// use stderr as log
 	wxLog *logger=new wxLogStderr();
 	logger->SetTimestamp(NULL);
 	wxLog::SetActiveTarget(logger);
 	
-	_engine_argv = argv + argc;
 	
-	parse_options(argc, argv);
-	
-	if (_show_usage) {
-		usage(argv[0]);
+	if (!parse_options(argc, argv)) {
+		// do not continue
 		return FALSE;
 	}
 
-	
-	if (_show_version) {
-		cerr << "SooperLooper GUI" << sooperlooper_version << endl << "Copyright 2005 Jesse Chappell" << endl;
-		return FALSE;
-	}
 
-	
-	
 	// Create the main application window
 	_frame = new GuiFrame (wxT("SooperLooper"), wxPoint(100, 100), wxDefaultSize);
 
@@ -360,12 +243,34 @@ bool GuiApp::OnInit()
 	if (_force_spawn) {
 		loopctrl.get_spawn_config().force_spawn = _force_spawn;
 	}
+	if (_never_spawn) {
+		loopctrl.get_spawn_config().never_spawn = _never_spawn;
+	}
+	if (!_client_name.empty()) {
+		loopctrl.get_spawn_config().jack_name = _client_name;
+	}
+	if (!_server_name.empty()) {
+		loopctrl.get_spawn_config().jack_serv_name = _server_name;
+	}
 	if (!_exec_name.empty()) {
 		loopctrl.get_spawn_config().exec_name = _exec_name;
 	}
+	if (!_midi_bind_file.empty()) {
+		loopctrl.get_spawn_config().midi_bind_path = _midi_bind_file;
+	}
+	if (_loop_count != 0) {
+		loopctrl.get_spawn_config().num_loops = _loop_count;
+	}
+	if (_channels != 0) {
+		loopctrl.get_spawn_config().num_channels = _channels;
+	}
+	if (_mem_secs != 0) {
+		loopctrl.get_spawn_config().mem_secs = _mem_secs;
+	}
+	
 	
 	// connect
-	loopctrl.connect(_engine_argv);
+	loopctrl.connect();
 
 	// Show it and tell the application that it's our main window
 	_frame->SetSizeHints(790, 185);
