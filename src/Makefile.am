@@ -38,4 +38,4 @@ slconsole_LDADD = @LOSC_LIBS@ @NCURSES_LIBS@ -lpthread
 
 noinst_HEADERS = $(wildcard *.hpp *.h)
 
-EXTRA_DIST = oxy8.slb midiwizard.slb bcf2000.slb
+EXTRA_DIST = oxy8.slb midiwizard.slb bcf2000.slb edp4.slb
