@@ -35,6 +35,7 @@ class LoopControl;
 class LooperPanel;
 class SliderBar;
 class ChoiceBox;	
+class PixButton;
 	
 class GuiFrame
 	: public wxFrame,  public SigC::Object
@@ -70,11 +71,17 @@ protected:
 
 	void on_quantize_change (int index, wxString val);
 	void on_round_check (wxCommandEvent &ev);
+
+	void on_taptempo_event ();
 	
 	void init_syncto_choice();
 	
 	void update_controls();
 
+	// these should be static somewhere
+	bool load_bitmaps (PixButton * butt, wxString namebase);
+	wxString get_pixmap_path (const wxString & namebase);
+	
 	
 	LoopControl * _loop_control;
 
@@ -91,7 +98,9 @@ protected:
 	SliderBar * _eighth_cycle_bar;
 	ChoiceBox * _quantize_choice;
 	wxCheckBox * _round_check;
-	
+	PixButton * _taptempo_button;
+
+	float _tap_val;
 private:
     // any class wishing to process wxWindows events must use this macro
     DECLARE_EVENT_TABLE()

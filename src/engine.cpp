@@ -474,6 +474,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 				_eighth_cycle = gs_event->value;
 			}
 		}
+
 	}
 	else if ((cu_event = dynamic_cast<ConfigUpdateEvent*> (event)) != 0)
 	{

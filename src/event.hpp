@@ -96,8 +96,9 @@ namespace SooperLooper {
 		    DELAY,
 		    REDO_TOG,
 		    QUANT_TOG,
-		    ROUND_TOG
-		    
+		    ROUND_TOG,
+		    ONESHOT,
+		    TRIGGER
 	    } Command;
 
 

@@ -88,6 +88,8 @@ class LooperPanel
 	PixButton * _scratch_button;
 	PixButton * _load_button;
 	PixButton * _save_button;
+	PixButton * _once_button;
+	PixButton * _trig_button;
 
 
 	SliderBar * _thresh_control;

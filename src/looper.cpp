@@ -193,7 +193,7 @@ void
 Looper::set_buffer_size (nframes_t bufsize)
 {
 	if (_buffersize != bufsize) {
-		cerr << "setting buffer size to " << bufsize << endl;
+		//cerr << "setting buffer size to " << bufsize << endl;
 		if (_use_sync_buf == _our_syncin_buf) {
 			_use_sync_buf = 0;
 		}

@@ -149,6 +149,8 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 #define MULTI_QUANT_TOG  12   // only when in mute mode
 #define MULTI_ROUND_TOG  13   // only when in mute mode
 
+#define MULTI_ONESHOT    14
+#define MULTI_TRIGGER    15
 
 enum {
 	QUANT_OFF=0,
@@ -1175,7 +1177,17 @@ static LoopChunk * transitionToNext(SooperLooper *pLS, LoopChunk *loop, int next
 	 newloop = beginMultiply(pLS, loop);
 	 break;
 
-      
+      case STATE_ONESHOT:
+	      // play the loop one_shot mode
+	      if (loop) {
+		      DBG(fprintf(stderr,"Starting ONESHOT state\n"));
+		      pLS->state = STATE_ONESHOT;
+		      if (pLS->fCurrRate > 0)
+			      loop->dCurrPos = 0.0;
+		      else
+			      loop->dCurrPos = loop->lLoopLength - 1;		       
+	      }
+	      break;
    }
 
    if (nextstate != -1) {
@@ -1366,14 +1378,12 @@ runSooperLooper(LADSPA_Handle Instance,
      
   // transitions due to control triggering
   
-  if (lMultiCtrl >= 0 && lMultiCtrl <= 127
-      && (lMultiCtrl/10) == lMultiTens)
+  if (lMultiCtrl >= 0 && lMultiCtrl <= 127)
+	  //&& (lMultiCtrl/10) == lMultiTens)
   {
      // fprintf(stderr, "Multictrl val is %ld\n", lMultiCtrl);
 
-     // only use the 1s digit
-     // TODO: the 10s digits are used to pick the SooperLooper instance
-     lMultiCtrl = lMultiCtrl % 10;
+     lMultiCtrl = lMultiCtrl;
 
      // change the value if necessary
      if (pLS->state == STATE_MUTE) {
@@ -1899,7 +1909,64 @@ runSooperLooper(LADSPA_Handle Instance,
 	   }		 
 	} break;
 
+	case MULTI_ONESHOT:
+	{
+		switch(pLS->state) {
+		case STATE_MULTIPLY:
+			if (loop) {
+				loop = endMultiply(pLS, loop, STATE_ONESHOT);
+			}
+			break;
+			
+		case STATE_INSERT:
+			if (loop) {
+				loop = endInsert(pLS, loop, STATE_ONESHOT);
+			}
+			break;
+			
+		default:
+			// play the loop one_shot mode
+			if (loop) {
+				DBG(fprintf(stderr,"Starting ONESHOT state\n"));
+				pLS->state = STATE_ONESHOT;
+				if (pLS->fCurrRate > 0)
+					loop->dCurrPos = 0.0;
+				else
+					loop->dCurrPos = loop->lLoopLength - 1;		       
+			}
+			break;
+		}
+	} break;
 
+	case MULTI_TRIGGER:
+	{
+		switch(pLS->state) {
+		case STATE_MULTIPLY:
+			if (loop) {
+				loop = endMultiply(pLS, loop, STATE_PLAY);
+			}
+			break;
+			
+		case STATE_INSERT:
+			if (loop) {
+				loop = endInsert(pLS, loop, STATE_PLAY);
+			}
+			break;
+			
+		default:
+			// play the loop from the start
+			if (loop) {
+				DBG(fprintf(stderr,"Starting PLAY state\n"));
+				pLS->state = STATE_PLAY;
+				if (pLS->fCurrRate > 0)
+					loop->dCurrPos = 0.0;
+				else
+					loop->dCurrPos = loop->lLoopLength - 1;		       
+			}
+			break;
+		}
+	} break;
+	
 	case MULTI_QUANT_TOG:
 	{
 	   // toggle quantize

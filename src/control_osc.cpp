@@ -121,6 +121,8 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	_str_cmd_map["undo"]  = Event::UNDO;
 	_str_cmd_map["redo"]  = Event::REDO;
 	_str_cmd_map["scratch"]  = Event::SCRATCH;
+	_str_cmd_map["trigger"]  = Event::TRIGGER;
+	_str_cmd_map["oneshot"]  = Event::ONESHOT;
 
 	for (map<string, Event::command_t>::iterator iter = _str_cmd_map.begin(); iter != _str_cmd_map.end(); ++iter) {
 		_cmd_str_map[(*iter).second] = (*iter).first;

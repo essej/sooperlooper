@@ -49,7 +49,9 @@ enum {
 	ID_ScratchButton,
 	ID_LoadButton,
 	ID_SaveButton,
-
+	ID_OnceButton,
+	ID_TrigButton,
+	
 	ID_ThreshControl,
 	ID_FeedbackControl,
 	ID_DryControl,
@@ -154,7 +156,7 @@ LooperPanel::init()
  	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 5);
 
  	_tap_button = bitbutt = new PixButton(this, ID_TapButton);
-	load_bitmaps (bitbutt, wxT("tap"));
+	load_bitmaps (bitbutt, wxT("delay"));
  	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 5);
 
 	colsizer->Add (rowsizer, 0);
@@ -250,13 +252,25 @@ LooperPanel::init()
 	
  	_load_button = bitbutt = new PixButton(this, ID_LoadButton);
 	load_bitmaps (bitbutt, wxT("load"));
-	lilcolsizer->Add (bitbutt, 0, wxTOP, 3);
+	lilcolsizer->Add (bitbutt, 0, wxTOP, 2);
 
  	_save_button = bitbutt = new PixButton(this, ID_SaveButton);
 	load_bitmaps (bitbutt, wxT("save"));
-	lilcolsizer->Add (bitbutt, 0, wxTOP, 3);
+	lilcolsizer->Add (bitbutt, 0, wxTOP, 2);
 	
-	rowsizer->Add(lilcolsizer, 0, wxTOP|wxLEFT, 2);
+	rowsizer->Add(lilcolsizer, 0, wxTOP|wxLEFT, 3);
+
+	lilcolsizer = new wxBoxSizer(wxVERTICAL);
+	
+ 	_trig_button = bitbutt = new PixButton(this, ID_TrigButton);
+	load_bitmaps (bitbutt, wxT("trig"));
+	lilcolsizer->Add (bitbutt, 0, wxTOP, 2);
+
+ 	_once_button = bitbutt = new PixButton(this, ID_OnceButton);
+	load_bitmaps (bitbutt, wxT("once"));
+	lilcolsizer->Add (bitbutt, 0, wxTOP, 2);
+	
+	rowsizer->Add(lilcolsizer, 0, wxTOP|wxLEFT, 3);
 	
 	
  	_mute_button = bitbutt = new PixButton(this, ID_MuteButton);
@@ -360,6 +374,12 @@ LooperPanel::bind_events()
 	_insert_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("insert")));
 	_insert_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("insert")));
 
+	_once_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("oneshot")));
+	_once_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("oneshot")));
+
+	_trig_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("trigger")));
+	_trig_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("trigger")));
+	
 	_tap_button->pressed.connect (slot (*this, &LooperPanel::tap_button_event));
 
 	_reverse_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("reverse")));
@@ -382,9 +402,14 @@ wxString
 LooperPanel::get_pixmap_path (const wxString & namebase)
 {
 	wxString filename;
+	wxString pixmapdir("pixmaps/");
 	
-	if (wxFile::Exists(wxString::Format("%s%s", PIXMAPDIR, namebase.c_str()))) {
-		filename = wxString::Format("%s%s", PIXMAPDIR, namebase.c_str());
+#ifdef PIXMAPDIR
+	pixmapdir = PIXMAPDIR;
+#endif
+	
+	if (wxFile::Exists(wxString::Format("%s%s", pixmapdir.c_str(), namebase.c_str()))) {
+		filename = wxString::Format("%s%s", pixmapdir.c_str(), namebase.c_str());
 	}
 	else if (wxFile::Exists(wxString::Format("pixmaps%c%s", wxFileName::GetPathSeparator(), namebase.c_str()))) {
 		filename = wxString::Format("pixmaps%c%s", wxFileName::GetPathSeparator(), namebase.c_str());

@@ -18,6 +18,8 @@
 */
 
 #include <wx/wx.h>
+#include <wx/file.h>
+#include <wx/filename.h>
 
 #include <iostream>
 
@@ -27,6 +29,7 @@
 #include "loop_control.hpp"
 #include "slider_bar.hpp"
 #include "choice_box.hpp"
+#include "pix_button.hpp"
 
 using namespace SooperLooperGui;
 using namespace std;
@@ -46,7 +49,8 @@ enum {
 	ID_SyncChoice,
 	ID_EighthSlider,
 	ID_QuantizeChoice,
-	ID_RoundCheck
+	ID_RoundCheck,
+	ID_TapTempoButton
 };
 
 
@@ -71,7 +75,8 @@ END_EVENT_TABLE()
 GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
 	: wxFrame((wxFrame *)NULL, -1, title, pos, size, wxDEFAULT_FRAME_STYLE, "sooperlooper")
 {
-
+	_tap_val = 1.0;
+	
 	init();
 
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
@@ -123,6 +128,11 @@ GuiFrame::init()
 	_tempo_bar->value_changed.connect (slot (*this,  &GuiFrame::on_tempo_change));
 	rowsizer->Add (_tempo_bar, 0, wxALL, 2);
 
+ 	_taptempo_button = new PixButton(this, ID_TapTempoButton);
+	load_bitmaps (_taptempo_button, wxT("tap_tempo"));
+	_taptempo_button->pressed.connect (slot (*this, &GuiFrame::on_taptempo_event));
+ 	rowsizer->Add (_taptempo_button, 0, wxALL, 2);
+	
 
 	_eighth_cycle_bar = new SliderBar(this, ID_EighthSlider, 1.0f, 128.0f, 8.0f, wxDefaultPosition, wxSize(110, 22));
 	_eighth_cycle_bar->set_units(wxT(""));
@@ -467,4 +477,63 @@ GuiFrame::on_round_check (wxCommandEvent &ev)
 {
 	// send for all loops
 	_loop_control->post_ctrl_change (-1, wxT("round"), _round_check->GetValue() ? 1.0f: 0.0f);
+}
+
+void
+GuiFrame::on_taptempo_event ()
+{
+	_tap_val *= -1.0f;
+	_loop_control->post_global_ctrl_change (wxString("tap_tempo"), _tap_val);
+}
+
+
+wxString
+GuiFrame::get_pixmap_path (const wxString & namebase)
+{
+	wxString filename;
+	wxString pixmapdir("pixmaps/");
+	
+#ifdef PIXMAPDIR
+	pixmapdir = PIXMAPDIR;
+#endif
+	
+	if (wxFile::Exists(wxString::Format("%s%s", pixmapdir.c_str(), namebase.c_str()))) {
+		filename = wxString::Format("%s%s", pixmapdir.c_str(), namebase.c_str());
+	}
+	else if (wxFile::Exists(wxString::Format("pixmaps%c%s", wxFileName::GetPathSeparator(), namebase.c_str()))) {
+		filename = wxString::Format("pixmaps%c%s", wxFileName::GetPathSeparator(), namebase.c_str());
+	}
+	else if (wxFile::Exists (namebase)) {
+		filename = namebase;
+	}
+	
+	return filename;
+}
+
+bool
+GuiFrame::load_bitmaps (PixButton * butt, wxString namebase)
+{
+	wxString bpath;
+
+	if(!(bpath = get_pixmap_path(namebase + wxT("_normal.png"))).empty()) {
+		butt->set_normal_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
+	}
+	
+	if(!(bpath = get_pixmap_path(namebase + wxT("_selected.png"))).empty()) {
+		butt->set_selected_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
+	}
+
+	if(!(bpath = get_pixmap_path(namebase + wxT("_focus.png"))).empty()) {
+		butt->set_focus_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
+	}
+
+	if(!(bpath = get_pixmap_path(namebase + wxT("_disabled.png"))).empty()) {
+		butt->set_disabled_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
+	}
+
+	if(!(bpath = get_pixmap_path(namebase + wxT("_active.png"))).empty()) {
+		butt->set_active_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
+	}
+
+	return true;
 }

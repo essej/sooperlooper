@@ -51,7 +51,7 @@ LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString ex
 	else {
 		_osc_addr = lo_address_new(host.c_str(), wxString::Format(wxT("%d"), port).c_str());
 	}
-	cerr << "osc errstr: " << lo_address_errstr(_osc_addr) << endl;
+	//cerr << "osc errstr: " << lo_address_errstr(_osc_addr) << endl;
 
 	_pingack = false;
 	_waiting = 0;
@@ -134,7 +134,7 @@ LoopControl::pingtimer_expired()
 	// check state of pingack
 
 	if (_pingack) {
-		cerr << "got ping response" << endl;
+		// cerr << "got ping response" << endl;
 	}
 	else if (_waiting > 0)
 	{
