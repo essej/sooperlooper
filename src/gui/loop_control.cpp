@@ -29,7 +29,7 @@ LoopControl::LoopControl (wxString host, int port)
 	
 	_osc_server = lo_server_new(NULL, NULL);
 	
-	//_our_url = lo_server_get_url (_osc_server);
+	_our_url = lo_server_get_url (_osc_server);
 	
 	/* add handler for control param callbacks, first is loop index , 2nd arg ctrl string, 3nd arg value */
 	lo_server_add_method(_osc_server, "/ctrl", "isf", LoopControl::_control_handler, this);

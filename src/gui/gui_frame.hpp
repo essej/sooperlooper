@@ -32,7 +32,8 @@
 namespace SooperLooperGui {
 
 class LoopControl;
-
+class LooperPanel;
+	
 class GuiFrame
 	: public wxFrame,  public SigC::Object
 {
@@ -50,12 +51,21 @@ public:
 	void OnPaint(wxPaintEvent & event);
 	
 	void OnIdle(wxIdleEvent& event);
+	void OnUpdateTimer(wxTimerEvent &ev);
 
 protected:
 
 	void init();
 
+	void init_loopers (unsigned int count);
+	
+	
 	LoopControl * _loop_control;
+
+	std::vector<LooperPanel *> _looper_panels;
+	
+	wxTimer * _update_timer;
+	wxBoxSizer * _main_sizer;
 	
 private:
     // any class wishing to process wxWindows events must use this macro

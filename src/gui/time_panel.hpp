@@ -17,8 +17,8 @@
 **  
 */
 
-#ifndef __sooperlooper_gui_looper_panel__
-#define __sooperlooper_gui_looper_panel__
+#ifndef __sooperlooper_gui_time_panel__
+#define __sooperlooper_gui_time_panel__
 
 
 #include <wx/wx.h>
@@ -29,65 +29,45 @@
 
 namespace SooperLooperGui {
 
-class PixButton;
 class LoopControl;
-class TimePanel;
 	
-class LooperPanel
+class TimePanel
 	: public wxPanel, public SigC::Object
 {
   public:
 	
 	// ctor(s)
-	LooperPanel (LoopControl * control, wxWindow * parent, wxWindowID id=-1,  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
-	virtual ~LooperPanel();
+	TimePanel (LoopControl * control, wxWindow * parent, wxWindowID id=-1,  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+	virtual ~TimePanel();
 
 	void set_index(int ind) { _index = ind; }
 	int get_index() { return _index; }
 
-	void update_controls();
+
+	void OnPaint (wxPaintEvent &ev);
+
+	bool update_time();
 	
   protected:
 
 	void init();
-
-	bool load_bitmaps (PixButton * butt, wxString namebase);
-	wxString get_pixmap_path (const wxString & namebase);
-
-	void slider_events(wxCommandEvent &ev);
-	void control_event (wxString ctrl, float val);
-
 	
-	void bind_events();
-
-	void pressed_events (wxString cmd);
-	void released_events (wxString cmd);
+	void draw_area(wxDC & dc);
 	
-	PixButton * _undo_button;
-	PixButton * _redo_button;
-	PixButton * _record_button;
-	PixButton * _overdub_button;
-	PixButton * _multiply_button;
-	PixButton * _replace_button;
-	PixButton * _tap_button;
-	PixButton * _insert_button;
-	PixButton * _reverse_button;
-	PixButton * _rate_button;
-	PixButton * _mute_button;
 
-	wxSlider * _thresh_control;
-	wxSlider * _feedback_control;
-	wxSlider * _dry_control;
-	wxSlider * _wet_control;
-	wxSlider * _scratch_control;
-	wxSlider * _rate_control;
-
-	TimePanel * _time_panel;
-	
 	LoopControl * _loop_control;
 
 	int _index;
-		
+
+	wxString _pos_str;
+	wxString _tot_str;
+	wxString _cyc_str;
+	wxString _state_str;
+	wxString _rem_str;
+
+	wxFont  _pos_font;
+	wxColour _pos_color;
+	
   private:
     // any class wishing to process wxWindows events must use this macro
     DECLARE_EVENT_TABLE()

@@ -26,6 +26,7 @@
 #include "looper_panel.hpp"
 #include "pix_button.hpp"
 #include "loop_control.hpp"
+#include "time_panel.hpp"
 
 using namespace SooperLooperGui;
 using namespace std;
@@ -163,10 +164,10 @@ LooperPanel::init()
 	// time area
 	colsizer = new wxBoxSizer(wxVERTICAL);
 
-	wxPanel * timepanel = new wxPanel(this, -1, wxDefaultPosition, wxSize(190, 62));
-	timepanel->SetBackgroundColour(wxColour(34, 49, 71));
-
-	colsizer->Add (timepanel, 0, wxLEFT|wxTOP, 5);
+	_time_panel = new TimePanel(_loop_control, this, -1, wxDefaultPosition, wxSize(190, 62));
+	_time_panel->set_index (_index);
+	
+	colsizer->Add (_time_panel, 0, wxLEFT|wxTOP, 5);
 
 	colsizer->Add (20, -1, 1);
 	
@@ -305,6 +306,26 @@ LooperPanel::load_bitmaps (PixButton * butt, wxString namebase)
  	butt->set_disabled_bitmap (wxBitmap(get_pixmap_path(namebase + wxT("_disabled.xpm"))));
 
 	return true;
+}
+
+
+void
+LooperPanel::update_controls()
+{
+	// get recent controls from loop control
+	float val;
+
+	
+	
+	if (_loop_control->is_updated(_index, "feedback")) {
+		_loop_control->get_value(_index, "feedback", val);
+		_feedback_control->SetValue ((int) (val * 100));
+	}
+	// todo the rest
+
+	if (_time_panel->update_time()) {
+		_time_panel->Refresh(FALSE);
+	}
 }
 
 

@@ -19,6 +19,8 @@
 
 #include <wx/wx.h>
 
+#include <iostream>
+
 #include "gui_frame.hpp"
 #include "gui_app.hpp"
 #include "looper_panel.hpp"
@@ -27,12 +29,18 @@
 using namespace SooperLooperGui;
 using namespace std;
 
+enum {
+	ID_UpdateTimer = 9000
+
+};
+
 
 BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 
 	EVT_IDLE(GuiFrame::OnIdle)
 	EVT_SIZE(GuiFrame::OnSize)
 	EVT_PAINT(GuiFrame::OnPaint)
+	EVT_TIMER(ID_UpdateTimer, GuiFrame::OnUpdateTimer)
 	
 END_EVENT_TABLE()
 
@@ -41,6 +49,9 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 {
 
 	init();
+
+	_update_timer = new wxTimer(this, ID_UpdateTimer);
+	_update_timer->Start(100);
 }
 
 GuiFrame::~GuiFrame()
@@ -51,26 +62,67 @@ GuiFrame::~GuiFrame()
 void
 GuiFrame::init()
 {
-	wxBoxSizer * mainSizer = new wxBoxSizer(wxVERTICAL);
+	_main_sizer = new wxBoxSizer(wxVERTICAL);
 
 	//wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	
 	//SetBackgroundColour(*wxBLACK);
 
-
+	
 	
 	_loop_control = new LoopControl(::wxGetApp().get_host(), ::wxGetApp().get_port());
-	
-	LooperPanel * looperpan = new LooperPanel(_loop_control, this, -1);
-	looperpan->set_index(0);
 
-	mainSizer->Add (looperpan, 0, wxEXPAND|wxALL, 5);
-	
+	// todo request how many loopers to construct based on connection
+	init_loopers(1);
 	
 	this->SetAutoLayout( true );     // tell dialog to use sizer
-	this->SetSizer( mainSizer );      // actually set the sizer
-	mainSizer->Fit( this );            // set size to minimum size as calculated by the sizer
-	mainSizer->SetSizeHints( this );   // set size hints to honour mininum size
+	this->SetSizer( _main_sizer );      // actually set the sizer
+	_main_sizer->Fit( this );            // set size to minimum size as calculated by the sizer
+	_main_sizer->SetSizeHints( this );   // set size hints to honour mininum size
+}
+
+void
+GuiFrame::init_loopers (unsigned int count)
+{
+	LooperPanel * looperpan;	
+
+	if (count > _looper_panels.size()) {
+		while (count > _looper_panels.size()) {
+			looperpan = new LooperPanel(_loop_control, this, -1);
+			looperpan->set_index(_looper_panels.size());
+			_main_sizer->Add (looperpan, 0, wxEXPAND|wxALL, 5);
+			_looper_panels.push_back (looperpan);
+		}
+	}
+	else if (count < _looper_panels.size()) {
+		while (count < _looper_panels.size()) {
+			looperpan = _looper_panels.back();
+			_looper_panels.pop_back();
+			_main_sizer->Remove(looperpan);
+			looperpan->Destroy();
+		}
+	}
+		
+	_main_sizer->Layout();
+	
+}
+
+
+void
+GuiFrame::OnUpdateTimer(wxTimerEvent &ev)
+{
+	_loop_control->update_values();
+
+	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
+		_loop_control->request_values ((int)i);
+	}
+
+	_loop_control->update_values();
+
+	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
+		_looper_panels[i]->update_controls();
+	}
+	
 }
 
 
@@ -102,6 +154,6 @@ void GuiFrame::OnPaint(wxPaintEvent & event)
 void
 GuiFrame::OnIdle(wxIdleEvent& event)
 {
-
+	
 	event.Skip();
 }
