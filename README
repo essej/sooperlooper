@@ -1,0 +1,58 @@
+SooperLooper 
+Jesse Chappell <jesse@essej.net>
+
+BUILD REQUIREMENTS
+
+  ALSA 
+  JACK  >= 0.80    -- http://jackit.sf.net/
+  wxGTK >= 2.4.x   -- preferably built against gtk2 (configured using the --enable-gtk2 option)
+  liblo >= 0.6     -- http://plugin.org.uk/liblo/   Lightweight OSC library
+  sigc++ >= 1.2    -- http://libsigc.sourceforge.net/   You probably already have it....
+  ncurses          -- you probably already have it
+
+
+DESCRIPTION
+
+SooperLooper is a looping sampler very much like the Gibson/Oberheim
+Echoplex Digital Pro.  The EDP feature-set is powerful, proven, and
+popular, hence the decision to follow its lead. SooperLooper is a true
+realtime software looper if used with a low-latency Linux kernel and
+the proper audio buffer configuration.
+
+I have never used an actual EDP, but all the features are described in
+the user's manual, which was an invaluable resource.  Take a look at
+http://www.loopers-delight.com/tools/echoplex/echoplex.html to get the
+manual and other tips.  Most of the LoopIII info applies.
+
+FEATURES of SooperLooper shared with the EDP:
+  Record
+  Overdub
+  Multiply
+  Insert
+  Replace
+  Reverse
+  Mute
+  One Shot
+  Undo
+  Tap tempo delay mode
+  Feedback and Mix parameters
+  QuantizeMode and RoundMode toggles
+
+Additional features of SooperLooper:
+  Redo
+  Scratch Mode w/ arbitrary playback rate
+
+
+USAGE
+
+The main engine is the executable 'sooperlooper'.  Either the GUI
+'slgui' or the console based test client 'slconsole' can be run which
+will communicate with a running sooperlooper engine or optionally
+start one (not yet implemented).
+
+Run 'sooperlooper -h' for command line option help.  Note the midi
+binding file option -m and take a look at the examples oxy8.slb and
+midiwizard.slb for the format to write your own.
+
+
+.... MORE TO COME

@@ -1,10 +1,10 @@
 SUBDIRS = . gui
 
 
-bin_PROGRAMS =  sooperlooper osctest
+bin_PROGRAMS =  sooperlooper slconsole
 
 
-AM_CXXFLAGS = -DSAMPLE_MEMORY=200 @JACK_CFLAGS@ @LOSC_CFLAGS@ @SIGCPP_CFLAGS@
+AM_CXXFLAGS = @JACK_CFLAGS@ @LOSC_CFLAGS@ @SIGCPP_CFLAGS@
 
 sooperlooper_SOURCES = \
 	sooperlooper.cpp \
@@ -22,8 +22,8 @@ sooperlooper_SOURCES = \
 sooperlooper_LDADD = @JACK_LIBS@ @LOSC_LIBS@ @SIGCPP_LIBS@ -lasound
 
 
-osctest_SOURCES = osctest.cpp
-osctest_LDADD = @LOSC_LIBS@ @NCURSES_LIBS@ -lpthread
+slconsole_SOURCES = osctest.cpp
+slconsole_LDADD = @LOSC_LIBS@ @NCURSES_LIBS@ -lpthread
 
 
 

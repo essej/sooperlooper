@@ -49,7 +49,7 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 
 /*****************************************************************************/
 
-#ifdef DEBUG
+#ifdef LOOPDEBUG
 #define DBG(x) x
 #else
 #define DBG(x)
@@ -60,7 +60,7 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 /* The maximum sample memory  (in seconds). */
 
 #ifndef SAMPLE_MEMORY
-#define SAMPLE_MEMORY 400.0
+#define SAMPLE_MEMORY 200.0
 #endif
 
 #define XFADE_SAMPLES 512
@@ -216,6 +216,8 @@ typedef struct {
     /* Buffer size, not necessarily a power of two. */
     unsigned long lBufferSize;
 
+    LADSPA_Data fTotalSecs;	
+	
     /* the current state of the sampler */
     int state;
 
@@ -486,7 +488,8 @@ instantiateSooperLooper(const LADSPA_Descriptor * Descriptor,
 {
 
    SooperLooper * pLS;
-
+   char * sampmem;
+   
    // important note: using calloc to zero all data
    pLS = (SooperLooper *) calloc(1, sizeof(SooperLooper));
    
@@ -494,11 +497,21 @@ instantiateSooperLooper(const LADSPA_Descriptor * Descriptor,
       return NULL;
    
    pLS->fSampleRate = (LADSPA_Data)SampleRate;
-   
 
+   pLS->fTotalSecs = SAMPLE_MEMORY;
+   
+   // HACK for the moment!
+   sampmem = getenv("SL_SAMPLE_TIME");
+   if (sampmem != NULL) {
+	   if (sscanf(sampmem, "%f", &pLS->fTotalSecs) != 1) {
+		   pLS->fTotalSecs = SAMPLE_MEMORY;
+	   }
+	   // printf ("Got sample mem: %f\n", pLS->fTotalSecs);
+   }
+   
    // we do include the LoopChunk structures in the Buf, so we really
    // get a little less the SAMPLE_MEMORY seconds
-   pLS->lBufferSize = (unsigned long)((LADSPA_Data)SampleRate * SAMPLE_MEMORY * sizeof(LADSPA_Data));
+   pLS->lBufferSize = (unsigned long)((LADSPA_Data)SampleRate * pLS->fTotalSecs * sizeof(LADSPA_Data));
    
    pLS->pSampleBuf = (char *) calloc(pLS->lBufferSize, 1);
    if (pLS->pSampleBuf == NULL) {
@@ -556,7 +569,7 @@ activateSooperLooper(LADSPA_Handle Instance) {
 
 
   if (pLS->pfSecsTotal) {
-     *pLS->pfSecsTotal = (LADSPA_Data) SAMPLE_MEMORY;
+     *pLS->pfSecsTotal = (LADSPA_Data) pLS->fTotalSecs;
   }
   
   //fprintf(stderr,"activated\n");  
@@ -2552,7 +2565,7 @@ runSooperLooper(LADSPA_Handle Instance,
   }
 
   if (pLS->pfSecsFree) {
-     *pLS->pfSecsFree = ((LADSPA_Data)SAMPLE_MEMORY) -
+     *pLS->pfSecsFree = (pLS->fTotalSecs) -
 	(pLS->headLoopChunk ?
 	 ((((unsigned)pLS->headLoopChunk->pLoopStop - (unsigned)pLS->pSampleBuf)
 	  / sizeof(LADSPA_Data)) / pLS->fSampleRate)   :

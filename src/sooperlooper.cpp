@@ -23,6 +23,8 @@
 #include <pthread.h>
 #include <getopt.h>
 
+#include <cstdlib>
+
 #include "version.h"
 
 #include "control_osc.hpp"
@@ -42,14 +44,17 @@ int do_shutdown = 0;
 
 
 #define DEFAULT_OSC_PORT 9951
+#define DEFAULT_LOOP_TIME 200.0f
 
-char *optstring = "c:l:j:p:m:qVh";
+
+char *optstring = "c:l:j:p:m:t:qVh";
 
 struct option long_options[] = {
 	{ "help", 0, 0, 'h' },
 	{ "quiet", 0, 0, 'q' },
 	{ "channels", 1, 0, 'c' },
 	{ "loopcount", 1, 0, 'l' },
+	{ "looptime", 1, 0, 't' },
 	{ "osc-port", 1, 0, 'p' },
 	{ "jack-name", 1, 0, 'j' },
 	{ "load-midi-binding", 1, 0, 'm' },
@@ -62,7 +67,7 @@ struct OptionInfo
 {
 	OptionInfo() :
 		loop_count(1), channels(2), quiet(false), jack_name(""),
-		oscport(DEFAULT_OSC_PORT),
+		oscport(DEFAULT_OSC_PORT), loopsecs(DEFAULT_LOOP_TIME),
 		show_usage(0), show_version(0) {} 
 		
 	int loop_count;
@@ -71,6 +76,7 @@ struct OptionInfo
 	string jack_name;
 	int oscport;
 	string bindfile;
+	float loopsecs;
 	
 	int show_usage;
 	int show_version;
@@ -87,6 +93,7 @@ static void usage(char *argv0)
 	fprintf(stderr, "Options:\n");
 	fprintf(stderr, "  -l <num> , --loopcount=<num> number of loopers to create (default is 1)\n");
 	fprintf(stderr, "  -c <num> , --channels=<num>  channel count for each looper (default is 2)\n");
+	fprintf(stderr, "  -t <numsecs> , --looptime=<num>  number of seconds of loop memory per channel (default is %g)\n", DEFAULT_LOOP_TIME);
 	fprintf(stderr, "  -p <num> , --osc-port=<num>  udp port number for OSC server (default is %d)\n", DEFAULT_OSC_PORT);
 	fprintf(stderr, "  -j <str> , --jack-name=<str> jack client name, default is sooperlooper_1\n");
 	fprintf(stderr, "  -m <str> , --load-midi-binding=<str> loads midi binding from file or preset\n");
@@ -127,6 +134,9 @@ static void parse_options (int argc, char **argv, OptionInfo & option_info)
 			break;
 		case 'l':
 			option_info.loop_count = atoi(optarg);
+			break;
+		case 't':
+			sscanf(optarg, "%f", &option_info.loopsecs);
 			break;
 		case 'p':
 			option_info.oscport = atoi(optarg);
@@ -232,6 +242,10 @@ int main(int argc, char** argv)
 	if (option_info.loop_count <= 0) {
 		option_info.loop_count = 1;
 	}
+	if (option_info.loopsecs <= 0.0f) {
+		option_info.loopsecs = DEFAULT_LOOP_TIME;
+	}
+	
 	
 	if (option_info.show_usage) {
 		usage(argv[0]);
@@ -246,6 +260,12 @@ int main(int argc, char** argv)
 	if (option_info.show_version) {
 		exit(0);
 	}
+
+
+	// HACK, set envvar for looptime
+	char looptimestr[20];
+	snprintf(looptimestr, sizeof(looptimestr), "%f", option_info.loopsecs);
+	setenv("SL_SAMPLE_TIME", looptimestr, 1);
 	
 	sl_init ();
 
