@@ -57,6 +57,7 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	_use_sync_buf = 0;
 	_our_syncin_buf = 0;
 	_our_syncout_buf = 0;
+	_dummy_buf = 0;
 	
 	if (!descriptor) {
 		descriptor = ladspa_descriptor (0);
@@ -170,6 +171,10 @@ Looper::~Looper ()
 	
 	if (_our_syncout_buf)
 		delete [] _our_syncout_buf;
+	
+	if (_dummy_buf)
+		delete [] _dummy_buf;
+
 }
 
 
@@ -188,7 +193,7 @@ void
 Looper::set_buffer_size (nframes_t bufsize)
 {
 	if (_buffersize != bufsize) {
-
+		cerr << "setting buffer size to " << bufsize << endl;
 		if (_use_sync_buf == _our_syncin_buf) {
 			_use_sync_buf = 0;
 		}
@@ -246,7 +251,7 @@ Looper::do_event (Event *ev)
 	{
 		// todo: specially handle TriggerThreshold to work across all channels
 		
-		if ((int)ev->Control >= (int)Event::TriggerThreshold && (int)ev->Control <= (int) Event::UseRate) {
+		if ((int)ev->Control >= (int)Event::TriggerThreshold && (int)ev->Control <= (int) Event::FadeSamples) {
 			
 			ports[ev->Control] = ev->Value;
 			//cerr << "set port " << ev->Control << "  to: " << ev->Value << endl;
@@ -296,6 +301,12 @@ Looper::run (nframes_t offset, nframes_t nframes)
 		//cerr << "reset to -1\n";
 	}
 
+	LADSPA_Data oldsync = ports[Sync];
+	// ignore sync if we are using our own syncin/outbuf
+	if (_use_sync_buf == _our_syncin_buf || _use_sync_buf == _our_syncout_buf) {
+		ports[Sync] = 0.0f;
+	}
+	
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
 		/* (re)connect audio ports */
@@ -319,6 +330,8 @@ Looper::run (nframes_t offset, nframes_t nframes)
 		descriptor->run (_instances[i], nframes);
 
 	}
+
+	ports[Sync] = oldsync;
 }
 
 

@@ -64,6 +64,7 @@ class JackAudioDriver
 	int process_callback (jack_nframes_t);
 	static int _process_callback (jack_nframes_t, void*);
 	static int _xrun_callback (void*);
+	static void _shutdown_callback (void*);
 
 	jack_client_t *_jack;
 

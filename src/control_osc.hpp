@@ -57,6 +57,7 @@ class ControlOSC
 	void finish_update_event (ConfigUpdateEvent & event);
 	void finish_register_event (RegisterConfigEvent &event);
 	void finish_loop_config_event (ConfigLoopEvent &event);
+	void finish_global_get_event (GlobalGetEvent & event);
 	
 	
   private:
@@ -81,6 +82,8 @@ class ControlOSC
 	void send_registered_updates(std::string ctrl, float val, int instance);
 	
 	static int _quit_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _global_set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _global_get_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _get_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
@@ -101,6 +104,8 @@ class ControlOSC
 	
 	int quit_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data);
 	int ping_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data);
+	int global_get_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data);
+	int global_set_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data);
 	int loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	int loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	int register_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);

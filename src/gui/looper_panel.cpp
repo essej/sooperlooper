@@ -57,8 +57,8 @@ enum {
 	ID_RateControl,
 
 	ID_QuantizeCheck,
-	ID_RoundCheck
-      
+	ID_RoundCheck,
+	ID_SyncCheck,
 
 
 };
@@ -67,6 +67,7 @@ BEGIN_EVENT_TABLE(LooperPanel, wxPanel)
 
 	EVT_CHECKBOX (ID_QuantizeCheck, LooperPanel::check_events)
 	EVT_CHECKBOX (ID_RoundCheck, LooperPanel::check_events)
+	EVT_CHECKBOX (ID_SyncCheck, LooperPanel::check_events)
 	
 END_EVENT_TABLE()
 
@@ -218,6 +219,17 @@ LooperPanel::init()
 	_round_check->SetBackgroundColour(wxColour(90,90,90));
 	_round_check->SetForegroundColour(*wxWHITE);
 	lilcolsizer->Add (_round_check, 0, wxEXPAND);
+
+	rowsizer->Add(lilcolsizer, 1, wxTOP|wxLEFT, 5);
+
+	lilcolsizer = new wxBoxSizer(wxVERTICAL);
+
+	_sync_check = new wxCheckBox(this, ID_SyncCheck, "sync");
+	_sync_check->SetFont(sliderFont);
+	_sync_check->SetBackgroundColour(wxColour(90,90,90));
+	_sync_check->SetForegroundColour(*wxWHITE);
+	lilcolsizer->Add (_sync_check, 0, wxEXPAND);
+	
 
 	rowsizer->Add(lilcolsizer, 1, wxTOP|wxLEFT, 5);
 
@@ -433,6 +445,10 @@ LooperPanel::update_controls()
 	if (_loop_control->is_updated(_index, "round")) {
 		_loop_control->get_value(_index, "round", val);
 		_round_check->SetValue (val > 0.0);
+	}
+	if (_loop_control->is_updated(_index, "sync")) {
+		_loop_control->get_value(_index, "sync", val);
+		_sync_check->SetValue (val > 0.0);
 	}
 	if (_loop_control->is_updated(_index, "use_rate")) {
 		_loop_control->get_value(_index, "use_rate", val);
@@ -662,6 +678,9 @@ LooperPanel::check_events(wxCommandEvent &ev)
 		break;
 	case ID_QuantizeCheck:
 		post_control_event (wxT("quantize"), _quantize_check->GetValue() ? 1.0f: 0.0f);
+		break;
+	case ID_SyncCheck:
+		post_control_event (wxT("sync"), _sync_check->GetValue() ? 1.0f: 0.0f);
 		break;
 	default:
 		break;

@@ -111,7 +111,7 @@ class Looper
 
 	static const LADSPA_Descriptor* descriptor;
 
-	LADSPA_Data        ports[18];
+	LADSPA_Data        ports[LASTPORT];
 
 	nframes_t          _buffersize;
 	LADSPA_Data        * _our_syncin_buf;

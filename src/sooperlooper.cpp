@@ -29,6 +29,7 @@
 
 #include "control_osc.hpp"
 #include "engine.hpp"
+#include "event_nonrt.hpp"
 
 #include "alsa_midi_bridge.hpp"
 #include "jack_audio_driver.hpp"
@@ -245,8 +246,8 @@ int main(int argc, char** argv)
 	if (option_info.channels <= 0) {
 		option_info.channels = 1;
 	}
-	if (option_info.loop_count <= 0) {
-		option_info.loop_count = 1;
+	if (option_info.loop_count < 0) {
+		option_info.loop_count = 0;
 	}
 	if (option_info.loopsecs <= 0.0f) {
 		option_info.loopsecs = DEFAULT_LOOP_TIME;
@@ -299,6 +300,10 @@ int main(int argc, char** argv)
  	for (int i=0; i < option_info.loop_count; ++i)
 	{
 		engine->add_loop ((unsigned int) option_info.channels);
+	}
+	// set default sync source
+	if (option_info.loop_count > 0) {
+		engine->push_nonrt_event ( new GlobalSetEvent ("sync_source", 1.0f));
 	}
 	
 	

@@ -137,6 +137,7 @@ JackAudioDriver::connect_to_jack ()
 	}
 
 	jack_set_xrun_callback (_jack, _xrun_callback, this);
+	jack_on_shutdown (_jack, _shutdown_callback, this);
 	
 	return 0;
 }
@@ -146,6 +147,13 @@ JackAudioDriver::_xrun_callback (void* arg)
 {
 	cerr << "got xrun" << endl;
 	return 0;
+}
+
+void
+JackAudioDriver::_shutdown_callback (void* arg)
+{
+	cerr << "jack shut us down" << endl;
+	return;
 }
 
 

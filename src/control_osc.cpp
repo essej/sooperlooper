@@ -97,6 +97,12 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	lo_server_add_method(_osc_server, "/register", "ss", ControlOSC::_register_config_handler, this);
 	lo_server_add_method(_osc_server, "/unregister", "ss", ControlOSC::_unregister_config_handler, this);
 
+	lo_server_add_method(_osc_server, "/set", "sf", ControlOSC::_global_set_handler, this);
+	lo_server_add_method(_osc_server, "/get", "sss", ControlOSC::_global_get_handler, this);
+
+	
+	
+	
 	
 	// lo_server_thread_add_method(_sthread, NULL, NULL, ControlOSC::_dummy_handler, this);
 
@@ -267,6 +273,22 @@ int ControlOSC::_ping_handler(const char *path, const char *types, lo_arg **argv
 
 }
 
+int ControlOSC::_global_set_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
+	return osc->global_set_handler (path, types, argv, argc, data);
+
+}
+int ControlOSC::_global_get_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
+	return osc->global_get_handler (path, types, argv, argc, data);
+
+}
+
+
 int ControlOSC::_updown_handler(const char *path, const char *types, lo_arg **argv, int argc,
 			 void *data, void *user_data)
 {
@@ -359,6 +381,30 @@ int ControlOSC::ping_handler(const char *path, const char *types, lo_arg **argv,
 	
 	return 0;
 }
+
+
+int ControlOSC::global_get_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data)
+{
+	// s: param  s: returl  s: retpath
+	string param (&argv[0]->s);
+	string returl (&argv[1]->s);
+	string retpath (&argv[2]->s);
+
+	_engine->push_nonrt_event ( new GlobalGetEvent (param, returl, retpath));
+	return 0;
+}
+
+int ControlOSC::global_set_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data)
+{
+	// s: param  f: val
+	string param(&argv[0]->s);
+	float val  = argv[1]->f;
+
+	_engine->push_nonrt_event ( new GlobalSetEvent (param, val));
+
+	return 0;
+}
+
 
 
 int ControlOSC::updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
@@ -571,6 +617,29 @@ ControlOSC::finish_get_event (GetParamEvent & event)
 	}
 	
 }
+
+void
+ControlOSC::finish_global_get_event (GlobalGetEvent & event)
+{
+	// called from the main event loop (not osc thread)
+	string param (event.param);
+	string returl (event.ret_url);
+	string retpath (event.ret_path);
+	lo_address addr;
+
+	addr = find_or_cache_addr (returl);
+	if (!addr) {
+		return;
+	}
+	
+//	 cerr << "sending to " << returl << "  path: " << retpath << "  ctrl: " << ctrl << "  val: " <<  event.ret_value << endl;
+
+	if (lo_send(addr, retpath.c_str(), "sf", param.c_str(), event.ret_value) == -1) {
+		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
+	}
+	
+}
+
 
 void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 {

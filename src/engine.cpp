@@ -42,6 +42,9 @@ Engine::Engine ()
 	_event_queue = 0;
 	_def_channel_cnt = 2;
 	_def_loop_secs = 200;
+	_tempo = 120.0f;
+	_eighth_cycle = 16.0f;
+	_sync_source = NoSync;
 	
 	pthread_cond_init (&_event_cond, NULL);
 
@@ -64,6 +67,8 @@ bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 
 	_nonrt_event_queue = new RingBuffer<EventNonRT *> (MAX_EVENTS);
 
+	_internal_sync_buf = new float[driver->get_buffersize()];
+	memset(_internal_sync_buf, 0, sizeof(float) * driver->get_buffersize());
 	
 	_osc = new ControlOSC(this, port);
 
@@ -132,6 +137,8 @@ Engine::add_loop (unsigned int chans)
 		}
 		
 		_instances.push_back (instance);
+
+		update_sync_source();
 	}
 	
 	LoopAdded (n); // emit
@@ -156,6 +163,8 @@ Engine::remove_loop (unsigned int index)
 		delete loop;
 		LoopRemoved(); // emit
 
+		update_sync_source();
+		
 		return true;
 	}
 
@@ -190,7 +199,7 @@ Engine::process (nframes_t nframes)
 
 	if (!lm.locked()) {
 		// todo pass silence
-		cerr << "already locked!" << endl;
+		//cerr << "already locked!" << endl;
 
 		//_driver->process_silence (nframes);
 		
@@ -198,7 +207,8 @@ Engine::process (nframes_t nframes)
 	}
 
 	// process events
-		
+	//cerr << "process"  << endl;
+
 	Event * evt;
 	RingBuffer<Event>::rw_vector vec;
 		
@@ -342,6 +352,9 @@ Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 {
 	// this should *really* be mutexed
 	// it is a race waiting to happen
+
+	// not really anymore, this is only called from the nonrt work thread
+	// that does the allocating of instances
 	
 	if (instance >= 0 && instance < (int) _instances.size()) {
 
@@ -372,12 +385,6 @@ Engine::mainloop()
 	struct timeval now;
 
 	EventNonRT * event;
-	ConfigUpdateEvent * cu_event;
-	GetParamEvent *     gp_event;
-	ConfigLoopEvent *   cl_event;
-	PingEvent *         ping_event;
-	RegisterConfigEvent * rc_event;
-	LoopFileEvent      * lf_event;
 	
 	// non-rt event processing loop
 
@@ -386,56 +393,7 @@ Engine::mainloop()
 		// pull off all events from nonrt ringbuffer
 		while (is_ok() && _nonrt_event_queue->read(&event, 1) == 1)
 		{
-			if ((gp_event = dynamic_cast<GetParamEvent*> (event)) != 0)
-			{
-				gp_event->ret_value = get_control_value (gp_event->control, gp_event->instance);
-				_osc->finish_get_event (*gp_event);
-			}
-			else if ((cu_event = dynamic_cast<ConfigUpdateEvent*> (event)) != 0)
-			{
-				_osc->finish_update_event (*cu_event);
-			}
-			else if ((cl_event = dynamic_cast<ConfigLoopEvent*> (event)) != 0)
-			{
-				if (cl_event->type == ConfigLoopEvent::Add) {
-					// todo: use secs
-					if (cl_event->channels == 0) {
-						cl_event->channels = _def_channel_cnt;
-					}
-					
-					add_loop (cl_event->channels);
-				}
-				else if (cl_event->type == ConfigLoopEvent::Remove)
-				{
-					if (cl_event->index == -1) {
-						cl_event->index = _instances.size() - 1;
-					}
-					remove_loop (cl_event->index);
-					_osc->finish_loop_config_event (*cl_event);
-				}
-			}
-			else if ((ping_event = dynamic_cast<PingEvent*> (event)) != 0)
-			{
-				_osc->send_pingack(ping_event->ret_url, ping_event->ret_path);
-			}
-			else if ((rc_event = dynamic_cast<RegisterConfigEvent*> (event)) != 0)
-			{
-				_osc->finish_register_event (*rc_event);
-			}
-			else if ((lf_event = dynamic_cast<LoopFileEvent*> (event)) != 0)
-			{
-				for (unsigned int n=0; n < _instances.size(); ++n) {
-					if (lf_event->instance == -1 || lf_event->instance == (int)n) {
-						if (lf_event->type == LoopFileEvent::Load) {
-							_instances[n]->load_loop (lf_event->filename);
-						}
-						else {
-							_instances[n]->save_loop (lf_event->filename);
-						}
-					}
-				}
-			}
-			
+			process_nonrt_event (event);
 			delete event;
 		}
 		
@@ -454,3 +412,131 @@ Engine::mainloop()
 
 }
 
+bool
+Engine::process_nonrt_event (EventNonRT * event)
+{
+	ConfigUpdateEvent * cu_event;
+	GetParamEvent *     gp_event;
+	ConfigLoopEvent *   cl_event;
+	PingEvent *         ping_event;
+	RegisterConfigEvent * rc_event;
+	LoopFileEvent      * lf_event;
+	GlobalGetEvent     * gg_event;
+	GlobalSetEvent     * gs_event;
+
+	if ((gp_event = dynamic_cast<GetParamEvent*> (event)) != 0)
+	{
+		gp_event->ret_value = get_control_value (gp_event->control, gp_event->instance);
+		_osc->finish_get_event (*gp_event);
+	}
+	else if ((gg_event = dynamic_cast<GlobalGetEvent*> (event)) != 0)
+	{
+		if (gg_event->param == "sync_source") {
+			gg_event->ret_value = (float) _sync_source;
+		}
+		else if (gg_event->param == "tempo") {
+			gg_event->ret_value = _tempo;
+		}
+		else if (gg_event->param == "eighth_cycle") {
+			gg_event->ret_value = _eighth_cycle;
+		}
+
+		_osc->finish_global_get_event (*gg_event);
+	}
+	else if ((gs_event = dynamic_cast<GlobalSetEvent*> (event)) != 0)
+	{
+		if (gs_event->param == "sync_source") {
+			if ((int) gs_event->value > (int) FIRST_SYNC_SOURCE
+			    && gs_event->value <= _instances.size())
+			{
+				_sync_source = (SyncSourceType) (int) gs_event->value;
+				update_sync_source();
+			}
+		}
+		else if (gs_event->param == "tempo") {
+			if (gs_event->value > 0.0f) {
+				_tempo = gs_event->value;
+			}
+		}
+		else if (gs_event->param == "eighth_cycle") {
+			if (gs_event->value > 0.0f) {
+				_eighth_cycle = gs_event->value;
+			}
+		}
+	}
+	else if ((cu_event = dynamic_cast<ConfigUpdateEvent*> (event)) != 0)
+	{
+		_osc->finish_update_event (*cu_event);
+	}
+	else if ((cl_event = dynamic_cast<ConfigLoopEvent*> (event)) != 0)
+	{
+		if (cl_event->type == ConfigLoopEvent::Add) {
+			// todo: use secs
+			if (cl_event->channels == 0) {
+				cl_event->channels = _def_channel_cnt;
+			}
+					
+			add_loop (cl_event->channels);
+		}
+		else if (cl_event->type == ConfigLoopEvent::Remove)
+		{
+			if (cl_event->index == -1) {
+				cl_event->index = _instances.size() - 1;
+			}
+			remove_loop (cl_event->index);
+			_osc->finish_loop_config_event (*cl_event);
+		}
+	}
+	else if ((ping_event = dynamic_cast<PingEvent*> (event)) != 0)
+	{
+		_osc->send_pingack(ping_event->ret_url, ping_event->ret_path);
+	}
+	else if ((rc_event = dynamic_cast<RegisterConfigEvent*> (event)) != 0)
+	{
+		_osc->finish_register_event (*rc_event);
+	}
+	else if ((lf_event = dynamic_cast<LoopFileEvent*> (event)) != 0)
+	{
+		for (unsigned int n=0; n < _instances.size(); ++n) {
+			if (lf_event->instance == -1 || lf_event->instance == (int)n) {
+				if (lf_event->type == LoopFileEvent::Load) {
+					_instances[n]->load_loop (lf_event->filename);
+				}
+				else {
+					_instances[n]->save_loop (lf_event->filename);
+				}
+			}
+		}
+	}
+	
+	return true;
+}
+
+
+void Engine::update_sync_source ()
+{
+	float * sync_buf = _internal_sync_buf;
+
+	// if sync_source > 0, then get the source from instance
+	if (_sync_source == JackSync) {
+		sync_buf = _internal_sync_buf;
+	}
+	else if (_sync_source == MidiClockSync) {
+		sync_buf = _internal_sync_buf;
+	}
+	else if (_sync_source == InternalTempoSync) {
+		sync_buf = _internal_sync_buf;
+	}
+	else if (_sync_source == BrotherSync) {
+		sync_buf = _internal_sync_buf;
+	}
+	else if (_sync_source > 0 && (int)_sync_source <= (int) _instances.size()) {
+		sync_buf = _instances[(int)_sync_source - 1]->get_sync_out_buf();
+	}
+	
+	
+	for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i)
+	{
+		(*i)->use_sync_buf (sync_buf);
+	}
+}

@@ -89,6 +89,11 @@ class Engine
   protected:	
 
 	void cleanup();
+
+	bool process_nonrt_event (EventNonRT * event);
+
+	void update_sync_source ();
+	
 	AudioDriver * _driver;
 	
 	ControlOSC * _osc;
@@ -112,6 +117,25 @@ class Engine
 
 	int _def_channel_cnt;
 	float _def_loop_secs;
+
+	// global parameters
+	enum SyncSourceType {
+		FIRST_SYNC_SOURCE=-5, // must be first
+		BrotherSync = -4,
+		InternalTempoSync = -3,
+		MidiClockSync = -2,
+		JackSync = -1,
+		NoSync = 0
+		// anything > 0 is considered a loop number
+	};
+
+	float  *       _internal_sync_buf;
+	SyncSourceType _sync_source;
+
+	float    _tempo;        // bpm
+	float    _eighth_cycle; // eighth notes per loop cycle
+	
+	
 };
 
 };  // sooperlooper namespace

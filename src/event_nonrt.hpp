@@ -95,7 +95,7 @@ namespace SooperLooper {
 	{
 	public:
 		GetParamEvent( int8_t inst, Event::control_t ctrl, std::string returl, std::string retpath)
-			: control(ctrl), instance(inst), ret_url(returl), ret_path(retpath) {}
+			: control(ctrl), instance(inst), ret_url(returl), ret_path(retpath), ret_value(0.0f) {}
 		virtual ~GetParamEvent() {}
 		
 		Event::control_t       control;
@@ -157,6 +157,32 @@ namespace SooperLooper {
 
 		std::string  ret_url;
 		std::string  ret_path;
+	};
+
+
+	class GlobalGetEvent : public EventNonRT
+	{
+	public:
+		GlobalGetEvent(std::string par, std::string returl, std::string retpath)
+			: param(par), ret_url(returl), ret_path(retpath), ret_value(0.0f) {}
+		virtual ~GlobalGetEvent() {}
+		
+		std::string      param;
+		std::string      ret_url;
+		std::string      ret_path;
+
+		float            ret_value;
+	};
+
+	class GlobalSetEvent : public EventNonRT
+	{
+	public:
+		GlobalSetEvent(std::string par, float val)
+			: param(par), value(val) {}
+		virtual ~GlobalSetEvent() {}
+		
+		std::string      param;
+		float            value;
 	};
 	
 	

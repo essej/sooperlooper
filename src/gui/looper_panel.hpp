@@ -96,6 +96,7 @@ class LooperPanel
 
 	wxCheckBox * _quantize_check;
 	wxCheckBox * _round_check;
+	wxCheckBox * _sync_check;
 
 	wxStaticText *_index_text;
 	
