@@ -39,6 +39,7 @@
 #include "slider_bar.hpp"
 #include "choice_box.hpp"
 #include "check_box.hpp"
+#include "spin_box.hpp"
 #include "pix_button.hpp"
 #include "keyboard_target.hpp"
 #include "help_window.hpp"
@@ -216,10 +217,20 @@ GuiFrame::init()
  	rowsizer->Add (_taptempo_button, 0, wxALL, 2);
 	
 
-	_eighth_cycle_bar = new SliderBar(toppanel, ID_EighthSlider, 1.0f, 128.0f, 16.0f, true, wxDefaultPosition, wxSize(110, 22));
+// 	_eighth_cycle_bar = new SliderBar(toppanel, ID_EighthSlider, 1.0f, 128.0f, 16.0f, true, wxDefaultPosition, wxSize(110, 22));
+// 	_eighth_cycle_bar->set_units(wxT(""));
+// 	_eighth_cycle_bar->set_label(wxT("8th/cycle"));
+// 	_eighth_cycle_bar->set_snap_mode (SliderBar::IntegerSnap);
+// 	_eighth_cycle_bar->SetFont (sliderFont);
+// 	_eighth_cycle_bar->value_changed.connect (slot (*this,  &GuiFrame::on_eighth_change));
+// 	_eighth_cycle_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("eighth")));
+// 	rowsizer->Add (_eighth_cycle_bar, 0, wxALL, 2);
+
+	_eighth_cycle_bar = new SpinBox(toppanel, ID_EighthSlider, 1.0f, 1024.0f, 16.0f, true, wxDefaultPosition, wxSize(100, 22));
 	_eighth_cycle_bar->set_units(wxT(""));
 	_eighth_cycle_bar->set_label(wxT("8th/cycle"));
-	_eighth_cycle_bar->set_snap_mode (SliderBar::IntegerSnap);
+	_eighth_cycle_bar->set_snap_mode (SpinBox::IntegerSnap);
+	_eighth_cycle_bar->set_allow_outside_bounds(true);
 	_eighth_cycle_bar->SetFont (sliderFont);
 	_eighth_cycle_bar->value_changed.connect (slot (*this,  &GuiFrame::on_eighth_change));
 	_eighth_cycle_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("eighth")));
@@ -237,11 +248,12 @@ GuiFrame::init()
 	_quantize_choice->append_choice (wxT("loop"), 3);
 	rowsizer->Add (_quantize_choice, 0, wxALL, 2);
 
-	_xfade_bar = new SliderBar(toppanel, ID_XfadeSlider, 0.0f, 6400.0f, 64.0f, true, wxDefaultPosition, wxSize(100, 22));
+	_xfade_bar = new SpinBox(toppanel, ID_XfadeSlider, 0.0f, 128000.0f, 64.0f, true, wxDefaultPosition, wxSize(100, 22));
 	_xfade_bar->set_units(wxT(""));
 	_xfade_bar->set_label(wxT("xfade"));
 	_xfade_bar->SetToolTip(wxT("operation crossfade length in samples"));
-	_xfade_bar->set_snap_mode (SliderBar::IntegerSnap);
+	_xfade_bar->set_snap_mode (SpinBox::IntegerSnap);
+	_xfade_bar->set_decimal_digits (0);
 	_xfade_bar->SetFont (sliderFont);
 	_xfade_bar->value_changed.connect (slot (*this,  &GuiFrame::on_xfade_change));
 	_xfade_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("fade_samples")));

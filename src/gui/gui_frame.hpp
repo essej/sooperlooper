@@ -39,6 +39,7 @@ class LooperPanel;
 class SliderBar;
 class ChoiceBox;	
 class CheckBox;
+class SpinBox;
 class PixButton;
 class KeyboardTarget;
 class HelpWindow;
@@ -138,10 +139,12 @@ protected:
 
 	SliderBar * _tempo_bar;
 	ChoiceBox * _sync_choice;
-	SliderBar * _eighth_cycle_bar;
+	//SliderBar * _eighth_cycle_bar;
+	SpinBox * _eighth_cycle_bar;
 	ChoiceBox * _quantize_choice;
 	//wxCheckBox * _round_check;
-	SliderBar * _xfade_bar;
+	//SliderBar * _xfade_bar;
+	SpinBox * _xfade_bar;
 	CheckBox * _round_check;
 	PixButton * _taptempo_button;
 	float _tapdelay_val;

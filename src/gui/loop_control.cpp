@@ -219,7 +219,7 @@ void
 LoopControl::terminate_traffic_thread ()
 {
 	void* status;
-	char c;
+	char c = 0;
 
 	_traffic_done = true;
 

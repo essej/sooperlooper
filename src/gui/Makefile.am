@@ -22,6 +22,7 @@ slgui_SOURCES = \
 	time_panel.cpp \
 	slider_bar.cpp \
 	choice_box.cpp \
+	spin_box.cpp \
 	keyboard_target.cpp \
 	keys_panel.cpp \
 	check_box.cpp \
