@@ -30,6 +30,11 @@ using namespace SooperLooperGui;
 using namespace std;
 
 
+enum {
+	ID_PopupBase  = 8000
+	
+};
+
 BEGIN_EVENT_TABLE(ChoiceBox, wxWindow)
 
 	EVT_SIZE(ChoiceBox::OnSize)
@@ -45,6 +50,7 @@ ChoiceBox::ChoiceBox(wxWindow * parent, wxWindowID id, const wxPoint& pos, const
 	_curr_index = 0;
 	_backing_store = 0;
 	_dragging = false;
+	_popup_menu = 0;
 	
 	_bgcolor.Set(30,30,30);
 	_bgbrush.SetColour (_bgcolor);
@@ -84,6 +90,8 @@ ChoiceBox::append_choice (const wxString & val)
 		update_value_str();
 		Refresh(false);
 	}
+
+	ensure_popup (true);
 }
 
 
@@ -91,6 +99,7 @@ void ChoiceBox::clear_choices ()
 {
 	_choices.clear();
 	_curr_index = -1;
+	ensure_popup (true);
 	update_value_str();
 	Refresh(false);
 }
@@ -99,6 +108,53 @@ void ChoiceBox::get_choices (ChoiceList & clist)
 {
 	clist.insert (clist.begin(), _choices.begin(), _choices.end());
 }
+
+void ChoiceBox::ensure_popup (bool force_build)
+{
+	bool building = false;
+	
+	if (_popup_menu && force_build) {
+		delete _popup_menu;
+		_popup_menu = 0;
+	}
+
+	if (!_popup_menu) {
+		_popup_menu = new wxMenu();
+		building = true;
+	}
+	
+	int id = ID_PopupBase;
+	
+	for (ChoiceList::iterator iter =  _choices.begin(); iter != _choices.end(); ++iter) {
+		if (building) {
+			_popup_menu->AppendCheckItem (id, *iter);
+
+			this->Connect( id,  wxEVT_COMMAND_MENU_SELECTED,
+				       (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)
+				       &ChoiceBox::on_menu_item, 0);
+		}
+		
+		if (_value_str == *iter) {
+			_popup_menu->Check (id, true);
+		}
+		else {
+			_popup_menu->Check (id, false);
+		}
+
+		++id;
+	}
+}
+
+void ChoiceBox::on_menu_item (wxCommandEvent &ev)
+{
+	int id = ev.GetId();
+	int index = id - (int) ID_PopupBase;
+
+	set_index_value (index);
+
+	value_changed (_curr_index, _value_str); // emit
+}
+
 
 void
 ChoiceBox::set_label (const wxString & label)
@@ -276,6 +332,9 @@ ChoiceBox::OnMouseEvents (wxMouseEvent &ev)
 	else if (ev.RightUp())
 	{
 		// todo menu
+		ensure_popup ();
+		
+		PopupMenu (_popup_menu, ev.GetX(), ev.GetY());
 	}
 
 	ev.Skip();

@@ -30,7 +30,7 @@ using namespace SooperLooperGui;
 using namespace std;
 
 // Convert a value in dB's to a coefficent
-#define DB_CO(g) ((g) > -90.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
+#define DB_CO(g) ((g) > -144.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
 #define CO_DB(v) (20.0f * log10f(v))
 
 static inline double 
@@ -54,12 +54,19 @@ slider_position_to_gain (double pos)
 }
 
 
+enum {
+	ID_TextCtrl = 8000
+
+};
+
 BEGIN_EVENT_TABLE(SliderBar, wxWindow)
 
 	EVT_SIZE(SliderBar::OnSize)
 	EVT_PAINT(SliderBar::OnPaint)
 	EVT_MOUSE_EVENTS(SliderBar::OnMouseEvents)
 	EVT_MOUSEWHEEL (SliderBar::OnMouseEvents)
+	//EVT_TEXT (ID_TextCtrl, SliderBar::on_text_event)
+	EVT_TEXT_ENTER (ID_TextCtrl, SliderBar::on_text_event)
 	
 END_EVENT_TABLE()
 
@@ -71,6 +78,9 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_value = val;
 	_backing_store = 0;
 	_dragging = false;
+	_decimal_digits = 1;
+	_text_ctrl = 0;
+	_ignoretext = false;
 	
 	_bgcolor.Set(30,30,30);
 	_bgbrush.SetColour (_bgcolor);
@@ -166,6 +176,14 @@ SliderBar::set_units (const wxString & units)
 }
 
 void
+SliderBar::set_decimal_digits (int val)
+{
+	_decimal_digits = val;
+	update_value_str();
+	Refresh(false);	
+}
+
+void
 SliderBar::set_value (float val)
 {
 	float newval = val;
@@ -177,6 +195,9 @@ SliderBar::set_value (float val)
 	if (_snap_mode == IntegerSnap) {
 		newval = nearbyintf (newval);
 	}
+
+	newval = min (newval, _upper_bound);
+	newval = max (newval, _lower_bound);
 	
 	if (newval != _value) {
 		_value = newval;
@@ -206,12 +227,33 @@ SliderBar::update_value_str()
 			_value_str.Printf(wxT("-inf %s"), _units_str.c_str());
 		}
 		else {
-			_value_str.Printf(wxT("%.1f %s"), CO_DB(gain), _units_str.c_str());
+			_value_str.Printf(wxT("%.*f %s"), _decimal_digits, CO_DB(gain),  _units_str.c_str());
 		}
 	}
 	else {
-		_value_str.Printf(wxT("%.1f %s"), _value, _units_str.c_str());
+		_value_str.Printf(wxT("%.*f %s"), _decimal_digits, _value, _units_str.c_str());
 	}
+}
+
+
+wxString SliderBar::get_precise_value_str()
+{
+	wxString valstr;
+	
+	if (_scale_mode == ZeroGainMode) {
+		float gain = slider_position_to_gain(_value);
+		if (gain == 0) {
+			valstr.Printf(wxT("-inf"));
+		}
+		else {
+			valstr.Printf(wxT("%.8f"), CO_DB(gain));
+		}
+	}
+	else {
+		valstr.Printf(wxT("%.8f"), _value);
+	}
+
+	return valstr;
 }
 
 
@@ -410,7 +452,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 	}
 	else if (ev.ButtonDClick()) {
 		// todo editor
-		
+		show_text_ctrl ();
 	}
 
 	ev.Skip();
@@ -461,4 +503,72 @@ void SliderBar::draw_area(wxDC & dc)
 	dc.DrawText (_value_str, _width - w - 3, _height - h - 3);
 	
 
+}
+
+
+void SliderBar::show_text_ctrl ()
+{
+	wxString valstr = get_precise_value_str();
+	
+	if (!_text_ctrl) {
+		_text_ctrl = new HidingTextCtrl(this, ID_TextCtrl, valstr, wxPoint(1,1), wxSize(_width - 2, _height - 2),
+						wxTE_PROCESS_ENTER|wxTE_RIGHT);
+		_text_ctrl->SetFont(GetFont());
+	}
+
+	_text_ctrl->SetValue (valstr);
+	
+	_text_ctrl->SetSelection (-1, -1);
+	
+	_text_ctrl->SetSize (_width - 2, _height - 2);
+	_text_ctrl->Show(true);
+	_text_ctrl->SetFocus();
+}
+
+void SliderBar::hide_text_ctrl ()
+{
+	if (_text_ctrl && _text_ctrl->IsShown()) {
+		_text_ctrl->Show(false);
+	}
+}
+
+void SliderBar::on_text_event (wxCommandEvent &ev)
+{
+	if (ev.GetEventType() == wxEVT_COMMAND_TEXT_ENTER) {
+		
+		// commit change
+		bool good = false;
+		bool neginf = false;
+		double newval = 0.0;
+		
+		if (_scale_mode == ZeroGainMode && _text_ctrl->GetValue().Strip(wxString::both) == wxT("-inf")) {
+			newval = 0.0;
+			good = neginf = true;
+		}
+		else if (_text_ctrl->GetValue().ToDouble(&newval)) {
+			good = true;
+		}
+		
+		if (good) {
+			if (_scale_mode == ZeroGainMode && !neginf) {
+				newval = DB_CO(newval);
+			}
+			
+			set_value ((float) newval);
+		}
+		
+		hide_text_ctrl();
+	}
+}
+
+BEGIN_EVENT_TABLE(SliderBar::HidingTextCtrl, wxTextCtrl)
+	EVT_KILL_FOCUS (SliderBar::HidingTextCtrl::on_focus_event)
+END_EVENT_TABLE()
+	
+void SliderBar::HidingTextCtrl::on_focus_event (wxFocusEvent & ev)
+{
+	if (ev.GetEventType() == wxEVT_KILL_FOCUS) {
+		Show(false);
+	}
+	
 }

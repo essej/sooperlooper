@@ -35,6 +35,7 @@ class PixButton;
 class LoopControl;
 class TimePanel;
 class SliderBar;
+class ChoiceBox;
 	
 class LooperPanel
 	: public wxPanel, public SigC::Object
@@ -70,6 +71,8 @@ class LooperPanel
 	void clicked_events (wxString cmd);
 	void tap_button_event ();
 	void rate_button_event();
+
+	void on_quantize_change (int index, wxString strval);
 	
 	PixButton * _undo_button;
 	PixButton * _redo_button;
@@ -98,6 +101,8 @@ class LooperPanel
 	wxCheckBox * _round_check;
 	wxCheckBox * _sync_check;
 
+	ChoiceBox  * _quantize_choice;
+	
 	wxStaticText *_index_text;
 	
 	TimePanel * _time_panel;

@@ -92,6 +92,9 @@ class SliderBar
 	
  	void set_border_color (const wxColour & col);
 	wxColour & get_border_color () { return _bordercolor; }
+
+	void set_decimal_digits (int num);
+	int get_decimal_digits () { return _decimal_digits; }
 	
 	
 	SigC::Signal1<void, float> value_changed;
@@ -103,9 +106,14 @@ class SliderBar
 	void OnMouseEvents (wxMouseEvent &ev);
 
 	void draw_area (wxDC & dc);
-	
 
+	void show_text_ctrl ();
+	void hide_text_ctrl ();
+	void on_text_event (wxCommandEvent &ev);
+	
 	void update_value_str();
+
+	wxString get_precise_value_str();
 	
 	int _width, _height;
 	wxBitmap * _backing_store;
@@ -134,12 +142,30 @@ class SliderBar
 
 	BarStyle _bar_style;
 
+	class HidingTextCtrl : public wxTextCtrl {
+	   public:
+		HidingTextCtrl (wxWindow* par, wxWindowID id, const wxString & value = "", const wxPoint & pos = wxDefaultPosition,
+				const wxSize & size = wxDefaultSize, long style = 0)
+			: wxTextCtrl (par, id, value, pos, size, style) {}
+
+		virtual ~HidingTextCtrl() {}
+
+		void on_focus_event(wxFocusEvent &ev);
+	   private:
+		DECLARE_EVENT_TABLE()
+	};
+	
+	HidingTextCtrl * _text_ctrl;
+	
 	bool _dragging;
 	int _last_x;
-
+	bool _ignoretext;
+	
 	float _val_scale;
 	ScaleMode  _scale_mode;
 	SnapMode   _snap_mode;
+	int        _decimal_digits;
+	
 	
   private:
     // any class wishing to process wxWindows events must use this macro

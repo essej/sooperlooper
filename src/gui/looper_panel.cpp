@@ -28,6 +28,7 @@
 #include "loop_control.hpp"
 #include "time_panel.hpp"
 #include "slider_bar.hpp"
+#include "choice_box.hpp"
 
 using namespace SooperLooperGui;
 using namespace std;
@@ -57,6 +58,7 @@ enum {
 	ID_RateControl,
 
 	ID_QuantizeCheck,
+	ID_QuantizeChoice,
 	ID_RoundCheck,
 	ID_SyncCheck,
 
@@ -208,30 +210,35 @@ LooperPanel::init()
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer * lilcolsizer = new wxBoxSizer(wxVERTICAL);
 	
-	_quantize_check = new wxCheckBox(this, ID_QuantizeCheck, "quantize");
-	_quantize_check->SetFont(sliderFont);
-	_quantize_check->SetBackgroundColour(wxColour(90,90,90));
-	_quantize_check->SetForegroundColour(*wxWHITE);
-	lilcolsizer->Add (_quantize_check, 0, wxEXPAND);
+	_quantize_choice = new ChoiceBox (this, ID_QuantizeChoice, wxDefaultPosition, wxSize (110, 22));
+	_quantize_choice->set_label (wxT("quantize"));
+	_quantize_choice->SetFont (sliderFont);
+	_quantize_choice->value_changed.connect (slot (*this,  &LooperPanel::on_quantize_change));
+	_quantize_choice->append_choice (wxT("off"));
+	_quantize_choice->append_choice (wxT("cycle"));
+	_quantize_choice->append_choice (wxT("8th"));
+	_quantize_choice->append_choice (wxT("loop"));
 
+	lilcolsizer->Add (_quantize_choice, 0);
+	
+	wxBoxSizer * lilrowsizer = new wxBoxSizer(wxHORIZONTAL);
+	
 	_round_check = new wxCheckBox(this, ID_RoundCheck, "round");
 	_round_check->SetFont(sliderFont);
 	_round_check->SetBackgroundColour(wxColour(90,90,90));
 	_round_check->SetForegroundColour(*wxWHITE);
-	lilcolsizer->Add (_round_check, 0, wxEXPAND);
-
-	rowsizer->Add(lilcolsizer, 1, wxTOP|wxLEFT, 5);
-
-	lilcolsizer = new wxBoxSizer(wxVERTICAL);
+	lilrowsizer->Add (_round_check, 0, wxEXPAND);
 
 	_sync_check = new wxCheckBox(this, ID_SyncCheck, "sync");
 	_sync_check->SetFont(sliderFont);
 	_sync_check->SetBackgroundColour(wxColour(90,90,90));
 	_sync_check->SetForegroundColour(*wxWHITE);
-	lilcolsizer->Add (_sync_check, 0, wxEXPAND);
-	
+	lilrowsizer->Add (_sync_check, 0, wxEXPAND|wxLEFT, 3);
 
+	lilcolsizer->Add (lilrowsizer, 0, wxTOP, 2);
+	
 	rowsizer->Add(lilcolsizer, 1, wxTOP|wxLEFT, 5);
+
 
 	lilcolsizer = new wxBoxSizer(wxVERTICAL);
 	
@@ -265,6 +272,7 @@ LooperPanel::init()
 	slider->set_units(wxT(""));
 	slider->set_label(wxT(""));
 	slider->set_style (SliderBar::CenterStyle);
+	slider->set_decimal_digits (3);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
@@ -282,6 +290,7 @@ LooperPanel::init()
 	slider->set_units(wxT(""));
 	slider->set_label(wxT("pos"));
 	slider->set_style (SliderBar::CenterStyle);
+	slider->set_decimal_digits (3);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
@@ -440,7 +449,7 @@ LooperPanel::update_controls()
 	}
 	if (_loop_control->is_updated(_index, "quantize")) {
 		_loop_control->get_value(_index, "quantize", val);
-		_quantize_check->SetValue (val > 0.0);
+		_quantize_choice->set_index_value ((int)val);
 	}
 	if (_loop_control->is_updated(_index, "round")) {
 		_loop_control->get_value(_index, "round", val);
@@ -687,6 +696,15 @@ LooperPanel::check_events(wxCommandEvent &ev)
 	}
 
 }
+
+void LooperPanel::on_quantize_change (int index, wxString strval)
+{
+	// 0 is none, 1 is cycle, 2 is eighth, 3 is loop
+
+	post_control_event (wxT("quantize"), (float) index);
+
+}
+
 
 void
 LooperPanel::post_control_event (wxString ctrl, float val)

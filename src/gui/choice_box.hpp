@@ -78,6 +78,9 @@ class ChoiceBox
 	void OnMouseEvents (wxMouseEvent &ev);
 
 	void draw_area (wxDC & dc);
+
+	void ensure_popup (bool force_build=false);
+	void on_menu_item (wxCommandEvent &ev);
 	
 
 	void update_value_str();
@@ -108,6 +111,7 @@ class ChoiceBox
 	wxString _label_str;
 
 	ChoiceList _choices;
+	wxMenu * _popup_menu;
 	
 	bool _dragging;
 	int _last_x;
