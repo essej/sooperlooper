@@ -78,7 +78,8 @@ enum {
 	ID_SyncCheck,
 	ID_UseFeedbackPlayCheck,
 	ID_PlaySyncCheck,
-	ID_UseMainInCheck
+	ID_UseMainInCheck,
+	ID_Panner
 
 };
 
@@ -93,7 +94,9 @@ LooperPanel::LooperPanel(LoopControl * control, wxWindow * parent, wxWindowID id
 	_learning = false;
 	_scratch_pressed = false;
 	_last_state = LooperStateUnknown;
-
+	_chan_count = 0;
+	_panners = 0;
+	
 	init();
 }
 
@@ -213,6 +216,7 @@ LooperPanel::init()
 	colsizer->Add (_time_panel, 0, wxLEFT|wxTOP, 5);
 
 	//colsizer->Add (20, -1, 1);
+	_pansizer = new wxBoxSizer(wxHORIZONTAL);
 
 	_dry_control = slider = new SliderBar(this, ID_DryControl, 0.0f, 1.0f, 1.0f);
 	slider->set_units(wxT("dB"));
@@ -221,8 +225,12 @@ LooperPanel::init()
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
-	colsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 4);
+	_pansizer->Add (slider, 1, wxEXPAND, 0);
 
+	// panners are added later
+	
+	colsizer->Add (_pansizer, 1, wxEXPAND|wxTOP|wxLEFT, 4);
+	
 	_wet_control = slider = new SliderBar(this, ID_WetControl, 0.0f, 1.0f, 1.0f);
 	slider->set_units(wxT("dB"));
 	slider->set_label(wxT("wet"));
@@ -381,6 +389,37 @@ LooperPanel::init()
 	mainSizer->Fit( this );            // set size to minimum size as calculated by the sizer
 	mainSizer->SetSizeHints( this );   // set size hints to honour mininum size
 
+}
+
+void
+LooperPanel::post_init()
+{
+	// now we have channel count
+	SliderBar * slider;
+	wxFont sliderFont = *wxSMALL_FONT;
+	
+	_panners = new SliderBar*[_chan_count];
+
+	for (int i=0; i < _chan_count; ++i)
+	{
+		float defval = 0.5f;
+		if (_chan_count == 2) {
+			defval = (i == 0) ? 0.0f : 1.0f;
+		}
+		
+		_panners[i] = slider =  new SliderBar(this, ID_Panner, 0.0f, 1.0f, defval, true, wxDefaultPosition, wxSize(50,-1));
+		slider->set_units(wxT(""));
+		slider->set_label(wxString::Format(wxT("pan %d"), i+1));
+		slider->set_style (SliderBar::CenterStyle);
+		slider->set_decimal_digits (3);
+		slider->set_show_value (false);
+		slider->SetFont(sliderFont);
+		slider->value_changed.connect (bind (slot (*this, &LooperPanel::pan_events), (int) i));
+		slider->bind_request.connect (bind (slot (*this, &LooperPanel::pan_bind_events), (int) i));
+		_pansizer->Add (slider, 0, wxEXPAND|wxLEFT, 2);
+
+	}
+	
 }
 
 void
@@ -680,31 +719,40 @@ LooperPanel::update_controls()
 {
 	// get recent controls from loop control
 	float val;
+
+	// first see if we have channel count yet
+	if (_chan_count == 0 && _loop_control->is_updated(_index, wxT("channel_count")))
+	{
+		_loop_control->get_value(_index, wxT("channel_count"), val);
+		_chan_count = (int) val;
+		// do post_init
+		post_init();
+	}
 	
-	if (_loop_control->is_updated(_index, "feedback")) {
-		_loop_control->get_value(_index, "feedback", val);
+	if (_loop_control->is_updated(_index, wxT("feedback"))) {
+		_loop_control->get_value(_index, wxT("feedback"), val);
 		_feedback_control->set_value ((val * 100.0f));
 	}
-	if (_loop_control->is_updated(_index, "rec_thresh")) {
-		_loop_control->get_value(_index, "rec_thresh", val);
+	if (_loop_control->is_updated(_index, wxT("rec_thresh"))) {
+		_loop_control->get_value(_index, wxT("rec_thresh"), val);
 		_thresh_control->set_value (val);
 	}
-	if (_loop_control->is_updated(_index, "dry")) {
-		_loop_control->get_value(_index, "dry", val);
+	if (_loop_control->is_updated(_index, wxT("dry"))) {
+		_loop_control->get_value(_index, wxT("dry"), val);
 		_dry_control->set_value (val);
 	}
-	if (_loop_control->is_updated(_index, "wet")) {
-		_loop_control->get_value(_index, "wet", val);
+	if (_loop_control->is_updated(_index, wxT("wet"))) {
+		_loop_control->get_value(_index, wxT("wet"), val);
 		_wet_control->set_value (val);
 	}
-	if (_loop_control->is_updated(_index, "rate")) {
-		_loop_control->get_value(_index, "rate", val);
+	if (_loop_control->is_updated(_index, wxT("rate"))) {
+		_loop_control->get_value(_index, wxT("rate"), val);
 		_rate_control->set_value (val);
 
 		update_rate_buttons(val);
 	}
-	if (_loop_control->is_updated(_index, "rate_output")) {
-		_loop_control->get_value(_index, "rate_output", val);
+	if (_loop_control->is_updated(_index, wxT("rate_output"))) {
+		_loop_control->get_value(_index, wxT("rate_output"), val);
 		if (val < 0.0) {
 			_reverse_button->set_active(true);
 		}
@@ -712,8 +760,8 @@ LooperPanel::update_controls()
 			_reverse_button->set_active(false);
 		}
 	}
-	if (_loop_control->is_updated(_index, "scratch_pos")) {
-		_loop_control->get_value(_index, "scratch_pos", val);
+	if (_loop_control->is_updated(_index, wxT("scratch_pos"))) {
+		_loop_control->get_value(_index, wxT("scratch_pos"), val);
 		_scratch_control->set_value (val);
 	}
 // 	if (_loop_control->is_updated(_index, "quantize")) {
@@ -725,22 +773,30 @@ LooperPanel::update_controls()
 // 		_loop_control->get_value(_index, "round", val);
 // 		_round_check->SetValue (val > 0.0);
 // 	}
-	if (_loop_control->is_updated(_index, "sync")) {
-		_loop_control->get_value(_index, "sync", val);
+	if (_loop_control->is_updated(_index, wxT("sync"))) {
+		_loop_control->get_value(_index, wxT("sync"), val);
 		_sync_check->set_value (val > 0.0);
 	}
-	if (_loop_control->is_updated(_index, "playback_sync")) {
-		_loop_control->get_value(_index, "playback_sync", val);
+	if (_loop_control->is_updated(_index, wxT("playback_sync"))) {
+		_loop_control->get_value(_index, wxT("playback_sync"), val);
 		_play_sync_check->set_value (val > 0.0);
 	}
-	if (_loop_control->is_updated(_index, "use_feedback_play")) {
-		_loop_control->get_value(_index, "use_feedback_play", val);
+	if (_loop_control->is_updated(_index, wxT("use_feedback_play"))) {
+		_loop_control->get_value(_index, wxT("use_feedback_play"), val);
 		_play_feed_check->set_value (val > 0.0);
 	}
 
+	for (int i=0; i < _chan_count; ++i) {
+		wxString panstr = wxString::Format("pan_%d", i+1);
+		if (_loop_control->is_updated(_index, panstr)) {
+			_loop_control->get_value(_index, panstr, val);
+			_panners[i]->set_value (val);
+		}
+	}
+
 	if (_use_main_in_check) {
-		if (_loop_control->is_updated(_index, "use_common_ins")) {
-			_loop_control->get_value(_index, "use_common_ins", val);
+		if (_loop_control->is_updated(_index, wxT("use_common_ins"))) {
+			_loop_control->get_value(_index, wxT("use_common_ins"), val);
 			_use_main_in_check->set_value (val > 0.0);
 		}
 	}
@@ -749,8 +805,9 @@ LooperPanel::update_controls()
 // 		_rate_button->set_active(val != 0.0f);
 // 	}
 
-	bool state_updated = _loop_control->is_updated(_index, "state");
-	bool pos_updated = _loop_control->is_updated(_index, "loop_pos");
+	
+	bool state_updated = _loop_control->is_updated(_index, wxT("state"));
+	bool pos_updated = _loop_control->is_updated(_index, wxT("loop_pos"));
 	
 	if (_time_panel->update_time()) {
 		_time_panel->Refresh(false);
@@ -762,8 +819,8 @@ LooperPanel::update_controls()
 
 	if (pos_updated && _last_state != LooperStateScratching) {
 		float looplen;
-		_loop_control->get_value(_index, "loop_len", looplen);
-		_loop_control->get_value(_index, "loop_pos", val);
+		_loop_control->get_value(_index, wxT("loop_len"), looplen);
+		_loop_control->get_value(_index, wxT("loop_pos"), val);
 		_scratch_control->set_value (val / looplen);
 	}
 }
@@ -1152,6 +1209,33 @@ LooperPanel::control_bind_events(int id)
 		start_learning(info);
 	}
 }
+
+void LooperPanel::pan_events(float val, int chan)
+{
+	wxString ctrl = wxString::Format(wxT("pan_%d"), chan+1);
+
+	post_control_event (ctrl, val);
+}
+       
+void LooperPanel::pan_bind_events(int chan)
+{
+	wxString ctrl;
+	MidiBindInfo info;
+
+	info.channel = 0;
+	info.type = "cc";
+	info.command = "set";
+	info.instance = _index;
+	info.lbound = 0.0;
+	info.ubound = 1.0;
+	info.style = MidiBindInfo::NormalStyle;
+
+	ctrl = wxString::Format(wxT("pan_%d"), chan+1);
+	info.control = ctrl.c_str();
+
+	start_learning(info);
+}
+
 
 void LooperPanel::start_learning(MidiBindInfo & info)
 {

@@ -74,7 +74,7 @@ class Looper
 	bool get_use_common_outs () { return _use_common_outs; }
 
 	bool get_have_discrete_io () { return _have_discrete_io; }
-	
+
   protected:
 
 	void run_loops (nframes_t offset, nframes_t nframes);

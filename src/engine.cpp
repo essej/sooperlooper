@@ -93,12 +93,12 @@ bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 	// create common io ports
 	for (int i=0; i < 2; ++i) 
 	{
-		snprintf(tmpstr, sizeof(tmpstr), "Main_in_%d", i+1);
+		snprintf(tmpstr, sizeof(tmpstr), "common_in_%d", i+1);
 		if (_driver->create_input_port (tmpstr, tmpport)) {
 			_common_inputs.push_back (tmpport);
 		}
 
-		snprintf(tmpstr, sizeof(tmpstr), "Main_out_%d", i+1);
+		snprintf(tmpstr, sizeof(tmpstr), "common_out_%d", i+1);
 		if (_driver->create_output_port (tmpstr, tmpport)) {
 			_common_outputs.push_back (tmpport);
 		}

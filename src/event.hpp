@@ -146,10 +146,17 @@ namespace SooperLooper {
 		    MidiStart,
 		    MidiStop,
 		    MidiTick,
+		    // these are per-loop, but not used in the old plugin part
 		    SaveLoop,
 		    UseCommonIns,
 		    UseCommonOuts,
-		    HasDiscreteIO
+		    HasDiscreteIO,
+		    ChannelCount,
+		    // this is ugly, because i want them midi bindable
+		    PanChannel1,
+		    PanChannel2,
+		    PanChannel3,
+		    PanChannel4
 	    } Control;
 	    
 	    int8_t  Instance;

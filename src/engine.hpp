@@ -76,7 +76,9 @@ class Engine
 
 	bool get_common_input (unsigned int chan, port_id_t & port);
 	bool get_common_output (unsigned int chan, port_id_t & port);
-
+	size_t  get_common_output_count () { return _common_outputs.size(); }
+	size_t  get_common_input_count () { return _common_outputs.size(); }
+	
 	EventGenerator & get_event_generator() { return *_event_generator;}
 
 	bool push_command_event (Event::type_t type, Event::command_t cmd, int8_t instance)

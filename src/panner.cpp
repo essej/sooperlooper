@@ -497,7 +497,7 @@ Panner::reset (uint32_t nouts, uint32_t npans)
 		break;
 
 	case 1:
-		fatal << "programming error:"
+		cerr << "programming error:"
 		      << "Panner::reset() called with a single output"
 		      << endmsg;
 		/*NOTREACHED*/

@@ -360,12 +360,12 @@ TimePanel::draw_area(wxDC & dc)
 
 // 	dc.GetTextExtent(wxT("tot"), &w, &h);
 // 	dc.DrawText (wxT("tot"), _width - tw - w - 10, 5);
- 	_otherdc.DrawText (wxT("tot"), _other_bm->GetWidth() - _tw - _mw - 5, 0);
+ 	_otherdc.DrawText (wxT("tot"), _other_bm->GetWidth() - _tw - _mw + 6, 0);
 	
 	
 // 	dc.GetTextExtent(wxT("cyc"), &w, &h);
 // 	dc.DrawText (wxT("cyc"), _width - cw - w - 10, 5 + th);
- 	_otherdc.DrawText (wxT("cyc"), _other_bm->GetWidth() - _tw - _mw - 5, 2 + _th);
+ 	_otherdc.DrawText (wxT("cyc"), _other_bm->GetWidth() - _tw - _mw + 6, 2 + _th);
 
 // 	dc.GetTextExtent(wxT("rem"), &w, &h);
 // 	dc.DrawText (wxT("rem"), _width - rw - w - 10, _height - rh - 5);

@@ -62,7 +62,8 @@ class LooperPanel
   protected:
 
 	void init();
-
+	void post_init();
+	
 	void create_buttons();
 	
 	bool load_bitmaps (PixButton * butt, wxString namebase);
@@ -71,6 +72,9 @@ class LooperPanel
 	void slider_events(float val, int id);
 	void control_bind_events(int id);
 
+	void pan_events(float val, int chan);
+	void pan_bind_events(int chan);
+	
 	void check_events(bool val, wxString  which); 
 	
 	void post_control_event (wxString ctrl, float val);
@@ -136,6 +140,9 @@ class LooperPanel
 
 	ChoiceBox  * _quantize_choice;
 	
+	wxBoxSizer * _pansizer;
+	SliderBar  ** _panners;
+	
 	wxStaticText *_index_text;
 	
 	TimePanel * _time_panel;
@@ -143,7 +150,8 @@ class LooperPanel
 	LoopControl * _loop_control;
 
 	int _index;
-
+	int _chan_count;
+	
 	SooperLooper::LooperState _last_state;
 	float _tap_val;
 

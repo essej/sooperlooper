@@ -40,6 +40,7 @@
 #include "filter.hpp"
 #include "engine.hpp"
 #include "utils.hpp"
+#include "panner.hpp"
 
 using namespace std;
 using namespace SooperLooper;
@@ -201,7 +202,24 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 		_lp_filter[i]->set_cutoff (_src_in_ratio * _lp_filter[i]->get_samplerate() * 0.48f);
 	}
 
-	
+	size_t comnouts = _driver->get_engine()->get_common_output_count();
+	_panner = 0;
+	if (comnouts > 1) {
+		// we really only support panning to 2 outputs right now
+		_panner = new Panner("pan");
+		_panner->reset (comnouts, _chan_count);
+
+		if (_chan_count == 1) {
+			(*_panner)[0]->set_position (0.5f);
+		}
+		else if (_chan_count == 2) {
+			(*_panner)[0]->set_position (0.0f);
+			(*_panner)[1]->set_position (1.0f);
+		}
+		else {
+			// eh, no good defaults
+		}
+	}
 	
 	_ok = true;
 }
@@ -261,6 +279,10 @@ Looper::~Looper ()
 		delete [] _tmp_io_buf;
 
 	delete [] _lp_filter;
+
+	if (_panner) {
+		delete _panner;
+	}
 	
 #ifdef HAVE_SAMPLERATE
 	delete [] _in_src_states;
@@ -347,9 +369,13 @@ float
 Looper::get_control_value (Event::control_t ctrl)
 {
 	int index = (int) ctrl;
-
+	float pan_pos;
+	
 	if (ctrl == Event::DryLevel) {
 		return _curr_dry;
+	}
+	else if (index >= 0 && index < LASTPORT) {
+		return ports[index];
 	}
 	else if (ctrl == Event::UseCommonOuts) {
 		return _use_common_outs;
@@ -360,10 +386,34 @@ Looper::get_control_value (Event::control_t ctrl)
 	else if (ctrl == Event::HasDiscreteIO) {
 		return _have_discrete_io;
 	}
-	else if (index >= 0 && index < LASTPORT) {
-		return ports[index];
+	else if (ctrl == Event::PanChannel1) {
+		if (_panner && _panner->size() > 0) {
+			(*_panner)[0]->get_position (pan_pos);
+			return pan_pos;
+		}
 	}
-
+	else if (ctrl == Event::PanChannel2) {
+		if (_panner && _panner->size() > 1) {
+			(*_panner)[1]->get_position (pan_pos);
+			return pan_pos;
+		}
+	}
+	else if (ctrl == Event::PanChannel3) {
+		if (_panner && _panner->size() > 2) {
+			(*_panner)[2]->get_position (pan_pos);
+			return pan_pos;
+		}
+	}
+	else if (ctrl == Event::PanChannel4) {
+		if (_panner && _panner->size() > 3) {
+			(*_panner)[3]->get_position (pan_pos);
+			return pan_pos;
+		}
+	}
+	else if (ctrl == Event::ChannelCount) {
+		return (float) _chan_count;
+	}
+	
 	return 0.0f;
 }
 
@@ -487,6 +537,26 @@ Looper::do_event (Event *ev)
 		{
 			_use_common_outs = ev->Value > 0.0f;
 		}
+		else if (ev->Control == Event::PanChannel1) {
+			if (_panner && _panner->size() > 0) {
+				(*_panner)[0]->set_position (ev->Value);
+			}
+		}
+		else if (ev->Control == Event::PanChannel2) {
+			if (_panner && _panner->size() > 1) {
+				(*_panner)[1]->set_position (ev->Value);
+			}
+		}
+		else if (ev->Control == Event::PanChannel3) {
+			if (_panner && _panner->size() > 2) {
+				(*_panner)[2]->set_position (ev->Value);
+			}
+		}
+		else if (ev->Control == Event::PanChannel4) {
+			if (_panner && _panner->size() > 3) {
+				(*_panner)[3]->set_position (ev->Value);
+			}
+		}
 
 	}
 
@@ -565,6 +635,20 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 {
 	LADSPA_Data * inbuf, *outbuf, *real_inbuf;
 
+	// get common outputs
+	size_t comnouts = _driver->get_engine()->get_common_output_count();
+	sample_t* com_obufs[comnouts];
+	for (size_t n=0; n < comnouts; ++n) {
+		port_id_t comout_id;
+		if (_driver->get_engine()->get_common_output(n, comout_id)) {
+			com_obufs[n] = _driver->get_output_port_buffer (comout_id, _buffersize) + offset;
+		}
+		else {
+			com_obufs[n] = 0;
+		}
+	}
+	
+	
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
 		/* (re)connect audio ports */
@@ -621,15 +705,8 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		descriptor->run (_instances[i], nframes);
 
 		if (_use_common_outs) {
-			// mix this output into common output
-			port_id_t comoutport;
-
-			if (_driver->get_engine()->get_common_output(i, comoutport)) {
-				sample_t * comout = _driver->get_output_port_buffer (comoutport, _buffersize) + offset;
-				for (nframes_t pos=0; pos < nframes; ++pos) {
-					comout[pos] += flush_to_zero (outbuf[pos]);
-				}
-			}
+			// mix this output into common outputs
+			(*_panner)[i]->distribute (outbuf, com_obufs, 1.0f, nframes);
 		} 
 		
 		if (_have_discrete_io) {
@@ -673,6 +750,20 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 	alt_frames = _src_data.output_frames_gen;
 	// cerr << "nframes: " << nframes << "  output: " <<  _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << endl;
 
+
+	// get common outputs
+	size_t comnouts = _driver->get_engine()->get_common_output_count();
+	sample_t* com_obufs[comnouts];
+	for (size_t n=0; n < comnouts; ++n) {
+		port_id_t comout_id;
+		if (_driver->get_engine()->get_common_output(n, comout_id)) {
+			com_obufs[n] = _driver->get_output_port_buffer (comout_id, _buffersize) + offset;
+		}
+		else {
+			com_obufs[n] = 0;
+		}
+	}
+	
 	
 	// process
 	for (unsigned int i=0; i < _chan_count; ++i)
@@ -765,7 +856,6 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 			_src_data.output_frames = nframes ;
 		}
 		_src_data.data_in = _src_in_buffer;
-		outbuf = (float *) _driver->get_output_port_buffer (_output_ports[i], _buffersize) + offset;
 		_src_data.data_out = (float *) outbuf;
 		src_process (_out_src_states[i], &_src_data);
 
@@ -799,15 +889,8 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 		}
 
 		if (_use_common_outs) {
-			// mix this output into common output
-			port_id_t comoutport;
-
-			if (_driver->get_engine()->get_common_output(i, comoutport)) {
-				sample_t * comout = _driver->get_output_port_buffer (comoutport, _buffersize) + offset;
-				for (nframes_t pos=0; pos < nframes; ++pos) {
-					comout[pos] += flush_to_zero (outbuf[pos]);
-				}
-			}
+			// mix this output into common outputs
+			(*_panner)[i]->distribute (outbuf, com_obufs, 1.0f, nframes);
 		} 
 		
 		if (_have_discrete_io) {

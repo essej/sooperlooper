@@ -78,6 +78,10 @@ CommandMap::CommandMap()
 	_input_controls["fade_samples"]  = Event::FadeSamples;
 	_input_controls["use_common_ins"]  = Event::UseCommonIns;
 	_input_controls["use_common_outs"]  = Event::UseCommonOuts;
+	_input_controls["pan_1"]  = Event::PanChannel1;
+	_input_controls["pan_2"]  = Event::PanChannel2;
+	_input_controls["pan_3"]  = Event::PanChannel3;
+	_input_controls["pan_4"]  = Event::PanChannel4;
 
 
 	_str_ctrl_map.insert (_input_controls.begin(), _input_controls.end());
@@ -93,6 +97,7 @@ CommandMap::CommandMap()
 	_output_controls["total_time"]  = Event::TotalTime;
 	_output_controls["rate_output"]  = Event::TrueRate;
 	_output_controls["has_discrete_io"]  = Event::HasDiscreteIO;
+	_output_controls["channel_count"]  = Event::ChannelCount;
 
 	_str_ctrl_map.insert (_output_controls.begin(), _output_controls.end());
 
