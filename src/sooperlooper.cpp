@@ -33,7 +33,6 @@
 #include "engine.hpp"
 #include "event_nonrt.hpp"
 
-
 #include "midi_bridge.hpp"
 #include <midi++/port_request.h>
 
@@ -55,6 +54,7 @@ Engine * engine = 0;
 int do_shutdown = 0;
 
 Transmitter  warning (Transmitter::Warning);
+Transmitter  error (Transmitter::Error);
 
 
 #define DEFAULT_OSC_PORT 9951

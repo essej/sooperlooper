@@ -135,7 +135,7 @@ AM_CONDITIONAL(WITH_ALSA, test x$use_alsa_midi = xyes)
 
 AC_CHECK_HEADER(/System/Library/Frameworks/CoreMIDI.framework/Headers/CoreMIDI.h, 
                 [use_coremidi=yes
-                AUDIO_LIBS="-framework CoreMIDI"
+                AUDIO_LIBS="-framework CoreMIDI -framework CoreFoundation"
                 AC_DEFINE([WITH_COREMIDI], 1, [Have CoreMIDI Headers])],
         use_coremidi=no)
 AM_CONDITIONAL(WITH_COREMIDI, test x$use_coremidi = xyes)
