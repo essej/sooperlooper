@@ -1223,6 +1223,7 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
 	 break;
 
       case STATE_TRIGGER_PLAY:
+	      pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
 	      if (loop) {
 		      pLS->state = STATE_PLAY;
 		      nextstate = STATE_PLAY;
@@ -1234,6 +1235,7 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
 	      break;
       case STATE_ONESHOT:
 	      // play the loop one_shot mode
+	      pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
 	      if (loop) {
 		      DBG(fprintf(stderr,"Starting ONESHOT state\n"));
 		      pLS->state = STATE_ONESHOT;
@@ -1508,7 +1510,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		    loop->lLoopLength = (unsigned long) (loop->dCurrPos - loop->lStartAdj);
 		    loop->lCycleLength = loop->lLoopLength;
 		    loop->lCycles = 1;
-		    
+
+		    pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+			      
 		    pLS->state = STATE_PLAY;
 		    DBG(fprintf(stderr,"Entering PLAY state after Multiply NEW loop\n"));
 
@@ -1529,6 +1533,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		    loop->lMarkEndH = loop->lLoopLength - 1;
 		    loop->lCycleLength = loop->lLoopLength;
 		    loop->lCycles = 1;
+
+		    pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		    
 		    pLS->state = STATE_PLAY;
 		    DBG(fprintf(stderr,"Entering PLAY state after Multiply NEW loop\n"));
@@ -1825,6 +1831,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 DBG(fprintf(stderr,"Entering MUTE state\n"));
 		 // reset for audio ramp
 		 pLS->lRampSamples = xfadeSamples;
+		 pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 
 	   }
 
@@ -1976,6 +1983,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 // cancel whatever mode, back to play mode
 		 pLS->state = STATE_PLAY;
+		 pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		 DBG(fprintf(stderr,"Undoing and reentering PLAY state from UNDO\n"));
 		 break;
 
@@ -2069,12 +2077,17 @@ runSooperLooper(LADSPA_Handle Instance,
 		      if (fSyncMode == 0.0f) {
 			      if (loop) {
 				      DBG(fprintf(stderr,"Starting ONESHOT state\n"));
+				      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 				      pLS->state = STATE_ONESHOT;
 				      if (pLS->fCurrRate > 0)
 					      loop->dCurrPos = 0.0;
 				      else
 					      loop->dCurrPos = loop->lLoopLength - 1;		       
 			      }
+
+			      // then send out a sync here for any slaves
+			      pfSyncOutput[0] = 1.0f;
+
 		      }	else {
 			      DBG(fprintf(stderr, "starting syncwait for ONESHOT\n"));
 			      pLS->nextState = STATE_ONESHOT;
@@ -2104,6 +2117,10 @@ runSooperLooper(LADSPA_Handle Instance,
 		      if (fSyncMode == 0.0f) {
 
 			      transitionToNext (pLS, loop, STATE_TRIGGER_PLAY);
+
+			      // then send out a sync here for any slaves
+			      pfSyncOutput[0] = 1.0f;
+
 		      }	else {
 			      DBG(fprintf(stderr, "starting syncwait for trigger\n"));
 			      pLS->nextState = STATE_TRIGGER_PLAY;
