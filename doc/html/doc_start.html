@@ -100,14 +100,22 @@ plugins are available to route JACK audio from within other apps as well.
 	<div class="cmdbox">
 	  <b> GUI options</b>
 	  <pre>
-Usage: slgui [gui_options...] [ --  engine_options... ] 
-GUI Options:
-  -H host,  --connect-host=host    connect to sooperlooper engine on given host (default is localhost)
-  -P <num>, --connect-port=<num>   connect to sooperlooper engine on given port (default is 9951)
-  -S , --spawn-engine              force the execution of a new sooperlooper engine.
-  -E name,  --exec-name=name       use name as binary to execute as sooperlooper engine (default is sooperlooper)
-  -h , --help                      this usage output
-  -V , --version                   show version only
+Usage: slgui [-h] [-V] [-l <num>] [-c <num>] [-t <num>] [-H <str>]
+             [-P <num>] [-m <str>] [-s] [-N] [-E <str>] [-J <str>] [-S <str>]
+  -h, --help                    show this help
+  -V, --version                 show version only
+  -l, --loopcount=<num>         number of loopers to create (default is 1)
+  -c, --channels=<num>          channel count for each looper (default is 2)
+  -t, --looptime=<num>          number of seconds of loop memory per channel
+  -H, --connect-host=<str>      connect to sooperlooper engine on given host (default is localhost)
+  -P, --connect-port=<num>      connect to sooperlooper engine on given port (default is 9951)
+  -m, --load-midi-binding=<str> loads midi binding from file
+  -s, --force-spawn             force the execution of a new engine
+  -N, --never-spawn             never start a new engine
+  -E, --exec-name=<str>         use name as binary to execute as sooperlooper
+					     engine (default is sooperlooper)
+  -J, --jack-name=<str>         jack client name, default is sooperlooper
+  -S, --jack-server-name=<str>  specify JACK server name
 </pre>
 	  
 <p>
@@ -118,9 +126,13 @@ Usage: sooperlooper [options...]
 Options:
   -l <num> , --loopcount=<num> number of loopers to create (default is 1)
   -c <num> , --channels=<num>  channel count for each looper (default is 2)
-  -t <numsecs> , --looptime=<num>  number of seconds of loop memory per channel (default is 40), at least
+  -t <numsecs> , --looptime=<num>  number of seconds of loop memory per channel
+			           (default is 40), at least
+  -D <yes/no>, --discrete-io=[yes]  initial loops should have discrete input and
+			            output ports (default yes)
   -p <num> , --osc-port=<num>  udp port number for OSC server (default is 9951)
   -j <str> , --jack-name=<str> jack client name, default is sooperlooper_1
+  -S <str> , --jack-server-name=<str> specify jack server name
   -m <str> , --load-midi-binding=<str> loads midi binding from file or preset
   -q , --quiet                 do not output status to stderr
   -h , --help                  this usage output

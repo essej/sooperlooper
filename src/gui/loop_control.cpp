@@ -161,7 +161,7 @@ LoopControl::LoopControl (const wxString & rcdir)
 	_our_url = tmpstr;
 	free (tmpstr);
 
-	cerr << "our URL is " << _our_url << endl;
+	cerr << "slgui: our URL is " << _our_url << endl;
 	
 	/* add handler for control param callbacks, first is loop index , 2nd arg ctrl string, 3nd arg value */
 	lo_server_add_method(_osc_server, "/ctrl", "isf", LoopControl::_control_handler, this);

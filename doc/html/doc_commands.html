@@ -32,7 +32,7 @@
 
 
 
-The feature-set is closely based on that of the EDP (LoopIII and many features from LoopIV)
+The feature-set is roughly based on that of the EDP (LoopIII and many features from LoopIV)
  so reading the
 	   <a
 	      href="http://www.loopers-delight.com/tools/echoplex/echoplex.html">EDP Manuals</a> can be useful.
@@ -105,14 +105,20 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	</div>
 	
 	<div class="commandbox">
-	  This similar to overdub, except the original loop is repeated
-	  underneath you "multiplying" the loop length until you stop it.
-	  Thus it can turn a 1 measure loop into a 2,3, etc measure loop.
-	  QuantizeMode and RoundMode affect how the overdubbing starts and
-	  stops, see the EDP manual for more details.  Keep in mind that the original
-	  loop length is a "cycle" and the loop length will be a multiple of
-	  that.  You can actually make an already multiplied loop have fewer
-	  cycles with the right combination of options.
+	  This similar to overdub, except the original loop is
+	  repeated underneath you "multiplying" the loop length until
+	  you stop it.  Thus it can turn a 1 measure loop into a 2,3,
+	  etc measure loop.  QuantizeMode and RoundMode affect how the
+	  overdubbing starts and stops.  QuantizeMode affects when the
+	  operation begins, and RoundMode affects if the new audio
+	  continues to be added throughthe end of the current cycle
+	  after hitting the final record.
+	  <p>
+	  Keep in mind that the
+	  original loop length is a "cycle" and the loop length will
+	  be a multiple of that.  You can actually make an already
+	  multiplied loop have fewer cycles when using Multiply on
+	  loops that have already been multiplied.
 
 	  <div class="ending_box">
 	    <b>Special Endings</b> <br>
@@ -121,8 +127,8 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	    immediately and resets the cycle length to the whole loop.
 	      <li> The MultiIncrease function is implemented which allows you to 
 		increment the cycle count ahead of time, without needing to wait 
-		until the exact time to finish the multiply.  See the EDP LoopIV
-		documentation for more info.  Basically, press Multiply as if you 
+		until the exact time to finish the multiply.  
+		 Basically, press Multiply as if you 
                 were finishing it, then before the current cycle plays out, press Multiply again 
                 repeatedly to add cycles. The multiply will resume and automatically go into 
                 playback after the specified number of cycles.
@@ -135,7 +141,7 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	</div>
 	<div class="commandbox">
 	  It inserts new input in place, but always one "cycle" length...
-	  QuantizeMode and RoundMode have effects (refer to EDP Manual).  
+	  QuantizeMode and RoundMode have effects similar to Multiply.  
 
 	  <div class="ending_box">
 	    <b>Special Endings</b> <br>
@@ -151,7 +157,9 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	  Replaces the audio in the loop for the duration of the command.  The existing loop audio is not
 	  heard during the operation.
 	  <p>
-	    When Quantize mode is set, this operation will be quantized on start and finish.
+	    When Quantize mode is set, this operation will be
+	    quantized on start and finish with the current sync and
+	    quantize parameters.
 	</div>
 	
 
@@ -188,7 +196,11 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	  It maintains the current time position if the current loop was based
 	  on the previous loop (eg, not newly recorded).  You can go all the way back to
 	  the first one still intact within the loop memory.  As more operations are done, more of
-	  the available loop memory is used, and it will eventually start reclaiming the oldest versions.
+	  the available loop memory is used, and it will eventually
+	  start reclaiming the oldest versions.
+
+	  <p> Note that to undo all existing state, press Undo while Muted.
+	  
 	</div>
 	
 
@@ -288,9 +300,62 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 	    my MIDI pedal, although the scratching code needs some work.
 	</div>
 
+
+	<h4> Control Reference </h4>
+
+	<div class="commandbox_head">
+	  <b>common dry</b>
+	</div>
+	<div class="commandbox">
+	  The <b>common dry</b> control sets the level of any incoming
+	  audio for passthrough to the common outputs.
+	</div>
+
+	<div class="commandbox_head">
+	  <b>common wet</b>
+	</div>
+	<div class="commandbox">
+	  The <b>common wet</b> control sets master level of all loop
+	  audio being sent out the common output ports.  It does not
+	  affect the passthrough level from the common inputs, use the
+	  common dry control for that.
+	</div>
+	
+	<div class="commandbox_head">
+	  <b>xfade</b>
+	</div>
+	<div class="commandbox">
+	  The <b>xfade</b> control sets the length in samples that
+	  is used to crossfade the audio on loop
+	  operations.   Useful to prevent unwanted clicks caused by
+	  waveform discontinuities.  However, if you want them set
+	  this value to 0.  The control in the GUI affects all loops.
+	</div>
+
+	<div class="commandbox_head">
+	  <b>pan</b>
+	</div>
+	<div class="commandbox">
+	  The <b>pan</b> controls sets the panning for a given channel
+	  in a loop to the common outputs.  Note that the panning does
+	  not affect the discrete output ports for each loop, it only
+	  pans the signal to the stereo common outputs.  A mono loop
+	  will have a single panner, and stereo and multichannel loops
+	  will have one stereo panner for each channel to allow full
+	  control of signal width and panning.  
+	</div>
 	
       </div>
 	
+	<div class="commandbox_head">
+	  <b>comn in</b>
+	</div>
+	<div class="commandbox">
+	  The <b>comn in</b> control toggles the use of the common
+	inputs for audio input to the loop.
+	</div>
+	
+      </div>
 	
 
       <div class="copyright">

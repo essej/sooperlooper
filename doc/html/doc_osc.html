@@ -108,6 +108,12 @@ SET PARAMETER VALUES
   use_rate       :: 0 = off,  not 0 = on 
   fade_samples   :: 0 -> ...
   use_feedback_play   :: 0 = off,  not 0 = on 
+  use_common_ins   :: 0 = off,  not 0 = on 
+  use_common_outs   :: 0 = off,  not 0 = on 
+  pan1         	:: range 0 -> 1
+  pan2         	:: range 0 -> 1
+  pan3         	:: range 0 -> 1
+  pan4         	:: range 0 -> 1
 
 GET PARAMETER VALUES
 
@@ -141,6 +147,8 @@ GET PARAMETER VALUES
   free_time :: in seconds
   total_time :: in seconds
   rate_output 
+  in_peak_meter  :: absolute float sample value 0.0 -> 1.0 (or higher)
+  out_peak_meter  :: absolute float sample value 0.0 -> 1.0 (or higher)
 
 SAVE/LOAD
 
@@ -160,6 +168,8 @@ GLOBAL PARAMETERS
 
   tempo  :: bpm
   eigth_per_cycle
+  dry         	:: range 0 -> 1 affects common input passthru
+  wet         	:: range 0 -> 1  affects common output level
   sync_source  :: -3 = internal,  -2 = midi, -1 = jack, 0 = none, # > 0 = loop number (1 indexed) 
   tap_tempo :: any changes
   save_loop :: any change triggers quick save, be careful
@@ -184,12 +194,12 @@ SHUTDOWN
 
 REGISTER FOR CONTROL CHANGES
 
-  ... to be included
+  ... to be described
 
 
 MIDI BINDING CONTROL
 
-  ... to be included
+  ... to be described
 
 </pre>
 </div>

@@ -38,6 +38,8 @@ if test "$ac_cv_prog_cxx" = "no" ; then
 fi
 
 
+AC_C_BIGENDIAN
+
 #if test x"$GXX" = xyes ; then
 #   CXXFLAGS="$CXXFLAGS -Wall"
 #fi
@@ -75,10 +77,11 @@ PKG_CHECK_MODULES(JACK, jack >= 0.80.0, have_jack=yes, have_jack=no)
 
 if test "x$have_jack" != "xno"
 then
+echo JACKLIBS is ${JACK_LIBS}
 AC_CHECK_LIB(jack, jack_client_open, 
 		   [ AC_DEFINE([HAVE_JACK_CLIENT_OPEN], 1, [Have newer JACK connect call])], 
 		   [],
-		   [])
+		   [${JACK_LIBS}])
 fi
 
 AC_SUBST(JACK_LIBS)
