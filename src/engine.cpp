@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <pthread.h>
+#include <cerrno>
 
 #include <vector>
 

@@ -22,6 +22,7 @@
 #include <wx/filename.h>
 
 #include <iostream>
+#include <cmath>
 
 #include "gui_app.hpp"
 #include "gui_frame.hpp"
