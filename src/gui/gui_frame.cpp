@@ -21,8 +21,7 @@
 
 #include "gui_frame.hpp"
 #include "gui_app.hpp"
-
-
+#include "looper_panel.hpp"
 
 using namespace SooperLooperGui;
 using namespace std;
@@ -54,18 +53,13 @@ GuiFrame::init()
 	wxBoxSizer * mainSizer = new wxBoxSizer(wxVERTICAL);
 
 	wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
-
-
-// 	wxBitmapButton * bitbutt = new wxBitmapButton(this, -1, wxBitmap(undo_normal_xpm), wxDefaultPosition, wxDefaultSize, 0);
-// 	bitbutt->SetBitmapSelected (wxBitmap(undo_selected_xpm));
-// 	bitbutt->SetBitmapFocus (wxBitmap(undo_focus_xpm));
-// 	bitbutt->SetBitmapDisabled (wxBitmap(undo_disabled_xpm));
-
-// 	bitbutt->SetThemeEnabled(false);
 	
-// 	rowsizer->Add (bitbutt, 0);
+	//SetBackgroundColour(*wxBLACK);
 
-	mainSizer->Add (rowsizer, 0, wxEXPAND|wxALL, 5);
+	LooperPanel * looperpan = new LooperPanel(this, -1);
+	
+
+	mainSizer->Add (looperpan, 0, wxEXPAND|wxALL, 5);
 	
 	
 	this->SetAutoLayout( true );     // tell dialog to use sizer
