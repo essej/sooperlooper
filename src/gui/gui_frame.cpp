@@ -259,7 +259,7 @@ GuiFrame::init_syncto_choice()
 	_sync_choice->clear_choices ();
 	_sync_choice->append_choice (wxT("None"), 0);
 	_sync_choice->append_choice (wxT("Internal"), -3);
-//	_sync_choice->append_choice (wxT("MidiClock"), -2);
+	_sync_choice->append_choice (wxT("MidiClock"), -2);
 //	_sync_choice->append_choice (wxT("Jack"), -1);
 //	_sync_choice->append_choice (wxT("BrotherSync"), -4);
 

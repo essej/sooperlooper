@@ -219,6 +219,15 @@ MidiBridge::queue_midi (int chcmd, int param, int val)
 		send_osc (info, scaled_val);
 		
 	}
+	else if (chcmd == 0xfa) {  // MIDI start
+		lo_send(_addr, "/sl/midi_start", "");
+	}
+	else if (chcmd == 0xfc) { // MIDI stop
+		lo_send(_addr, "/sl/midi_stop", "");
+	}
+	else if (chcmd == 0xf8) {  // MIDI clock tick
+		lo_send(_addr, "/sl/midi_tick", "");
+	}
 	else {
 		// fprintf(stderr, "binding %x not found\n", key);
 	}

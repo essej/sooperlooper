@@ -71,6 +71,8 @@ class Engine
 
 	bool push_command_event (Event::type_t type, Event::command_t cmd, int8_t instance);
 	bool push_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance);
+
+	bool push_sync_event (Event::control_t ctrl);
 	
 	std::string get_osc_url ();
 	int get_osc_port ();
@@ -96,6 +98,7 @@ class Engine
 	
 	void update_sync_source ();
 	void calculate_tempo_frames ();
+	void calculate_midi_tick ();
 
 	void do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes);
 	
@@ -109,7 +112,9 @@ class Engine
 
 	volatile bool _ok;
 
+	// RT event queue
 	RingBuffer<Event> * _event_queue;
+	RingBuffer<Event> * _sync_queue;
 
 	EventGenerator * _event_generator;
 
@@ -144,6 +149,9 @@ class Engine
 
 	double _tempo_counter;
 	double _tempo_frames;
+
+	unsigned int _midi_ticks;     // counts ticks as they're coming in
+	unsigned int _midi_loop_tick; // tick number to loop (sync) on
 
 	nframes_t _running_frames;
 	nframes_t _last_tempo_frame;

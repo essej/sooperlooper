@@ -32,6 +32,7 @@ using namespace std;
 using namespace PBD;
 
 #define MAX_EVENTS 1024
+#define MAX_SYNC_EVENTS 1024
 
 
 Engine::Engine ()
@@ -48,6 +49,8 @@ Engine::Engine ()
 	_sync_source = NoSync;
 	_tempo_counter = 0;
 	_tempo_frames = 0;
+	_midi_ticks = 0;
+	_midi_loop_tick = 12;
 
 	_running_frames = 0;
 	_last_tempo_frame = 0;
@@ -71,6 +74,7 @@ bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 
 	_event_generator = new EventGenerator(_driver->get_samplerate());
 	_event_queue = new RingBuffer<Event> (MAX_EVENTS);
+	_sync_queue = new RingBuffer<Event> (MAX_SYNC_EVENTS);
 
 	_nonrt_event_queue = new RingBuffer<EventNonRT *> (MAX_EVENTS);
 
@@ -102,6 +106,12 @@ Engine::cleanup()
 		delete _event_queue;
 		_event_queue = 0;
 	}
+
+	if (_sync_queue) {
+		delete _sync_queue;
+		_sync_queue = 0;
+	}
+	
 	if (_event_generator) {
 		delete _event_generator;
 		_event_generator = 0;
@@ -321,7 +331,10 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 
 			_tempo_counter = 0;
 			calculate_tempo_frames ();
-			generate_sync (offset, nframes);
+
+			if (_sync_source == InternalTempoSync) {
+				generate_sync (offset, nframes);
+			}
 
 			_tempo_changed = true;
 			// wake up mainloop safely
@@ -331,12 +344,10 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			//}
 			
 		}
-
+		
 		_last_tempo_frame = thisframe;
 	}
 }
-
-
 
 bool
 Engine::push_command_event (Event::type_t type, Event::command_t cmd, int8_t instance)
@@ -392,6 +403,37 @@ Engine::push_control_event (Event::type_t type, Event::control_t ctrl, float val
 
 	_event_queue->increment_write_ptr (1);
 
+	
+	return true;
+}
+
+bool
+Engine::push_sync_event (Event::control_t ctrl)
+{
+	// todo support more than one simulataneous pusher safely
+
+	if (_sync_source != MidiClockSync) {
+		return false;
+	}
+	
+	RingBuffer<Event>::rw_vector vec;
+
+	_sync_queue->get_write_vector (&vec);
+
+	if (vec.len[0] == 0) {
+#ifdef DEBUG
+		cerr << "sync event queue full, dropping event" << endl;
+#endif
+		return false;
+	}
+	
+	Event * evt = vec.buf[0];
+	*evt = get_event_generator().createEvent();
+
+	evt->Type = Event::type_sync;
+	evt->Control = ctrl;
+
+	_sync_queue->increment_write_ptr (1);
 	
 	return true;
 }
@@ -523,6 +565,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 			if (gs_event->value > 0.0f) {
 				_eighth_cycle = gs_event->value;
 			}
+			calculate_midi_tick();
 		}
 
 	}
@@ -632,14 +675,35 @@ Engine::calculate_tempo_frames ()
 
 		// cerr << "tempo frames is " << _tempo_frames << endl;
 	}
-
+	else if (_sync_source == MidiClockSync) {
+		calculate_midi_tick ();
+	}
 }
+
+
+// Calculate the number of ticks to sync loops to
+void
+Engine::calculate_midi_tick ()
+{
+	float quantize_value = (float) QUANT_8TH;
+	if (!_instances.empty())
+		quantize_value = _instances[0]->get_control_value (Event::Quantize);
+
+	if (quantize_value == QUANT_8TH)
+		_midi_loop_tick = 12; // 12 ticks per 8th note
+	else if (quantize_value == QUANT_CYCLE)
+		_midi_loop_tick = static_cast<unsigned int>(_eighth_cycle * 12);
+	else
+		_midi_loop_tick = 24;  // ..this can't happen, but quarter note is safe
+}
+
 
 void
 Engine::generate_sync (nframes_t offset, nframes_t nframes)
 {
+	nframes_t npos = offset;
+	
 	if (_sync_source == InternalTempoSync && _tempo_frames != 0) {
-		nframes_t npos = offset;
 		double curr = _tempo_counter;
 		
 		while (npos < nframes) {
@@ -659,6 +723,94 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 
 		_tempo_counter = curr;
 		//cerr << "tempo counter is now: " << _tempo_counter << endl;
+	}
+	else if (_sync_source == MidiClockSync) {
+
+		RingBuffer<Event>::rw_vector vec;
+		Event *evt;
+
+		// get available events
+		_sync_queue->get_read_vector (&vec);
+		
+		nframes_t usedframes = 0;
+		nframes_t doframes;
+		size_t num = vec.len[0];
+		size_t n = 0;
+		size_t vecn = 0;
+		nframes_t fragpos;
+		
+
+		
+		if (num > 0) {
+			
+			while (n < num)
+			{ 
+				evt = vec.buf[vecn] + n;
+				fragpos = (nframes_t) evt->FragmentPos();
+				
+				++n;
+				// to avoid code copying
+				if (n == num) {
+					if (vecn == 0) {
+						++vecn;
+						n = 0;
+						num = vec.len[1];
+					}
+				}
+				
+				if (fragpos < usedframes || fragpos >= nframes) {
+					// bad fragment pos
+#ifdef DEBUG
+					cerr << "BAD SYNC FRAGMENT POS: " << fragpos << endl;
+#endif
+					continue;
+				}
+				
+				doframes = fragpos - usedframes;
+				
+				// handle special global RT events
+				if (evt->Control == Event::MidiTick) {
+					_midi_ticks++;
+				}
+				else if (evt->Control == Event::MidiStart) {
+					_midi_ticks = 0;
+					//cerr << "got start at " << fragpos << endl;
+					//calculate_midi_tick();
+				}
+				else if (evt->Control == Event::MidiStop) {
+					// stop playing?
+					//cerr << "got stop at " << fragpos << endl;
+				}
+
+
+				if ((_midi_ticks % _midi_loop_tick) == 0) {
+					//cerr << "GOT TICK at " << fragpos << endl;
+
+					// zero sync before this event
+					memset (&(_internal_sync_buf[usedframes]), 0, doframes * sizeof(float));
+
+					// mark it high
+					_internal_sync_buf[fragpos] = 1.0f;
+
+					doframes += 1;
+					
+					_midi_ticks = 0;
+				}
+				
+				usedframes += doframes;
+			}
+			
+			// advance events
+			_sync_queue->increment_read_ptr (vec.len[0] + vec.len[1]);
+
+			// zero the rest
+			memset (&(_internal_sync_buf[usedframes]), 0, (nframes - usedframes) * sizeof(float));
+			
+		}
+		else {
+			// no sync events... all zero
+			memset (_internal_sync_buf, 0, nframes * sizeof(float));
+		}
 	}
 	else {
 		memset (_internal_sync_buf, 0, nframes * sizeof(float));

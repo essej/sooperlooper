@@ -106,7 +106,11 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 
 	// certain RT global ctrls
 	lo_server_add_method(_osc_server, "/sl/-2/set", "sf", ControlOSC::_set_handler, new CommandInfo(this, -2, Event::type_global_control_change));
-	
+
+	// MIDI clock
+	lo_server_add_method(_osc_server, "/sl/midi_start", "", ControlOSC::_midi_start_handler, this);
+ 	lo_server_add_method(_osc_server, "/sl/midi_stop", "", ControlOSC::_midi_stop_handler, this);
+	lo_server_add_method(_osc_server, "/sl/midi_tick", "", ControlOSC::_midi_tick_handler, this);
 	
 	
 	
@@ -125,7 +129,7 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	_str_cmd_map["scratch"]  = Event::SCRATCH;
 	_str_cmd_map["trigger"]  = Event::TRIGGER;
 	_str_cmd_map["oneshot"]  = Event::ONESHOT;
-
+	
 	for (map<string, Event::command_t>::iterator iter = _str_cmd_map.begin(); iter != _str_cmd_map.end(); ++iter) {
 		_cmd_str_map[(*iter).second] = (*iter).first;
 	}
@@ -149,13 +153,16 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	_str_ctrl_map["cycle_len"]  = Event::CycleLength;
 	_str_ctrl_map["free_time"]  = Event::FreeTime;
 	_str_ctrl_map["total_time"]  = Event::TotalTime;
-
+	_str_ctrl_map["midi_start"] = Event::MidiStart;
+	_str_ctrl_map["midi_stop"] = Event::MidiStop;
+	_str_ctrl_map["midi_tick"] = Event::MidiTick;
+	
 	// global params
 	_str_ctrl_map["tempo"] = Event::Tempo;
 	_str_ctrl_map["eighth_per_cycle"] = Event::EighthPerCycle;
 	_str_ctrl_map["sync_source"] = Event::SyncTo;
 	_str_ctrl_map["tap_tempo"] = Event::TapTempo;
-	
+
 	for (map<string, Event::control_t>::iterator iter = _str_ctrl_map.begin(); iter != _str_ctrl_map.end(); ++iter) {
 		_ctrl_str_map[(*iter).second] = (*iter).first;
 	}
@@ -390,6 +397,26 @@ int ControlOSC::_global_unregister_update_handler(const char *path, const char *
 	return osc->global_unregister_update_handler (path, types, argv, argc, data);
 }
 
+int ControlOSC::_midi_start_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
+	return osc->midi_start_handler (path, types, argv, argc, data);
+}
+
+int ControlOSC::_midi_stop_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
+	return osc->midi_stop_handler (path, types, argv, argc, data);
+}
+
+int ControlOSC::_midi_tick_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
+	return osc->midi_tick_handler (path, types, argv, argc, data);
+}
 
 
 /* real callbacks */
@@ -464,6 +491,30 @@ ControlOSC::global_unregister_update_handler(const char *path, const char *types
 	// -2 means global
 	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Unregister, -2, to_control_t(ctrl), returl, retpath));
 
+	return 0;
+}
+
+
+int
+ControlOSC::midi_start_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+{
+	_engine->push_sync_event (Event::MidiStart);
+	return 0;
+}
+
+
+int
+ControlOSC::midi_stop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+{
+	_engine->push_sync_event (Event::MidiStop);
+	return 0;
+}
+
+
+int
+ControlOSC::midi_tick_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+{
+	_engine->push_sync_event (Event::MidiTick);
 	return 0;
 }
 

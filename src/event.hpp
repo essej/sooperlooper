@@ -78,6 +78,7 @@ namespace SooperLooper {
 		    type_control_change,
 		    type_control_request,
 		    type_global_control_change,
+		    type_sync
             } Type;
 
 	    enum command_t
@@ -131,7 +132,10 @@ namespace SooperLooper {
 		    Tempo,
 		    SyncTo,
 		    EighthPerCycle,
-		    TapTempo
+		    TapTempo,
+		    MidiStart,
+		    MidiStop,
+		    MidiTick
 	    } Control;
 	    
 	    int8_t  Instance;

@@ -99,6 +99,11 @@ class ControlOSC
 	static int _saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _global_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _global_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	
+	static int _midi_start_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _midi_stop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _midi_tick_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+
 
 
 	static void * _osc_receiver(void * arg);
@@ -114,6 +119,10 @@ class ControlOSC
 	int unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	int global_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	int global_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	
+	int midi_start_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int midi_stop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int midi_tick_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 
 	int updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo * info);
 	int set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);

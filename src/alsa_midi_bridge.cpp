@@ -53,6 +53,8 @@ AlsaMidiBridge::create_sequencer (string client_name, bool isinput)
 {
 	snd_seq_t * seq;
 	int err;
+
+	string portname (client_name);
 	
 	if ((err = snd_seq_open (&seq, "default", SND_SEQ_OPEN_DUPLEX, 0)) != 0) {
 		fprintf (stderr, "Could not open ALSA sequencer, aborting\n\n%s\n\n"
@@ -64,8 +66,14 @@ AlsaMidiBridge::create_sequencer (string client_name, bool isinput)
 	}
 	
 	snd_seq_set_client_name (seq, client_name.c_str());
+
+	if (isinput) {
+		portname += "_Input";
+	} else {
+		portname += "_Output";
+	}
 	
-	if ((err = snd_seq_create_simple_port (seq, isinput? "Input" : "Output",
+	if ((err = snd_seq_create_simple_port (seq, portname.c_str(),
 					       (isinput? SND_SEQ_PORT_CAP_WRITE: SND_SEQ_PORT_CAP_READ)| SND_SEQ_PORT_CAP_DUPLEX |
 					       SND_SEQ_PORT_CAP_SUBS_READ|SND_SEQ_PORT_CAP_SUBS_WRITE,
 					       SND_SEQ_PORT_TYPE_APPLICATION|SND_SEQ_PORT_TYPE_SPECIFIC)) != 0) {
@@ -128,6 +136,15 @@ void  AlsaMidiBridge::midi_receiver()
 		case SND_SEQ_EVENT_PGMCHANGE:
 			//printf("pgmchange: %d %d %d\n",event->data.control.channel,event->data.control.param,event->data.control.value);
 			queue_midi(0xc0+event->data.control.channel,event->data.control.value,0);
+			break;
+		case SND_SEQ_EVENT_START:
+			queue_midi(0xfa,0,0);
+			break;
+		case SND_SEQ_EVENT_STOP:
+			queue_midi(0xfc,0,0);
+			break;
+		case SND_SEQ_EVENT_CLOCK:
+			queue_midi(0xf8,0,0);
 			break;
 		default:
 			//printf("Unknown type: %d\n",event->type);
