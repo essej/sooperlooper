@@ -410,7 +410,7 @@ LoopControl::pingtimer_expired()
 	{
 		if (_waiting > 80) {
 			// give up
-			cerr << "gave up" << endl;
+			cerr << "gave up on spawned engine" << endl;
 			if (_osc_addr) {
 				lo_address_free(_osc_addr);
 			}
@@ -418,7 +418,7 @@ LoopControl::pingtimer_expired()
 			_failed = true;
 		}
 		else {
-			cerr << "waiting" << endl;
+			// cerr << "waiting" << endl;
 			_waiting++;
 			// lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
 			_updatetimer->Start(100, true);
