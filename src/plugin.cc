@@ -2844,6 +2844,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 		 else if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (lCurrPos % loop->lCycleLength) == 0)
 			  || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0))) {
+			 DBG(fprintf(stderr, "outputtuing sync at %d\n", lCurrPos));
 			 pfSyncOutput[lSampleIndex] = 1.0f;
 		 }
 
@@ -2909,11 +2910,11 @@ runSooperLooper(LADSPA_Handle Instance,
 		 pfOutput[lSampleIndex] = fOutputSample;
 		 
 
-		 if (fSyncMode != 0.0 && pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
+		 if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
 		       // commit the new rate at boundary (quantized)
 		       pLS->fCurrRate = pLS->fNextCurrRate;
 		       pLS->fNextCurrRate = 0.0f;
-		       DBG(fprintf(stderr, "Starting quantized rate change\n"));
+		       DBG(fprintf(stderr, "%08x Starting quantized rate change at %d\n", (unsigned) pLS, lCurrPos));
 		 }
 		 
 		 if (loop->dCurrPos >= loop->lLoopLength) {
@@ -2925,11 +2926,11 @@ runSooperLooper(LADSPA_Handle Instance,
 		       //fWet = 0.0;
 		    }
 
-		    if (pLS->fNextCurrRate != 0) {
-		       // commit the new rate at boundary (quantized)
-		       pLS->fCurrRate = pLS->fNextCurrRate;
-		       pLS->fNextCurrRate = 0.0f;
-		       DBG(fprintf(stderr, "Starting quantized rate change\n"));
+		    if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
+			    // commit the new rate at boundary (quantized)
+			    pLS->fCurrRate = pLS->fNextCurrRate;
+			    pLS->fNextCurrRate = 0.0f;
+			    DBG(fprintf(stderr, "%08x 2 Starting quantized rate change at %d\n", (unsigned) pLS, lCurrPos));
 		    }
 		    
 		 }
@@ -2946,11 +2947,11 @@ runSooperLooper(LADSPA_Handle Instance,
 		       pLS->lRampSamples = xfadeSamples;
 		    }
 
-		    if (pLS->fNextCurrRate != 0) {
+		    if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
 		       // commit the new rate at boundary (quantized)
 		       pLS->fCurrRate = pLS->fNextCurrRate;
 		       pLS->fNextCurrRate = 0.0f;
-		       DBG(fprintf(stderr, "Starting quantized rate change\n"));
+		       DBG(fprintf(stderr, "%08x 3 Starting quantized rate change at %d\n", (unsigned) pLS, lCurrPos));
 		    }
 
 		 }
