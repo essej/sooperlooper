@@ -123,6 +123,7 @@ class LoopControl
 	void register_auto_updates(int index, bool unreg=false);
 	void register_input_controls(int index, bool unreg=false);
 	void register_control (int index, wxString ctrl, bool unreg=false);
+	void register_auto_update(int index, wxString ctrl, bool unreg=false);
 	
 	void send_quit();
 	

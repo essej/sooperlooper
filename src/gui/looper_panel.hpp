@@ -159,6 +159,7 @@ class LooperPanel
 
 	bool _learning;
 	bool _scratch_pressed;
+	bool _has_discrete_io;
 private:
     // any class wishing to process wxWindows events must use this macro
     DECLARE_EVENT_TABLE()

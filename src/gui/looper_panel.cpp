@@ -96,6 +96,7 @@ LooperPanel::LooperPanel(LoopControl * control, wxWindow * parent, wxWindowID id
 	_last_state = LooperStateUnknown;
 	_chan_count = 0;
 	_panners = 0;
+	_has_discrete_io = false;
 	
 	init();
 }
@@ -164,6 +165,7 @@ LooperPanel::init()
 	_thresh_control = slider = new SliderBar(this, ID_ThreshControl, 0.0f, 1.0f, 0.0f);
 	slider->set_units(wxT("dB"));
 	slider->set_label(wxT("thresh"));
+	slider->set_show_indicator_bar (true);
 	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
@@ -232,6 +234,7 @@ LooperPanel::init()
 	_wet_control = slider = new SliderBar(this, ID_WetControl, 0.0f, 1.0f, 1.0f);
 	slider->set_units(wxT("dB"));
 	slider->set_label(wxT("wet"));
+	slider->set_show_indicator_bar (true);
 	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
@@ -436,7 +439,8 @@ LooperPanel::post_init()
 	float val;
 	if (_loop_control->get_value(_index, wxT("has_discrete_io"), val) && val != 0.0f)
 	{
-		_use_main_in_check = new CheckBox(this, ID_UseMainInCheck, wxT("main in"), true, wxDefaultPosition, wxSize(65, 18));
+		_has_discrete_io = true;
+		_use_main_in_check = new CheckBox(this, ID_UseMainInCheck, wxT("comn in"), true, wxDefaultPosition, wxSize(65, 18));
 		_use_main_in_check->SetFont(sliderFont);
 		_use_main_in_check->SetToolTip(wxT("mix input from Main inputs"));
 		_use_main_in_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("use_common_ins")));
@@ -444,7 +448,12 @@ LooperPanel::post_init()
 		_maininsizer->Add (_use_main_in_check, 0, wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL ,0);
 		_maininsizer->Layout();
 	}
-
+	else {
+		// no discrete io, thus the inputs will be common inputs
+		// and we can unregister for input peaks
+		_loop_control->register_auto_update (_index, wxT("in_peak_meter"), true);
+		_has_discrete_io = false;
+	}
 	
 	_toppansizer->Layout();
 	_botpansizer->Layout();
@@ -767,9 +776,26 @@ LooperPanel::update_controls()
 		_loop_control->get_value(_index, wxT("rec_thresh"), val);
 		_thresh_control->set_value (val);
 	}
+
+	if (_has_discrete_io) {
+		if (_loop_control->is_updated(_index, wxT("in_peak_meter"))) {
+			_loop_control->get_value(_index, wxT("in_peak_meter"), val);
+			_thresh_control->set_indicator_value (val);
+		}
+	}
+	else {
+		// use global in if we don't have discrete
+		_loop_control->get_global_value (wxT("in_peak_meter"), val);
+		_thresh_control->set_indicator_value (val);
+	}
+
 	if (_loop_control->is_updated(_index, wxT("dry"))) {
 		_loop_control->get_value(_index, wxT("dry"), val);
 		_dry_control->set_value (val);
+	}
+	if (_loop_control->is_updated(_index, wxT("out_peak_meter"))) {
+		_loop_control->get_value(_index, wxT("out_peak_meter"), val);
+		_wet_control->set_indicator_value (val);
 	}
 	if (_loop_control->is_updated(_index, wxT("wet"))) {
 		_loop_control->get_value(_index, wxT("wet"), val);

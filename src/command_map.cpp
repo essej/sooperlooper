@@ -98,6 +98,8 @@ CommandMap::CommandMap()
 	_output_controls["rate_output"]  = Event::TrueRate;
 	_output_controls["has_discrete_io"]  = Event::HasDiscreteIO;
 	_output_controls["channel_count"]  = Event::ChannelCount;
+	_output_controls["in_peak_meter"]  = Event::InPeakMeter;
+	_output_controls["out_peak_meter"]  = Event::OutPeakMeter;
 
 	_str_ctrl_map.insert (_output_controls.begin(), _output_controls.end());
 

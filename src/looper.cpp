@@ -82,6 +82,8 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	_have_discrete_io = discrete;
 	_curr_dry = 1.0f;
 	_target_dry = 1.0f;
+	_input_peak = 0.0f;
+	_output_peak = 0.0f;
 
 	if (!descriptor) {
 		descriptor = ladspa_descriptor (0);
@@ -91,7 +93,7 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	_instances = new LADSPA_Handle[_chan_count];
 	_input_ports = new port_id_t[_chan_count];
 	_output_ports = new port_id_t[_chan_count];
-
+	
 	// SRC stuff
 #ifdef HAVE_SAMPLERATE
 	_in_src_states = new SRC_STATE*[_chan_count];
@@ -123,6 +125,8 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	memset(_down_stamps, 0, sizeof(nframes_t) * (Event::LAST_COMMAND+1));
 
 	_longpress_frames = (nframes_t) lrint (srate * 2.0); // more than 2 secs is SUS
+
+	_falloff_per_sample = 30.0f / srate; // 30db per second falloff
 	
 	// set some rational defaults
 	ports[DryLevel] = 0.0f;
@@ -377,6 +381,14 @@ Looper::get_control_value (Event::control_t ctrl)
 	else if (index >= 0 && index < LASTPORT) {
 		return ports[index];
 	}
+	else if (ctrl == Event::OutPeakMeter) 
+	{
+		return _output_peak;
+	}
+	else if (ctrl == Event::InPeakMeter) 
+	{
+		return _input_peak;
+	}
 	else if (ctrl == Event::UseCommonOuts) {
 		return _use_common_outs;
 	}
@@ -386,6 +398,7 @@ Looper::get_control_value (Event::control_t ctrl)
 	else if (ctrl == Event::HasDiscreteIO) {
 		return _have_discrete_io;
 	}
+	// i wish i could do something better for this
 	else if (ctrl == Event::PanChannel1) {
 		if (_panner && _panner->size() > 0) {
 			(*_panner)[0]->get_position (pan_pos);
@@ -614,6 +627,11 @@ Looper::run (nframes_t offset, nframes_t nframes)
 		ports[Sync] = 0.0f;
 	}
 
+	// do fixed peak meter falloff
+	_input_peak = flush_to_zero (f_clamp (DB_CO (CO_DB(_input_peak) - nframes * _falloff_per_sample), 0.0f, 20.0f));
+	_output_peak = flush_to_zero (f_clamp (DB_CO (CO_DB(_output_peak) - nframes * _falloff_per_sample), 0.0f, 20.0f));
+	
+	
 	if (ports[Rate] == 1.0f) {
 		run_loops (offset, nframes);
 	}
@@ -647,7 +665,7 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		}
 	}
 	
-	
+
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
 		/* (re)connect audio ports */
@@ -684,6 +702,10 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 
 		if (inbuf == 0) continue;
 
+		// calculate input peak
+		compute_peak (inbuf, nframes, _input_peak);
+
+		
 		descriptor->connect_port (_instances[i], AudioInputPort, inbuf);
 
 		descriptor->connect_port (_instances[i], AudioOutputPort, outbuf);
@@ -707,7 +729,7 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 			// mix this output into common outputs
 			(*_panner)[i]->distribute (outbuf, com_obufs, 1.0f, nframes);
 		} 
-		
+
 		if (_have_discrete_io) {
 			// just mix the dry into the outputs
 			float dry_delta = flush_to_zero (_target_dry - _curr_dry) / max((nframes_t) 1, (nframes - 1));
@@ -722,6 +744,10 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 			_curr_dry = currdry;
 		}
 
+		// calculate output peak post mixing with dry
+		compute_peak (outbuf, nframes, _output_peak);
+		
+		
 	}
 
 
@@ -799,6 +825,9 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 		}
 
 		if (inbuf == 0) continue;
+
+		// calculate input peak
+		compute_peak (inbuf, nframes, _input_peak);
 
 		// resample input
 		_src_data.src_ratio = _src_in_ratio;
@@ -904,6 +933,9 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 			}
 			_curr_dry = currdry;
 		}
+
+		// calculate output peak post mixing with dry
+		compute_peak (outbuf, nframes, _output_peak);
 		
 	}
 

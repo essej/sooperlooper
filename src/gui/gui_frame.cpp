@@ -270,8 +270,9 @@ GuiFrame::init()
 
 	_common_dry_bar = new SliderBar(_top_panel, ID_DryControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(200,20));
 	_common_dry_bar->set_units(wxT("dB"));
-	_common_dry_bar->set_label(wxT("main dry"));
+	_common_dry_bar->set_label(wxT("common dry"));
 	_common_dry_bar->set_scale_mode(SliderBar::ZeroGainMode);
+	_common_dry_bar->set_show_indicator_bar(true);
 	_common_dry_bar->SetFont(sliderFont);
 	_common_dry_bar->value_changed.connect (slot (*this, &GuiFrame::on_dry_change));
 	_common_dry_bar->bind_request.connect (bind (slot (*this, &GuiFrame::on_bind_request), wxT("dry")));
@@ -279,8 +280,9 @@ GuiFrame::init()
 
 	_common_wet_bar = new SliderBar(_top_panel, ID_WetControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(200,20));
 	_common_wet_bar->set_units(wxT("dB"));
-	_common_wet_bar->set_label(wxT("main wet"));
+	_common_wet_bar->set_label(wxT("common out"));
 	_common_wet_bar->set_scale_mode(SliderBar::ZeroGainMode);
+	_common_wet_bar->set_show_indicator_bar(true);
 	_common_wet_bar->SetFont(sliderFont);
 	_common_wet_bar->value_changed.connect (slot (*this, &GuiFrame::on_wet_change));
 	_common_wet_bar->bind_request.connect (bind (slot (*this, &GuiFrame::on_bind_request), wxT("wet")));
@@ -511,16 +513,16 @@ GuiFrame::update_controls()
 	// get recent controls from loop control
 	float val;
 
-	if (_loop_control->is_global_updated("tempo")) {
-		_loop_control->get_global_value("tempo", val);
+	if (_loop_control->is_global_updated(wxT("tempo"))) {
+		_loop_control->get_global_value(wxT("tempo"), val);
 		_tempo_bar->set_value (val);
 	}
 
-	if (_loop_control->is_global_updated("tap_tempo")) {	
-		_loop_control->get_global_value("tap_tempo", val);
+	if (_loop_control->is_global_updated(wxT("tap_tempo"))) {	
+		_loop_control->get_global_value(wxT("tap_tempo"), val);
 
 		float tempo;
-		_loop_control->get_global_value("tempo", tempo);
+		_loop_control->get_global_value(wxT("tempo"), tempo);
 		// turn on tap active, then timeout to flip it back
 		_taptempo_button->set_active(true);
 
@@ -535,39 +537,45 @@ GuiFrame::update_controls()
 	}
 	
 	
-	if (_loop_control->is_global_updated("eighth_per_cycle")) {
-		_loop_control->get_global_value("eighth_per_cycle", val);
+	if (_loop_control->is_global_updated(wxT("eighth_per_cycle"))) {
+		_loop_control->get_global_value(wxT("eighth_per_cycle"), val);
 		_eighth_cycle_bar->set_value (val);
 	}
 	
-	if (_loop_control->is_global_updated("sync_source")) {
+	if (_loop_control->is_global_updated(wxT("sync_source"))) {
 		update_syncto_choice ();
 	}
 
 	// quantize from first loop
- 	if (_loop_control->is_updated(0, "quantize")) {
-		_loop_control->get_value(0, "quantize", val);
+ 	if (_loop_control->is_updated(0, wxT("quantize"))) {
+		_loop_control->get_value(0, wxT("quantize"), val);
 		val = roundf(val);
  		_quantize_choice->set_index_value ((int)val);
 	}
 
- 	if (_loop_control->is_updated(0, "round")) {
-		_loop_control->get_value(0, "round", val);
+ 	if (_loop_control->is_updated(0, wxT("round"))) {
+		_loop_control->get_value(0, wxT("round"), val);
  		_round_check->set_value (val > 0.0);
 	}
 	
-	if (_loop_control->is_updated(0, "fade_samples")) {
-		_loop_control->get_value(0, "fade_samples", val);
+	if (_loop_control->is_updated(0, wxT("fade_samples"))) {
+		_loop_control->get_value(0, wxT("fade_samples"), val);
 		_xfade_bar->set_value (val);
 	}
 
-	if (_loop_control->is_global_updated("dry")) {
-		_loop_control->get_global_value("dry", val);
+	if (_loop_control->is_global_updated(wxT("dry"))) {
+		_loop_control->get_global_value(wxT("dry"), val);
 		_common_dry_bar->set_value (val);
 	}
-	if (_loop_control->is_global_updated("wet")) {
-		_loop_control->get_global_value("wet", val);
-		_common_wet_bar->set_value (val);
+
+	// don't check, others might be using it
+	_loop_control->get_global_value(wxT("in_peak_meter"), val);
+	_common_dry_bar->set_indicator_value (val);
+
+	
+	if (_loop_control->is_global_updated (wxT("out_peak_meter"))) {
+		_loop_control->get_global_value (wxT("out_peak_meter"), val);
+		_common_wet_bar->set_indicator_value (val);
 	}
 
 	
@@ -577,7 +585,7 @@ void
 GuiFrame::update_syncto_choice()
 {
 	float val = 0.0f;
-	_loop_control->get_global_value("sync_source", val);
+	_loop_control->get_global_value(wxT("sync_source"), val);
 	
 	long data = (long) roundf(val);
 	int index = -1;

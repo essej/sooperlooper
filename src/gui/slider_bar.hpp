@@ -68,6 +68,11 @@ class SliderBar
 	void set_value (float val);
 	float get_value ();
 
+	void set_show_indicator_bar (bool flag) { _show_ind_bar = flag; }
+	bool get_show_indicator_bar () { return _show_ind_bar; }
+	void set_indicator_value (float val);
+	float get_indicator_value ();
+	
 	void set_default_value (float val) { _default_val = val; }
 	float get_default_value () { return _default_val; }
 	
@@ -104,6 +109,12 @@ class SliderBar
  	void set_border_color (const wxColour & col);
 	wxColour & get_border_color () { return _bordercolor; }
 
+ 	void set_indicator_bar_color (const wxColour & col);
+	wxColour & get_indicator_bar_color () { return _indcolor; }
+
+ 	void set_indicator_max_bar_color (const wxColour & col);
+	wxColour & get_indicator_max_bar_color () { return _indmaxcolor; }
+	
 	void set_decimal_digits (int num);
 	int get_decimal_digits () { return _decimal_digits; }
 	
@@ -147,12 +158,17 @@ class SliderBar
 	wxBrush  _borderbrush;
 	wxPen    _borderpen;  
 	wxBrush    _linebrush;  
-	
+	wxColor  _indcolor;
+	wxColor  _indmaxcolor;
+	wxBrush  _indbrush;
+	wxBrush  _indmaxbrush;
 	wxColour _textcolor;
 	wxColour _valuecolor;
 	
 	float _value;
 	float _default_val;
+	bool  _show_ind_bar;
+	float _ind_value;
 	float _lower_bound, _upper_bound;
 
 	wxString _value_str;

@@ -33,15 +33,13 @@
 #include <midi++/factory.h>
 
 #include "command_map.hpp"
+#include "utils.hpp"
 
 using namespace SooperLooper;
 using namespace std;
 using namespace MIDI;
 using namespace PBD;
 
-// Convert a value in dB's to a coefficent
-#define DB_CO(g) ((g) > -90.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
-#define CO_DB(v) (20.0f * log10f(v))
 
 static inline double 
 gain_to_uniform_position (double g)

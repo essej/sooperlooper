@@ -22,14 +22,17 @@
 #include <iostream>
 #include <cmath>
 
+#include "utils.hpp"
 #include "slider_bar.hpp"
 
 
-
+using SooperLooper::f_min;
+using SooperLooper::f_max;
 using namespace SooperLooperGui;
 using namespace std;
 
 // Convert a value in dB's to a coefficent
+#undef DB_CO
 #define DB_CO(g) ((g) > -144.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
 #define CO_DB(v) (20.0f * log10f(v))
 
@@ -89,6 +92,8 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_ignoretext = false;
 	_oob_flag = false;
 	_showval_flag = true;
+	_show_ind_bar = false;
+	_ind_value = 0.0f;
 	
 	_bgcolor.Set(30,30,30);
 	_bgbrush.SetColour (_bgcolor);
@@ -121,6 +126,11 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 		_popup_menu->Append ( new wxMenuItem(_popup_menu, ID_BindMenuOp, wxT("Learn MIDI Binding")));
 	}
 
+	_indcolor.Set(47, 149, 133);
+	_indbrush.SetColour(_indcolor);
+	_indmaxcolor.Set(200, 20, 20);
+	_indmaxbrush.SetColour(_indmaxcolor);
+	
 	update_size();
 }
 
@@ -237,6 +247,27 @@ SliderBar::set_value (float val)
 	}
 }
 
+void
+SliderBar::set_indicator_value (float val)
+{
+	float newval = val;
+
+	if (_scale_mode == ZeroGainMode) {
+		newval = gain_to_slider_position (val);
+	}
+	
+	if (!_oob_flag) {
+		newval = f_min (newval, _upper_bound);
+		newval = f_max (newval, _lower_bound);
+	}
+	
+	if (newval != _ind_value) {
+		_ind_value = newval;
+		Refresh(false);
+	}
+}
+
+
 float
 SliderBar::get_value ()
 {
@@ -248,6 +279,16 @@ SliderBar::get_value ()
 	}
 }
 	
+float
+SliderBar::get_indicator_value ()
+{
+	if (_scale_mode == ZeroGainMode) {
+		return slider_position_to_gain(_ind_value);
+	}
+	else {
+		return _ind_value;
+	}
+}
 
 void
 SliderBar::update_value_str()
@@ -314,6 +355,20 @@ void SliderBar::set_border_color (const wxColour & col)
 {
 	_bordercolor = col;
 	_borderbrush.SetColour (col);
+	Refresh(false);
+}
+
+void SliderBar::set_indicator_bar_color (const wxColour & col)
+{
+	_indcolor = col;
+	_indbrush.SetColour (col);
+	Refresh(false);
+}
+
+void SliderBar::set_indicator_max_bar_color (const wxColour & col)
+{
+	_indmaxcolor = col;
+	_indmaxbrush.SetColour (col);
 	Refresh(false);
 }
 
@@ -541,7 +596,7 @@ void SliderBar::draw_area(wxDC & dc)
 {
 	wxCoord w,h;
 	int pixw;
-
+	
 	dc.SetBackground(_bgbrush);
 	dc.Clear();
 
@@ -557,19 +612,59 @@ void SliderBar::draw_area(wxDC & dc)
 	{
 		pixw = (int) ((_value - _lower_bound) / _val_scale);
 		dc.DrawRectangle (1, 1, pixw-1, _height-2);
+
+		if (_show_ind_bar) {
+			pixw = (int) ((_ind_value - _lower_bound) / _val_scale);
+			if (pixw > 0) {
+				if (_ind_value >= _upper_bound) {
+					dc.SetBrush(_indmaxbrush);
+				}
+				else {
+					dc.SetBrush(_indbrush);
+				}
+				dc.DrawRectangle (1, 1, pixw-1, 1);
+				dc.DrawRectangle (1, _height - 2, pixw-1, 1);
+			}
+		}
 	}
 	else if (_bar_style == FromRightStyle)
 	{
 		pixw = (int) ((_upper_bound - _value) / _val_scale);
 		dc.DrawRectangle (pixw, 1, _width - pixw - 1, _height-2);
+
+		if (_show_ind_bar) {
+			pixw = (int) ((_upper_bound - _ind_value) / _val_scale);
+			if (pixw < _width) {
+				if (_ind_value >= _upper_bound) {
+					dc.SetBrush(_indmaxbrush);
+				}
+				else {
+					dc.SetBrush(_indbrush);
+				}
+				dc.DrawRectangle (pixw, 1, _width - pixw -1, 2);
+				dc.DrawRectangle (pixw, _height - 2, _width - pixw - 1, 1);
+			}
+		}
 	}
 
+	if (_show_ind_bar) {
+		pixw = (int) ((_ind_value - _lower_bound) / _val_scale);
+		if (pixw > 0) {
+			if (_ind_value >= _upper_bound) {
+				dc.SetBrush(_indmaxbrush);
+			}
+			else {
+				dc.SetBrush(_indbrush);
+			}
+			dc.DrawRectangle (pixw - 2, 1, 2, _height-2);
+		}
+	}
+	
 	dc.SetBrush(_linebrush);
 	pixw = (int) ((_value - _lower_bound) / _val_scale);
 	dc.DrawRectangle (pixw - 1, 1, 2, _height-2);
 	
-
-
+	
 	
 	dc.SetTextForeground(_textcolor);
 	dc.GetTextExtent(_label_str, &w, &h);

@@ -66,6 +66,8 @@ Engine::Engine ()
 	_curr_common_dry = 1.0f;
 	_target_common_wet = 1.0f;
 	_curr_common_wet = 1.0f;
+	_common_input_peak = 0.0f;
+	_common_output_peak = 0.0f;
 	
 	_running_frames = 0;
 	_last_tempo_frame = 0;
@@ -126,6 +128,8 @@ bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 	
 	_internal_sync_buf = new float[driver->get_buffersize()];
 	memset(_internal_sync_buf, 0, sizeof(float) * driver->get_buffersize());
+
+	_falloff_per_sample = 30.0f / driver->get_samplerate(); // 30db per second falloff
 
 	calculate_tempo_frames();
 	
@@ -250,7 +254,13 @@ Engine::fill_common_outs(nframes_t nframes)
 	float dry_delta = flush_to_zero(_target_common_dry - _curr_common_dry) / max((nframes_t) 1, (nframes - 1));
 	float wet_delta = flush_to_zero(_target_common_wet - _curr_common_wet) / max((nframes_t) 1, (nframes - 1));
 	float currdry = 1.0f, currwet = 1.0f;
-
+	float inpeak = _common_input_peak;
+	float outpeak = _common_output_peak;
+	
+	// do fixed peak meter falloff
+	inpeak = flush_to_zero (f_clamp (DB_CO (CO_DB(inpeak) - nframes * _falloff_per_sample), 0.0f, 20.0f));
+	outpeak = flush_to_zero (f_clamp (DB_CO (CO_DB(outpeak) - nframes * _falloff_per_sample), 0.0f, 20.0f));
+	
 	// assume ins and out count the same
 	for (size_t i=0; i < _common_outputs.size(); ++i) 
 	{
@@ -262,12 +272,21 @@ Engine::fill_common_outs(nframes_t nframes)
 		for (nframes_t n = 0; n < nframes; ++n) {
 			currdry += dry_delta;
 			currwet += wet_delta;
+
+			inpeak = f_max (inpeak, fabs(inbuf[n]));
+
 			outbuf[n] = flush_to_zero ((outbuf[n] * currwet) + (inbuf[n] * currdry));
+
+			// outpeak is taken post dry/wet mix for true output metering
+			outpeak = f_max (outpeak, fabs(outbuf[n]));
+			
 		}
 	}
 
 	_curr_common_dry = flush_to_zero (currdry);
 	_curr_common_wet = flush_to_zero (currwet);
+	_common_output_peak = outpeak;
+	_common_input_peak = inpeak;
 }
 
 void 
@@ -801,7 +820,13 @@ Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 		return _instances[instance]->get_control_value (ctrl);
 	}
 	else if (instance == -2) {
-		if (ctrl == Event::DryLevel) {
+		if (ctrl == Event::InPeakMeter) {
+			return _common_input_peak;
+		}
+		else if (ctrl == Event::OutPeakMeter) {
+			return _common_output_peak;
+		}
+		else if (ctrl == Event::DryLevel) {
 			return _curr_common_dry;
 		}
 		else if (ctrl == Event::WetLevel) {

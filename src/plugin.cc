@@ -38,6 +38,7 @@ using namespace std;
 #include "ladspa.h"
 
 #include "plugin.hpp"
+#include "utils.hpp"
 
 using namespace SooperLooper;
 
@@ -123,21 +124,14 @@ using namespace SooperLooper;
 /*****************************************************************************/
 
 #define LIMIT_BETWEEN_0_AND_1(x)          \
-(((x) < 0) ? 0 : (((x) > 1) ? 1 : (x)))
+	f_clamp (x, 0.0f, 1.0f)
 
 #define LIMIT_BETWEEN_NEG1_AND_1(x)          \
-(((x) < -1) ? -1 : (((x) > 1) ? 1 : (x)))
+	f_clamp (x, -1.0f, 1.0f)
 
-#define LIMIT_BETWEEN_0_AND_MAX_DELAY(x)  \
-(((x) < 0) ? 0 : (((x) > MAX_DELAY) ? MAX_DELAY : (x)))
 
 #define MAX(x,y) \
-(((x) < (y)) ? (y) : (x))
-
-
-// Convert a value in dB's to a coefficent
-#define DB_CO(g) ((g) > -90.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
-#define CO_DB(v) (20.0f * log10f(v))
+	f_max (x, y)
 
 
 
@@ -1346,34 +1340,21 @@ runSooperLooper(LADSPA_Handle Instance,
   pfSyncOutput = pLS->pfSyncOutput;
   pfSyncInput = pLS->pfSyncInput;
   
-  // we set up default bindings in case the host hasn't
-  if (!pLS->pfQuantMode)
-     pLS->pfQuantMode = &pLS->fQuantizeMode;
-  if (!pLS->pfRoundMode)
-     pLS->pfRoundMode = &pLS->fRoundMode;
-  if (!pLS->pfRedoTapMode)
-     pLS->pfRedoTapMode = &pLS->fRedoTapMode;
 
   xfadeSamples = (int) (*pLS->pfXfadeSamples);
   if (xfadeSamples < 1) xfadeSamples = 1;
   
-  if (pLS->pfTrigThresh) {
-     fTrigThresh = *pLS->pfTrigThresh;
-  }
+  fTrigThresh = *pLS->pfTrigThresh;
 
-  if (pLS->pfRateCtrlActive) {
-     pLS->bRateCtrlActive = (int) *pLS->pfRateCtrlActive;
-  }
-  if (pLS->pfSyncMode) {
-	  fSyncMode = *pLS->pfSyncMode;
-  }
-  if (pLS->pfPlaybackSyncMode) {
-	  fPlaybackSyncMode = *pLS->pfPlaybackSyncMode;
-  }
-  if (pLS->pfQuantMode) {
-	  fQuantizeMode = *pLS->pfQuantMode;
-  }
+  pLS->bRateCtrlActive = (int) *pLS->pfRateCtrlActive;
 
+  fSyncMode = *pLS->pfSyncMode;
+
+  fPlaybackSyncMode = *pLS->pfPlaybackSyncMode;
+
+  fQuantizeMode = *pLS->pfQuantMode;
+
+  
   eighthPerCycle = (unsigned int) *pLS->pfEighthPerCycle;
   
   fTempo = *pLS->pfTempo;
@@ -1389,17 +1370,12 @@ runSooperLooper(LADSPA_Handle Instance,
   }
   
   
-  if (pLS->pfMultiCtrl) {
-     lMultiCtrl = (int) *(pLS->pfMultiCtrl);
-  }
+  lMultiCtrl = (int) *(pLS->pfMultiCtrl);
 
-  if (pLS->pfUseFeedbackPlay) {
-	  useFeedbackPlay = (bool) *(pLS->pfUseFeedbackPlay);
-  }
+  useFeedbackPlay = (bool) *(pLS->pfUseFeedbackPlay);
   
-  if (pLS->pfTapCtrl) {
-     fTapTrig = *(pLS->pfTapCtrl);
-  }
+  fTapTrig = *(pLS->pfTapCtrl);
+
   
   if (lMultiCtrl == pLS->lLastMultiCtrl)
   {
@@ -1453,30 +1429,23 @@ runSooperLooper(LADSPA_Handle Instance,
      //fprintf(stderr, "rateswitch is 1.0: %f!\n", fRate);
   //}
 
-  if (pLS->pfWet) {
-	  wetTarget = LIMIT_BETWEEN_0_AND_1(*(pLS->pfWet));
-	  fWet =  LIMIT_BETWEEN_0_AND_1(pLS->fWetCurr);
-	  wetDelta = (wetTarget - fWet) / MAX(1, (SampleCount - 1));
-
+  wetTarget = LIMIT_BETWEEN_0_AND_1(*(pLS->pfWet));
+  fWet =  LIMIT_BETWEEN_0_AND_1(pLS->fWetCurr);
+  wetDelta = (wetTarget - fWet) / MAX(1, (SampleCount - 1));
+  
 // 	  wetTarget += wetDelta;
 // 	  fWet = fWet * 0.1f + wetTarget * 0.9f;
-
-  }
   
-  if (pLS->pfDry) {
-	  dryTarget = LIMIT_BETWEEN_0_AND_1(*(pLS->pfDry));
-	  fDry =  LIMIT_BETWEEN_0_AND_1(pLS->fDryCurr);
-	  dryDelta = (dryTarget - fDry) / MAX(1, (SampleCount - 1));
-  }
+  dryTarget = LIMIT_BETWEEN_0_AND_1(*(pLS->pfDry));
+  fDry =  LIMIT_BETWEEN_0_AND_1(pLS->fDryCurr);
+  dryDelta = (dryTarget - fDry) / MAX(1, (SampleCount - 1));
 
-  if (pLS->pfFeedback) {
-	  feedbackTarget = LIMIT_BETWEEN_0_AND_1(*(pLS->pfFeedback));
-	  fFeedback =  LIMIT_BETWEEN_0_AND_1(pLS->fFeedbackCurr);
-	  feedbackDelta = (feedbackTarget - fFeedback) / MAX(1, (SampleCount - 1));
-	  
-	  // probably against the rules, but I'm doing it anyway
-	  *pLS->pfFeedback = feedbackTarget;
-  }
+  feedbackTarget = LIMIT_BETWEEN_0_AND_1(*(pLS->pfFeedback));
+  fFeedback =  LIMIT_BETWEEN_0_AND_1(pLS->fFeedbackCurr);
+  feedbackDelta = (feedbackTarget - fFeedback) / MAX(1, (SampleCount - 1));
+  
+  // probably against the rules, but I'm doing it anyway
+  *pLS->pfFeedback = feedbackTarget;
 
 
   loop = pLS->headLoopChunk;
@@ -3380,7 +3349,6 @@ runSooperLooper(LADSPA_Handle Instance,
   pLS->fScratchPosCurr = scratchTarget;
   pLS->fScratchPosTarget = scratchTarget;
   
-  
   // update output ports
   if (pLS->pfStateOut) {
      *pLS->pfStateOut = (LADSPA_Data) pLS->state;
@@ -3668,7 +3636,7 @@ sl_init() {
       = -4.0;
     psPortRangeHints[TrueRate].UpperBound
       = 4.0;
-    
+
     psPortRangeHints[ScratchPosition].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE;
     psPortRangeHints[ScratchPosition].LowerBound 

@@ -21,6 +21,7 @@
 #define __sooperlooper_utils_h__
 
 #include <stdint.h>
+#include <cmath>
 
 namespace SooperLooper
 {
@@ -44,6 +45,48 @@ static inline float flush_to_zero(float f)
 	return (v.i & 0x7f800000) < 0x08000000 ? 0.0f : f;
 }
 
+
+
+/* A set of branchless clipping operations from Laurent de Soras */
+
+static inline float f_max(float x, float a)
+{
+	x -= a;
+	x += fabs(x);
+	x *= 0.5;
+	x += a;
+
+	return x;
+}
+
+static inline float f_min(float x, float b)
+{
+	x = b - x;
+	x += fabs(x);
+	x *= 0.5;
+	x = b - x;
+
+	return x;
+}
+
+static inline float f_clamp(float x, float a, float b)
+{
+	const float x1 = fabs(x - a);
+	const float x2 = fabs(x - b);
+
+	x = x1 + a + b;
+	x -= x2;
+	x *= 0.5;
+
+	return x;
+}
+
+	
 };
+
+
+#define DB_CO(g) ((g) > -90.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
+#define CO_DB(v) (20.0f * log10f(v))
+
 
 #endif

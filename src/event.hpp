@@ -152,6 +152,8 @@ namespace SooperLooper {
 		    UseCommonOuts,
 		    HasDiscreteIO,
 		    ChannelCount,
+		    InPeakMeter,
+		    OutPeakMeter,
 		    // this is ugly, because i want them midi bindable
 		    PanChannel1,
 		    PanChannel2,

@@ -37,6 +37,7 @@
 #include "plugin.hpp"
 #include "event.hpp"
 #include "event_nonrt.hpp"
+#include "utils.hpp"
 
 namespace SooperLooper {
 
@@ -80,6 +81,15 @@ class Looper
 	void run_loops (nframes_t offset, nframes_t nframes);
 	void run_loops_resampled (nframes_t offset, nframes_t nframes);
 
+	static void compute_peak (sample_t *buf, nframes_t nsamples, float& peak) {
+		float p = peak;
+		
+		for (nframes_t n = 0; n < nsamples; ++n) {
+			p = f_max (p, fabs(buf[n]));
+		}
+		
+		peak = p;
+	}	
 	
 	int requested_cmd;
 	int last_requested_cmd;
@@ -115,6 +125,10 @@ class Looper
 
 	Panner             * _panner; 
 
+	float              _input_peak;
+	float              _output_peak;
+	float              _falloff_per_sample;
+	
 	LADSPA_Data         _slave_sync_port;
 	LADSPA_Data         _slave_dummy_port;
 

@@ -197,10 +197,10 @@ if test "\$target_cpu" = "powerpc"; then
 dnl -mcpu=7450 does not reliably work with gcc 3.*
       OPT_FLAGS="-D_REENTRANT -O2 -mcpu=7400 -maltivec -mabi=altivec"
     else
-      OPT_FLAGS="-D_REENTRANT -O3 -mcpu=7400"
+      OPT_FLAGS="-D_REENTRANT -O2 -mcpu=7400"
     fi
   else
-    OPT_FLAGS="-D_REENTRANT -O3 -mcpu=750 -mmultiple"
+    OPT_FLAGS="-D_REENTRANT -O2 -mcpu=750 -mmultiple"
   fi
   OPT_FLAGS="\$OPT_FLAGS -mhard-float -mpowerpc-gfxopt"
 elif echo \$target_cpu | grep "i*86" >/dev/null; then
@@ -218,14 +218,14 @@ elif echo \$target_cpu | grep "i*86" >/dev/null; then
   fi
   AC_DEFINE(x86, 1, "Nope its intel")
   if test "\$target_cpu" = "i586"; then
-    OPT_FLAGS="-DREENTRANT -O3 -march=i586 -fomit-frame-pointer -ffast-math -fstrength-reduce -fmove-all-movables"
+    OPT_FLAGS="-DREENTRANT -O2 -march=i586 -fomit-frame-pointer -ffast-math -fstrength-reduce -fmove-all-movables"
   elif test "\$target_cpu" = "i686"; then
-    OPT_FLAGS="-D_REENTRANT -O3 -march=i686 -fomit-frame-pointer -ffast-math -fstrength-reduce -fmove-all-movables"
+    OPT_FLAGS="-D_REENTRANT -O2 -march=i686 -fomit-frame-pointer -ffast-math -fstrength-reduce -fmove-all-movables"
     if test "\$gcc_major_version" = "3"; then
       OPT_FLAGS="\$OPT_FLAGS \$mmx \$sse \$dreidnow"
     fi
   else
-    OPT_FLAGS="-D_REENTRANT -O3 -fomit-frame-pointer -ffast-math -fstrength-reduce -fmove-all-movables"
+    OPT_FLAGS="-D_REENTRANT -O2 -fomit-frame-pointer -ffast-math -fstrength-reduce -fmove-all-movables"
   fi
 fi
 

@@ -239,6 +239,7 @@ typedef struct {
 	LADSPA_Data fFeedFadeDelta;
 	
 	LADSPA_Data fLoopXfadeTime;
+
 	
 	/* Ports:
 	   ------ */

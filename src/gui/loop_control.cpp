@@ -313,6 +313,9 @@ LoopControl::disconnect (bool killit)
 		lo_send(_osc_addr, "/unregister_update", "sss", "wet", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/unregister_update", "sss", "dry", _our_url.c_str(), "/ctrl");
 
+		lo_send(_osc_addr, "/unregister_auto_update", "sss",  "in_peak_meter", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/unregister_auto_update", "sss",  "out_peak_meter", _our_url.c_str(), "/ctrl");
+		
 		if (killit) {
 			send_quit();
 		}
@@ -561,6 +564,9 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 		lo_send(_osc_addr, "/register_update", "sss", "wet", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_update", "sss", "dry", _our_url.c_str(), "/ctrl");
 
+		lo_send(_osc_addr, "/register_auto_update", "siss", "in_peak_meter", 100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/register_auto_update", "siss", "out_peak_meter", 100, _our_url.c_str(), "/ctrl");
+		
 		lo_send(_osc_addr, "/get_all_midi_bindings", "ss", _our_url.c_str(), "/recv_midi_bindings");
 		
 		_pingack = true;
@@ -841,6 +847,8 @@ LoopControl::register_auto_updates(int index, bool unreg)
 		lo_send(_osc_addr, buf, "sss", "total_time", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "sss", "waiting", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "sss", "rate_output", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "sss", "in_peak_meter", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "sss", "out_peak_meter", _our_url.c_str(), "/ctrl");
 
 	} else {
 		snprintf(buf, sizeof(buf), "/sl/%d/register_auto_update", index);
@@ -853,6 +861,8 @@ LoopControl::register_auto_updates(int index, bool unreg)
 		lo_send(_osc_addr, buf, "siss", "total_time",100,  _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "siss", "waiting",   100, _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "siss", "rate_output",100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "siss", "in_peak_meter", 100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "siss", "out_peak_meter", 100, _our_url.c_str(), "/ctrl");
 	}
 
 	
@@ -923,6 +933,26 @@ LoopControl::register_control (int index, wxString ctrl, bool unreg)
 	// send request for updates
 	lo_send(_osc_addr, buf, "sss", ctrl.c_str(), _our_url.c_str(), "/ctrl");
 
+}
+
+void
+LoopControl::register_auto_update(int index, wxString ctrl, bool unreg)
+{
+	if (!_osc_addr) return;
+
+	char buf[30];
+
+	if (unreg) {
+		snprintf(buf, sizeof(buf), "/sl/%d/unregister_auto_update", index);
+
+		lo_send(_osc_addr, buf, "sss", ctrl.c_str(), _our_url.c_str(), "/ctrl");
+
+	} else {
+		snprintf(buf, sizeof(buf), "/sl/%d/register_auto_update", index);
+
+		lo_send(_osc_addr, buf, "siss", ctrl.c_str(), 100, _our_url.c_str(), "/ctrl");
+	}
+	
 }
 
 
