@@ -556,7 +556,7 @@ GuiFrame::OnClose(wxCloseEvent &event)
 	_loop_update_connection.disconnect();
 
 	// sleep for a short period before stopping engine
-#if wxCHECK_VERSION(2,5,0)
+#if wxCHECK_VERSION(2,5,3)
 	::wxMilliSleep(500);
 #else
 	::wxUsleep(500);
@@ -577,7 +577,7 @@ GuiFrame::OnQuit(wxCommandEvent& event)
 	_loop_update_connection.disconnect();
 
 	// sleep for a short period before stopping engine
-#if wxCHECK_VERSION(2,5,0)
+#if wxCHECK_VERSION(2,5,3)
 	::wxMilliSleep(500);
 #else
 	::wxUsleep(500);
