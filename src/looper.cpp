@@ -995,7 +995,6 @@ Looper::load_loop (string fname)
 	}
 
 	float * dummyout = new float[bufsize];
-	float * bigbuf   = new float[bufsize * _chan_count];
 	
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
@@ -1032,6 +1031,7 @@ Looper::load_loop (string fname)
 	nframes_t filechans = sinfo.channels;
 	nframes_t bpos;
 	float * databuf;
+	float * bigbuf  = new float[bufsize * filechans];
 	
 	while (frames_left > 0)
 	{
