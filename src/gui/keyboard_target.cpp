@@ -235,30 +235,6 @@ KeyboardTarget::get_binding (string name)
 			/* convert keystring to GTK format */
 
 			string str = i->first;
-// 			string gtkstr;
-// 			string::size_type p;
-
-// 			while (1) {
-
-// 				if ((p = str.find ('-')) == string::npos || (p == str.length() - 1)) {
-// 					break;
-// 				}
-
-// 				gtkstr += '<';
-// 				gtkstr += str.substr (0, p);
-// 				gtkstr += '>';
-
-// 				str = str.substr (p+1);
-
-// 			}
-
-// 			gtkstr += str;
-
-// 			if (gtkstr.length() == 0) {
-// 				return i->first;
-// 			} 
-
-// 			return gtkstr;
 			return str;
 		}
 	}
@@ -588,6 +564,9 @@ KeyboardTarget::keycode_from_name (const wxString &keyn)
                     else if ( keyname == wxT("TAB") ) {
 			    keycode = WXK_TAB;
                     }
+                    else if ( keyname == wxT("ESCAPE") ) {
+			    keycode = WXK_ESCAPE;
+                    }
 		}
 	}
 
@@ -662,6 +641,9 @@ wxString KeyboardTarget::name_from_keycode (int key)
 		break;
 	case WXK_TAB:
 		text += wxT("tab");
+		break;
+	case WXK_ESCAPE:
+		text += wxT("escape");
 		break;
 		
 	default:

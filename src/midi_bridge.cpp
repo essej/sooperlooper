@@ -165,11 +165,19 @@ MidiBridge::start_learn (MidiBindInfo & info, bool exclus)
 }
 
 void
+MidiBridge::start_get_next ()
+{
+	cerr << "starting getnext" << endl;
+	_getnext = true;
+}
+
+void
 MidiBridge::finish_learn(MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 {
+	int chan;
+	string type;
+
 	if (_learning) {
-		int chan;
-		string type;
 
 		if (_midi_bindings.get_channel_and_type (chcmd, chan, type)) {
 
@@ -192,6 +200,23 @@ MidiBridge::finish_learn(MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 		}
 		_learning = false;
 	}
+	else if (_getnext) {
+
+		if (_midi_bindings.get_channel_and_type (chcmd, chan, type)) {
+			MidiBindInfo info;
+			info.channel = chan;
+			info.type = type;
+			info.param = param;
+
+			// notify of new learn
+			cerr << "recvd new one: " << info.serialize() << endl;
+			NextMidiReceived (info); // emit
+		}
+		else {
+			cerr << "invalid event to get: " << (int) chcmd  << endl;
+		}
+		_getnext = false;
+	}
 }
 
 void
@@ -199,6 +224,13 @@ MidiBridge::cancel_learn()
 {
 	cerr << "cancel learn" << endl;
 	_learning = false;
+}
+
+void
+MidiBridge::cancel_get_next()
+{
+	cerr << "cancel get next" << endl;
+	_getnext = false;
 }
 
 
@@ -215,7 +247,7 @@ MidiBridge::incoming_midi (Parser &p, byte *msg, size_t len)
 // 		return;
 // 	}
 
-	if (_learning) {
+	if (_learning || _getnext) {
 		finish_learn(b1, b2, b3);
 	}
 	else {

@@ -87,15 +87,11 @@ static const wxString PcString("PC");
 	
 static int wxCALLBACK list_sort_callback (long item1, long item2, long sortData)
 {
-	wxListCtrl * lctrl = (wxListCtrl * )sortData;
-	wxListItem i1, i2;
-	i1.SetId(item1);
-	i2.SetId(item2);
-	
-	lctrl->GetItem(i1);
-	lctrl->GetItem(i2);
-	
-	return i1.GetText().compare(i2.GetText());
+
+	MidiBindInfo * info1 = (MidiBindInfo*)(item1);
+	MidiBindInfo * info2 = (MidiBindInfo*)(item2);
+
+	return info1->control > info2->control;
 }
 
 	
@@ -286,13 +282,15 @@ void MidiBindDialog::init()
 	buttsizer = new wxBoxSizer(wxHORIZONTAL);
 	buttsizer->Add (1,1, 1, wxALL, 0);
 
-	butt = new wxButton (this, ID_ModifyButton, wxT("Modify"));
+	butt = new wxButton (this, ID_AddButton, wxT("Add New"));
 	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
-
+	
 	butt = new wxButton (this, ID_RemoveButton, wxT("Remove"));
 	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
 
-	butt = new wxButton (this, ID_AddButton, wxT("Add New"));
+	buttsizer->Add (10, 1, 0);
+	
+	butt = new wxButton (this, ID_ModifyButton, wxT("Modify"));
 	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
 
 
@@ -308,6 +306,8 @@ void MidiBindDialog::init()
 
 
 	_parent->get_loop_control().MidiBindingChanged.connect (slot (*this, &MidiBindDialog::got_binding_changed));
+	_parent->get_loop_control().ReceivedNextMidi.connect (slot (*this, &MidiBindDialog::recvd_next_midi));
+	_parent->get_loop_control().NextMidiCancelled.connect (slot (*this, &MidiBindDialog::cancelled_next_midi));
 
 	refresh_state();
 	
@@ -338,11 +338,23 @@ void MidiBindDialog::populate_controls()
 	
 }
 
-void MidiBindDialog::got_binding_changed(SooperLooper::MidiBindInfo & info)
+void MidiBindDialog::cancelled_next_midi()
+{
+	_learning = false;
+	_learn_button->SetLabel (wxT("Learn"));
+	_learn_button->SetForegroundColour (*wxBLACK); // todo default
+}
+
+void MidiBindDialog::recvd_next_midi(SooperLooper::MidiBindInfo & info)
 {
 	if (_learning) {
-		cerr << "got learned: " << info.serialize() << endl;
-		_currinfo = info;
+		cerr << "got next: " << info.serialize() << endl;
+		MidiBindInfo ninfo = _currinfo;
+		ninfo.channel = info.channel;
+		ninfo.param = info.param;
+		ninfo.type = info.type;
+
+		update_entry_area (&ninfo);
 		
 		_learn_button->SetLabel (wxT("Learn"));
 		_learn_button->SetForegroundColour (*wxBLACK); // todo default
@@ -350,6 +362,16 @@ void MidiBindDialog::got_binding_changed(SooperLooper::MidiBindInfo & info)
 		_learning = false;
 	}
 
+}
+
+void MidiBindDialog::got_binding_changed(SooperLooper::MidiBindInfo & info)
+{
+	// cancel learning too
+	if (_learning) {
+		_learn_button->SetLabel (wxT("Learn"));
+		_learn_button->SetForegroundColour (*wxBLACK); // todo default
+		_learning = false;
+	}
 
 	refresh_state();
 }
@@ -371,12 +393,10 @@ void MidiBindDialog::refresh_state()
 	_parent->get_loop_control().midi_bindings().get_bindings(_bind_list);
 	
 	int itemid = 0;
-	int selexists = -1;
 	
 	for (MidiBindings::BindingList::iterator biter = _bind_list.begin(); biter != _bind_list.end(); ++biter)
 	{
 		MidiBindInfo & info = (*biter);
-
 		
 		// control
 		item.SetId(itemid);
@@ -386,11 +406,6 @@ void MidiBindDialog::refresh_state()
 
 		_listctrl->InsertItem (item);
 
-		if (info == _currinfo) {
-			selexists = itemid;
-		}
-		
-		
 		// loop #
 		item.SetColumn(1);
 		item.SetText (wxString::Format(wxT("%d"), info.instance + 1));
@@ -418,13 +433,23 @@ void MidiBindDialog::refresh_state()
 		itemid++;
 	}
 
-	if (selexists >= 0) {
-		_listctrl->SetItemState(selexists, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-		_listctrl->EnsureVisible(selexists);
-		cerr << "matched curringo " << selexists << endl;
+	_listctrl->SortItems (list_sort_callback, (unsigned) _listctrl);
+	
+	for (long i=0; i < _listctrl->GetItemCount(); ++i) {
+		item.SetId(i);
+		item.SetColumn(0);
+		if (_listctrl->GetItem(item)) {
+			MidiBindInfo * info = (MidiBindInfo *) item.GetData();
+			if (*info == _currinfo) {
+				_listctrl->SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+				_listctrl->EnsureVisible(i);
+				_selitem  = i;
+				// cerr << "matched curringo " << i << endl;
+				break;
+			}
+		}
 	}
 	
-	_listctrl->SortItems (list_sort_callback, (unsigned) _listctrl);
 
 // 	if (selexists) {
 // 		_edit_panel->Enable(true);
@@ -437,7 +462,7 @@ void MidiBindDialog::refresh_state()
 
 void MidiBindDialog::update_entry_area(MidiBindInfo * usethis)
 {
-	if (_selitem < 0) {
+	if (_selitem < 0 && !usethis) {
 		return;
 	}
 
@@ -584,10 +609,14 @@ void MidiBindDialog::on_button (wxCommandEvent &ev)
 			_learn_button->SetLabel (wxT("C. Learn"));
 			_learn_button->SetForegroundColour (*wxRED);
 			_learning = true;
-			_parent->get_loop_control().learn_midi_binding(_currinfo);
+			_parent->get_loop_control().request_next_midi_event();
 		}
 		else {
-			//_parent->get_loop_control().cancel_learn_midi_binding();
+			//_learn_button->SetLabel (wxT("Learn"));
+			//_learn_button->SetForegroundColour (*wxBLACK); // todo default
+			//_learning = false;
+			
+			_parent->get_loop_control().cancel_next_midi_event();
 		}
 	}
 	else if (ev.GetId() == ID_RemoveButton)
@@ -600,12 +629,12 @@ void MidiBindDialog::on_button (wxCommandEvent &ev)
 	}
 	else if (ev.GetId() == ID_ModifyButton)
 	{
-		if (_listctrl->GetSelectedItemCount() > 0) {
+		//if (_listctrl->GetSelectedItemCount() > 0) {
 			_parent->get_loop_control().remove_midi_binding(_currinfo);
 			update_curr_binding();
 			_parent->get_loop_control().add_midi_binding(_currinfo);
 			_parent->get_loop_control().request_all_midi_bindings();
-		}
+			//}
 	}
 	else if (ev.GetId() == ID_ClearAllButton)
 	{
@@ -689,15 +718,9 @@ void MidiBindDialog::on_close (wxCloseEvent &ev)
 
 void MidiBindDialog::item_selected (wxListEvent & ev)
 {
-	// cerr << "item " << ev.GetText() << " activated" << endl;
-
-	//KeyboardTarget & keyb = _parent->get_keyboard();
-
-	//_learn_button->SetLabel (wxT("Cancel Learn"));
-	//_learn_button->SetForegroundColour (*wxRED);
-
-	//keyb.start_learning (ev.GetText().c_str());
+	//cerr << "item " << ev.GetText() << " sel" << endl;
 	_selitem = ev.GetIndex();
+
 	update_entry_area();
 	update_curr_binding();
 	

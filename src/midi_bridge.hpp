@@ -54,7 +54,11 @@ class MidiBridge
 	void start_learn (MidiBindInfo & info, bool exclus=false);
 	void cancel_learn();
 
+	void start_get_next ();
+	void cancel_get_next ();
+	
 	SigC::Signal1<void, MidiBindInfo> BindingLearned;
+	SigC::Signal1<void, MidiBindInfo> NextMidiReceived;
 	
   protected:
 	bool init_thread();
@@ -92,6 +96,7 @@ class MidiBridge
 
 	bool _done;
 	bool _learning;
+	bool _getnext;
 	MidiBindInfo _learninfo;
 	
 };

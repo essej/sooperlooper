@@ -87,6 +87,7 @@ class LooperPanel
 
 	void got_binding_changed(SooperLooper::MidiBindInfo & info);
 	void start_learning(SooperLooper::MidiBindInfo & info);
+	void got_learn_canceled();
 	
 	wxPanel   * _selbar;
 	wxColour   _bgcolor;

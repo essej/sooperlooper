@@ -55,6 +55,8 @@ Engine::Engine ()
 	_midi_ticks = 0;
 	_midi_loop_tick = 12;
 	_midi_bridge = 0;
+	_learn_done = false;
+	_received_done = false;
 	
 	_running_frames = 0;
 	_last_tempo_frame = 0;
@@ -135,6 +137,7 @@ void Engine::set_midi_bridge (MidiBridge * bridge)
 	_midi_bridge = bridge;
 	if (_midi_bridge) {
 		_midi_bridge->BindingLearned.connect(slot(*this, &Engine::binding_learned));
+		_midi_bridge->NextMidiReceived.connect(slot(*this, &Engine::next_midi_received));
 	}
 }
 
@@ -552,6 +555,16 @@ Engine::binding_learned(MidiBindInfo info)
 	pthread_cond_signal (&_event_cond);
 }
 
+void
+Engine::next_midi_received(MidiBindInfo info)
+{
+	_received_done = true;
+	_learninfo = info;
+	
+	LockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
+	pthread_cond_signal (&_event_cond);
+}
+
 
 void
 Engine::mainloop()
@@ -592,6 +605,11 @@ Engine::mainloop()
 			_osc->finish_midi_binding_event (_learn_event);
 			
 			_learn_done = false;
+		}
+		else if (_received_done) {
+			_learn_event.bind_str = _learninfo.serialize();
+			_osc->finish_midi_binding_event (_learn_event);
+			_received_done = false;
 		}
 		
 		// sleep on condition
@@ -706,6 +724,17 @@ Engine::process_nonrt_event (EventNonRT * event)
 				_midi_bridge->start_learn (info, exclus);
 			}
 		}
+		else if (mb_event->type == MidiBindingEvent::CancelLearn) {
+			_learn_done = false;
+			_midi_bridge->cancel_learn();
+			_osc->finish_midi_binding_event(*mb_event);
+		}
+		else if (mb_event->type == MidiBindingEvent::CancelGetNext) {
+			cerr << "gcancel get next" << endl;
+			_received_done = false;
+			_midi_bridge->cancel_get_next();
+			_osc->finish_midi_binding_event(*mb_event);
+		}
 		else if (mb_event->type == MidiBindingEvent::Remove)
 		{
 			MidiBindInfo info;
@@ -731,7 +760,10 @@ Engine::process_nonrt_event (EventNonRT * event)
 		}
 		else if (mb_event->type == MidiBindingEvent::GetNextMidi)
 		{
-			//_midi_bridge->start_learn (mb_event->bind_str);
+			cerr << "get next" << endl;
+			_received_done = false;
+			_learn_event = *mb_event;
+			_midi_bridge->start_get_next();
 		}
 	}
 	else if ((ping_event = dynamic_cast<PingEvent*> (event)) != 0)

@@ -451,6 +451,7 @@ LooperPanel::bind_events()
 
 
 	_loop_control->MidiBindingChanged.connect (slot (*this, &LooperPanel::got_binding_changed));
+	_loop_control->MidiLearnCancelled.connect (slot (*this, &LooperPanel::got_learn_canceled));
 	
 }
 
@@ -886,6 +887,16 @@ LooperPanel::got_binding_changed(SooperLooper::MidiBindInfo & info)
 {
 	if (_learning) {
 
+		_selbar->SetBackgroundColour (_bgcolor);
+		_selbar->Refresh();
+		_learning = false;
+	}
+}
+
+void
+LooperPanel::got_learn_canceled()
+{
+	if (_learning) {
 		_selbar->SetBackgroundColour (_bgcolor);
 		_selbar->Refresh();
 		_learning = false;

@@ -68,6 +68,8 @@ class MidiBindDialog
 	void learning_stopped ();
 
 	void got_binding_changed(SooperLooper::MidiBindInfo & info);
+	void recvd_next_midi(SooperLooper::MidiBindInfo & info);
+	void cancelled_next_midi();
 	
 	void update_entry_area(SooperLooper::MidiBindInfo * usethis=0);
 	void update_curr_binding();

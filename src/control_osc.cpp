@@ -195,6 +195,14 @@ ControlOSC::register_callbacks()
 		// return next midi event in a binding serialization:  s:returl  s:retpath
 		lo_server_add_method(serv, "/get_next_midi_event", "ss", ControlOSC::_midi_binding_handler,
 				     new MidiBindCommand(this, MidiBindCommand::GetNextMidi));
+
+		// cancel learn or get next midi event in a binding serialization:  s:returl  s:retpath
+		lo_server_add_method(serv, "/cancel_midi_learn", "ss", ControlOSC::_midi_binding_handler,
+				     new MidiBindCommand(this, MidiBindCommand::CancelLearn));
+
+		// cancel learn or get next midi event in a binding serialization:  s:returl  s:retpath
+		lo_server_add_method(serv, "/cancel_get_next_midi", "ss", ControlOSC::_midi_binding_handler,
+				     new MidiBindCommand(this, MidiBindCommand::CancelGetNext));
 		
 		
 		// MIDI clock
@@ -714,8 +722,24 @@ ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **a
 		// add a specific midi binding:  s:returl s:retpath
 		string returl (&argv[0]->s);
 		string retpath (&argv[1]->s);
-	
+		cerr << "got get" << endl;
 		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::GetNextMidi, "", "", returl, retpath));
+	}
+	else if (info->command == MidiBindCommand::CancelLearn)
+	{
+		// add a specific midi binding:  s:returl s:retpath
+		string returl (&argv[0]->s);
+		string retpath (&argv[1]->s);
+		cerr << "got cancel learn" << endl;
+		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::CancelLearn, "", "", returl, retpath));
+	}
+	else if (info->command == MidiBindCommand::CancelGetNext)
+	{
+		// add a specific midi binding:  s:returl s:retpath
+		string returl (&argv[0]->s);
+		string retpath (&argv[1]->s);
+		cerr << "got cancel next" << endl;
+		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::CancelGetNext, "", "", returl, retpath));
 	}
 	else if (info->command == MidiBindCommand::LoadBindings)
 	{
@@ -1101,19 +1125,32 @@ void ControlOSC::finish_loop_config_event (ConfigLoopEvent &event)
 
 void ControlOSC::finish_midi_binding_event (MidiBindingEvent & event)
 {
-	if (event.type == MidiBindingEvent::Learn)
-	{
-		lo_address addr = find_or_cache_addr (event.ret_url);
-		if (!addr) {
-			return;
-		}
+	lo_address addr = find_or_cache_addr (event.ret_url);
+	if (!addr) {
+		return;
+	}
 
+	if (event.type == MidiBindingEvent::Learn) {
 		// send back the event, then done
 		if (lo_send(addr, event.ret_path.c_str(), "ss", "add", event.bind_str.c_str()) == -1) {
 			fprintf(stderr, "OSC error sending binding %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
 			return;
 		}
+		
+		cerr << "sending done" << endl;
 		lo_send(addr, event.ret_path.c_str(), "ss", "done", event.bind_str.c_str());
+	}
+	else if (event.type == MidiBindingEvent::GetNextMidi) {
+		cerr << "sending recv" << endl;
+		lo_send(addr, event.ret_path.c_str(), "ss", "recv", event.bind_str.c_str());
+	}
+	else if (event.type == MidiBindingEvent::CancelLearn)
+	{
+		lo_send(addr, event.ret_path.c_str(), "ss", "learn_cancel", "");
+	}
+	else if (event.type == MidiBindingEvent::CancelGetNext)
+	{
+		lo_send(addr, event.ret_path.c_str(), "ss", "next_cancel", "");
 	}
 }
 

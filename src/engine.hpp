@@ -92,6 +92,7 @@ class Engine
 	bool push_nonrt_event (EventNonRT * event);
 	
 	void binding_learned(MidiBindInfo info);
+	void next_midi_received(MidiBindInfo info);
 	
   protected:	
 
@@ -120,6 +121,7 @@ class Engine
 	volatile bool _ok;
 
 	volatile bool _learn_done;
+	volatile bool _received_done;
 	MidiBindInfo  _learninfo;
 	MidiBindingEvent _learn_event;
 	

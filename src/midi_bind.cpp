@@ -294,11 +294,13 @@ bool MidiBindInfo::unserialize(string strval)
 	int ret;
 
 	stylestr[0] = '\0';
+
+	if (strval.empty()) return false;
 	
 	if ((ret = sscanf(strval.c_str(), "%d %3s %d  %30s %30s %d  %g %g  %10s",
 			  &chan, tp, &parm, cmd, ctrl, &inst, &lb, &ub, stylestr)) < 5)
 	{
-		cerr << "ret: " << ret << " invalid input line: " << strval;
+		cerr << "ret: " << ret << " invalid input line: " << strval << endl;
 		return false;
 	}
 

@@ -637,6 +637,7 @@ void GuiFrame::intialize_keybindings ()
 	KeyboardTarget::add_action ("taptempo", bind (slot (*this, &GuiFrame::misc_action), wxT("taptempo")));
 	KeyboardTarget::add_action ("load", bind (slot (*this, &GuiFrame::misc_action), wxT("load")));
 	KeyboardTarget::add_action ("save", bind (slot (*this, &GuiFrame::misc_action), wxT("save")));
+	KeyboardTarget::add_action ("cancel_midi_learn", bind (slot (*this, &GuiFrame::misc_action), wxT("cancel_learn")));
 
 	KeyboardTarget::add_action ("select_loop_1", bind (slot (*this, &GuiFrame::select_loop_action), 1));
 	KeyboardTarget::add_action ("select_loop_2", bind (slot (*this, &GuiFrame::select_loop_action), 2));
@@ -648,6 +649,7 @@ void GuiFrame::intialize_keybindings ()
 	KeyboardTarget::add_action ("select_loop_8", bind (slot (*this, &GuiFrame::select_loop_action), 8));
 	KeyboardTarget::add_action ("select_loop_9", bind (slot (*this, &GuiFrame::select_loop_action), 9));
 	KeyboardTarget::add_action ("select_loop_all", bind (slot (*this, &GuiFrame::select_loop_action), -1));
+
 	
 	// these are the defaults... they get overridden by rc file
 
@@ -667,7 +669,8 @@ void GuiFrame::intialize_keybindings ()
 	_keyboard->add_binding ("t", "taptempo");
 	_keyboard->add_binding ("Control-s", "save");
 	_keyboard->add_binding ("Control-o", "load");
-
+	_keyboard->add_binding ("escape", "cancel_midi_learn");
+	
 	_keyboard->add_binding ("1", "select_loop_1");
 	_keyboard->add_binding ("2", "select_loop_2");
 	_keyboard->add_binding ("3", "select_loop_3");
@@ -749,6 +752,10 @@ void GuiFrame::misc_action (bool release, wxString cmd)
 	else if (cmd == wxT("delay")) {
 		_tapdelay_val *= -1.0f;
 		_loop_control->post_ctrl_change (index, wxString("tap_trigger"), _tapdelay_val);
+	}
+	else if (cmd == wxT("cancel_learn")) {
+
+		_loop_control->cancel_midi_learn();
 	}
 	else if (cmd == wxT("save"))
 	{

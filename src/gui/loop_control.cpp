@@ -390,6 +390,17 @@ LoopControl::midi_binding_handler(const char *path, const char *types, lo_arg **
 		info.unserialize (bindstr);
 		MidiBindingChanged(info); // emit
 	}
+	else if (status == "recv") {
+		cerr << "got recieve" << endl;
+		info.unserialize (bindstr);
+		ReceivedNextMidi(info); // emit
+	}
+	else if (status == "learn_cancel") {
+		MidiLearnCancelled(); // emit
+	}
+	else if (status == "next_cancel") {
+		NextMidiCancelled(); // emit
+	}
 	
 	return 0;
 }
@@ -466,6 +477,13 @@ LoopControl::learn_midi_binding(const MidiBindInfo & info, bool exclusive)
 }
 
 void
+LoopControl::request_next_midi_event ()
+{
+	lo_send(_osc_addr, "/get_next_midi_event", "ss", _our_url.c_str(), "/recv_midi_bindings" );
+}
+
+
+void
 LoopControl::add_midi_binding(const MidiBindInfo & info, bool exclusive)
 {
 	lo_send(_osc_addr, "/add_midi_binding", "ss", info.serialize().c_str(), exclusive?"exclusive":"");
@@ -482,6 +500,18 @@ LoopControl::clear_midi_bindings()
 {
 	lo_send(_osc_addr, "/clear_midi_bindings", "");
 	request_all_midi_bindings();
+}
+
+void
+LoopControl::cancel_next_midi_event()
+{
+	lo_send(_osc_addr, "/cancel_get_next_midi", "ss", _our_url.c_str(), "/recv_midi_bindings" );
+}
+
+void
+LoopControl::cancel_midi_learn()
+{
+	lo_send(_osc_addr, "/cancel_midi_learn", "ss", _our_url.c_str(), "/recv_midi_bindings" );
 }
 
 void

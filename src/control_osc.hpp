@@ -88,7 +88,9 @@ class ControlOSC
 			LoadBindings,
 			SaveBindings,
 			LearnBinding,
-			GetNextMidi
+			GetNextMidi,
+			CancelLearn,
+			CancelGetNext
 		};
 		MidiBindCommand(ControlOSC * os, Command cmd)
 			: osc(os), command(cmd) {}
