@@ -22,7 +22,12 @@
 
 #include "pix_button.hpp"
 
-
+enum
+{
+	ID_EditMenuOp = 9000,
+	ID_DefaultMenuOp,
+	ID_BindMenuOp
+};
 
 using namespace SooperLooperGui;
 using namespace std;
@@ -33,10 +38,14 @@ BEGIN_EVENT_TABLE(PixButton, wxWindow)
 	EVT_SIZE(PixButton::OnSize)
 	EVT_PAINT(PixButton::OnPaint)
 	EVT_MOUSE_EVENTS(PixButton::OnMouseEvents)
+
+	EVT_MENU (ID_EditMenuOp , PixButton::on_menu_events)
+	EVT_MENU (ID_DefaultMenuOp , PixButton::on_menu_events)
+	EVT_MENU (ID_BindMenuOp , PixButton::on_menu_events)
 	
 END_EVENT_TABLE()
 
-PixButton::PixButton(wxWindow * parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+PixButton::PixButton(wxWindow * parent, wxWindowID id, bool bindable, const wxPoint& pos, const wxSize& size)
 	: wxWindow(parent, id, pos, size)
 {
 	_bgcolor = *wxBLACK;
@@ -45,6 +54,17 @@ PixButton::PixButton(wxWindow * parent, wxWindowID id, const wxPoint& pos, const
 	_estate = Outside;
 	_backing_store = 0;
 	_active = false;
+
+	if (bindable) {
+		_popup_menu = new wxMenu(wxT(""));
+		//_popup_menu->Append ( new wxMenuItem(_popup_menu, ID_EditMenuOp, wxT("Edit")));
+		//_popup_menu->Append ( new wxMenuItem(_popup_menu, ID_DefaultMenuOp, wxT("Set to default")));
+		//_popup_menu->AppendSeparator();
+		_popup_menu->Append ( new wxMenuItem(_popup_menu, ID_BindMenuOp, wxT("Learn MIDI Binding")));
+	}
+	else {
+		_popup_menu = 0;
+	}
 	
 	SetBackgroundColour (_bgcolor);
 	SetThemeEnabled(false);
@@ -189,6 +209,14 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 	if (ev.Moving()) {
 		// do nothing
 	}
+	else if (ev.RightDown()) {
+		if (_popup_menu) {
+			this->PopupMenu ( _popup_menu, ev.GetX(), ev.GetY());
+		}
+	}
+	else if (ev.RightUp()) {
+		//this->PopupMenu ( _popup_menu, ev.GetX(), ev.GetY());
+	}
 	else if (ev.ButtonDown())
 	{
 		if (!(ev.MiddleDown() && ev.ControlDown())) {
@@ -238,6 +266,13 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 	}
 	
 	ev.Skip();
+}
+
+void PixButton::on_menu_events (wxMenuEvent &ev)
+{
+	if (ev.GetId() == ID_BindMenuOp) {
+		bind_request(); // emit
+	}
 }
 
 

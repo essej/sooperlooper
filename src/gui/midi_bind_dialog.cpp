@@ -337,6 +337,9 @@ void MidiBindDialog::populate_controls()
 		else if (cmap.is_input_control(*iter)) {
 			_control_combo->Append (wxString::Format("[ctrl]  %s", iter->c_str()), (void *) (iter->c_str()));
 		}
+		else if (cmap.is_global_control(*iter)) {
+			_control_combo->Append (wxString::Format("[g. ctrl]  %s", iter->c_str()), (void *) (iter->c_str()));
+		}
 	}
 	
 	
@@ -569,8 +572,12 @@ void MidiBindDialog::update_curr_binding()
 		}
 	}
 	else {
-		// control
 		_currinfo.command = "set";
+			
+		// control
+		if (cmap.is_global_control(_currinfo.control)) {
+			_currinfo.instance = -2;
+		}
 	}
 
 	
@@ -603,11 +610,11 @@ void MidiBindDialog::on_combo (wxCommandEvent &ev)
 {
 	string control = static_cast<const char *>(_control_combo->GetClientData(_control_combo->GetSelection()));
 
- 	if (CommandMap::instance().is_input_control(control)) {
- 		_range_panel->Enable(true);
+ 	if (CommandMap::instance().is_command(control)) {
+ 		_range_panel->Enable(false);
  	}
  	else {
- 		_range_panel->Enable(false);
+ 		_range_panel->Enable(true);
  	}
 }
 

@@ -63,11 +63,13 @@ class LooperPanel
 
 	void init();
 
+	void create_buttons();
+	
 	bool load_bitmaps (PixButton * butt, wxString namebase);
 	wxString get_pixmap_path (const wxString & namebase);
 
 	void slider_events(float val, int id);
-	void slider_bind_events(int id);
+	void control_bind_events(int id);
 
 	void check_events(bool val, wxString  which); 
 	
@@ -81,7 +83,8 @@ class LooperPanel
 	void scratch_events (wxString cmd);
 	void clicked_events (int button, wxString cmd);
 	void button_bind_events (wxString cmd);
-	void tap_button_event (int button);
+	void delay_button_press_event (int button);
+	void delay_button_release_event (int button);
 	void rate_button_event(int button, float rate);
 	void update_rate_buttons (float rate);
 	
@@ -102,7 +105,7 @@ class LooperPanel
 	PixButton * _overdub_button;
 	PixButton * _multiply_button;
 	PixButton * _replace_button;
-	PixButton * _tap_button;
+	PixButton * _delay_button;
 	PixButton * _insert_button;
 	PixButton * _reverse_button;
 	PixButton * _rate_button;

@@ -55,7 +55,10 @@ slider_position_to_gain (double pos)
 
 
 enum {
-	ID_TextCtrl = 8000
+	ID_TextCtrl = 8000,
+	ID_EditMenuOp,
+	ID_DefaultMenuOp,
+	ID_BindMenuOp
 
 };
 
@@ -67,15 +70,18 @@ BEGIN_EVENT_TABLE(SliderBar, wxWindow)
 	EVT_MOUSEWHEEL (SliderBar::OnMouseEvents)
 	//EVT_TEXT (ID_TextCtrl, SliderBar::on_text_event)
 	EVT_TEXT_ENTER (ID_TextCtrl, SliderBar::on_text_event)
+	EVT_MENU (ID_EditMenuOp , SliderBar::on_menu_events)
+	EVT_MENU (ID_DefaultMenuOp , SliderBar::on_menu_events)
+	EVT_MENU (ID_BindMenuOp , SliderBar::on_menu_events)
 	
 END_EVENT_TABLE()
 
-SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, float val,  const wxPoint& pos, const wxSize& size)
+SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, float val, bool midibindable, const wxPoint& pos, const wxSize& size)
 	: wxWindow(parent, id, pos, size)
 {
 	_lower_bound = lb;
 	_upper_bound = ub;
-	_value = val;
+	_default_val = _value = val;
 	_backing_store = 0;
 	_dragging = false;
 	_decimal_digits = 1;
@@ -107,6 +113,13 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_scale_mode = LinearMode;
 	_snap_mode = NoSnap;
 
+	_popup_menu = new wxMenu(wxT(""));
+	_popup_menu->Append ( new wxMenuItem(_popup_menu, ID_EditMenuOp, wxT("Edit")));
+	_popup_menu->Append ( new wxMenuItem(_popup_menu, ID_DefaultMenuOp, wxT("Set to default")));
+	if (midibindable) {
+		_popup_menu->AppendSeparator();
+		_popup_menu->Append ( new wxMenuItem(_popup_menu, ID_BindMenuOp, wxT("Learn MIDI Binding")));
+	}
 }
 
 SliderBar::~SliderBar()
@@ -364,17 +377,13 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 
 		float newval = _value + fdelta;
 
-		if (newval > _upper_bound) {
-			newval = _upper_bound;
-		}
-		else if (newval < _lower_bound) {
-			newval = _lower_bound;
-		}
 		//cerr << "dragging: " << delta << "  " << fdelta << "  "  << newval << endl;
 
 		if (_snap_mode == IntegerSnap) {
 			newval = nearbyintf (newval);
 		}
+
+		newval = max (min (newval, _upper_bound), _lower_bound);
 		
 		if (newval != _value) {
 			_value = newval;
@@ -405,16 +414,13 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 			newval = _value - (_upper_bound - _lower_bound) * fscale;			
 		}
 
-		if (newval > _upper_bound) {
-			newval = _upper_bound;
-		}
-		else if (newval < _lower_bound) {
-			newval = _lower_bound;
-		}
 
 		if (_snap_mode == IntegerSnap) {
 			newval = nearbyintf (newval);
 		}
+
+		newval = max (min (newval, _upper_bound), _lower_bound);
+
 		
 		_value = newval;
 		
@@ -422,6 +428,12 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		
 		update_value_str();
 		Refresh(false);
+	}
+	else if (ev.RightDown()) {
+		this->PopupMenu ( _popup_menu, ev.GetX(), ev.GetY());
+	}
+	else if (ev.RightUp()) {
+		//this->PopupMenu ( _popup_menu, ev.GetX(), ev.GetY());
 	}
 	else if (ev.ButtonDown())
 	{
@@ -444,7 +456,14 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 
 			update_value_str();
 			Refresh(false);
-			
+		}
+		else if (ev.LeftDown() && ev.ShiftDown()) {
+			// set to default
+			_value = max (min (_default_val, _upper_bound), _lower_bound);
+
+			value_changed(get_value());
+			update_value_str();
+			Refresh(false);
 		}
 	}
 	else if (ev.ButtonUp())
@@ -471,11 +490,29 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		released(); // emit		
 	}
 	else if (ev.ButtonDClick()) {
-		// todo editor
+
 		show_text_ctrl ();
 	}
 	else {
 		ev.Skip();
+	}
+}
+
+
+void SliderBar::on_menu_events (wxMenuEvent &ev)
+{
+	if (ev.GetId() == ID_BindMenuOp) {
+		bind_request(); // emit
+	}
+	else if (ev.GetId() == ID_EditMenuOp) {
+		show_text_ctrl ();
+	}
+	else if (ev.GetId() == ID_DefaultMenuOp) {
+		_value = max (min (_default_val, _upper_bound), _lower_bound);
+		
+		value_changed(get_value());
+		update_value_str();
+		Refresh(false);
 	}
 }
 

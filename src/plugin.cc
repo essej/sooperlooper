@@ -43,6 +43,7 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 #include <cmath>
 #include <cstdlib>
 #include <cfloat>
+#include <iostream>
 
 using namespace std;
 
@@ -783,7 +784,12 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
       }
 
       pLS->state = STATE_MULTIPLY;
-      pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
+
+      if (*pLS->pfQuantMode == 0.0f) {
+	      // we'll do this later if we are quantizing
+	      pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
+      }
+
       //pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 
       // start out with the single cycle as our length as a marker
@@ -807,22 +813,22 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
       // handle the case where the src loop
       // is already multiplied
       if (*pLS->pfQuantMode != 0 && srcloop->lCycles > 1) {
-	 // we effectively remove the first cycles from our new one
-	 loop->lStartAdj = ((int)floor(srcloop->dCurrPos / srcloop->lCycleLength)
-			    + 1) * srcloop->lCycleLength; 
-
-	 // adjust dCurrPos by start adj.
-	 // we handle this properly in the processing section
-	 loop->dCurrPos = loop->dCurrPos - loop->lStartAdj;
-			  
-	 // start with 1 because we could end up with none!
-	 // which will be subtracted at the end
-	 loop->lCycles = 1;
-	 //loop->lLoopLength = 0;
-	 loop->frontfill = 0; // no need.
-	 DBG(fprintf(stderr,"Quantize ignoring first %d cycles.  Orig length %lu\n",
-		     ((int)floor(srcloop->dCurrPos / srcloop->lCycleLength)+ 1),
-		     srcloop->lLoopLength));
+	      // we effectively remove the first cycles from our new one
+	      loop->lStartAdj = ((int)floor(fabs((srcloop->dCurrPos-1) / srcloop->lCycleLength))
+				 + 1) * srcloop->lCycleLength; 
+	      
+	      // adjust dCurrPos by start adj.
+	      // we handle this properly in the processing section
+	      loop->dCurrPos = loop->dCurrPos - loop->lStartAdj;
+	      
+	      // start with 1 because we could end up with none!
+	      // which will be subtracted at the end
+	      loop->lCycles = 1;
+	      //loop->lLoopLength = 0;
+	      loop->frontfill = 0; // no need.
+	      DBG(fprintf(stderr,"Quantize ignoring first %d cycles.  Orig length %lu\n",
+			  ((int)floor(srcloop->dCurrPos / srcloop->lCycleLength)+ 1),
+			  srcloop->lLoopLength));
 			  
       }
 		    
@@ -891,6 +897,9 @@ static LoopChunk * endMultiply(SooperLooperI *pLS, LoopChunk *loop, int nextstat
 	 
 	 loop = transitionToNext(pLS, loop, nextstate);
 
+   
+	 pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+	 
       }
       else {
 	 // in round mode we need to wait it out
@@ -903,7 +912,6 @@ static LoopChunk * endMultiply(SooperLooperI *pLS, LoopChunk *loop, int nextstat
       }
    }
 
-   pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
    
    return loop;
 }
@@ -942,7 +950,12 @@ static LoopChunk * beginInsert(SooperLooperI *pLS, LoopChunk *loop)
       }
 
       pLS->state = STATE_INSERT;
-      pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
+
+      if (*pLS->pfQuantMode == 0.0f) {
+	      // we'll do this later if we are quantizing
+	      pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
+      }
+
       pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
       
       // start out with the single cycle extra as our length
@@ -1352,7 +1365,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
   xfadeSamples = (int) (*pLS->pfXfadeSamples);
   if (xfadeSamples < 1) xfadeSamples = 1;
-
+  
   fTempo = *pLS->pfTempo;
   if (fTempo > 0.0f) {
 	  eighthSamples = (unsigned int) (pLS->fSampleRate * 30.0 / fTempo);
@@ -1397,8 +1410,6 @@ runSooperLooper(LADSPA_Handle Instance,
      pLS->lLastMultiCtrl = lMultiCtrl;
   }
 
-
-  
   // force use delay
   if (lMultiCtrl == MULTI_REDO && *pLS->pfRedoTapMode != 0)
   {
@@ -1820,8 +1831,8 @@ runSooperLooper(LADSPA_Handle Instance,
 	   switch(pLS->state) {
 	      case STATE_MUTE:
 		      // reset for audio ramp
-		      pLS->lRampSamples = xfadeSamples;
-	      case STATE_ONESHOT:
+		      //pLS->lRampSamples = xfadeSamples;
+	       case STATE_ONESHOT:
 		 // this enters play mode but from the continuous position
 		 pLS->state = STATE_PLAY;
 		 DBG(fprintf(stderr,"Entering PLAY state continuous\n"));
@@ -2369,7 +2380,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 DBG(fprintf(stderr,"Entering %d state\n", pLS->nextState));
 		 //pLS->state = pLS->nextState;
 		 // reset for audio ramp
-		 pLS->lRampSamples = xfadeSamples;
+		 //pLS->lRampSamples = xfadeSamples;
 		 //loop->dCurrPos = 0.0f;
 
 		 loop = transitionToNext (pLS, loop, pLS->nextState);
@@ -2427,6 +2438,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	         fScratchPos += scratchDelta;
 
 		 pLS->fPlayFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fPlayFadeAtten + pLS->fPlayFadeDelta);
+		 pLS->fLoopFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopFadeDelta);
 		 
 
 		 lCurrPos =(unsigned int) fmod(loop->dCurrPos, loop->lLoopLength);
@@ -2466,7 +2478,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		       + fDry * fInputSample;
 		    
 		    *(pLoopSample) =  
-		       (fInputSample + 0.96f * fFeedback *  *(pLoopSample));
+			    ((pLS->fLoopFadeAtten * fInputSample) + 0.96f * fFeedback *  *(pLoopSample));
 		 }
 		 else {
 		    // state REPLACE use only the new input
@@ -2474,7 +2486,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    fOutputSample = pLS->fPlayFadeAtten * fWet  *  *(pLoopSample)
 			    + fDry * fInputSample;
 		    
-		    *(pLoopSample) = fInputSample;
+		    *(pLoopSample) = fInputSample * pLS->fLoopFadeAtten;
 
 		 }
 		 
@@ -2601,6 +2613,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		 spLoopSample = & pLS->pSampleBuf[(srcloop->lLoopStart + lpCurrPos) & pLS->lBufferSizeMask];
 		 pLoopSample = & pLS->pSampleBuf[(loop->lLoopStart + slCurrPos) & pLS->lBufferSizeMask];
 
+		 pLS->fLoopFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopFadeDelta);
+		 
 		 fillLoops(pLS, loop, lpCurrPos);
 		 
 		 fInputSample = pfInput[lSampleIndex];
@@ -2627,16 +2641,24 @@ runSooperLooper(LADSPA_Handle Instance,
 		    // this is part of the loop that we need to ignore
 		    // fprintf(stderr, "Ignoring at %ul\n", lCurrPos);
 		 }
-		 else if ((loop->lCycles <=1 && *pLS->pfQuantMode != 0)
-		     || (slCurrPos > (long) loop->lMarkEndL &&  *pLS->pfRoundMode == 0)) {
-		    // do not include the new input
-		    *(pLoopSample)
-		       = fFeedback *  *(spLoopSample);
-		    // fprintf(stderr, "Not including input at %ul\n", lCurrPos);
+		 else if ((loop->lCycles <=1 && fQuantizeMode != 0)) {
+			 // do not include the new input
+			 *(pLoopSample)
+				 = fFeedback *  *(spLoopSample);
+
+		 }
+		 if ((slCurrPos > (long) loop->lMarkEndL &&  *pLS->pfRoundMode == 0)) {
+			 // do not include the new input (at end) when not rounding
+			 pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+			 
+			 *(pLoopSample)
+				 = fFeedback *  (*spLoopSample) +  (pLS->fLoopFadeAtten * fInputSample);
+			 // fprintf(stderr, "Not including input at %ul\n", lCurrPos);
 		 }
 		 else {
-		    *(pLoopSample)
-		       = (fInputSample + 0.96f *  fFeedback *  *(spLoopSample));
+			 
+			 *(pLoopSample)
+				 = ( (pLS->fLoopFadeAtten * fInputSample) + 0.96f *  fFeedback *  *(spLoopSample));
 		 }
 		 
 		 pfOutput[lSampleIndex] = fOutputSample;
@@ -2648,7 +2670,9 @@ runSooperLooper(LADSPA_Handle Instance,
 
 		 // ASSUMPTION: our rate is +1 only		 
 		 if (loop->dCurrPos  >= (loop->lLoopLength)) {
-		    if (loop->dCurrPos >= loop->lMarkEndH) {
+
+
+		     if (loop->dCurrPos >= loop->lMarkEndH) {
 		       // we be done this only happens in round mode
 		       // adjust curr position
 		       loop->lMarkEndH = LONG_MAX;
@@ -2669,6 +2693,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		    // this signifies the end of the original cycle
 		    loop->firsttime = 0;
 		    DBG(fprintf(stderr,"Multiply added cycle %lu  at %g\n", loop->lCycles, loop->dCurrPos));
+
+		    // now we set this to rise in case we were quantized
+		    pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
 
 		    loop = ensureLoopSpace (pLS, loop, SampleCount - lSampleIndex, NULL);
 		    if (!loop) {
@@ -2712,6 +2739,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	         fScratchPos += scratchDelta;
 
 		 pLS->fPlayFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fPlayFadeAtten + pLS->fPlayFadeDelta);
+		 pLS->fLoopFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopFadeDelta);
 		 
 		 lpCurrPos =(unsigned int) fmod(loop->dCurrPos, srcloop->lLoopLength);
 		 lCurrPos =(unsigned int) loop->dCurrPos;
@@ -2731,21 +2759,23 @@ runSooperLooper(LADSPA_Handle Instance,
 		    // do not include the new input
 		    //*(loop->pLoopStart + lCurrPos)
 		    //  = fFeedback *  *(srcloop->pLoopStart + lpCurrPos);
-
 		 }
 		 else if (lCurrPos > loop->lMarkEndL && *pLS->pfRoundMode == 0)
 		 {
 		    // insert zeros, we finishing an insert with nothingness
+		    pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+
 		    fOutputSample = fDry * fInputSample;
 
-		    *(pLoopSample) = 0.0f;
+		    *(pLoopSample) = fInputSample * pLS->fLoopFadeAtten;
 
 		 }
 		 else {
 		    // just the input we are now inserting
+		    pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
 		    fOutputSample = fDry * fInputSample;
 
-		    *(pLoopSample) = (fInputSample);
+		    *(pLoopSample) = (fInputSample * pLS->fLoopFadeAtten);
 
 		 }
 		 
@@ -2785,10 +2815,12 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 
 		 // ASSUMPTION: our rate is +1 only		 
-		 if (firsttime && lCurrPos % loop->lCycleLength == 0)
+		 if (firsttime && (lCurrPos % loop->lCycleLength) == 0)
 		 {
 		    firsttime = loop->firsttime = 0;
 		    DBG(fprintf(stderr, "first time done\n"));
+		    // now we set this to rise in case we were quantized
+		    pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
 		 }
 		 
 		 if ((lCurrPos % loop->lCycleLength) == ((loop->lInsPos-1) % loop->lCycleLength)) {
@@ -2810,6 +2842,8 @@ runSooperLooper(LADSPA_Handle Instance,
 				 //loop->lLoopStop = loop->lLoopStart + loop->lLoopLength;
 				 // this signifies the end of the original cycle
 				 DBG(fprintf(stderr,"insert added cycle. Total=%lu\n", loop->lCycles));
+				 // now we set this to rise in case we were quantized
+				 pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
 			 }
 		 }
 	      }
@@ -2833,12 +2867,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	   {
 	      tmpWet = fWet;
 	      
-	      if (pLS->state == STATE_MUTE) {
-		 if (pLS->lRampSamples <= 0)
-		    tmpWet = 0.0f;
-		 // otherwise the ramp takes care of it
-	      }
-	      else if(pLS->state == STATE_SCRATCH)
+	      if(pLS->state == STATE_SCRATCH)
 	      {
 	      
 		 // calculate new rate if rateSwitch is on
@@ -2935,7 +2964,13 @@ runSooperLooper(LADSPA_Handle Instance,
 	         fScratchPos += scratchDelta;
 		 pLS->fLoopFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopFadeDelta);
 		 pLS->fPlayFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fPlayFadeAtten + pLS->fPlayFadeDelta);
+
+		 tmpWet = fWet;
 		 
+		 if (pLS->fPlayFadeAtten != 0.0f && pLS->fPlayFadeAtten != 1.0f) {
+			 //cerr << "play fade: " << pLS->fPlayFadeAtten << endl;
+		 }
+  
 		      
 		 tmpWet *= pLS->fPlayFadeAtten;
 
@@ -2962,7 +2997,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 fInputSample = pfInput[lSampleIndex];
 
-		 fOutputSample =   tmpWet *  *(pLoopSample)
+
+		 
+		 fOutputSample =   tmpWet *  (*pLoopSample)
 		    + fDry * fInputSample;
 
 		 // we might add a bit from the input still during xfadeout

@@ -80,12 +80,13 @@ public:
 
 	void init_loopers (int count);
 
+	bool load_rc();
+	bool save_rc();
+	
 protected:
 
 	void init();
 
-	bool load_rc();
-	bool save_rc();
 	
 	void intialize_keybindings ();
 	
@@ -106,6 +107,8 @@ protected:
 	//void on_round_check (wxCommandEvent &ev);
 	void on_round_check (bool val);
 
+	void on_bind_request (wxString val);
+	
 	void on_view_menu (wxCommandEvent &ev);
 	
 	void on_taptempo_event (int button);
@@ -115,12 +118,6 @@ protected:
 	
 	void update_controls();
 
-	
-	
-	// these should be static somewhere
-	bool load_bitmaps (PixButton * butt, wxString namebase);
-	wxString get_pixmap_path (const wxString & namebase);
-	
 	
 	LoopControl * _loop_control;
 

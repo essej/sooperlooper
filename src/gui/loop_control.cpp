@@ -638,7 +638,7 @@ LoopControl::request_all_values(int index)
 	lo_send(_osc_addr, buf, "sss", "wet", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "rate", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "scratch_pos", _our_url.c_str(), "/ctrl");
-	lo_send(_osc_addr, buf, "sss", "tap_trigger", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "delay_trigger", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "quantize", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "round", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "sync", _our_url.c_str(), "/ctrl");
@@ -756,7 +756,7 @@ LoopControl::register_input_controls(int index, bool unreg)
 	lo_send(_osc_addr, buf, "sss", "wet", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "rate", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "scratch_pos", _our_url.c_str(), "/ctrl");
-	lo_send(_osc_addr, buf, "sss", "tap_trigger", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "delay_trigger", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "quantize", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "round", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "sync", _our_url.c_str(), "/ctrl");

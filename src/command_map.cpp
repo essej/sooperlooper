@@ -53,7 +53,7 @@ CommandMap::CommandMap()
 	_input_controls["wet"]  = Event::WetLevel;
 	_input_controls["rate"]  = Event::Rate;
 	_input_controls["scratch_pos"]  = Event::ScratchPosition;
-	_input_controls["tap_trigger"]  = Event::TapDelayTrigger;
+	_input_controls["delay_trigger"]  = Event::TapDelayTrigger;
 	_input_controls["quantize"]  = Event::Quantize;
 	_input_controls["round"]  = Event::Round;
 	_input_controls["redo_is_tap"]  = Event::RedoTap;

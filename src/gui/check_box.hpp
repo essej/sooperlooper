@@ -36,7 +36,7 @@ class CheckBox
   public:
 	
 	// ctor(s)
-	CheckBox(wxWindow * parent, wxWindowID id=-1, const wxString & label = wxT(""),
+	CheckBox(wxWindow * parent, wxWindowID id=-1, const wxString & label = wxT(""), bool bindable=false,
 		  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 	virtual ~CheckBox();
 
@@ -63,6 +63,8 @@ class CheckBox
 	
 	
 	SigC::Signal1<void, bool> value_changed;
+
+	SigC::Signal0<void> bind_request;
 	
   protected:
 
@@ -70,6 +72,7 @@ class CheckBox
 	void OnSize (wxSizeEvent &ev);
 	void OnMouseEvents (wxMouseEvent &ev);
 	void OnFocusEvent (wxFocusEvent &ev);
+	void on_menu_events (wxMenuEvent &ev);
 	
 	void draw_area (wxDC & dc);
 
@@ -97,6 +100,8 @@ class CheckBox
 	
 	int   _boxsize;
 	bool _value;
+
+	wxMenu * _popup_menu;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

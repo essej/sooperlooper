@@ -36,7 +36,7 @@ class ChoiceBox
   public:
 	
 	// ctor(s)
-	ChoiceBox(wxWindow * parent, wxWindowID id=-1,
+	ChoiceBox(wxWindow * parent, wxWindowID id=-1, bool bindable=false,
 		  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 	virtual ~ChoiceBox();
 
@@ -76,6 +76,7 @@ class ChoiceBox
 	
 	
 	SigC::Signal2<void, int, wxString> value_changed;
+	SigC::Signal0<void> bind_request;
 	
   protected:
 
@@ -121,7 +122,8 @@ class ChoiceBox
 	
 	ChoiceList _choices;
 	wxMenu * _popup_menu;
-	
+	bool _bindable;
+
 	bool _dragging;
 	int _last_x;
 	

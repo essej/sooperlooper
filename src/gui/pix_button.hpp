@@ -36,7 +36,7 @@ class PixButton
   public:
 	
 	// ctor(s)
-	PixButton(wxWindow * parent, wxWindowID id=-1,  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+	PixButton(wxWindow * parent, wxWindowID id=-1, bool midibindable=true, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 	virtual ~PixButton();
 
 
@@ -87,11 +87,13 @@ class PixButton
 		Inside,
 		Outside
 	};
+
 	
 	void OnPaint (wxPaintEvent &ev);
 	void OnSize (wxSizeEvent &ev);
 	void OnMouseEvents (wxMouseEvent &ev);
-
+	void on_menu_events (wxMenuEvent &ev);
+	
 	void draw_area (wxDC & dc);
 	
 	wxBitmap _normal_bitmap;
@@ -111,7 +113,9 @@ class PixButton
 
 	wxBitmap * _backing_store;
 	wxMemoryDC _memdc;
-	
+
+	wxMenu * _popup_menu;
+
   private:
     // any class wishing to process wxWindows events must use this macro
     DECLARE_EVENT_TABLE()

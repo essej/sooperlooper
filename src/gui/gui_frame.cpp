@@ -45,9 +45,17 @@
 #include "config_dialog.hpp"
 
 #include "pixmaps/sl_logo.xpm"
+#include "pixmaps/tap_tempo_active.xpm"
+#include "pixmaps/tap_tempo_disabled.xpm"
+#include "pixmaps/tap_tempo_focus.xpm"
+#include "pixmaps/tap_tempo_normal.xpm"
+#include "pixmaps/tap_tempo_selected.xpm"
+
+#include <midi_bind.hpp>
 
 #include <pbd/xml++.h>
 
+using namespace SooperLooper;
 using namespace SooperLooperGui;
 using namespace std;
 
@@ -156,50 +164,60 @@ GuiFrame::init()
 
 	rowsizer->Add (1, 1, 1);
 
-	_sync_choice = new ChoiceBox (this, ID_SyncChoice, wxDefaultPosition, wxSize (140, 22));
+	_sync_choice = new ChoiceBox (this, ID_SyncChoice, true, wxDefaultPosition, wxSize (140, 22));
 	_sync_choice->set_label (wxT("sync to"));
 	_sync_choice->SetFont (sliderFont);
 	_sync_choice->value_changed.connect (slot (*this,  &GuiFrame::on_syncto_change));
+	_sync_choice->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("sync")));
 	
 	rowsizer->Add (_sync_choice, 0, wxALL, 2);
 	
-	_tempo_bar = new SliderBar(this, ID_TempoSlider, 0.0f, 300.0f, 120.0f, wxDefaultPosition, wxSize(150, 22));
+	_tempo_bar = new SliderBar(this, ID_TempoSlider, 0.0f, 300.0f, 110.0f, true, wxDefaultPosition, wxSize(150, 22));
 	_tempo_bar->set_units(wxT("bpm"));
 	_tempo_bar->set_label(wxT("tempo"));
 	_tempo_bar->set_snap_mode (SliderBar::IntegerSnap);
 	_tempo_bar->set_allow_outside_bounds(true);
 	_tempo_bar->SetFont (sliderFont);
 	_tempo_bar->value_changed.connect (slot (*this,  &GuiFrame::on_tempo_change));
+	_tempo_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("tempo")));
 	rowsizer->Add (_tempo_bar, 0, wxALL, 2);
 
- 	_taptempo_button = new PixButton(this, ID_TapTempoButton);
-	load_bitmaps (_taptempo_button, wxT("tap_tempo"));
+ 	_taptempo_button = new PixButton(this, ID_TapTempoButton, true);
+	_taptempo_button->set_normal_bitmap (wxBitmap(tap_tempo_normal));
+	_taptempo_button->set_selected_bitmap (wxBitmap(tap_tempo_selected));
+	_taptempo_button->set_focus_bitmap (wxBitmap(tap_tempo_focus));
+	_taptempo_button->set_disabled_bitmap (wxBitmap(tap_tempo_disabled));
+	_taptempo_button->set_active_bitmap (wxBitmap(tap_tempo_active));
 	_taptempo_button->pressed.connect (slot (*this, &GuiFrame::on_taptempo_event));
+	_taptempo_button->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("taptempo")));
  	rowsizer->Add (_taptempo_button, 0, wxALL, 2);
 	
 
-	_eighth_cycle_bar = new SliderBar(this, ID_EighthSlider, 1.0f, 128.0f, 8.0f, wxDefaultPosition, wxSize(110, 22));
+	_eighth_cycle_bar = new SliderBar(this, ID_EighthSlider, 1.0f, 128.0f, 16.0f, true, wxDefaultPosition, wxSize(110, 22));
 	_eighth_cycle_bar->set_units(wxT(""));
 	_eighth_cycle_bar->set_label(wxT("8th/cycle"));
 	_eighth_cycle_bar->set_snap_mode (SliderBar::IntegerSnap);
 	_eighth_cycle_bar->SetFont (sliderFont);
 	_eighth_cycle_bar->value_changed.connect (slot (*this,  &GuiFrame::on_eighth_change));
+	_eighth_cycle_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("eighth")));
 	rowsizer->Add (_eighth_cycle_bar, 0, wxALL, 2);
 	
 
-	_quantize_choice = new ChoiceBox (this, ID_QuantizeChoice, wxDefaultPosition, wxSize (110, 22));
+	_quantize_choice = new ChoiceBox (this, ID_QuantizeChoice, true, wxDefaultPosition, wxSize (110, 22));
 	_quantize_choice->SetFont (sliderFont);
 	_quantize_choice->set_label (wxT("quantize"));
 	_quantize_choice->value_changed.connect (slot (*this,  &GuiFrame::on_quantize_change));
+	_quantize_choice->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("quantize")));
 	_quantize_choice->append_choice (wxT("off"), 0);
 	_quantize_choice->append_choice (wxT("cycle"), 1);
 	_quantize_choice->append_choice (wxT("8th"), 2);
 	_quantize_choice->append_choice (wxT("loop"), 3);
 	rowsizer->Add (_quantize_choice, 0, wxALL, 2);
 
-	_round_check = new CheckBox (this, ID_RoundCheck, wxT("round"), wxDefaultPosition, wxSize(80, 22));
+	_round_check = new CheckBox (this, ID_RoundCheck, wxT("round"), true, wxDefaultPosition, wxSize(80, 22));
 	_round_check->SetFont (sliderFont);
 	_round_check->value_changed.connect (slot (*this, &GuiFrame::on_round_check));
+	_round_check->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("round")));
 	rowsizer->Add (_round_check, 0, wxALL, 2);
 	
 	rowsizer->Add (1, 1, 1);
@@ -246,7 +264,7 @@ GuiFrame::init()
 
 	wxMenu *menuHelp = new wxMenu(wxT(""));
 	menuHelp->Append(ID_HelpTipsMenu, wxT("&Usage Tips...\tCtrl-H"), wxT("Show Usage Tips window"));
-	menuHelp->Append(ID_AboutMenu, wxT("&About...\tCtrl-A"), wxT("Show about dialog"));
+	menuHelp->Append(ID_AboutMenu, wxT("&About..."), wxT("Show about dialog"));
 	menuBar->Append(menuHelp, wxT("&Help"));
 	
 	// ... and attach this menu bar to the frame
@@ -421,6 +439,7 @@ GuiFrame::update_controls()
 	// quantize from first loop
  	if (_loop_control->is_updated(0, "quantize")) {
 		_loop_control->get_value(0, "quantize", val);
+		val = roundf(val);
  		_quantize_choice->set_index_value ((int)val);
 	}
 
@@ -438,7 +457,7 @@ GuiFrame::update_syncto_choice()
 	float val = 0.0f;
 	_loop_control->get_global_value("sync_source", val);
 	
-	long data = (long) val;
+	long data = (long) roundf(val);
 	int index = -1;
 // 		BrotherSync = -4,
 // 		InternalTempoSync = -3,
@@ -546,6 +565,59 @@ GuiFrame::on_remove_loop (wxCommandEvent &ev)
 }
 
 void
+GuiFrame::on_bind_request (wxString val)
+{
+	MidiBindInfo info;
+	bool donothing = false;
+
+	info.channel = 0;
+	info.type = "cc";
+	info.command = "set";
+	info.instance = -2;
+	info.lbound = 0.0;
+	info.ubound = 1.0;
+	info.style = MidiBindInfo::NormalStyle;
+	
+	if (val == wxT("tempo")) {
+		info.lbound = 20.0f;
+		info.ubound = 274.0f;
+		info.control = "tempo";
+	}
+	else if (val == wxT("taptempo")) {
+		info.control = "tap_tempo";
+	}
+	else if (val == wxT("eighth")) {
+		info.control = "eighth_per_cycle";
+		info.lbound = 1.0f;
+		info.ubound = 128.0f;
+	}
+	else if (val == wxT("round")) {
+		info.instance = -1;
+		info.control = "round";
+	}
+	else if (val == wxT("sync")) {
+		info.control = "sync_source";
+		info.lbound = -3.0f;
+		info.ubound = 16.0f;
+	}
+	else if (val == wxT("quantize")) {
+		info.instance = -1;
+		info.control = "quantize";
+		info.lbound = 0.0f;
+		info.ubound = 3.0f;
+	}
+	else {
+		donothing = true;
+	}
+
+	if (!donothing) {
+		_loop_control->learn_midi_binding(info, true);
+	}
+	
+}
+
+
+void
 GuiFrame::on_tempo_change (float value)
 {
 	_loop_control->post_global_ctrl_change ("tempo", value);
@@ -597,57 +669,6 @@ GuiFrame::on_taptempo_event (int button)
 	_loop_control->post_ctrl_change (-2, wxT("tap_tempo"), 1.0f);
 }
 
-
-wxString
-GuiFrame::get_pixmap_path (const wxString & namebase)
-{
-	wxString filename;
-	wxString pixmapdir("pixmaps/");
-	
-#ifdef PIXMAPDIR
-	pixmapdir = PIXMAPDIR;
-#endif
-	
-	if (wxFile::Exists(wxString::Format("%s%s", pixmapdir.c_str(), namebase.c_str()))) {
-		filename = wxString::Format("%s%s", pixmapdir.c_str(), namebase.c_str());
-	}
-	else if (wxFile::Exists(wxString::Format("pixmaps%c%s", wxFileName::GetPathSeparator(), namebase.c_str()))) {
-		filename = wxString::Format("pixmaps%c%s", wxFileName::GetPathSeparator(), namebase.c_str());
-	}
-	else if (wxFile::Exists (namebase)) {
-		filename = namebase;
-	}
-	
-	return filename;
-}
-
-bool
-GuiFrame::load_bitmaps (PixButton * butt, wxString namebase)
-{
-	wxString bpath;
-
-	if(!(bpath = get_pixmap_path(namebase + wxT("_normal.png"))).empty()) {
-		butt->set_normal_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
-	}
-	
-	if(!(bpath = get_pixmap_path(namebase + wxT("_selected.png"))).empty()) {
-		butt->set_selected_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
-	}
-
-	if(!(bpath = get_pixmap_path(namebase + wxT("_focus.png"))).empty()) {
-		butt->set_focus_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
-	}
-
-	if(!(bpath = get_pixmap_path(namebase + wxT("_disabled.png"))).empty()) {
-		butt->set_disabled_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
-	}
-
-	if(!(bpath = get_pixmap_path(namebase + wxT("_active.png"))).empty()) {
-		butt->set_active_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
-	}
-
-	return true;
-}
 
 
 void
@@ -759,7 +780,7 @@ void GuiFrame::on_view_menu (wxCommandEvent &ev)
 	else if (ev.GetId() == ID_MidiBindingsMenu) {
 		if (!_midi_bind_dialog) {
 			_midi_bind_dialog = new MidiBindDialog(this, -1, wxT("SooperLooper MIDI Bindings"));
-			_midi_bind_dialog->SetSize (380,500);
+			_midi_bind_dialog->SetSize (380,400);
 		}
 		else if (!_midi_bind_dialog->IsShown()) {
 			_midi_bind_dialog->refresh_state();

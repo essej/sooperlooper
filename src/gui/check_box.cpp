@@ -31,7 +31,8 @@ using namespace std;
 
 
 enum {
-	ID_PopupBase  = 8000
+	ID_PopupBase  = 8000,
+	ID_BindMenuOp = 9000
 	
 };
 
@@ -42,10 +43,12 @@ BEGIN_EVENT_TABLE(CheckBox, wxWindow)
 	EVT_MOUSE_EVENTS(CheckBox::OnMouseEvents)
 	EVT_MOUSEWHEEL (CheckBox::OnMouseEvents)
 	EVT_KILL_FOCUS (CheckBox::OnFocusEvent)
+
+	EVT_MENU (ID_BindMenuOp , CheckBox::on_menu_events)
 	
 END_EVENT_TABLE()
 
-CheckBox::CheckBox(wxWindow * parent, wxWindowID id, const wxString & label, const wxPoint& pos, const wxSize& size)
+CheckBox::CheckBox(wxWindow * parent, wxWindowID id, const wxString & label, bool bindable, const wxPoint& pos, const wxSize& size)
 	: wxWindow(parent, id, pos, size)
 {
 	_value = false;
@@ -76,6 +79,15 @@ CheckBox::CheckBox(wxWindow * parent, wxWindowID id, const wxString & label, con
 
 	_valuebrush.SetColour(_valuecolor);
 
+	if (bindable) {
+		_popup_menu = new wxMenu(wxT(""));
+		_popup_menu->Append ( new wxMenuItem(_popup_menu, ID_BindMenuOp, wxT("Learn MIDI Binding")));
+	}
+	else {
+		_popup_menu = 0;
+	}
+
+	
 	int w,h;
 	GetTextExtent(_label_str, &w, &h);
 	SetVirtualSizeHints (6 + _boxsize + w, max(_boxsize, h));
@@ -217,6 +229,13 @@ CheckBox::OnMouseEvents (wxMouseEvent &ev)
 		
 		Refresh(false);
 	}
+	else if (ev.RightDown()) {
+		if (_popup_menu) {
+			this->PopupMenu ( _popup_menu, ev.GetX(), ev.GetY());
+		}
+	}
+	else if (ev.RightUp()) {
+	}
 
 	ev.Skip();
 }
@@ -230,6 +249,13 @@ void CheckBox::OnFocusEvent (wxFocusEvent &ev)
 	}
 
 	ev.Skip();
+}
+
+void CheckBox::on_menu_events (wxMenuEvent &ev)
+{
+	if (ev.GetId() == ID_BindMenuOp) {
+		bind_request(); // emit
+	}
 }
 
 

@@ -34,6 +34,8 @@
 #include "choice_box.hpp"
 #include "check_box.hpp"
 
+#include "pixmap_includes.hpp"
+
 #include <midi_bind.hpp>
 
 using namespace SooperLooper;
@@ -108,7 +110,6 @@ LooperPanel::init()
 
 	wxBoxSizer * colsizer = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer * rowsizer;
-	PixButton * bitbutt;
 
 	// add selbar
 	_bgcolor.Set(0,0,0);
@@ -120,33 +121,28 @@ LooperPanel::init()
 	_selbar->SetBackgroundColour (_bgcolor);
 	
 	mainSizer->Add (_selbar, 0, wxEXPAND|wxBOTTOM|wxLEFT, 0);
-	
-	
- 	_undo_button = bitbutt = new PixButton(this, ID_UndoButton);
-	load_bitmaps (bitbutt, wxT("undo"));
- 	colsizer->Add (bitbutt, 0, wxTOP, 5);
 
- 	_redo_button = bitbutt = new PixButton(this, ID_RedoButton);
-	load_bitmaps (bitbutt, wxT("redo"));
- 	colsizer->Add (bitbutt, 0, wxTOP, 5);
+	// create all buttons first, then add them to sizers
+	// must do this because the bitmaps need to be loaded
+	// before adding to sizer
+	create_buttons();
+	
+	
+ 	colsizer->Add (_undo_button, 0, wxTOP, 5);
+
+ 	colsizer->Add (_redo_button, 0, wxTOP, 5);
 	
 	mainSizer->Add (colsizer, 0, wxEXPAND|wxBOTTOM|wxLEFT, 5);
 
 	
 	colsizer = new wxBoxSizer(wxVERTICAL);
 
- 	_record_button = bitbutt = new PixButton(this, ID_RecordButton);
-	load_bitmaps (bitbutt, wxT("record"));
 	
- 	colsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 5);
+ 	colsizer->Add (_record_button, 0, wxTOP|wxLEFT, 5);
 
- 	_overdub_button = bitbutt = new PixButton(this, ID_OverdubButton);
-	load_bitmaps (bitbutt, wxT("overdub"));
- 	colsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 5);
+ 	colsizer->Add (_overdub_button, 0, wxTOP|wxLEFT, 5);
 
- 	_multiply_button = bitbutt = new PixButton(this, ID_MultiplyButton);
-	load_bitmaps (bitbutt, wxT("multiply"));
- 	colsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 5);
+ 	colsizer->Add (_multiply_button, 0, wxTOP|wxLEFT, 5);
 	
 	mainSizer->Add (colsizer, 0, wxEXPAND|wxBOTTOM, 5);
 
@@ -163,38 +159,30 @@ LooperPanel::init()
 	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (slot (*this, &LooperPanel::slider_bind_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	colsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 5);
 
-	_feedback_control = slider = new SliderBar(this, ID_FeedbackControl, 0.0f, 100.0f, 0.0f);
+	_feedback_control = slider = new SliderBar(this, ID_FeedbackControl, 0.0f, 100.0f, 100.0f);
 	slider->set_units(wxT("%"));
 	slider->set_label(wxT("feedback"));
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (slot (*this, &LooperPanel::slider_bind_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	colsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 5);
 
 	//colsizer->Add (20, 5, 0, wxEXPAND);
 	
- 	_replace_button = bitbutt = new PixButton(this, ID_ReplaceButton);
-	load_bitmaps (bitbutt, wxT("replace"));
- 	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 5);
+ 	rowsizer->Add (_replace_button, 0, wxTOP|wxLEFT, 5);
 
- 	_tap_button = bitbutt = new PixButton(this, ID_TapButton);
-	load_bitmaps (bitbutt, wxT("delay"));
- 	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 5);
+ 	rowsizer->Add (_delay_button, 0, wxTOP|wxLEFT, 5);
 
 	colsizer->Add (rowsizer, 0);
 
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	
- 	_insert_button = bitbutt = new PixButton(this, ID_InsertButton);
-	load_bitmaps (bitbutt, wxT("insert"));
- 	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 5);
+ 	rowsizer->Add (_insert_button, 0, wxTOP|wxLEFT, 5);
 
- 	_reverse_button = bitbutt = new PixButton(this, ID_ReverseButton);
-	load_bitmaps (bitbutt, wxT("reverse"));
- 	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 5);
+ 	rowsizer->Add (_reverse_button, 0, wxTOP|wxLEFT, 5);
 
 	colsizer->Add (rowsizer, 0);
 	
@@ -217,7 +205,7 @@ LooperPanel::init()
 	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (slot (*this, &LooperPanel::slider_bind_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 4);
 
 	_wet_control = slider = new SliderBar(this, ID_WetControl, 0.0f, 1.0f, 1.0f);
@@ -226,7 +214,7 @@ LooperPanel::init()
 	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (slot (*this, &LooperPanel::slider_bind_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 4);
 	
 	
@@ -264,18 +252,20 @@ LooperPanel::init()
 // 	_round_check->SetForegroundColour(*wxWHITE);
 // 	lilrowsizer->Add (_round_check, 0, wxEXPAND);
 
-	_sync_check = new CheckBox(this, ID_SyncCheck, wxT("sync"), wxDefaultPosition, wxSize(55, 20));
+	_sync_check = new CheckBox(this, ID_SyncCheck, wxT("sync"), true, wxDefaultPosition, wxSize(55, 20));
 	_sync_check->SetFont(sliderFont);
 	_sync_check->SetToolTip(wxT("sync to quantize source"));
 	_sync_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("sync")));
+	_sync_check->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) _sync_check->GetId()));
 	lilrowsizer->Add (_sync_check, 1, wxLEFT, 3);
 	lilcolsizer->Add (lilrowsizer, 0, wxTOP|wxEXPAND, 0);
 
 	lilrowsizer = new wxBoxSizer(wxHORIZONTAL);
-	_play_feed_check = new CheckBox(this, ID_UseFeedbackPlayCheck, wxT("p. feedb"), wxDefaultPosition, wxSize(55, 20));
+	_play_feed_check = new CheckBox(this, ID_UseFeedbackPlayCheck, wxT("p. feedb"), true, wxDefaultPosition, wxSize(55, 20));
 	_play_feed_check->SetFont(sliderFont);
 	_play_feed_check->SetToolTip(wxT("enable feedback during playback"));
 	_play_feed_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("use_feedback_play")));
+	_play_feed_check->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) _play_feed_check->GetId()));
 	lilrowsizer->Add (_play_feed_check, 1, wxLEFT, 3);
 	lilcolsizer->Add (lilrowsizer, 0, wxTOP|wxEXPAND, 0);
 	
@@ -284,32 +274,22 @@ LooperPanel::init()
 
 	lilcolsizer = new wxBoxSizer(wxVERTICAL);
 	
- 	_load_button = bitbutt = new PixButton(this, ID_LoadButton);
-	load_bitmaps (bitbutt, wxT("load"));
-	lilcolsizer->Add (bitbutt, 0, wxTOP, 2);
+	lilcolsizer->Add (_load_button, 0, wxTOP, 2);
 
- 	_save_button = bitbutt = new PixButton(this, ID_SaveButton);
-	load_bitmaps (bitbutt, wxT("save"));
-	lilcolsizer->Add (bitbutt, 0, wxTOP, 2);
+	lilcolsizer->Add (_save_button, 0, wxTOP, 2);
 	
 	rowsizer->Add(lilcolsizer, 0, wxTOP|wxLEFT, 3);
 
 	lilcolsizer = new wxBoxSizer(wxVERTICAL);
 	
- 	_trig_button = bitbutt = new PixButton(this, ID_TrigButton);
-	load_bitmaps (bitbutt, wxT("trig"));
-	lilcolsizer->Add (bitbutt, 0, wxTOP, 2);
+	lilcolsizer->Add (_trig_button, 0, wxTOP, 2);
 
- 	_once_button = bitbutt = new PixButton(this, ID_OnceButton);
-	load_bitmaps (bitbutt, wxT("once"));
-	lilcolsizer->Add (bitbutt, 0, wxTOP, 2);
+	lilcolsizer->Add (_once_button, 0, wxTOP, 2);
 	
 	rowsizer->Add(lilcolsizer, 0, wxTOP|wxLEFT, 3);
 	
 	
- 	_mute_button = bitbutt = new PixButton(this, ID_MuteButton);
-	load_bitmaps (bitbutt, wxT("mute"));
- 	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 5);
+ 	rowsizer->Add (_mute_button, 0, wxTOP|wxLEFT, 5);
 	
 	colsizer->Add (rowsizer, 0, wxEXPAND);
 
@@ -318,9 +298,7 @@ LooperPanel::init()
 
 	// scratch stuff
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
- 	_scratch_button = bitbutt = new PixButton(this, ID_ScratchButton);
-	load_bitmaps (bitbutt, wxT("scratch"));
- 	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 3);
+ 	rowsizer->Add (_scratch_button, 0, wxTOP|wxLEFT, 3);
 
 	// scratch control
 	_scratch_control = slider = new SliderBar(this, ID_ScratchControl, 0.0f, 1.0f, 0.0f);
@@ -331,26 +309,17 @@ LooperPanel::init()
 	slider->set_show_value(false);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (slot (*this, &LooperPanel::slider_bind_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
 	
 	colsizer->Add (rowsizer, 0, wxEXPAND);
 
 	// rate stuff
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
-//  	_rate_button = bitbutt = new PixButton(this, ID_RateButton);
-// 	load_bitmaps (bitbutt, wxT("rate"));
-//  	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 3);
 
- 	_halfx_button = bitbutt = new PixButton(this, ID_HalfXButton);
-	load_bitmaps (bitbutt, wxT("half_rate"));
- 	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 3);
- 	_1x_button = bitbutt = new PixButton(this, ID_OneXButton);
-	load_bitmaps (bitbutt, wxT("1x_rate"));
- 	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 3);
-	_2x_button = bitbutt = new PixButton(this, ID_DoubleXButton);
-	load_bitmaps (bitbutt, wxT("double_rate"));
- 	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 3);
+ 	rowsizer->Add (_halfx_button, 0, wxTOP|wxLEFT, 3);
+ 	rowsizer->Add (_1x_button, 0, wxTOP|wxLEFT, 3);
+ 	rowsizer->Add (_2x_button, 0, wxTOP|wxLEFT, 3);
 
 	// rate control
 	_rate_control = slider = new SliderBar(this, ID_RateControl, 0.25f, 4.0f, 1.0f);
@@ -360,7 +329,7 @@ LooperPanel::init()
 	slider->set_decimal_digits (3);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (slot (*this, &LooperPanel::slider_bind_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
 	
 	colsizer->Add (rowsizer, 0, wxEXPAND|wxLEFT, 1);
@@ -376,7 +345,6 @@ LooperPanel::init()
 // 	wxFont textfont(12, wxSWISS, wxNORMAL, wxBOLD);
 // 	_index_text->SetFont(textfont);
 // 	_index_text->Raise();
-	
 	
 	bind_events();
 	
@@ -448,7 +416,9 @@ LooperPanel::bind_events()
 	_trig_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("trigger")));
 	_trig_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("trigger")));
 
-	_tap_button->pressed.connect (slot (*this, &LooperPanel::tap_button_event));
+	_delay_button->pressed.connect (slot (*this, &LooperPanel::delay_button_press_event));
+	_delay_button->released.connect (slot (*this, &LooperPanel::delay_button_release_event));
+	_delay_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("delay_trigger")));
 
 	_reverse_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("reverse")));
 	_reverse_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("reverse")));
@@ -478,6 +448,141 @@ LooperPanel::bind_events()
 	_loop_control->MidiLearnCancelled.connect (slot (*this, &LooperPanel::got_learn_canceled));
 	
 }
+
+void LooperPanel::create_buttons()
+{
+ 	_undo_button = new PixButton(this, ID_UndoButton);
+ 	_redo_button = new PixButton(this, ID_RedoButton);
+ 	_record_button = new PixButton(this, ID_RecordButton);
+ 	_overdub_button = new PixButton(this, ID_OverdubButton);
+ 	_multiply_button = new PixButton(this, ID_MultiplyButton);
+ 	_replace_button = new PixButton(this, ID_ReplaceButton);
+ 	_delay_button = new PixButton(this, ID_TapButton);
+ 	_insert_button = new PixButton(this, ID_InsertButton);
+ 	_reverse_button = new PixButton(this, ID_ReverseButton);
+ 	_load_button = new PixButton(this, ID_LoadButton, false);
+ 	_save_button = new PixButton(this, ID_SaveButton, false);
+ 	_trig_button = new PixButton(this, ID_TrigButton);
+ 	_once_button = new PixButton(this, ID_OnceButton);
+ 	_mute_button = new PixButton(this, ID_MuteButton);
+ 	_scratch_button = new PixButton(this, ID_ScratchButton);
+ 	_halfx_button = new PixButton(this, ID_HalfXButton, false);
+ 	_1x_button = new PixButton(this, ID_OneXButton, false);
+	_2x_button = new PixButton(this, ID_DoubleXButton, false);
+
+	
+	// load them all up manually
+	_undo_button->set_normal_bitmap (wxBitmap(undo_normal));
+	_undo_button->set_selected_bitmap (wxBitmap(undo_selected));
+	_undo_button->set_focus_bitmap (wxBitmap(undo_focus));
+	_undo_button->set_disabled_bitmap (wxBitmap(undo_disabled));
+	_undo_button->set_active_bitmap (wxBitmap(undo_active));
+	
+	_redo_button->set_normal_bitmap (wxBitmap(redo_normal));
+	_redo_button->set_selected_bitmap (wxBitmap(redo_selected));
+	_redo_button->set_focus_bitmap (wxBitmap(redo_focus));
+	_redo_button->set_disabled_bitmap (wxBitmap(redo_disabled));
+	_redo_button->set_active_bitmap (wxBitmap(redo_active));
+
+	_record_button->set_normal_bitmap (wxBitmap(record_normal));
+	_record_button->set_selected_bitmap (wxBitmap(record_selected));
+	_record_button->set_focus_bitmap (wxBitmap(record_focus));
+	_record_button->set_disabled_bitmap (wxBitmap(record_disabled));
+	_record_button->set_active_bitmap (wxBitmap(record_active));
+
+	_overdub_button->set_normal_bitmap (wxBitmap(overdub_normal));
+	_overdub_button->set_selected_bitmap (wxBitmap(overdub_selected));
+	_overdub_button->set_focus_bitmap (wxBitmap(overdub_focus));
+	_overdub_button->set_disabled_bitmap (wxBitmap(overdub_disabled));
+	_overdub_button->set_active_bitmap (wxBitmap(overdub_active));
+
+	_multiply_button->set_normal_bitmap (wxBitmap(multiply_normal));
+	_multiply_button->set_selected_bitmap (wxBitmap(multiply_selected));
+	_multiply_button->set_focus_bitmap (wxBitmap(multiply_focus));
+	_multiply_button->set_disabled_bitmap (wxBitmap(multiply_disabled));
+	_multiply_button->set_active_bitmap (wxBitmap(multiply_active));
+
+	_replace_button->set_normal_bitmap (wxBitmap(replace_normal));
+	_replace_button->set_selected_bitmap (wxBitmap(replace_selected));
+	_replace_button->set_focus_bitmap (wxBitmap(replace_focus));
+	_replace_button->set_disabled_bitmap (wxBitmap(replace_disabled));
+	_replace_button->set_active_bitmap (wxBitmap(replace_active));
+
+	_delay_button->set_normal_bitmap (wxBitmap(delay_normal));
+	_delay_button->set_selected_bitmap (wxBitmap(delay_selected));
+	_delay_button->set_focus_bitmap (wxBitmap(delay_focus));
+	_delay_button->set_disabled_bitmap (wxBitmap(delay_disabled));
+	_delay_button->set_active_bitmap (wxBitmap(delay_active));
+
+	_insert_button->set_normal_bitmap (wxBitmap(insert_normal));
+	_insert_button->set_selected_bitmap (wxBitmap(insert_selected));
+	_insert_button->set_focus_bitmap (wxBitmap(insert_focus));
+	_insert_button->set_disabled_bitmap (wxBitmap(insert_disabled));
+	_insert_button->set_active_bitmap (wxBitmap(insert_active));
+
+	_reverse_button->set_normal_bitmap (wxBitmap(reverse_normal));
+	_reverse_button->set_selected_bitmap (wxBitmap(reverse_selected));
+	_reverse_button->set_focus_bitmap (wxBitmap(reverse_focus));
+	_reverse_button->set_disabled_bitmap (wxBitmap(reverse_disabled));
+	_reverse_button->set_active_bitmap (wxBitmap(reverse_active));
+
+	_mute_button->set_normal_bitmap (wxBitmap(mute_normal));
+	_mute_button->set_selected_bitmap (wxBitmap(mute_selected));
+	_mute_button->set_focus_bitmap (wxBitmap(mute_focus));
+	_mute_button->set_disabled_bitmap (wxBitmap(mute_disabled));
+	_mute_button->set_active_bitmap (wxBitmap(mute_active));
+
+	_scratch_button->set_normal_bitmap (wxBitmap(scratch_normal));
+	_scratch_button->set_selected_bitmap (wxBitmap(scratch_selected));
+	_scratch_button->set_focus_bitmap (wxBitmap(scratch_focus));
+	_scratch_button->set_disabled_bitmap (wxBitmap(scratch_disabled));
+	_scratch_button->set_active_bitmap (wxBitmap(scratch_active));
+
+	_load_button->set_normal_bitmap (wxBitmap(load_normal));
+	_load_button->set_selected_bitmap (wxBitmap(load_selected));
+	_load_button->set_focus_bitmap (wxBitmap(load_focus));
+	_load_button->set_disabled_bitmap (wxBitmap(load_disabled));
+	_load_button->set_active_bitmap (wxBitmap(load_active));
+
+	_save_button->set_normal_bitmap (wxBitmap(save_normal));
+	_save_button->set_selected_bitmap (wxBitmap(save_selected));
+	_save_button->set_focus_bitmap (wxBitmap(save_focus));
+	_save_button->set_disabled_bitmap (wxBitmap(save_disabled));
+	_save_button->set_active_bitmap (wxBitmap(save_active));
+
+	_once_button->set_normal_bitmap (wxBitmap(once_normal));
+	_once_button->set_selected_bitmap (wxBitmap(once_selected));
+	_once_button->set_focus_bitmap (wxBitmap(once_focus));
+	_once_button->set_disabled_bitmap (wxBitmap(once_disabled));
+	_once_button->set_active_bitmap (wxBitmap(once_active));
+
+	_trig_button->set_normal_bitmap (wxBitmap(trig_normal));
+	_trig_button->set_selected_bitmap (wxBitmap(trig_selected));
+	_trig_button->set_focus_bitmap (wxBitmap(trig_focus));
+	_trig_button->set_disabled_bitmap (wxBitmap(trig_disabled));
+	_trig_button->set_active_bitmap (wxBitmap(trig_active));
+
+	_1x_button->set_normal_bitmap (wxBitmap(onex_rate_normal));
+	_1x_button->set_selected_bitmap (wxBitmap(onex_rate_selected));
+	_1x_button->set_focus_bitmap (wxBitmap(onex_rate_focus));
+	_1x_button->set_disabled_bitmap (wxBitmap(onex_rate_disabled));
+	_1x_button->set_active_bitmap (wxBitmap(onex_rate_active));
+
+	_2x_button->set_normal_bitmap (wxBitmap(double_rate_normal));
+	_2x_button->set_selected_bitmap (wxBitmap(double_rate_selected));
+	_2x_button->set_focus_bitmap (wxBitmap(double_rate_focus));
+	_2x_button->set_disabled_bitmap (wxBitmap(double_rate_disabled));
+	_2x_button->set_active_bitmap (wxBitmap(double_rate_active));
+
+	_halfx_button->set_normal_bitmap (wxBitmap(half_rate_normal));
+	_halfx_button->set_selected_bitmap (wxBitmap(half_rate_selected));
+	_halfx_button->set_focus_bitmap (wxBitmap(half_rate_focus));
+	_halfx_button->set_disabled_bitmap (wxBitmap(half_rate_disabled));
+	_halfx_button->set_active_bitmap (wxBitmap(half_rate_active));
+
+	
+}
+
 
 wxString
 LooperPanel::get_pixmap_path (const wxString & namebase)
@@ -640,7 +745,7 @@ LooperPanel::update_state()
 		_replace_button->set_active(false);
 		break;
 	case LooperStateDelay:
-		_tap_button->set_active(false);
+		_delay_button->set_active(false);
 		break;
 	case LooperStateInserting:
 		_insert_button->set_active(false);
@@ -671,7 +776,7 @@ LooperPanel::update_state()
 		_replace_button->set_active(true);
 		break;
 	case LooperStateDelay:
-		_tap_button->set_active(true);
+		_delay_button->set_active(true);
 		break;
 	case LooperStateInserting:
 		_insert_button->set_active(true);
@@ -760,7 +865,11 @@ LooperPanel::button_bind_events (wxString cmd)
 	info.channel = 0;
 	info.type = "n";
 	info.control = cmd.c_str();
-	info.command = "down"; // should this be something else?
+	if (cmd == wxT("delay_trigger")) {
+		info.command = "set";
+	} else {
+		info.command = "note"; // should this be something else?
+	}
 	info.instance = _index;
 	info.lbound = 0.0;
 	info.ubound = 1.0;
@@ -770,10 +879,19 @@ LooperPanel::button_bind_events (wxString cmd)
 
 
 void
-LooperPanel::tap_button_event (int button)
+LooperPanel::delay_button_press_event (int button)
 {
 	_tap_val *= -1.0f;
-	post_control_event (wxString("tap_trigger"), _tap_val);
+	post_control_event (wxString("delay_trigger"), _tap_val);
+}
+
+void
+LooperPanel::delay_button_release_event (int button)
+{
+	if (button == PixButton::MiddleButton) {
+		_tap_val *= -1.0f;
+		post_control_event (wxString("delay_trigger"), _tap_val);
+	}
 }
 
 void
@@ -903,7 +1021,7 @@ LooperPanel::slider_events(float val, int id)
 }
 
 void
-LooperPanel::slider_bind_events(int id)
+LooperPanel::control_bind_events(int id)
 {
 	wxString ctrl;
 	MidiBindInfo info;
@@ -951,6 +1069,16 @@ LooperPanel::slider_bind_events(int id)
 		info.style = MidiBindInfo::NormalStyle;
 		info.lbound = 0.25;
 		info.ubound = 4.0;
+		break;
+	case ID_SyncCheck:
+		ctrl = wxT("sync");
+		info.control = ctrl.c_str();
+		info.style = MidiBindInfo::NormalStyle;
+		break;
+	case ID_UseFeedbackPlayCheck:
+		ctrl = wxT("use_feedback_play");
+		info.control = ctrl.c_str();
+		info.style = MidiBindInfo::NormalStyle;
 		break;
 	default:
 		donothing = true;

@@ -1,12 +1,12 @@
 bin_PROGRAMS =  slgui
 
 
-pixmapdir  = $(datadir)/sooperlooper/pixmaps
-pixmap_DATA = \
-	$(wildcard pixmaps/*.png)
+#pixmapdir  = $(datadir)/sooperlooper/pixmaps
+#pixmap_DATA = \
+#	$(wildcard pixmaps/*.png)
 
 
-DEFS = -DPIXMAPDIR=\""$(pixmapdir)/"\"
+#DEFS = -DPIXMAPDIR=\""$(pixmapdir)/"\"
 
 
 AM_CXXFLAGS = -I.. @LOSC_CFLAGS@ @SIGCPP_CFLAGS@ @XML_CFLAGS@ @WX_CFLAGS@
@@ -32,4 +32,4 @@ slgui_SOURCES = \
 
 noinst_HEADERS = $(wildcard *.hpp *.h)
 
-EXTRA_DIST = $(wildcard pixmaps/*.png) pixmaps/sl_logo.xpm
+EXTRA_DIST = $(wildcard pixmaps/*.xpm)

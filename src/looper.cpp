@@ -351,10 +351,15 @@ Looper::do_event (Event *ev)
 		// todo: specially handle TriggerThreshold to work across all channels
 
 		if ((int)ev->Control >= (int)Event::TriggerThreshold && (int)ev->Control <= (int) Event::FadeSamples) {
+
+			if (ev->Control == Event::Quantize) {
+				ev->Value = roundf(ev->Value);
+			}
 			
 			ports[ev->Control] = ev->Value;
 			//cerr << "set port " << ev->Control << "  to: " << ev->Value << endl;
 
+			
 #ifdef HAVE_SAMPLERATE
 			if (ev->Control == Event::Rate) {
 				// uses
@@ -389,8 +394,8 @@ Looper::run (nframes_t offset, nframes_t nframes)
 		// treat as bypassed
 		for (unsigned int i=0; i < _chan_count; ++i)
 		{
-			float * inbuf = _driver->get_input_port_buffer (_input_ports[i], nframes);
-			float * outbuf = _driver->get_output_port_buffer (_output_ports[i], nframes);
+			float * inbuf = _driver->get_input_port_buffer (_input_ports[i], _buffersize);
+			float * outbuf = _driver->get_output_port_buffer (_output_ports[i], _buffersize);
 			if (inbuf && outbuf) {
 				for (nframes_t n=0; n < nframes; ++n) {
 					outbuf[n] = inbuf[n] * ports[DryLevel];
@@ -447,8 +452,8 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 	{
 		/* (re)connect audio ports */
 		
-		descriptor->connect_port (_instances[i], AudioInputPort, (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], nframes) + offset);
-		descriptor->connect_port (_instances[i], AudioOutputPort, (LADSPA_Data*) _driver->get_output_port_buffer (_output_ports[i], nframes) + offset);
+		descriptor->connect_port (_instances[i], AudioInputPort, (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], _buffersize) + offset);
+		descriptor->connect_port (_instances[i], AudioOutputPort, (LADSPA_Data*) _driver->get_output_port_buffer (_output_ports[i], _buffersize) + offset);
 
 
 		if (i == 0) {
@@ -498,7 +503,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 		_src_data.src_ratio = _src_in_ratio;
 		_src_data.input_frames = nframes;
 		_src_data.output_frames = (long) ceil (nframes * _src_in_ratio) + 1;
-		_src_data.data_in = (float *) _driver->get_input_port_buffer (_input_ports[i], nframes) + offset;
+		_src_data.data_in = (float *) _driver->get_input_port_buffer (_input_ports[i], _buffersize) + offset;
 		_src_data.data_out = _src_in_buffer;
 		src_process (_in_src_states[i], &_src_data);
 		// cerr << "nframes: " << nframes << "  output: " <<  _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << endl;
@@ -544,7 +549,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 			_src_data.output_frames = nframes;
 		}
 		_src_data.data_in = _src_in_buffer;
-		_src_data.data_out = (float *) _driver->get_output_port_buffer (_output_ports[i], nframes) + offset;
+		_src_data.data_out = (float *) _driver->get_output_port_buffer (_output_ports[i], _buffersize) + offset;
 		src_process (_out_src_states[i], &_src_data);
 
 // 		if (i==0 && _src_data.input_frames != _src_data.input_frames_used) {

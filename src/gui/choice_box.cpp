@@ -31,8 +31,9 @@ using namespace std;
 
 
 enum {
-	ID_PopupBase  = 8000
-	
+	ID_PopupBase  = 8000,
+	ID_BindMenuOp = 9000
+
 };
 
 BEGIN_EVENT_TABLE(ChoiceBox, wxWindow)
@@ -42,10 +43,11 @@ BEGIN_EVENT_TABLE(ChoiceBox, wxWindow)
 	EVT_MOUSE_EVENTS(ChoiceBox::OnMouseEvents)
 	EVT_MOUSEWHEEL (ChoiceBox::OnMouseEvents)
 	EVT_KILL_FOCUS (ChoiceBox::OnFocusEvent)
+	EVT_MENU (ID_BindMenuOp , ChoiceBox::on_menu_item)
 	
 END_EVENT_TABLE()
 
-ChoiceBox::ChoiceBox(wxWindow * parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+ChoiceBox::ChoiceBox(wxWindow * parent, wxWindowID id, bool bindable, const wxPoint& pos, const wxSize& size)
 	: wxWindow(parent, id, pos, size)
 {
 	_curr_index = 0;
@@ -53,6 +55,7 @@ ChoiceBox::ChoiceBox(wxWindow * parent, wxWindowID id, const wxPoint& pos, const
 	_dragging = false;
 	_popup_menu = 0;
 	_data_value = 0;
+	_bindable = bindable;
 	
 	_bgcolor.Set(0,0,0);
 	_bgbrush.SetColour (_bgcolor);
@@ -129,6 +132,7 @@ void ChoiceBox::ensure_popup (bool force_build)
 	}
 	
 	int id = ID_PopupBase;
+
 	
 	for (ChoiceList::iterator iter =  _choices.begin(); iter != _choices.end(); ++iter) {
 		if (building) {
@@ -148,6 +152,12 @@ void ChoiceBox::ensure_popup (bool force_build)
 
 		++id;
 	}
+
+	if (building) {
+		_popup_menu->AppendSeparator();
+		_popup_menu->Append (ID_BindMenuOp, wxT("Learn MIDI Binding"));
+	}
+
 }
 
 void ChoiceBox::on_menu_item (wxCommandEvent &ev)
@@ -155,9 +165,14 @@ void ChoiceBox::on_menu_item (wxCommandEvent &ev)
 	int id = ev.GetId();
 	int index = id - (int) ID_PopupBase;
 
-	set_index_value (index);
-
-	value_changed (_curr_index, _value_str); // emit
+	if (id == ID_BindMenuOp) {
+		bind_request(); // emit
+	}
+	else {
+		set_index_value (index);
+		
+		value_changed (_curr_index, _value_str); // emit
+	}
 }
 
 
@@ -330,6 +345,12 @@ ChoiceBox::OnMouseEvents (wxMouseEvent &ev)
 			Refresh(false);
 		}
 	}
+	else if (ev.RightDown())
+	{
+		ensure_popup ();
+		
+		PopupMenu (_popup_menu, ev.GetX(), ev.GetY());
+	}
 	else if (ev.ButtonDown() || ev.ButtonDClick())
 	{
 		_last_x = ev.GetX();
@@ -347,13 +368,6 @@ ChoiceBox::OnMouseEvents (wxMouseEvent &ev)
 				Refresh(false);
 			}
 		}
-	}
-	else if (ev.RightUp())
-	{
-		// todo menu
-		ensure_popup ();
-		
-		PopupMenu (_popup_menu, ev.GetX(), ev.GetY());
 	}
 
 	ev.Skip();

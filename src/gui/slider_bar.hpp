@@ -36,7 +36,7 @@ class SliderBar
   public:
 	
 	// ctor(s)
-	SliderBar(wxWindow * parent, wxWindowID id=-1, float lb=0.0f, float ub=1.0f, float val=0.5f,
+	SliderBar(wxWindow * parent, wxWindowID id=-1, float lb=0.0f, float ub=1.0f, float val=0.5f, bool midibindable=true,
 		  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 	virtual ~SliderBar();
 
@@ -66,6 +66,9 @@ class SliderBar
 	void set_value (float val);
 	float get_value ();
 
+	void set_default_value (float val) { _default_val = val; }
+	float get_default_value () { return _default_val; }
+	
 	void set_label (const wxString &label);
 	wxString get_label () { return _label_str; }
 
@@ -119,6 +122,7 @@ class SliderBar
 	void show_text_ctrl ();
 	void hide_text_ctrl ();
 	void on_text_event (wxCommandEvent &ev);
+	void on_menu_events (wxMenuEvent &ev);
 	
 	void update_value_str();
 
@@ -128,6 +132,7 @@ class SliderBar
 	wxBitmap * _backing_store;
 	wxMemoryDC _memdc;
 
+	wxMenu * _popup_menu;
 	
 	wxColour _bgcolor;
 	wxBrush  _bgbrush;
@@ -144,6 +149,7 @@ class SliderBar
 	wxColour _valuecolor;
 	
 	float _value;
+	float _default_val;
 	float _lower_bound, _upper_bound;
 
 	wxString _value_str;

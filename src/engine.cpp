@@ -677,7 +677,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 			if ((int) gs_event->value > (int) FIRST_SYNC_SOURCE
 			    && gs_event->value <= _instances.size())
 			{
-				_sync_source = (SyncSourceType) (int) gs_event->value;
+				_sync_source = (SyncSourceType) (int) roundf(gs_event->value);
 				update_sync_source();
 			}
 		}
@@ -936,6 +936,12 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			}
 
 			_quarter_counter = qcurr;
+
+			// no real sync here
+			for (nframes_t n=offset; n < nframes; ++n) {
+				_internal_sync_buf[n]  = 1.0;
+			}
+
 		}
 		else {
 			double curr = _tempo_counter;
@@ -1160,12 +1166,14 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			if (_quarter_note_frames > 0.0) {
 				nframes_t currpos  = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::LoopPosition) * _driver->get_samplerate());
 				nframes_t loopframes = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::LoopLength) * _driver->get_samplerate());
-				nframes_t testval = (((currpos + nframes) % loopframes) % (nframes_t)_quarter_note_frames);
-				
-				if (testval <= nframes || testval == 0) {
-					// inaccurate
-					//cerr << "quarter hit" << endl;
-					hit_at = (int) 0;
+				if (loopframes > 0) {
+					nframes_t testval = (((currpos + nframes) % loopframes) % (nframes_t)_quarter_note_frames);
+					
+					if (testval <= nframes || testval == 0) {
+						// inaccurate
+						//cerr << "quarter hit" << endl;
+						hit_at = (int) 0;
+					}
 				}
 			}
 		}

@@ -28,6 +28,7 @@
 #include "gui_frame.hpp"
 #include "config_dialog.hpp"
 #include "loop_control.hpp"
+#include "keyboard_target.hpp"
 
 using namespace SooperLooperGui;
 using namespace std;
@@ -40,7 +41,9 @@ enum {
 	ID_CloseButton,
 	ID_DisconnectButton,
 	ID_MidiBrowseButton,
-	ID_DefaultButton
+	ID_DefaultButton,
+	ID_CommitButton,
+	ID_RevertButton
 };
 
 BEGIN_EVENT_TABLE(SooperLooperGui::ConfigDialog, wxFrame)
@@ -50,6 +53,9 @@ BEGIN_EVENT_TABLE(SooperLooperGui::ConfigDialog, wxFrame)
 	EVT_BUTTON (ID_ConnectButton, SooperLooperGui::ConfigDialog::on_button)
 	EVT_BUTTON (ID_DisconnectButton, SooperLooperGui::ConfigDialog::on_button)
 	EVT_BUTTON (ID_DefaultButton, SooperLooperGui::ConfigDialog::on_button)
+	EVT_BUTTON (ID_CommitButton, SooperLooperGui::ConfigDialog::on_button)
+	EVT_BUTTON (ID_RevertButton, SooperLooperGui::ConfigDialog::on_button)
+	EVT_BUTTON (ID_MidiBrowseButton, SooperLooperGui::ConfigDialog::on_button)
 
 END_EVENT_TABLE()
 
@@ -200,7 +206,15 @@ void ConfigDialog::init()
 
 	colsizer->Add (rowsizer, 0, wxEXPAND|wxALL, 3);
 
-	
+	rowsizer = new wxBoxSizer(wxHORIZONTAL);
+	rowsizer->Add (1,1,1);
+	butt = new wxButton(this, ID_RevertButton, wxT("Revert"));
+	rowsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
+	butt = new wxButton(this, ID_CommitButton, wxT("Commit Changes"));
+	rowsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
+	rowsizer->Add (1,1,1);
+
+	colsizer->Add (rowsizer, 0, wxEXPAND|wxALL, 3);
 	
 	
 	topsizer->Add (colsizer, 0, wxEXPAND|wxALL, 4);
@@ -261,7 +275,19 @@ void ConfigDialog::looper_connected(int num)
 
 void ConfigDialog::commit_changes()
 {
+	LoopControl & loopctrl = _parent->get_loop_control();
+	LoopControl::SpawnConfig & config = loopctrl.get_default_spawn_config();
 
+	config.host = _def_host_text->GetValue();
+	_def_port_text->GetValue().ToLong(&config.port);
+	config.num_loops = (long) _num_loops_spin->GetValue();
+	config.num_channels = (long) _num_channels_spin->GetValue();
+	config.mem_secs = (double) _secs_per_channel_spin->GetValue();
+	config.jack_name = _def_jack_name_text->GetValue();
+	config.midi_bind_path = _def_midi_bind_text->GetValue();
+	config.force_spawn = _def_force_spawn->GetValue();
+
+	_parent->save_rc();
 }
 
 
@@ -310,6 +336,23 @@ void ConfigDialog::on_button (wxCommandEvent &ev)
 	else if (ev.GetId() == ID_DefaultButton) {
 		_host_text->SetValue(wxT(""));
 		_port_text->SetValue (wxString::Format(wxT("%d"), DEFAULT_OSC_PORT));
+	}
+	else if (ev.GetId() == ID_CommitButton) {
+		commit_changes();
+	}
+	else if (ev.GetId() == ID_RevertButton) {
+		refresh_defaults();
+	}
+	else if (ev.GetId() == ID_MidiBrowseButton) {
+		
+		_parent->get_keyboard().set_enabled(false);
+		wxString filename = wxFileSelector(wxT("Choose midi binding file to use"), wxT(""), wxT(""), wxT(""), wxT("*.slb"), wxOPEN|wxCHANGE_DIR);
+		_parent->get_keyboard().set_enabled(true);
+		
+		if ( !filename.empty() )
+		{
+			_def_midi_bind_text->SetValue(filename);
+		}
 	}
 	else {
 		ev.Skip();
