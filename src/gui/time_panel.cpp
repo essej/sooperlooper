@@ -161,7 +161,7 @@ TimePanel::format_time(wxString & timestr, float val)
 {
 	// seconds
 	int minutes = (int) (val / 60.0f);
-	float secs = val - minutes*60.0f;
+	float secs = fabs(val - minutes*60.0f);
 	
 	timestr.Printf("%02d:%05.2f", minutes, secs);
 }
