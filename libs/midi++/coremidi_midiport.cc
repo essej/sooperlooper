@@ -77,20 +77,30 @@ int CoreMidi_MidiPort::write (byte *msg, size_t msglen)
 int CoreMidi_MidiPort::Open (PortRequest &req)
 {
 	OSStatus err;
-	
-	err = MIDIClientCreate(CFSTR(req.devname), NULL, NULL, &midi_client);
+	CFStringRef coutputStr;
+	string str;
+
+	coutputStr = CFStringCreateWithCString(0, req.devname, CFStringGetSystemEncoding());
+	err = MIDIClientCreate(coutputStr, 0, 0, &midi_client);
+	CFRelease(coutputStr);
     if (!midi_client) {
 		//error << "Cannot open CoreMidi client : " << err << endmsg.
         goto error;
     }
   	
-	err = MIDIDestinationCreate(midi_client, CFSTR(req.tagname + string("_in")), read_proc, this, &midi_destination);
+	str = req.tagname + string("_in");
+	coutputStr = CFStringCreateWithCString(0, str.c_str(), CFStringGetSystemEncoding());
+	err = MIDIDestinationCreate(midi_client, coutputStr, read_proc, this, &midi_destination);
+	CFRelease(coutputStr);
 	if (!midi_destination) {
 		//error << "Cannot create CoreMidi destination : " << err << endmsg.
 		goto error;
 	}
 	
-	err = MIDISourceCreate(midi_client, CFSTR(req.tagname + string("_out")), &midi_source);
+	str = req.tagname + string("_out");
+	coutputStr = CFStringCreateWithCString(0, str.c_str(), CFStringGetSystemEncoding());
+	err = MIDISourceCreate(midi_client, coutputStr, &midi_source);
+	CFRelease(coutputStr);
 	if (!midi_source) {
 		//error << "Cannot create CoreMidi source : " << err << endmsg.
 		goto error;
