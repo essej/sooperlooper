@@ -58,6 +58,7 @@ class Engine
 	void set_default_channels (int chan) { _def_channel_cnt = chan; }
 	
 	void set_midi_bridge (MidiBridge * bridge);
+	MidiBridge * get_midi_bridge() { return _midi_bridge; }
 	
 	bool is_ok() const { return _ok; }
 

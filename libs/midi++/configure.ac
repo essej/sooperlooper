@@ -97,6 +97,7 @@ AC_SUBST(AUDIO_LIBS)
 dnl sigc++
 PKG_CHECK_MODULES(SIGCPP, sigc++-1.2 >= 0.14)
 
+
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS(fcntl.h unistd.h)

@@ -38,6 +38,7 @@ TimePanel::TimePanel(LoopControl * control, wxWindow * parent, wxWindowID id, co
 	: wxPanel(parent, id, pos, size), _loop_control(control), _index(0), _width(1), _height(1)
 {
 	_backing_store = 0;
+	update_size();
 	init();
 }
 
@@ -191,20 +192,26 @@ TimePanel::update_time()
 	return ret;
 }
 
+void
+TimePanel::update_size()
+{
+	GetClientSize(&_width, &_height);
+
+	if (_width > 0 && _height > 0) {
+		_memdc.SelectObject (wxNullBitmap);
+		if (_backing_store) {
+			delete _backing_store;
+		}
+		_backing_store = new wxBitmap(_width, _height);
+		
+		_memdc.SelectObject(*_backing_store);
+	}
+}
 
 void
 TimePanel::OnSize (wxSizeEvent &ev)
 {
-	GetClientSize(&_width, &_height);
-
-	_memdc.SelectObject (wxNullBitmap);
-	if (_backing_store) {
-		delete _backing_store;
-	}
-	_backing_store = new wxBitmap(_width, _height);
-
- 	_memdc.SelectObject(*_backing_store);
-	
+	update_size();
 	ev.Skip();
 }
 

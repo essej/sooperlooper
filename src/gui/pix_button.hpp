@@ -95,6 +95,7 @@ class PixButton
 	void on_menu_events (wxCommandEvent &ev);
 	
 	void draw_area (wxDC & dc);
+	void update_size();
 	
 	wxBitmap _normal_bitmap;
 	wxBitmap _focus_bitmap;

@@ -89,7 +89,8 @@ class ChoiceBox
 
 	void ensure_popup (bool force_build=false);
 	void on_menu_item (wxCommandEvent &ev);
-	
+
+	void update_size();
 
 	void update_value_str();
 	

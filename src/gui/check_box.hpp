@@ -75,7 +75,7 @@ class CheckBox
 	void on_menu_events (wxCommandEvent &ev);
 	
 	void draw_area (wxDC & dc);
-
+	void update_size();
 
 	int _width, _height;
 	wxBitmap * _backing_store;

@@ -57,7 +57,8 @@ class TimePanel
 	void draw_area(wxDC & dc);
 
 	void normalize_font_size(wxFont & fnt, int width, int height, wxString fitstr);
-	
+
+	void update_size();
 
 	LoopControl * _loop_control;
 

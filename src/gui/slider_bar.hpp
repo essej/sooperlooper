@@ -118,7 +118,8 @@ class SliderBar
 	void OnMouseEvents (wxMouseEvent &ev);
 
 	void draw_area (wxDC & dc);
-
+	void update_size();
+	
 	void show_text_ctrl ();
 	void hide_text_ctrl ();
 	void on_text_event (wxCommandEvent &ev);

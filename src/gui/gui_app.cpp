@@ -230,14 +230,16 @@ static void* watchdog_thread(void* arg)
 // 		  if (::wxGetApp().getMainwin()) {
 // 			  ::wxGetApp().getMainwin()->updateDisplay();
 // 		  }
-		  exiting = true;
+		  exiting = false;
 	  }
 	  else {
 		  exiting = true;
 	  }
   }
 
-  ::wxGetApp().getFrame()->Close(TRUE);
+  if (::wxGetApp().getFrame()) {
+	  ::wxGetApp().getFrame()->Close(TRUE);
+  }
   
   ::wxGetApp().ExitMainLoop();
   // printf ("bye bye, hope you had fun...\n");
@@ -302,7 +304,9 @@ bool GuiApp::OnInit()
 	
 	SetExitOnFrameDelete(TRUE);
 
-	setupSignals();
+	// this seems to cause trouble on some systems.
+	// let's just not set any
+	//setupSignals();
 
 	
 	// use stderr as log

@@ -76,7 +76,8 @@ ChoiceBox::ChoiceBox(wxWindow * parent, wxWindowID id, bool bindable, const wxPo
 	_borderbrush.SetColour(_bgbordercolor);
 
 	_linebrush.SetColour(wxColour(154, 245, 168));
-	
+
+	update_size();
 }
 
 ChoiceBox::~ChoiceBox()
@@ -271,20 +272,26 @@ void ChoiceBox::set_bg_border_color (const wxColour & col)
 	Refresh(false);
 }
 
+void
+ChoiceBox::update_size()
+{
+	GetClientSize(&_width, &_height);
+
+	if (_width > 0 && _height > 0) {
+		_memdc.SelectObject (wxNullBitmap);
+		if (_backing_store) {
+			delete _backing_store;
+		}
+		_backing_store = new wxBitmap(_width, _height);
+		_memdc.SelectObject(*_backing_store);
+		_memdc.SetFont(GetFont());
+	}
+}
 
 void
 ChoiceBox::OnSize(wxSizeEvent & event)
 {
-	GetClientSize(&_width, &_height);
-
-	_memdc.SelectObject (wxNullBitmap);
-	if (_backing_store) {
-		delete _backing_store;
-	}
-	_backing_store = new wxBitmap(_width, _height);
- 	_memdc.SelectObject(*_backing_store);
-	_memdc.SetFont(GetFont());
-	
+	update_size();
 	event.Skip();
 }
 

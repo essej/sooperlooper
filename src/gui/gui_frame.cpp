@@ -166,12 +166,17 @@ GuiFrame::init()
 	SetThemeEnabled(false);
 	
 	wxFont sliderFont = *wxSMALL_FONT;
-	
-	wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
 
+	wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
+	wxPanel * toppanel = new wxPanel(this);
+	toppanel->SetThemeEnabled(false);
+	toppanel->SetBackgroundColour(*wxBLACK);
+
+	wxBoxSizer * topcolsizer = new wxBoxSizer(wxVERTICAL);
+	
 	rowsizer->Add (1, 1, 1);
 
-	_sync_choice = new ChoiceBox (this, ID_SyncChoice, true, wxDefaultPosition, wxSize (140, 22));
+	_sync_choice = new ChoiceBox (toppanel, ID_SyncChoice, true, wxDefaultPosition, wxSize (140, 22));
 	_sync_choice->set_label (wxT("sync to"));
 	_sync_choice->SetFont (sliderFont);
 	_sync_choice->value_changed.connect (slot (*this,  &GuiFrame::on_syncto_change));
@@ -179,7 +184,7 @@ GuiFrame::init()
 	
 	rowsizer->Add (_sync_choice, 0, wxALL, 2);
 	
-	_tempo_bar = new SliderBar(this, ID_TempoSlider, 0.0f, 300.0f, 110.0f, true, wxDefaultPosition, wxSize(150, 22));
+	_tempo_bar = new SliderBar(toppanel, ID_TempoSlider, 0.0f, 300.0f, 110.0f, true, wxDefaultPosition, wxSize(150, 22));
 	_tempo_bar->set_units(wxT("bpm"));
 	_tempo_bar->set_label(wxT("tempo"));
 	_tempo_bar->set_snap_mode (SliderBar::IntegerSnap);
@@ -189,7 +194,7 @@ GuiFrame::init()
 	_tempo_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("tempo")));
 	rowsizer->Add (_tempo_bar, 0, wxALL, 2);
 
- 	_taptempo_button = new PixButton(this, ID_TapTempoButton, true);
+ 	_taptempo_button = new PixButton(toppanel, ID_TapTempoButton, true);
 	_taptempo_button->set_normal_bitmap (wxBitmap(tap_tempo_normal));
 	_taptempo_button->set_selected_bitmap (wxBitmap(tap_tempo_selected));
 	_taptempo_button->set_focus_bitmap (wxBitmap(tap_tempo_focus));
@@ -201,7 +206,7 @@ GuiFrame::init()
  	rowsizer->Add (_taptempo_button, 0, wxALL, 2);
 	
 
-	_eighth_cycle_bar = new SliderBar(this, ID_EighthSlider, 1.0f, 128.0f, 16.0f, true, wxDefaultPosition, wxSize(110, 22));
+	_eighth_cycle_bar = new SliderBar(toppanel, ID_EighthSlider, 1.0f, 128.0f, 16.0f, true, wxDefaultPosition, wxSize(110, 22));
 	_eighth_cycle_bar->set_units(wxT(""));
 	_eighth_cycle_bar->set_label(wxT("8th/cycle"));
 	_eighth_cycle_bar->set_snap_mode (SliderBar::IntegerSnap);
@@ -211,7 +216,7 @@ GuiFrame::init()
 	rowsizer->Add (_eighth_cycle_bar, 0, wxALL, 2);
 	
 
-	_quantize_choice = new ChoiceBox (this, ID_QuantizeChoice, true, wxDefaultPosition, wxSize (110, 22));
+	_quantize_choice = new ChoiceBox (toppanel, ID_QuantizeChoice, true, wxDefaultPosition, wxSize (110, 22));
 	_quantize_choice->SetFont (sliderFont);
 	_quantize_choice->set_label (wxT("quantize"));
 	_quantize_choice->value_changed.connect (slot (*this,  &GuiFrame::on_quantize_change));
@@ -222,7 +227,7 @@ GuiFrame::init()
 	_quantize_choice->append_choice (wxT("loop"), 3);
 	rowsizer->Add (_quantize_choice, 0, wxALL, 2);
 
-	_round_check = new CheckBox (this, ID_RoundCheck, wxT("round"), true, wxDefaultPosition, wxSize(80, 22));
+	_round_check = new CheckBox (toppanel, ID_RoundCheck, wxT("round"), true, wxDefaultPosition, wxSize(80, 22));
 	_round_check->SetFont (sliderFont);
 	_round_check->value_changed.connect (slot (*this, &GuiFrame::on_round_check));
 	_round_check->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("round")));
@@ -230,11 +235,17 @@ GuiFrame::init()
 	
 	rowsizer->Add (1, 1, 1);
 
-	wxStaticBitmap * logobit = new wxStaticBitmap(this, -1, wxBitmap(sl_logo_xpm));
+	wxStaticBitmap * logobit = new wxStaticBitmap(toppanel, -1, wxBitmap(sl_logo_xpm));
 	rowsizer->Add (logobit, 0, wxALIGN_BOTTOM);
+
+	topcolsizer->Add (rowsizer, 0, wxEXPAND|wxTOP|wxBOTTOM, 3);
+
 	
-	
-	_topsizer->Add (rowsizer, 0, wxALL|wxEXPAND, 4);
+	toppanel->SetSizer( topcolsizer );      // actually set the sizer
+	topcolsizer->Fit( toppanel );            // set size to minimum size as calculated by the sizer
+	topcolsizer->SetSizeHints( toppanel );   // set size hints to honour mininum size
+
+	_topsizer->Add (toppanel, 0, wxEXPAND);
 
 	
 	_scroller = new wxScrolledWindow(this, -1, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
@@ -721,6 +732,7 @@ void GuiFrame::intialize_keybindings ()
 	KeyboardTarget::add_action ("replace", bind (slot (*this, &GuiFrame::command_action), wxT("replace")));
 	KeyboardTarget::add_action ("reverse", bind (slot (*this, &GuiFrame::command_action), wxT("reverse")));
 	KeyboardTarget::add_action ("scratch", bind (slot (*this, &GuiFrame::command_action), wxT("scratch")));
+	KeyboardTarget::add_action ("substitute", bind (slot (*this, &GuiFrame::command_action), wxT("substitute")));
 	KeyboardTarget::add_action ("mute", bind (slot (*this, &GuiFrame::command_action), wxT("mute")));
 	KeyboardTarget::add_action ("undo", bind (slot (*this, &GuiFrame::command_action), wxT("undo")));
 	KeyboardTarget::add_action ("redo", bind (slot (*this, &GuiFrame::command_action), wxT("redo")));	
@@ -757,6 +769,7 @@ void GuiFrame::intialize_keybindings ()
 	_keyboard->add_binding ("u", "undo");
 	_keyboard->add_binding ("d", "redo");
 	_keyboard->add_binding ("s", "scratch");
+	_keyboard->add_binding ("b", "substitute");
 	_keyboard->add_binding ("l", "delay");
 	_keyboard->add_binding ("h", "oneshot");
 	_keyboard->add_binding (" ", "trigger");

@@ -120,6 +120,8 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 		_popup_menu->AppendSeparator();
 		_popup_menu->Append ( new wxMenuItem(_popup_menu, ID_BindMenuOp, wxT("Learn MIDI Binding")));
 	}
+
+	update_size();
 }
 
 SliderBar::~SliderBar()
@@ -312,21 +314,28 @@ void SliderBar::set_bar_color (const wxColour & col)
 }
 
 void
-SliderBar::OnSize(wxSizeEvent & event)
+SliderBar::update_size()
 {
 	GetClientSize(&_width, &_height);
 
-	_val_scale = (_upper_bound - _lower_bound) / (_width);
-
-	_memdc.SelectObject (wxNullBitmap);
-	if (_backing_store) {
-		delete _backing_store;
+	if (_width > 0 && _height > 0) {
+		_val_scale = (_upper_bound - _lower_bound) / (_width);
+		
+		_memdc.SelectObject (wxNullBitmap);
+		if (_backing_store) {
+			delete _backing_store;
+		}
+		_backing_store = new wxBitmap(_width, _height);
+		
+		_memdc.SelectObject(*_backing_store);
+		_memdc.SetFont(GetFont());
 	}
-	_backing_store = new wxBitmap(_width, _height);
+}
 
- 	_memdc.SelectObject(*_backing_store);
-	_memdc.SetFont(GetFont());
-	
+void
+SliderBar::OnSize(wxSizeEvent & event)
+{
+	update_size();
 	event.Skip();
 }
 

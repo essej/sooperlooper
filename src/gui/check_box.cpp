@@ -92,7 +92,8 @@ CheckBox::CheckBox(wxWindow * parent, wxWindowID id, const wxString & label, boo
 	GetTextExtent(_label_str, &w, &h);
 	SetVirtualSizeHints (6 + _boxsize + w, max(_boxsize, h));
 	SetVirtualSize (6 + _boxsize + w, max(_boxsize, h));
-	
+
+	update_size();
 }
 
 CheckBox::~CheckBox()
@@ -157,18 +158,25 @@ void CheckBox::set_bg_border_color (const wxColour & col)
 
 
 void
-CheckBox::OnSize(wxSizeEvent & event)
+CheckBox::update_size()
 {
 	GetClientSize(&_width, &_height);
-	
-	_memdc.SelectObject (wxNullBitmap);
-	if (_backing_store) {
-		delete _backing_store;
+
+	if (_width > 0 && _height > 0) {
+		_memdc.SelectObject (wxNullBitmap);
+		if (_backing_store) {
+			delete _backing_store;
+		}
+		_backing_store = new wxBitmap(_width, _height);
+		_memdc.SelectObject(*_backing_store);
+		_memdc.SetFont(GetFont());
 	}
-	_backing_store = new wxBitmap(_width, _height);
-	_memdc.SelectObject(*_backing_store);
-	_memdc.SetFont(GetFont());
-	
+}
+
+void
+CheckBox::OnSize(wxSizeEvent & event)
+{
+	update_size();
 	event.Skip();
 }
 

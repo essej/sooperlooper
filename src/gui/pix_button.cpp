@@ -66,6 +66,8 @@ PixButton::PixButton(wxWindow * parent, wxWindowID id, bool bindable, const wxPo
 	
 	SetBackgroundColour (_bgcolor);
 	SetThemeEnabled(false);
+
+	update_size();
 }
 
 PixButton::~PixButton()
@@ -143,18 +145,25 @@ void PixButton::set_active(bool flag)
 }
 
 void
-PixButton::OnSize(wxSizeEvent & event)
+PixButton::update_size()
 {
 	GetClientSize(&_width, &_height);
 
-	_memdc.SelectObject (wxNullBitmap);
-	if (_backing_store) {
-		delete _backing_store;
+	if (_width > 0 && _height > 0) {
+		_memdc.SelectObject (wxNullBitmap);
+		if (_backing_store) {
+			delete _backing_store;
+		}
+		_backing_store = new wxBitmap(_width, _height);
+		
+		_memdc.SelectObject(*_backing_store);
 	}
-	_backing_store = new wxBitmap(_width, _height);
+}
 
- 	_memdc.SelectObject(*_backing_store);
-	
+void
+PixButton::OnSize(wxSizeEvent & event)
+{
+	update_size();
 	event.Skip();
 }
 
