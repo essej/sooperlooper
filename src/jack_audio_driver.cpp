@@ -272,3 +272,39 @@ JackAudioDriver::get_output_port_buffer (port_id_t port, nframes_t nframes)
 
 	return (sample_t*) jack_port_get_buffer (_output_ports[port-1], nframes);	
 }
+
+
+bool
+JackAudioDriver::get_transport_info (TransportInfo &info)
+{
+	if (!_jack) return false;
+	
+	jack_position_t tpos;
+	jack_transport_state_t tstate;
+	
+	tstate = jack_transport_query( _jack, &tpos);
+
+	switch ( tstate ) {
+	case JackTransportStopped:
+		info.state = TransportInfo::STOPPED;
+		break;
+	case JackTransportRolling:
+		info.state = TransportInfo::ROLLING;
+		break;
+	case JackTransportStarting:
+		info.state = TransportInfo::STOPPED;
+		break;
+	default:
+		break;
+		//errorLog( "[updateTransportInfo] Unknown jack transport state" );
+	}
+
+
+	if ( tpos.valid & JackPositionBBT ) {
+		info.bpm = tpos.beats_per_minute;
+	}
+
+	info.framepos = tpos.frame;
+
+	return true;
+}

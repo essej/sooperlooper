@@ -55,6 +55,8 @@ class JackAudioDriver
 	unsigned int get_input_port_count () { return _input_ports.size(); }
 	unsigned int get_output_port_count () { return _output_ports.size(); }
 
+	bool get_transport_info (TransportInfo &info);
+
 	
   protected:
 

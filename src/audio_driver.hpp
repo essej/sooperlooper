@@ -34,6 +34,19 @@ typedef uint32_t port_id_t;
 	
 	
 class Engine;
+
+
+struct TransportInfo
+{
+	enum State {
+		ROLLING=1,
+		STOPPED
+	};
+       
+	nframes_t framepos;
+	double bpm;
+	State state;
+};
 	
 class AudioDriver
 {
@@ -62,7 +75,9 @@ class AudioDriver
 	virtual void set_engine (Engine * engine) { _engine = engine; }
 	virtual Engine * get_engine () { return _engine; }
 
+	virtual bool get_transport_info (TransportInfo &info) { return false; }
 
+	
 	nframes_t get_samplerate() { return _samplerate; }
 	nframes_t get_buffersize() { return _buffersize; }
 

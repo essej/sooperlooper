@@ -681,10 +681,9 @@ Engine::process_nonrt_event (EventNonRT * event)
 			}
 		}
 		else if (gs_event->param == "tempo") {
-			if ((_sync_source == InternalTempoSync || _sync_source == NoSync)
-			    && gs_event->value > 0.0f) {
-				set_tempo((double) gs_event->value);
-			}
+			    if (gs_event->value > 0.0f) {
+				    set_tempo((double) gs_event->value);
+			    }
 		}
 		else if (gs_event->param == "eighth_per_cycle") {
 			if (gs_event->value > 0.0f) {
@@ -862,7 +861,7 @@ Engine::calculate_tempo_frames ()
 		quantize_value = _instances[0]->get_control_value (Event::Quantize);
 	}
 	
-	if (_sync_source == InternalTempoSync)
+	if (_sync_source == InternalTempoSync || _sync_source == JackSync)
 	{
 		if (quantize_value == QUANT_8TH) {
 			// calculate number of samples per eighth-note (assuming 2 8ths per beat)
@@ -1081,6 +1080,53 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 		}
 		//memset (_internal_sync_buf, 0, nframes * sizeof(float));
 
+	}
+	else if (_sync_source == JackSync) {
+
+		for (nframes_t n=offset; n < nframes; ++n) {
+			_internal_sync_buf[n]  = 0.0;
+		}
+				
+		TransportInfo info;
+		if (_driver->get_transport_info(info)) {
+
+			
+			if (_tempo != info.bpm) {
+				set_tempo(info.bpm);
+				calculate_tempo_frames ();
+				_tempo_changed = true;
+				// wake up mainloop safely
+				pthread_cond_signal (&_event_cond);
+			}
+
+			if (_tempo_frames > 0.0 && info.state == TransportInfo::ROLLING) {
+				nframes_t thisval = (nframes_t) lrint (fmod ((double) (info.framepos + offset), _tempo_frames));
+				nframes_t nextval = (nframes_t) lrint (fmod ((double) (info.framepos + offset + nframes), _tempo_frames));
+				nframes_t diff = lrint(_tempo_frames - thisval);
+				diff = (thisval == 0) ? 0 : diff;
+				
+				//cerr << "pos: " << info.framepos << "  tempoframes: " << _tempo_frames << "  this: " << thisval << "  next: " << nextval << endl;
+				
+				if ((thisval == 0 || nextval <= thisval) && diff < nframes) {
+					//cerr << "got tempo frame in this cycle: diff: " << diff << endl;
+					_internal_sync_buf[offset + diff]  = 1.0;
+				}
+			}
+
+			if (_quarter_note_frames > 0.0 && info.state == TransportInfo::ROLLING) {
+				nframes_t thisval = (nframes_t) lrint (fmod ((double) (info.framepos + offset), _quarter_note_frames));
+				nframes_t nextval = (nframes_t) lrint (fmod ((double) (info.framepos + offset + nframes), _quarter_note_frames));
+				nframes_t diff = lrint(_quarter_note_frames - thisval);
+				diff = (thisval == 0) ? 0 : diff;
+
+				//cerr << "pos: " << info.framepos << "  qframes: " << _quarter_note_frames << "  this: " << thisval << "  next: " << nextval << endl;
+				
+				if ((thisval == 0 || nextval <= thisval) && diff < nframes) {
+					//cerr << "got quarter frame in this cycle: diff: " << diff << endl;
+					hit_at = (int) diff;
+				}
+			}
+		}
 	}
 	else if ((int)_sync_source > 0 && (size_t)_sync_source <= _instances.size()) {
 		// a loop
