@@ -22,6 +22,7 @@
 #include "gui_frame.hpp"
 #include "gui_app.hpp"
 #include "looper_panel.hpp"
+#include "loop_control.hpp"
 
 using namespace SooperLooperGui;
 using namespace std;
@@ -52,12 +53,16 @@ GuiFrame::init()
 {
 	wxBoxSizer * mainSizer = new wxBoxSizer(wxVERTICAL);
 
-	wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
+	//wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	
 	//SetBackgroundColour(*wxBLACK);
 
-	LooperPanel * looperpan = new LooperPanel(this, -1);
+
 	
+	_loop_control = new LoopControl(::wxGetApp().get_host(), ::wxGetApp().get_port());
+	
+	LooperPanel * looperpan = new LooperPanel(_loop_control, this, -1);
+	looperpan->set_index(0);
 
 	mainSizer->Add (looperpan, 0, wxEXPAND|wxALL, 5);
 	

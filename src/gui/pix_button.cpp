@@ -124,13 +124,14 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 		ev.Skip();
 		return;
 	}
-	
+
 	if (ev.Moving()) {
 		// do nothing
 	}
 	else if (ev.ButtonDown())
 	{
 		_bstate = Selected;
+		pressed (); // emit
 		CaptureMouse();
 		Refresh();
 	}
@@ -138,6 +139,12 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 	{
 		_bstate = Normal;
 		ReleaseMouse();
+		released (); // emit
+		Refresh();
+	}
+	else if (ev.ButtonDClick()) {
+		_bstate = Selected;
+		pressed (); // emit
 		Refresh();
 	}
 	else if (ev.Entering())

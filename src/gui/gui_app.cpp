@@ -53,7 +53,7 @@ using namespace std;
 // static object for many reasons) and also declares the accessor function
 // wxGetApp() which will return the reference of the right type (i.e. MyApp and
 // not wxApp)
-IMPLEMENT_APP(GuiApp)
+IMPLEMENT_APP(SooperLooperGui::GuiApp)
 
 // ============================================================================
 // implementation
@@ -65,7 +65,7 @@ IMPLEMENT_APP(GuiApp)
 
 	
 GuiApp::GuiApp()
-	: _frame(0)
+	: _frame(0), _host(wxT("")), _port(9951)
 {
 }
 
@@ -211,3 +211,6 @@ bool GuiApp::OnInit()
 	// application would exit immediately.
 	return TRUE;
 }
+
+
+

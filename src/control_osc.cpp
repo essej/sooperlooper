@@ -304,7 +304,7 @@ int ControlOSC::get_handler(const char *path, const char *types, lo_arg **argv, 
 	float val = _engine->get_control_value (to_control_t(ctrl), info->instance);
 
 	// cerr << "sending to " << returl << "  path: " << retpath << "  ctrl: " << ctrl << "  val: " <<  val << endl;
-	if (lo_send(addr, retpath.c_str(), "sf", ctrl.c_str(), val) == -1) {
+	if (lo_send(addr, retpath.c_str(), "isf", info->instance, ctrl.c_str(), val) == -1) {
 		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
 	}
 	

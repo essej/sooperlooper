@@ -44,17 +44,24 @@ class GuiApp : public wxApp
 	GuiFrame * getFrame() { return _frame; }
 
 	void setupSignals();
+
+	wxString get_host() { return _host; }
+	int get_port() { return _port; }
 	
   protected:
 	GuiFrame * _frame;
 
+	wxString _host;
+	int  _port;
+      
+
+};
+
 
 
 };
 
+DECLARE_APP(SooperLooperGui::GuiApp);
 
-DECLARE_APP(GuiApp);
-
-};
 
 #endif

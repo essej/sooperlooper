@@ -31,7 +31,7 @@
 
 namespace SooperLooperGui {
 
-
+class LoopControl;
 
 class GuiFrame
 	: public wxFrame,  public SigC::Object
@@ -54,6 +54,8 @@ public:
 protected:
 
 	void init();
+
+	LoopControl * _loop_control;
 	
 private:
     // any class wishing to process wxWindows events must use this macro

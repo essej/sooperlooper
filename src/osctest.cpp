@@ -184,10 +184,10 @@ static int post_event(char cmd)
 static int ctrl_handler(const char *path, const char *types, lo_arg **argv, int argc,
 			 void *data, void *user_data)
 {
-	// 1st arg is ctrl string, 2nd is float value
-	
-	string ctrl(&argv[0]->s);
-	float val  = argv[1]->f;
+	// 1st arg is instance, 2nd ctrl string, 3nd is float value
+	//int index = argv[0]->i;
+	string ctrl(&argv[1]->s);
+	float val  = argv[2]->f;
 
 	params_val_map[ctrl] = val;
 
@@ -301,7 +301,7 @@ int main(int argc, char *argv[])
     our_url = lo_server_get_url (osc_server);
     
     /* add handler for control param callbacks, first arg ctrl string, 2nd arg value */
-    lo_server_add_method(osc_server, "/ctrl", "sf", ctrl_handler, NULL);
+    lo_server_add_method(osc_server, "/ctrl", "isf", ctrl_handler, NULL);
 
     // start up our thread
     pthread_create (&osc_thread, NULL, osc_receiver, NULL);
