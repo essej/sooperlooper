@@ -577,6 +577,7 @@ LooperPanel::update_controls()
 // 	}
 
 	bool state_updated = _loop_control->is_updated(_index, "state");
+	bool pos_updated = _loop_control->is_updated(_index, "loop_pos");
 	
 	if (_time_panel->update_time()) {
 		_time_panel->Refresh(false);
@@ -584,6 +585,13 @@ LooperPanel::update_controls()
 
 	if (state_updated) {
 		update_state();
+	}
+
+	if (pos_updated && _last_state != LooperStateScratching) {
+		float looplen;
+		_loop_control->get_value(_index, "loop_len", looplen);
+		_loop_control->get_value(_index, "loop_pos", val);
+		_scratch_control->set_value (val / looplen);
 	}
 }
 

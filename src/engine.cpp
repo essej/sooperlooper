@@ -1077,35 +1077,37 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			_internal_sync_buf[n]  = 1.0;
 		}
 
-		// calc new tempo
-		nframes_t cycleframes = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::CycleLength) * _driver->get_samplerate());
-		double ntempo = 0.0;
-		if (cycleframes > 0) {
-			ntempo = (_driver->get_samplerate() * 30.0 * _eighth_cycle / cycleframes);
-		}
-
-		if (ntempo != _tempo) {
-			//cerr << "new tempo is: " << ntempo << endl;
+		if (_instances[_sync_source-1]->get_control_value(Event::State) != LooperStateRecording) {
+			// calc new tempo
+			nframes_t cycleframes = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::CycleLength) * _driver->get_samplerate());
+			double ntempo = 0.0;
+			if (cycleframes > 0) {
+				ntempo = (_driver->get_samplerate() * 30.0 * _eighth_cycle / cycleframes);
+			}
 			
-			_tempo = ntempo;
-			_quarter_counter = 0;
-			_tempo_counter = 0;
-			calculate_tempo_frames ();
-			_tempo_changed = true;
-			// wake up mainloop safely
-			pthread_cond_signal (&_event_cond);
-		}
-
-		// just calculate quarter note beats for update
-		if (_quarter_note_frames > 0.0) {
-			nframes_t currpos  = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::LoopPosition) * _driver->get_samplerate());
-			nframes_t loopframes = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::LoopLength) * _driver->get_samplerate());
-			nframes_t testval = (((currpos + nframes) % loopframes) % (nframes_t)_quarter_note_frames);
+			if (ntempo != _tempo) {
+				//cerr << "new tempo is: " << ntempo << endl;
+				
+				_tempo = ntempo;
+				_quarter_counter = 0;
+				_tempo_counter = 0;
+				calculate_tempo_frames ();
+				_tempo_changed = true;
+				// wake up mainloop safely
+				pthread_cond_signal (&_event_cond);
+			}
 			
-			if (testval <= nframes || testval == 0) {
-				// inaccurate
-				//cerr << "quarter hit" << endl;
-				hit_at = (int) 0;
+			// just calculate quarter note beats for update
+			if (_quarter_note_frames > 0.0) {
+				nframes_t currpos  = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::LoopPosition) * _driver->get_samplerate());
+				nframes_t loopframes = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::LoopLength) * _driver->get_samplerate());
+				nframes_t testval = (((currpos + nframes) % loopframes) % (nframes_t)_quarter_note_frames);
+				
+				if (testval <= nframes || testval == 0) {
+					// inaccurate
+					//cerr << "quarter hit" << endl;
+					hit_at = (int) 0;
+				}
 			}
 		}
 		

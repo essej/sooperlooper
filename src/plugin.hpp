@@ -71,6 +71,26 @@ enum {
 	QUANT_LOOP
 };
 
+enum LooperState
+{
+	LooperStateUnknown = -1,
+	LooperStateOff = 0,
+	LooperStateWaitStart,
+	LooperStateRecording,
+	LooperStateWaitStop,
+	LooperStatePlaying,
+	LooperStateOverdubbing,
+	LooperStateMultiplying,
+	LooperStateInserting,
+	LooperStateReplacing,
+	LooperStateDelay,
+	LooperStateMuted,
+	LooperStateScratching,
+	LooperStateOneShot
+
+};
+
+	
 };
 
 /*****************************************************************************/

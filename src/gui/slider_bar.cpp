@@ -394,8 +394,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 	else if (ev.GetEventType() == wxEVT_MOUSEWHEEL)
 	{
 		// don't get the events right now
-		
-		float fscale = 0.05f * (ev.ControlDown() ? 0.5f: 1.0f);
+		float fscale = 0.02f * (ev.ControlDown() ? 0.5f: 1.0f);
 		float newval;
 		
 		if (ev.GetWheelRotation() > 0) {
@@ -472,8 +471,9 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		// todo editor
 		show_text_ctrl ();
 	}
-
-	ev.Skip();
+	else {
+		ev.Skip();
+	}
 }
 
 
