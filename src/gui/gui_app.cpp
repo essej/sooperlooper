@@ -126,9 +126,11 @@ void
 GuiApp::parse_options (int argc, char **argv)
 {
 	int longopt_index = 0;
-	char c;
+	int c;
 	
-	while ((c = getopt_long (argc, argv, optstring, long_options, &longopt_index)) != -1) {
+	while ((c = getopt_long (argc, argv, optstring, long_options, &longopt_index)) >= 0) {
+		if (c >= 255) break;
+		
 		switch (c) {
 		case 1:
 			/* getopt signals end of '-' options */
@@ -157,6 +159,11 @@ GuiApp::parse_options (int argc, char **argv)
 			_show_usage++;
 			break;
 		}
+
+		if (_show_usage > 0) {
+			break;
+		}
+		
 	}
 
 	_engine_argv = argv + optind;
