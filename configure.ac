@@ -7,7 +7,7 @@ SOOP_MAJOR_VERSION=1
 SOOP_MINOR_VERSION=0
 SOOP_MICRO_VERSION=0
 
-BETA=dev19
+BETA=dev20
 
 AC_SUBST(SOOP_MAJOR_VERSION)
 AC_SUBST(SOOP_MINOR_VERSION)
@@ -65,7 +65,7 @@ AC_SUBST(JACK_CFLAGS)
 #AC_SUBST(GTKMM_LIBS)
 #AC_SUBST(GTKMM_CFLAGS)
 
-PKG_CHECK_MODULES(LOSC, liblo >= 0.6)
+PKG_CHECK_MODULES(LOSC, liblo >= 0.10)
 AC_SUBST(LOSC_LIBS)
 AC_SUBST(LOSC_CFLAGS)
 
@@ -139,7 +139,7 @@ AC_ARG_ENABLE(debug,
       [  --enable-debug    not optimized and includes debug symbols],
       [ if test "x$enable_debug" != "xno" ; then
           CXXFLAGS="-g -Wall -D_REENTRANT -DDEBUG "
-          CFLAGS="$CFLAGS $CXXFLAGS "
+          CFLAGS="$CXXFLAGS "
 	fi
       ],
         [

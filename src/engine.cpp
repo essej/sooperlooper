@@ -282,7 +282,7 @@ Engine::process (nframes_t nframes)
 				}
 			}
 				
-			if (fragpos < usedframes || fragpos >= nframes) {
+			if (fragpos < (int) usedframes || fragpos >= (int) nframes) {
 				// bad fragment pos
 #ifdef DEBUG
 				cerr << "BAD FRAGMENT POS: " << fragpos << endl;

@@ -51,7 +51,7 @@ using namespace std;
 #include "ladspa.h"
 
 /*****************************************************************************/
-#define LOOPDEBUG
+//#define LOOPDEBUG
 
 #ifdef LOOPDEBUG
 #define DBG(x) x
@@ -67,7 +67,7 @@ using namespace std;
 #define SAMPLE_MEMORY 40.0
 #endif
 
-#define XFADE_SAMPLES 512
+#define XFADE_SAMPLES 128
 
 // settle time for tap trigger (trigger if two changes
 // happen within at least X samples)
@@ -321,6 +321,10 @@ typedef struct {
 	LADSPA_Data fFeedbackCurr;
 	LADSPA_Data fFeedbackTarget;
 
+	LADSPA_Data fLoopFadeAtten;
+	LADSPA_Data fLoopFadeDelta;
+
+	LADSPA_Data fLoopXfadeTime;
 	
 	/* Ports:
 	   ------ */
@@ -464,11 +468,6 @@ static bool invalidateTails (SooperLooper * pLS, unsigned long bufstart, unsigne
 
 static LoopChunk * ensureLoopSpace(SooperLooper* pLS, LoopChunk *loop, unsigned long morelength, LoopChunk * pendsrc)
 {
-	unsigned long newStart;
-	unsigned long lastStop;
-	LoopChunk *  tmploop;
-	
-	
 	// TODO: check to see if we'll require more space than the buffer allows
 	
 	if (!loop) {
@@ -743,6 +742,11 @@ activateSooperLooper(LADSPA_Handle Instance) {
   pLS->fRateCurr = pLS->fRateTarget = *pLS->pfRate;
   pLS->fScratchPosCurr = pLS->fScratchPosTarget = *pLS->pfScratchPos;
 
+  pLS->fLoopFadeDelta = 0.0f;
+  pLS->fLoopFadeAtten = 0.0f;
+  // todo make this a port, for now 2ms
+  //pLS->fLoopXfadeSamples = 0.002 * pLS->fSampleRate;
+  
   pLS->state = STATE_PLAY;
 
   clearLoopChunks(pLS);
@@ -958,6 +962,8 @@ static LoopChunk* transitionToNext(SooperLooper *pLS, LoopChunk *loop, int nexts
 static LoopChunk* beginMultiply(SooperLooper *pLS, LoopChunk *loop)
 {
    LoopChunk * srcloop = loop;
+   int xfadeSamples = (int) (*pLS->pfXfadeSamples);
+   if (xfadeSamples < 1) xfadeSamples = 1;
    
    // make new loop chunk
    loop = pushNewLoopChunk(pLS, loop->lCycleLength, loop);
@@ -984,6 +990,7 @@ static LoopChunk* beginMultiply(SooperLooper *pLS, LoopChunk *loop)
       }
 
       pLS->state = STATE_MULTIPLY;
+      pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
 
       // start out with the single cycle as our length as a marker
       loop->lLoopLength = srcloop->lCycleLength;
@@ -1052,6 +1059,8 @@ static LoopChunk* beginMultiply(SooperLooper *pLS, LoopChunk *loop)
 static LoopChunk * endMultiply(SooperLooper *pLS, LoopChunk *loop, int nextstate)
 {
    LoopChunk *srcloop;
+   int xfadeSamples = (int) (*pLS->pfXfadeSamples);
+   if (xfadeSamples < 1) xfadeSamples = 1;
    
    srcloop = loop->srcloop;
 		    
@@ -1099,6 +1108,8 @@ static LoopChunk * endMultiply(SooperLooper *pLS, LoopChunk *loop, int nextstate
 	 pLS->nextState = nextstate;
       }
    }
+
+   pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
    
    return loop;
 }
@@ -1107,6 +1118,9 @@ static LoopChunk * endMultiply(SooperLooper *pLS, LoopChunk *loop, int nextstate
 static LoopChunk * beginInsert(SooperLooper *pLS, LoopChunk *loop)
 {
    LoopChunk *srcloop = loop;
+   int xfadeSamples = (int) (*pLS->pfXfadeSamples);
+   if (xfadeSamples < 1) xfadeSamples = 1;
+   
    // try to get a new one with at least 1 cycle more length
    loop = pushNewLoopChunk(pLS, loop->lLoopLength + loop->lCycleLength, loop);
 
@@ -1134,6 +1148,7 @@ static LoopChunk * beginInsert(SooperLooper *pLS, LoopChunk *loop)
       }
 
       pLS->state = STATE_INSERT;
+      pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
       
       // start out with the single cycle extra as our length
       loop->lLoopLength = srcloop->lLoopLength + srcloop->lCycleLength;
@@ -1193,6 +1208,9 @@ static LoopChunk * beginInsert(SooperLooper *pLS, LoopChunk *loop)
 static LoopChunk * endInsert(SooperLooper *pLS, LoopChunk *loop, int nextstate)
 {
    LoopChunk *srcloop;
+
+   int xfadeSamples = (int) (*pLS->pfXfadeSamples);
+   if (xfadeSamples < 1) xfadeSamples = 1;
    
    srcloop = loop->srcloop;
 
@@ -1211,6 +1229,8 @@ static LoopChunk * endInsert(SooperLooper *pLS, LoopChunk *loop, int nextstate)
 	       loop->lMarkEndL, loop->lMarkEndH, loop->lLoopLength, loop->lRemLen)); 
 
    pLS->nextState = nextstate;
+
+   pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
    
    return loop;
    
@@ -1220,12 +1240,17 @@ static LoopChunk * endInsert(SooperLooper *pLS, LoopChunk *loop, int nextstate)
 static LoopChunk * beginOverdub(SooperLooper *pLS, LoopChunk *loop)
 {
    LoopChunk * srcloop = loop;
+   int xfadeSamples = (int) (*pLS->pfXfadeSamples);
+   if (xfadeSamples < 1) xfadeSamples = 1;
+
    // make new loop chunk
    loop = pushNewLoopChunk(pLS, loop->lLoopLength, loop);
    if (loop) {
       pLS->state = STATE_OVERDUB;
       // always the same length as previous loop
 
+      pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
+      
       if (!loop->prev) {
 	      // then we are overwriting our own source
 	      // lets just back out and revalidate the passed in loop
@@ -1294,6 +1319,8 @@ static LoopChunk * beginOverdub(SooperLooper *pLS, LoopChunk *loop)
 static LoopChunk * beginReplace(SooperLooper *pLS, LoopChunk *loop)
 {
    LoopChunk * srcloop = loop;
+   int xfadeSamples = (int) (*pLS->pfXfadeSamples);
+   if (xfadeSamples < 1) xfadeSamples = 1;
 
    // NOTE: THIS SHOULD BE IDENTICAL TO OVERDUB
    // make new loop chunk
@@ -1301,6 +1328,8 @@ static LoopChunk * beginReplace(SooperLooper *pLS, LoopChunk *loop)
    if (loop)
    {
       pLS->state = STATE_REPLACE;
+
+      pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
 
       if (!loop->prev) {
 	      // then we are overwriting our own source
@@ -1372,12 +1401,16 @@ static LoopChunk * beginReplace(SooperLooper *pLS, LoopChunk *loop)
 static LoopChunk * transitionToNext(SooperLooper *pLS, LoopChunk *loop, int nextstate)
 {
    LoopChunk * newloop = loop;
+
+   int xfadeSamples = (int) (*pLS->pfXfadeSamples);
+   if (xfadeSamples < 1) xfadeSamples = 1;
    
    switch(nextstate)
    {
       case STATE_PLAY:
       case STATE_MUTE:
-	 // nothing special
+	      // nothing special
+	      pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
 	 break;
 
       case STATE_OVERDUB:
@@ -1461,7 +1494,7 @@ runSooperLooper(LADSPA_Handle Instance,
   LADSPA_Data fScratchPos = 0.0f;
   LADSPA_Data rateDelta=0.0f, scratchDelta=0.0f, rateTarget=1.0f, scratchTarget=0.0f;
   LADSPA_Data fTrigThresh = 0.0f;
-  
+
   int lMultiCtrl=-1, lMultiTens=0;  
   LADSPA_Data fTapTrig = 0.0f;
   
@@ -1509,7 +1542,8 @@ runSooperLooper(LADSPA_Handle Instance,
      pLS->pfRedoTapMode = &pLS->fRedoTapMode;
 
   xfadeSamples = (int) (*pLS->pfXfadeSamples);
-
+  if (xfadeSamples < 1) xfadeSamples = 1;
+  
   if (pLS->pfTrigThresh) {
      fTrigThresh = *pLS->pfTrigThresh;
   }
@@ -1658,6 +1692,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		      if (fSyncMode == 0.0f && (fTrigThresh==0.0)) {
 			      // skip trig stop
 			      pLS->state = STATE_PLAY;
+			      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		      }
 		      else {
 			      pLS->state = STATE_TRIG_STOP;
@@ -1727,6 +1762,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		      // don't sync overdub ops
 		      pLS->state = STATE_PLAY;
 		      DBG(fprintf(stderr,"Entering PLAY state\n"));
+		      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		      
 		      break;
 	      case STATE_MULTIPLY:
@@ -1895,6 +1931,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
 			      pLS->state = STATE_PLAY;
 			      DBG(fprintf(stderr,"Entering PLAY state\n"));
+			      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		      } else {
 			      pLS->nextState = STATE_PLAY;
 			      pLS->waitingForSync = 1;
@@ -2361,6 +2398,10 @@ runSooperLooper(LADSPA_Handle Instance,
 		    loop->srcloop = NULL;
 		    pLS->nextState = -1;
 		    loop->dOrigFeedback = fFeedback;
+
+		    // cause input-to-loop fade in
+		    pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
+
 		 }
 		 else {
 		    DBG(fprintf(stderr, "out of memory! back to PLAY mode\n"));
@@ -2394,7 +2435,9 @@ runSooperLooper(LADSPA_Handle Instance,
               fDry += dryDelta;
 	      fFeedback += feedbackDelta;
 	      fScratchPos += scratchDelta;
-		   
+
+	      pLS->fLoopFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopFadeDelta);
+	      
 // 	      if (pLS->waitingForSync && (fSyncMode == 0.0 || pfSyncInput[lSampleIndex] != 0.0))
 // 	      {
 // 		      DBG(fprintf(stderr,"Finishing synced record\n"));
@@ -2425,7 +2468,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      
 	      fInputSample = pfInput[lSampleIndex];
 	      
-	      *pLoopSample = fInputSample;
+	      *pLoopSample = pLS->fLoopFadeAtten * fInputSample;
 	      
 	      // increment according to current rate
 	      loop->dCurrPos = loop->dCurrPos + fRate;
@@ -2457,6 +2500,7 @@ runSooperLooper(LADSPA_Handle Instance,
               fDry += dryDelta;
 	      fFeedback += feedbackDelta;
 	      fScratchPos += scratchDelta;
+	      pLS->fLoopFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopFadeDelta);
 		   
 	      lCurrPos = (unsigned int) loop->dCurrPos;
 	      pLoopSample = & pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask];
@@ -2464,8 +2508,12 @@ runSooperLooper(LADSPA_Handle Instance,
 	      fInputSample = pfInput[lSampleIndex];
 	      
 	      
-	      if ((fSyncMode == 0.0f && ((fInputSample > fTrigThresh) || (fTrigThresh==0.0)))
-		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0))
+// 	      if ((fSyncMode == 0.0f && ((fInputSample > fTrigThresh) || (fTrigThresh==0.0)))
+// 		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0))
+
+	      // exit immediately if syncmode is off, or we have a sync
+	      if ((fSyncMode == 0.0f)
+ 		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0))
 	      {
 		 DBG(fprintf(stderr,"Entering %d state\n", pLS->nextState));
 		 //pLS->state = pLS->nextState;
@@ -2479,7 +2527,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      }
 
 	      
-	      *(pLoopSample) = fInputSample;
+	      *(pLoopSample) = pLS->fLoopFadeAtten * fInputSample;
 	      
 	      // increment according to current rate
 	      loop->dCurrPos = loop->dCurrPos + fRate;
@@ -2873,7 +2921,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
 		    loop->lLoopLength = loop->lCycles * loop->lCycleLength;
 		    
-		    DBG(fprintf(stderr, "Looplength = %d   cycles=%d\n", loop->lLoopLength, loop->lCycles));
+		    DBG(fprintf(stderr, "Looplength = %lu   cycles=%lu\n", loop->lLoopLength, loop->lCycles));
 		    
 		    loop = transitionToNext(pLS, loop, pLS->nextState);
 		    DBG(fprintf(stderr,"Entering state %d from insert\n", pLS->state));
@@ -3028,7 +3076,7 @@ runSooperLooper(LADSPA_Handle Instance,
                  fDry += dryDelta;
      	         fFeedback += feedbackDelta;
 	         fScratchPos += scratchDelta;
-
+		 pLS->fLoopFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopFadeDelta);
 		 
 		      
 
@@ -3052,11 +3100,15 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // fill loops if necessary
 		 fillLoops(pLS, loop, lCurrPos);
 
-		 		    
+
+		 
 		 fInputSample = pfInput[lSampleIndex];
+
 		 fOutputSample =   tmpWet *  *(pLoopSample)
 		    + fDry * fInputSample;
 
+		 // we might add a bit from the input still during xfadeout
+		 *(pLoopSample) += pLS->fLoopFadeAtten * fInputSample;
 
 
 		 
@@ -3273,7 +3325,7 @@ runSooperLooper(LADSPA_Handle Instance,
   *pLS->pfWaiting = pLS->waitingForSync ? 1.0f: 0.0f;
   
   if (pLS->pfSecsFree) {
-	  *pLS->pfSecsFree = 0.0;	  
+	  *pLS->pfSecsFree = pLS->lBufferSize / pLS->fSampleRate;
 //      *pLS->pfSecsFree = (pLS->fTotalSecs) -
 // 	(pLS->headLoopChunk ?
 // 	 ((((unsigned)pLS->headLoopChunk->pLoopStop - (unsigned)pLS->pSampleBuf)
