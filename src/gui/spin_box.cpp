@@ -423,6 +423,7 @@ SpinBox::OnMouseEvents (wxMouseEvent &ev)
 	if (ev.Entering() && !_dragging) {
 		//_borderbrush.SetColour(_overbarcolor);
 		_direction = ev.GetX() < _width/2 ? -1.0f : 1.0f; 
+		update_bar_shape();
 		_barbrush.SetColour(_overbarcolor);
 		Refresh(false);
 	}

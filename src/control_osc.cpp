@@ -852,7 +852,6 @@ int ControlOSC::loop_add_handler(const char *path, const char *types, lo_arg **a
 	int discrete = 1;
 
 	if (argc > 2) {
-		cerr << "got discrete var" << endl;
 		discrete = argv[2]->i;
 	}
 

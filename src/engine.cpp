@@ -825,7 +825,6 @@ Engine::mainloop()
 		{
 			ConfigUpdateEvent cu_event(ConfigUpdateEvent::Send, -2, Event::Tempo, "", "", (float) _tempo);
 			_osc->finish_update_event (cu_event);
-			cerr << "sent tempo changed event: " << _tempo << endl;
 			_tempo_changed = false;
 		}
 
@@ -1415,7 +1414,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			}
 			
 			if (ntempo != _tempo) {
-				cerr << "new tempo is: " << ntempo << endl;
+				//cerr << "new tempo is: " << ntempo << endl;
 
 				set_tempo(ntempo);
 
