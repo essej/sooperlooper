@@ -58,6 +58,9 @@ enum {
 	ID_SaveButton,
 	ID_OnceButton,
 	ID_TrigButton,
+	ID_OneXButton,
+	ID_HalfXButton,
+	ID_DoubleXButton,
 	
 	ID_ThreshControl,
 	ID_FeedbackControl,
@@ -330,14 +333,24 @@ LooperPanel::init()
 
 	// rate stuff
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
- 	_rate_button = bitbutt = new PixButton(this, ID_RateButton);
-	load_bitmaps (bitbutt, wxT("rate"));
+//  	_rate_button = bitbutt = new PixButton(this, ID_RateButton);
+// 	load_bitmaps (bitbutt, wxT("rate"));
+//  	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 3);
+
+ 	_halfx_button = bitbutt = new PixButton(this, ID_HalfXButton);
+	load_bitmaps (bitbutt, wxT("half_rate"));
+ 	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 3);
+ 	_1x_button = bitbutt = new PixButton(this, ID_OneXButton);
+	load_bitmaps (bitbutt, wxT("1x_rate"));
+ 	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 3);
+	_2x_button = bitbutt = new PixButton(this, ID_DoubleXButton);
+	load_bitmaps (bitbutt, wxT("double_rate"));
  	rowsizer->Add (bitbutt, 0, wxTOP|wxLEFT, 3);
 
 	// rate control
 	_rate_control = slider = new SliderBar(this, ID_RateControl, 0.25f, 4.0f, 1.0f);
 	slider->set_units(wxT(""));
-	slider->set_label(wxT(""));
+	slider->set_label(wxT("rate"));
 	slider->set_style (SliderBar::CenterStyle);
 	slider->set_decimal_digits (3);
 	slider->SetFont(sliderFont);
@@ -345,7 +358,7 @@ LooperPanel::init()
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::slider_bind_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
 	
-	colsizer->Add (rowsizer, 0, wxEXPAND);
+	colsizer->Add (rowsizer, 0, wxEXPAND|wxLEFT, 1);
 
 	
 	mainSizer->Add (colsizer, 1, wxEXPAND|wxBOTTOM|wxRIGHT, 5);
@@ -440,7 +453,9 @@ LooperPanel::bind_events()
 	_mute_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("mute")));
 	_mute_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("mute")));
 
-	_rate_button->pressed.connect (slot (*this, &LooperPanel::rate_button_event));
+	_halfx_button->pressed.connect (bind (slot (*this, &LooperPanel::rate_button_event), 0.5f));
+	_1x_button->pressed.connect (bind (slot (*this, &LooperPanel::rate_button_event), 1.0f));
+	_2x_button->pressed.connect (bind (slot (*this, &LooperPanel::rate_button_event), 2.0f));
 
 	_scratch_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("scratch")));
 	_scratch_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("scratch")));
@@ -532,6 +547,8 @@ LooperPanel::update_controls()
 	if (_loop_control->is_updated(_index, "rate")) {
 		_loop_control->get_value(_index, "rate", val);
 		_rate_control->set_value (val);
+
+		update_rate_buttons(val);
 	}
 	if (_loop_control->is_updated(_index, "scratch_pos")) {
 		_loop_control->get_value(_index, "scratch_pos", val);
@@ -554,10 +571,10 @@ LooperPanel::update_controls()
 		_loop_control->get_value(_index, "use_feedback_play", val);
 		_play_feed_check->set_value (val > 0.0);
 	}
-	if (_loop_control->is_updated(_index, "use_rate")) {
-		_loop_control->get_value(_index, "use_rate", val);
-		_rate_button->set_active(val != 0.0f);
-	}
+// 	if (_loop_control->is_updated(_index, "use_rate")) {
+// 		_loop_control->get_value(_index, "use_rate", val);
+// 		_rate_button->set_active(val != 0.0f);
+// 	}
 
 	bool state_updated = _loop_control->is_updated(_index, "state");
 	
@@ -579,7 +596,7 @@ LooperPanel::update_state()
 	
 	_loop_control->get_state(_index, state, statestr);
 
-	_rate_button->Enable(false);
+	//_rate_button->Enable(false);
 	
 	// set not active for all state buttons
 	switch(_last_state) {
@@ -635,7 +652,7 @@ LooperPanel::update_state()
 		break;
 	case LooperStateScratching:
 		_scratch_button->set_active(true);
-		_rate_button->Enable(true);
+		//_rate_button->Enable(true);
 		break;
 	case LooperStateMuted:
 		_mute_button->set_active(true);
@@ -647,6 +664,30 @@ LooperPanel::update_state()
 	_last_state = state;
 }
 
+void
+LooperPanel::update_rate_buttons(float val)
+{
+	if (val == 1.0f) {
+		_1x_button->set_active(true);
+		_2x_button->set_active(false);
+		_halfx_button->set_active(false);
+	}
+	else if (val == 2.0f) {
+		_1x_button->set_active(false);
+		_2x_button->set_active(true);
+		_halfx_button->set_active(false);
+	}
+	else if (val == 0.5f) {
+		_1x_button->set_active(false);
+		_2x_button->set_active(false);
+		_halfx_button->set_active(true);
+	}
+	else {
+		_1x_button->set_active(false);
+		_2x_button->set_active(false);
+		_halfx_button->set_active(false);
+	}
+}
 
 void
 LooperPanel::pressed_events (wxString cmd)
@@ -686,13 +727,15 @@ LooperPanel::tap_button_event ()
 }
 
 void
-LooperPanel::rate_button_event ()
+LooperPanel::rate_button_event (float rate)
 {
-	float val = 0.0;
-	_loop_control->get_value(_index, "use_rate", val);
+// 	float val = 0.0;
+// 	_loop_control->get_value(_index, "use_rate", val);
 
-	val = val == 0.0f ? 1.0f : 0.0f;
-	post_control_event (wxString("use_rate"), val);
+// 	val = val == 0.0f ? 1.0f : 0.0f;
+// 	post_control_event (wxString("use_rate"), val);
+
+	post_control_event (wxString("rate"), rate);
 }
 
 void
@@ -798,6 +841,7 @@ LooperPanel::slider_events(float val, int id)
 	case ID_RateControl:
 		ctrl = wxT("rate");
 		val = _rate_control->get_value();
+		update_rate_buttons (val);
 		break;
 	default:
 		break;

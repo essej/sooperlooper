@@ -81,8 +81,9 @@ class LooperPanel
 	void clicked_events (wxString cmd);
 	void button_bind_events (wxString cmd);
 	void tap_button_event ();
-	void rate_button_event();
-
+	void rate_button_event(float rate);
+	void update_rate_buttons (float rate);
+	
 	void on_quantize_change (int index, wxString strval);
 
 	void got_binding_changed(SooperLooper::MidiBindInfo & info);
@@ -110,6 +111,9 @@ class LooperPanel
 	PixButton * _save_button;
 	PixButton * _once_button;
 	PixButton * _trig_button;
+	PixButton * _1x_button;
+	PixButton * _halfx_button;
+	PixButton * _2x_button;
 
 
 	SliderBar * _thresh_control;

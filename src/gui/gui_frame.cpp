@@ -42,6 +42,8 @@
 #include "keys_dialog.hpp"
 #include "midi_bind_dialog.hpp"
 
+#include "pixmaps/sl_logo.xpm"
+
 #include <pbd/xml++.h>
 
 using namespace SooperLooperGui;
@@ -189,6 +191,8 @@ GuiFrame::init()
 	
 	rowsizer->Add (1, 1, 1);
 
+	wxStaticBitmap * logobit = new wxStaticBitmap(this, -1, wxBitmap(sl_logo_xpm));
+	rowsizer->Add (logobit, 0, wxALIGN_BOTTOM);
 	
 	
 	_topsizer->Add (rowsizer, 0, wxALL|wxEXPAND, 4);
