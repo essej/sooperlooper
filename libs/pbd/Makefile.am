@@ -27,4 +27,5 @@ libpbd_a_SOURCES = \
      xml++.cc 
 
 EXTRA_DIST = libpbd.spec.in \
-	     libpbd.pc.in
+	     libpbd.pc.in \
+	     autogen.sh

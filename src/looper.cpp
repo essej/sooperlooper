@@ -45,7 +45,7 @@ extern	const LADSPA_Descriptor* ladspa_descriptor (unsigned long);
 const LADSPA_Descriptor* Looper::descriptor = 0;
 
 static const double MinResamplingRate = 0.25f;
-static const double MaxResamplingRate = 8.0f;
+static const double MaxResamplingRate = 4.0f;
 #ifdef HAVE_SAMPLERATE
 static const int SrcAudioQuality = SRC_LINEAR;
 #endif
@@ -462,7 +462,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 		// resample input
 		_src_data.src_ratio = _src_in_ratio;
 		_src_data.input_frames = nframes;
-		_src_data.output_frames = (long) ceil (nframes * _src_in_ratio);
+		_src_data.output_frames = (long) ceil (nframes * _src_in_ratio) + 1;
 		_src_data.data_in = (float *) _driver->get_input_port_buffer (_input_ports[i], nframes) + offset;
 		_src_data.data_out = _src_in_buffer;
 		src_process (_in_src_states[i], &_src_data);
@@ -470,12 +470,12 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 
 		alt_frames = _src_data.output_frames_gen;
 
-		if (i==0 && _src_data.output_frames != alt_frames) {
-			cerr << "1 ---- sup out: " << _src_data.output_frames << "  gen: " << alt_frames << endl;
-		}
-		if (i==0 && _src_data.input_frames != _src_data.input_frames_used) {
-			cerr << "2 sup in: " << _src_data.input_frames << "  used: " << _src_data.input_frames_used << endl;
-		}
+// 		if (i==0 && _src_data.output_frames != alt_frames) {
+// 			//cerr << "1 ---- sup out: " << _src_data.output_frames << "  gen: " << alt_frames << endl;
+// 		}
+// 		if (i==0 && _src_data.input_frames != _src_data.input_frames_used) {
+// 			cerr << "2 sup in: " << _src_data.input_frames << "  used: " << _src_data.input_frames_used << endl;
+// 		}
 		
 		/* (re)connect audio ports */
 		
@@ -505,18 +505,29 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 			_src_data.output_frames = nframes;
 		}
 		else {
-			_src_data.output_frames = (long) ceil (ceil(nframes * _src_in_ratio) * _src_out_ratio);
+			//_src_data.output_frames = (long) ceil (ceil(nframes * _src_in_ratio) * _src_out_ratio);
+			_src_data.output_frames = nframes;
 		}
 		_src_data.data_in = _src_in_buffer;
 		_src_data.data_out = (float *) _driver->get_output_port_buffer (_output_ports[i], nframes) + offset;
 		src_process (_out_src_states[i], &_src_data);
 
-		if (i==0 && _src_data.output_frames_gen != nframes) {
-			cerr << "3 oframes: " << _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << " nframes: " << nframes<< endl;
-				
-		}
-		if (i==0 && _src_data.input_frames != _src_data.input_frames_used) {
-			cerr << "4 out sup in: " << _src_data.input_frames << "  used: " << _src_data.input_frames_used << endl;
+// 		if (i==0 && _src_data.input_frames != _src_data.input_frames_used) {
+// 			cerr << "3 out sup in: " << _src_data.input_frames << "  used: " << _src_data.input_frames_used << endl;
+// 		}
+		
+		if (_src_data.output_frames_gen < (long) nframes) {
+			//cerr << "4 oframes: " << _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << " nframes: " << nframes<< endl;
+			// reread
+			long leftover = nframes - _src_data.output_frames_gen;
+			_src_data.data_out = _src_data.data_out + _src_data.output_frames_gen;
+			_src_data.data_in = _src_data.data_in + _src_data.input_frames_used - 1;
+			_src_data.input_frames = 1;
+			_src_data.output_frames = leftover;
+			src_process (_out_src_states[i], &_src_data);
+
+			//cerr << "4.5 oframes: " << _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << " leftover: " << leftover << endl;
+			
 		}
 		
 		//cerr << "out altframes: " << alt_frames << "  output: " <<  _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << endl;

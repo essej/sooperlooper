@@ -870,7 +870,7 @@ ControlOSC::send_registered_updates(string ctrl, float val, int instance)
 	}
 	else {
 #ifdef DEBUG
-		cerr << "not in map" << endl;
+		cerr << "not in map: " << instance << " ctrL: " << ctrl << endl;
 #endif
 	}
 }

@@ -38,7 +38,7 @@ libmidipp_a_SOURCES      = \
 
 XTRA_SRC = alsa_sequencer_midiport.cc coremidi_midiport.cc
 EXTRA_DIST = $(XTRA_SRC) libmidi++.spec.in \
-	     libmidi++.pc.in
+	     libmidi++.pc.in autogen.sh
 
 #bin_DIR = .
 #noinst_PROGRAMS = mmc miditrace

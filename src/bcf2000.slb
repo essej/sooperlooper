@@ -25,7 +25,7 @@
 2 cc 7  set	feedback	0	0.0	1.0		
 3 cc 7  set	rec_thresh	0	0.0	1.0	gain	
 6 cc 7  set	scratch_pos	0	0.0	1.0		
-7 cc 7  set	rate		0	-2.0	8.0		
+7 cc 7  set	rate		0	0.25	4.0		
 
 # 0 cc 4  set	quantize	0	0	1		
 # 0 cc 5  set	round		0	0	1		

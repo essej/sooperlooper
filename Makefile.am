@@ -8,6 +8,6 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-EXTRA_DIST = autogen.sh configure OSC
+EXTRA_DIST = autogen.sh configure OSC top_marker
 SUBDIRS =  libs src
 

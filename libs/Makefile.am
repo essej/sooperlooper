@@ -5,3 +5,5 @@ MAINTAINERCLEANFILES = autom4te.cache Makefile.in configure aclocal.m4 \
 
 SUBDIRS = @subdirs@
 
+EXTRA_DIST = autogen.sh
+
