@@ -172,9 +172,9 @@ ControlOSC::on_loop_added (int instance)
 	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/load_loop", instance);
 	lo_server_add_method(_osc_server, tmpstr, "sss", ControlOSC::_loadloop_handler, new CommandInfo(this, instance, Event::type_control_request));
 
-	// save loop:  s:filename  s:returl  s:retpath
+	// save loop:  s:filename  s:format s:endian s:returl  s:retpath
 	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/save_loop", instance);
-	lo_server_add_method(_osc_server, tmpstr, "sss", ControlOSC::_saveloop_handler, new CommandInfo(this, instance, Event::type_control_request));
+	lo_server_add_method(_osc_server, tmpstr, "sssss", ControlOSC::_saveloop_handler, new CommandInfo(this, instance, Event::type_control_request));
 	
 	// register_update args= s:ctrl s:returl s:retpath
 	snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/register_update", instance);
@@ -428,14 +428,35 @@ int ControlOSC::loadloop_handler(const char *path, const char *types, lo_arg **a
 
 int ControlOSC::saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
 {
-
-	// first arg is fname, 2nd is return URL string 3rd is retpath
+	// save loop:  s:filename  s:format s:endian s:returl  s:retpath
 	string fname (&argv[0]->s);
-	string returl (&argv[1]->s);
-	string retpath (&argv[2]->s);
+	string format (&argv[1]->s);
+	string endian (&argv[2]->s);
+	string returl (&argv[3]->s);
+	string retpath (&argv[4]->s);
 
+	LoopFileEvent::FileFormat fmt = LoopFileEvent::FormatFloat;
+	LoopFileEvent::Endian end = LoopFileEvent::LittleEndian;
+
+	if (format == "float") {
+		fmt = LoopFileEvent::FormatFloat;
+	}
+	else if (format == "pcm16") {
+		fmt = LoopFileEvent::FormatPCM16;
+	}
+	else if (format == "pcm24") {
+		fmt = LoopFileEvent::FormatPCM24;
+	}
+	else if (format == "pcm32") {
+		fmt = LoopFileEvent::FormatPCM32;
+	}
+
+	if (endian == "big") {
+		end = LoopFileEvent::BigEndian;
+	}
+	
 	// push this onto a queue for the main event loop to process
-	_engine->push_nonrt_event ( new LoopFileEvent (LoopFileEvent::Save, info->instance, fname, returl, retpath));
+	_engine->push_nonrt_event ( new LoopFileEvent (LoopFileEvent::Save, info->instance, fname, returl, retpath, fmt, end));
 	
 	return 0;
 }

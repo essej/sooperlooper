@@ -67,7 +67,12 @@ class LoopControl
 
 	bool post_add_loop();
 	bool post_remove_loop();
+
+	bool post_save_loop(int index, wxString fname, wxString format=wxT("float"), wxString endian=wxT("little"));
+	bool post_load_loop(int index, wxString fname);
 	
+	bool is_engine_local();
+	wxString get_engine_host() { return _host; }
 	
 	void request_values (int index);
 	void request_all_values (int index);

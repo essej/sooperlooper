@@ -135,7 +135,7 @@ static int do_control_change(char cmd)
 			lo_send(addr, "/sl/-1/load_loop", "sss", fname, our_url.c_str(), "/blah");
 		}
 		else if (cmd == 'a') {
-			lo_send(addr, "/sl/-1/save_loop", "sss", fname, our_url.c_str(), "/blah");
+			lo_send(addr, "/sl/-1/save_loop", "sssss", fname, "float", "little", our_url.c_str(), "/blah");
 		}
 		else {
 			lo_send(addr, "/sl/-1/set", "sf", control, val);

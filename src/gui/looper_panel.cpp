@@ -231,7 +231,7 @@ LooperPanel::init()
 	load_bitmaps (bitbutt, wxT("save"));
 	lilcolsizer->Add (bitbutt, 0, wxTOP, 3);
 	
-	rowsizer->Add(lilcolsizer, 0, wxTOP, 2);
+	rowsizer->Add(lilcolsizer, 0, wxTOP|wxLEFT, 2);
 	
 	
  	_mute_button = bitbutt = new PixButton(this, ID_MuteButton);
@@ -345,6 +345,9 @@ LooperPanel::bind_events()
 
 	_scratch_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("scratch")));
 	_scratch_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("scratch")));
+
+	_save_button->clicked.connect (bind (slot (*this, &LooperPanel::clicked_events), wxString("save")));
+	_load_button->clicked.connect (bind (slot (*this, &LooperPanel::clicked_events), wxString("load")));
 	
 }
 
@@ -532,6 +535,61 @@ LooperPanel::released_events (wxString cmd)
 }
 
 void
+LooperPanel::clicked_events (wxString cmd)
+{
+	if (cmd == wxT("save"))
+	{
+		// popup local file dialog if we are local
+		if (!_loop_control->is_engine_local()) {
+
+			wxString filename = ::wxFileSelector(wxT("Choose file to save loop"), wxT(""), wxT(""), wxT(".wav"), wxT("*.*"), wxSAVE|wxCHANGE_DIR);
+			if ( !filename.empty() )
+			{
+				// todo: specify format
+				_loop_control->post_save_loop (_index, filename);
+			}
+		}
+		else {
+			// popup basic filename text entry
+			wxString filename = ::wxGetTextFromUser(wxString::Format("Choose file to save on remote host '%s'",
+										 _loop_control->get_engine_host().c_str())
+								, wxT("Save Loop"));
+
+			if (!filename.empty()) {
+				// todo: specify format
+				_loop_control->post_save_loop (_index, filename);
+			}
+		}
+
+		
+		
+	}
+	else if (cmd == wxT("load"))
+	{
+		if (!_loop_control->is_engine_local()) {
+
+			wxString filename = wxFileSelector(wxT("Choose file to open"), wxT(""), wxT(""), wxT(""), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
+			if ( !filename.empty() )
+			{
+				_loop_control->post_load_loop (_index, filename);
+			}
+		}
+		else {
+			// popup basic filename text entry
+			wxString filename = ::wxGetTextFromUser(wxString::Format("Choose file to load on remote host '%s'",
+										 _loop_control->get_engine_host().c_str())
+								, wxT("Save Loop"));
+
+			if (!filename.empty()) {
+				// todo: specify format
+				_loop_control->post_load_loop (_index, filename);
+			}
+		}
+	}
+}
+
+
+void
 LooperPanel::slider_events(float val, int id)
 {
 	wxString ctrl;
@@ -539,27 +597,27 @@ LooperPanel::slider_events(float val, int id)
 	switch(id)
 	{
 	case ID_ThreshControl:
-		ctrl = "rec_thresh";
+		ctrl = wxT("rec_thresh");
 		val = val;
 		break;
 	case ID_FeedbackControl:
-		ctrl = "feedback";
+		ctrl = wxT("feedback");
 		val = _feedback_control->get_value() / 100.0f;
 		break;
 	case ID_DryControl:
-		ctrl = "dry";
+		ctrl = wxT("dry");
 		val = _dry_control->get_value();
 		break;
 	case ID_WetControl:
-		ctrl = "wet";
+		ctrl = wxT("wet");
 		val = _wet_control->get_value();
 		break;
 	case ID_ScratchControl:
-		ctrl = "scratch_pos";
+		ctrl = wxT("scratch_pos");
 		val = _scratch_control->get_value();
 		break;
 	case ID_RateControl:
-		ctrl = "rate";
+		ctrl = wxT("rate");
 		val = _rate_control->get_value();
 		break;
 	default:
@@ -578,10 +636,10 @@ LooperPanel::check_events(wxCommandEvent &ev)
 
 	switch (id) {
 	case ID_RoundCheck:
-		post_control_event ("round", _round_check->GetValue() ? 1.0f: 0.0f);
+		post_control_event (wxT("round"), _round_check->GetValue() ? 1.0f: 0.0f);
 		break;
 	case ID_QuantizeCheck:
-		post_control_event ("quantize", _quantize_check->GetValue() ? 1.0f: 0.0f);
+		post_control_event (wxT("quantize"), _quantize_check->GetValue() ? 1.0f: 0.0f);
 		break;
 	default:
 		break;

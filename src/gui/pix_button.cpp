@@ -18,6 +18,7 @@
 */
 
 #include <wx/wx.h>
+#include <iostream>
 
 #include "pix_button.hpp"
 
@@ -174,7 +175,17 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 	{
 		_bstate = Normal;
 		ReleaseMouse();
-		released (); // emit
+		released(); // emit
+
+		wxPoint pt = ev.GetPosition();
+		wxRect bounds = GetRect();
+		pt.x += bounds.x;
+		pt.y += bounds.y;
+
+		if (bounds.Inside(pt)) {
+			clicked(); // emit
+		}
+		
 		Refresh(false);
 	}
 	else if (ev.ButtonDClick()) {
@@ -185,11 +196,13 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 	else if (ev.Entering())
 	{
 		_estate = Inside;
+		enter(); // emit
 		Refresh(false);
 	}
 	else if (ev.Leaving())
 	{
 		_estate = Outside;
+		leave(); // emit
 		Refresh(false);
 	}
 	

@@ -101,6 +101,26 @@ LoopControl::setup_param_map()
 	state_map[LooperStateOneShot] = "one shot";
 }
 
+bool
+LoopControl::is_engine_local()
+{
+	// compare host parts of osc_url and our_url
+	bool ret = false;
+	char * remhost = lo_url_get_hostname(_osc_url.c_str());
+	char * lochost = lo_url_get_hostname(_our_url.c_str());
+
+	// cerr << "osc: " << _osc_url << "  remhost: " << remhost << "  lochost: " << lochost << endl;
+	
+	if (remhost && lochost && (strncmp(remhost, lochost, 30) == 0)) {
+		ret = true;
+	}
+
+	free(remhost);
+	free(lochost);
+
+	return ret;
+}
+
 
 void
 LoopControl::pingtimer_expired()
@@ -182,6 +202,11 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 	int loopcount = argv[2]->i;
 
 	cerr << "remote looper is at " << hosturl << " version=" << version << "   loopcount=" << loopcount << endl;
+
+	_osc_url = hosturl;
+	char * remhost = lo_url_get_hostname(_osc_url.c_str());
+	_host = remhost;
+	free(remhost);
 
 	lo_address_free(_osc_addr);
 	_osc_addr = lo_address_new_from_url (hosturl.c_str());
@@ -347,6 +372,37 @@ LoopControl::post_ctrl_change (int index, wxString ctrl, float val)
 
 	return true;
 }
+
+bool
+LoopControl::post_save_loop(int index, wxString fname, wxString format, wxString endian)
+{
+	char buf[30];
+
+	snprintf(buf, sizeof(buf), "/sl/%d/save_loop", index);
+
+	// send request for updates
+	if (lo_send(_osc_addr, buf, "sssss", fname.c_str(), format.c_str(), endian.c_str(), _our_url.c_str(), "/error") == -1) {
+		return false;
+	}
+
+	return true;
+}
+
+bool
+LoopControl::post_load_loop(int index, wxString fname)
+{
+	char buf[30];
+
+	snprintf(buf, sizeof(buf), "/sl/%d/load_loop", index);
+
+	// send request for updates
+	if (lo_send(_osc_addr, buf, "sss", fname.c_str(), _our_url.c_str(), "/error") == -1) {
+		return false;
+	}
+
+	return true;
+}
+
 
 void
 LoopControl::send_quit()

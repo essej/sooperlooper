@@ -378,7 +378,7 @@ Looper::load_loop (string fname)
 }
 
 bool
-Looper::save_loop (string fname, FileFormat format)
+Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 {
 	bool ret = false;
 	
@@ -399,10 +399,10 @@ Looper::save_loop (string fname, FileFormat format)
 	memset (&sinfo, 0, sizeof(SF_INFO));
 
 	switch(format) {
-	case FormatFloat:
+	case LoopFileEvent::FormatFloat:
 		sinfo.format = SF_FORMAT_WAV | SF_FORMAT_FLOAT;
 		break;
-	case FormatPCM16:
+	case LoopFileEvent::FormatPCM16:
 		sinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
 		break;
 

@@ -27,6 +27,7 @@
 #include "ladspa.h"
 
 #include "event.hpp"
+#include "event_nonrt.hpp"
 
 namespace SooperLooper {
 
@@ -74,14 +75,8 @@ class Looper
 		ports[n] = val;
 	}
 
-	enum FileFormat
-	{
-		FormatFloat = 0,
-		FormatPCM16
-	};
-	
 	bool load_loop (std::string fname);
-	bool save_loop (std::string fname, FileFormat format = FormatFloat);
+	bool save_loop (std::string fname, LoopFileEvent::FileFormat format = LoopFileEvent::FormatFloat);
 	
   protected:
 

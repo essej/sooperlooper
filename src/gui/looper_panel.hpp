@@ -67,6 +67,7 @@ class LooperPanel
 
 	void pressed_events (wxString cmd);
 	void released_events (wxString cmd);
+	void clicked_events (wxString cmd);
 	
 	PixButton * _undo_button;
 	PixButton * _redo_button;

@@ -62,13 +62,31 @@ namespace SooperLooper {
 			Save
 		} type;
 
-		LoopFileEvent(Type tp, int inst, std::string fname,  std::string returl, std::string retpath)
-			: type(tp), instance(inst), filename(fname), ret_url(returl), ret_path(retpath) {}
+		enum FileFormat
+		{
+			FormatFloat = 0,
+			FormatPCM16,
+			FormatPCM24,
+			FormatPCM32
+		};
+
+		enum Endian
+		{
+			LittleEndian = 0,
+			BigEndian
+		};
+	
+		
+		LoopFileEvent(Type tp, int inst, std::string fname, std::string returl, std::string retpath,
+			      FileFormat fmt=FormatFloat, Endian end=LittleEndian)
+			: type(tp), instance(inst), filename(fname), format(fmt), endian(end), ret_url(returl), ret_path(retpath) {}
 
 		virtual ~LoopFileEvent() {}
 
 		int instance;
 		std::string      filename;
+		FileFormat       format;
+		Endian           endian;
 		std::string      ret_url;
 		std::string      ret_path;
 	};
