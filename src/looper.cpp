@@ -437,7 +437,10 @@ Looper::load_loop (string fname)
 		}
 		for (; n < _chan_count; ++n) {
 			// clear leftover channels (maybe we should duplicate last one, we'll see)
-			memset(inbufs[n], 0, sizeof(float) * nframes);
+			//memset(inbufs[n], 0, sizeof(float) * nframes);
+
+			// duplicate last one
+			memcpy (inbufs[n], inbufs[filechans-1], sizeof(float) * nframes);
 		}
 		
 		
