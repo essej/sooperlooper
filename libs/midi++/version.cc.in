@@ -1,0 +1,3 @@
+int midipp_major_version = @LIBMIDIPP_MAJOR_VERSION@;
+int midipp_minor_version = @LIBMIDIPP_MINOR_VERSION@;
+int midipp_micro_version = @LIBMIDIPP_MICRO_VERSION@;

@@ -9,5 +9,5 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 EXTRA_DIST = autogen.sh configure OSC
-SUBDIRS =  src
+SUBDIRS =  libs src
 

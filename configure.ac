@@ -158,6 +158,11 @@ AC_ARG_ENABLE(debug,
         ]
 )
 
+AM_BUILD_ENVIRONMENT
+
+
+AC_SUBST(BASE_LIBS)
+AC_SUBST(BASE_INCLUDES)
 
 
 #CFLAGS="$CFLAGS -DSAMPLE_MEMORY=200 $JACK_CFLAGS $LOSC_CFLAGS $SIGCPP_CFLAGS"
@@ -167,6 +172,9 @@ AC_ARG_ENABLE(debug,
 #CFLAGS="$CFLAGS -DSAMPLE_MEMORY=200 -I../ardour/libs/sigc++/sigc++/config  -I../ardour/libs/sigc++ -I../ardour/libs/gtkmm -I../ardour/libs/gtkmm/gdk-- -I../ardour/libs/gtkmm/src $GTK_CFLAGS $JACK_CFLAGS $XML_CFLAGS"
 #CXXFLAGS="$CXXFLAGS -DSAMPLE_MEMORY=200 -I../ardour/libs/sigc++/sigc++/config -I../ardour/libs/sigc++ -I../ardour/libs/gtkmm -I../ardour/libs/gtkmm/gdk-- -I../ardour/libs/gtkmm/src $GTK_CFLAGS $JACK_CFLAGS $XML_CFLAGS"
 #LIBS="$LIBS -L../ardour/libs/gtkmm/gdk--/gdk--  -L../ardour/libs/sigc++/sigc++ -L../ardour/libs/gtkmm/src/gtk-- -lgtkmm -lgdkmm -lsigc $GTK_LIBS $JACK_LIBS $XML_LIBS $EXTRA_LIBS"
+
+AC_CONFIG_SUBDIRS(libs)
+
 
 AC_OUTPUT([
 Makefile

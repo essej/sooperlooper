@@ -20,12 +20,21 @@
 
 #include "midi_bridge.hpp"
 
+#include <sys/poll.h>
+#include <unistd.h>
+#include <fcntl.h>
+
 #include <iostream>
 #include <cstdio>
 #include <cmath>
 
+#include <midi++/parser.h>
+#include <midi++/factory.h>
+
+
 using namespace SooperLooper;
 using namespace std;
+using namespace MIDI;
 
 // Convert a value in dB's to a coefficent
 #define DB_CO(g) ((g) > -90.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
@@ -58,10 +67,12 @@ uniform_position_to_gain (double pos)
 }
 
 
-MidiBridge::MidiBridge (string name, string oscurl)
+MidiBridge::MidiBridge (string name, string oscurl, PortRequest & req)
 	: _name (name), _oscurl(oscurl)
 {
-
+	_port = 0;
+	_done = false;
+	
 	_addr = lo_address_new_from_url (_oscurl.c_str());
 	if (lo_address_errno (_addr) < 0) {
 		fprintf(stderr, "MidiBridge:: addr error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
@@ -88,14 +99,56 @@ MidiBridge::MidiBridge (string name, string oscurl)
 // 	_bindings[0xb000 | 7] =  EventInfo("set", "scratch_pos", -1, 0.0, 1.0);
 // 	_bindings[0xb000 | 74] =  EventInfo("set", "dry", -1, 0.0, 1.0);
 // 	_bindings[0xb000 | 71] =  EventInfo("set", "wet", -1, 0.0, 1.0);
+
+	PortFactory factory;
+	
+	if ((_port = factory.create_port (req)) == 0) {
+		return;
+	}
+
+	// this is a callback that will be made from the parser
+	_port->input()->any.connect (slot (*this, &MidiBridge::incoming_midi));
+
+	init_thread();
 	
 }
 
 MidiBridge::~MidiBridge()
 {
 	lo_address_free (_addr);
+
+	// the port will be freed by the subclass
 }
 
+
+bool
+MidiBridge::init_thread()
+{
+
+	if (pipe (_midi_request_pipe)) {
+		cerr << "Cannot create midi request signal pipe" <<  strerror (errno) << endl;
+		return false;
+	}
+
+	if (fcntl (_midi_request_pipe[0], F_SETFL, O_NONBLOCK)) {
+		cerr << "UI: cannot set O_NONBLOCK on signal read pipe " << strerror (errno) << endl;
+		return false;
+	}
+
+	if (fcntl (_midi_request_pipe[1], F_SETFL, O_NONBLOCK)) {
+		cerr << "UI: cannot set O_NONBLOCK on signal write pipe " << strerror (errno) << endl;
+		return false;
+	}
+	
+	pthread_create (&_midi_thread, NULL, &MidiBridge::_midi_receiver, this);
+	if (!_midi_thread) {
+		return false;
+	}
+	
+	pthread_detach(_midi_thread);
+
+	return true;
+}
 
 void
 MidiBridge::clear_bindings ()
@@ -195,9 +248,25 @@ MidiBridge::load_bindings (std::string filename)
 	return true;
 }
 
-	
 void
-MidiBridge::queue_midi (int chcmd, int param, int val)
+MidiBridge::incoming_midi (Parser &p, byte *msg, size_t len)
+{
+	/* we only respond to channel messages */
+
+	byte b1 = msg[0];
+	byte b2 = len>1 ? msg[1]: 0;
+	byte b3 = len>2 ? msg[2]: 0;
+		
+	if ((msg[0] & 0xF0) < 0x80 || (msg[0] & 0xF0) > 0xE0) {
+		return;
+	}
+
+	queue_midi (b1, b2, b3);
+}
+
+
+void
+MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 {
 	// convert midi to lookup key
 	// lookup key = (chcmd << 8) | param
@@ -274,3 +343,97 @@ MidiBridge::send_osc (EventInfo & info, float val)
 		}
 	}
 }
+
+
+
+void * MidiBridge::_midi_receiver(void *arg)
+{
+	MidiBridge * bridge = static_cast<MidiBridge*> (arg);
+
+	bridge->midi_receiver();
+	return 0;
+}
+
+void  MidiBridge::midi_receiver()
+{
+	struct pollfd pfd[3];
+	int nfds = 0;
+	int timeout = -1;
+	MIDI::byte buf[512];
+
+	while (!_done) {
+		nfds = 0;
+
+		pfd[nfds].fd = _midi_request_pipe[0];
+		pfd[nfds].events = POLLIN|POLLHUP|POLLERR;
+		nfds++;
+
+		if (_port && _port->selectable() >= 0) {
+			pfd[nfds].fd = _port->selectable();
+			pfd[nfds].events = POLLIN|POLLHUP|POLLERR;
+			nfds++;
+		}
+		
+	again:
+		// cerr << "poll on " << nfds << " for " << timeout << endl;
+		if (poll (pfd, nfds, timeout) < 0) {
+			if (errno == EINTR) {
+				/* gdb at work, perhaps */
+				goto again;
+			}
+			
+			cerr << "MIDI thread poll failed: " <<  strerror (errno) << endl;
+			
+			break;
+		}
+		
+		if ((pfd[0].revents & ~POLLIN)) {
+			cerr << "Transport: error polling extra MIDI port" << endl;
+			break;
+		}
+		
+		if (nfds > 1 && pfd[1].revents & POLLIN) {
+
+			/* reading from the MIDI port activates the Parser
+			   that in turn generates signals that we care
+			   about. the port is already set to NONBLOCK so that
+			   can read freely here.
+			*/
+			
+			while (1) {
+				
+				// cerr << "+++ READ ON " << port->name() << endl;
+				
+				int nread = _port->read (buf, sizeof (buf));
+				
+				// cerr << "-- READ (" << nread << " ON " << port->name() << endl;
+				
+				if (nread > 0) {
+					if ((size_t) nread < sizeof (buf)) {
+						break;
+					} else {
+						continue;
+					}
+				} else if (nread == 0) {
+					break;
+				} else if (errno == EAGAIN) {
+					break;
+				} else {
+					cerr << "Error reading from midi port" << endl;
+					_done = true;
+					break;
+				}
+			}
+			
+		}
+	}
+
+	delete _port;
+	_port = 0;
+}
+
+
+
+
+
+

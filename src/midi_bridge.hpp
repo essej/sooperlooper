@@ -29,24 +29,37 @@
 #include <vector>
 #include <map>
 
+#include <midi++/types.h>
+#include <midi++/port.h>
+#include <midi++/port_request.h>
+
 namespace SooperLooper {
 
 class MidiBridge
+	: public SigC::Object
 {
   public:
 
-	MidiBridge (std::string name, std::string oscurl);
+	MidiBridge (std::string name, std::string oscurl, MIDI::PortRequest & req);
 	virtual ~MidiBridge();			
 
-	virtual bool is_ok() {return false;}
-	
 	virtual void clear_bindings ();
 	virtual bool load_bindings (std::string filename);
 
+	virtual bool is_ok() { return _port != 0; }
 	
   protected:
+	bool init_thread();
+	
+	void incoming_midi (MIDI::Parser &p, MIDI::byte *msg, size_t len);
+	
+	void queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val);
 
-	void queue_midi (int chcmd, int param, int val);
+
+	static void * _midi_receiver (void * arg);
+	void midi_receiver ();
+	void stop_midireceiver ();
+
 	
 	
 	std::string _name;
@@ -86,8 +99,16 @@ class MidiBridge
 	
 	BindingsMap _bindings;
 
+	MIDI::Port * _port;
+	
 	lo_address _addr;
 
+	int                _midi_request_pipe[2];
+	pthread_t          _midi_thread;
+
+	bool _done;
+	
+	
 };
 
 };

@@ -32,7 +32,7 @@
 //#include <gdk/gdk.h>
 //#include <gtk--/window.h>
 
-#include "xml++.hpp"
+#include <pbd/xml++.h>
 
 //#include "keyboard.h"
 

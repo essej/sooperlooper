@@ -40,7 +40,8 @@
 #include "pix_button.hpp"
 #include "keyboard_target.hpp"
 #include "keys_dialog.hpp"
-#include "xml++.hpp"
+
+#include <pbd/xml++.h>
 
 using namespace SooperLooperGui;
 using namespace std;

@@ -1,0 +1,3 @@
+int pbd_major_version = @LIBPBD_MAJOR_VERSION@;
+int pbd_minor_version = @LIBPBD_MINOR_VERSION@;
+int pbd_micro_version = @LIBPBD_MICRO_VERSION@;

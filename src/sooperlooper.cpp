@@ -25,17 +25,23 @@
 
 #include <cstdlib>
 
+#include <pbd/transmitter.h>
+
 #include "version.h"
 
 #include "control_osc.hpp"
 #include "engine.hpp"
 #include "event_nonrt.hpp"
 
-#if WITH_ALSA
-#include "alsa_midi_bridge.hpp"
-#elif WITH_COREMIDI
-#include "coremidi_bridge.hpp"
-#endif
+
+#include "midi_bridge.hpp"
+#include <midi++/port_request.h>
+
+// #if WITH_ALSA
+// #include "alsa_midi_bridge.hpp"
+// #elif WITH_COREMIDI
+// #include "coremidi_bridge.hpp"
+// #endif
 
 #include "jack_audio_driver.hpp"
 
@@ -47,6 +53,8 @@ extern	void sl_fini ();
 
 Engine * engine = 0;
 int do_shutdown = 0;
+
+Transmitter  warning (Transmitter::Warning);
 
 
 #define DEFAULT_OSC_PORT 9951
@@ -327,25 +335,31 @@ int main(int argc, char** argv)
 		// notify whoever asked as to
 		engine->get_control_osc()->send_pingack (option_info.pingurl);
 	}
-	
+
+	MidiBridge * midibridge = 0;
+
 #if WITH_ALSA
 	// start up alsamidi bridge
-	// todo: a factory or optional other type
-	MidiBridge * midibridge = new AlsaMidiBridge(driver->get_name(), engine->get_osc_url());
+	MIDI::PortRequest portreq (driver->get_name(), "sooperlooper", "duplex", "alsa/sequencer");
+	midibridge = new MidiBridge(driver->get_name(), engine->get_osc_url(), portreq);
+
 #elif WITH_COREMIDI
-	MidiBridge * midibridge = new CoreMidiBridge(driver->get_name(), engine->get_osc_url());
-#else
-#fatal No MidiBridge compiled in!
+	MIDI::PortRequest portreq (driver->get_name(), driver->get_name(),  "duplex", "coremidi");
+	midibridge = new MidiBridge(driver->get_name(), engine->get_osc_url(), portreq);
 #endif
 
-	if (!option_info.bindfile.empty()) {
+	if (midibridge && midibridge->is_ok() && !option_info.bindfile.empty()) {
 		midibridge->load_bindings (option_info.bindfile);
 	}
+	
 	// go into engine's non-rt event loop
 	// this returns when we quit or signal handler causes it to
 	engine->mainloop();
 
-	delete midibridge;
+	if (midibridge) {
+		delete midibridge;
+	}
+	
 	delete driver;
 	delete engine;
 	

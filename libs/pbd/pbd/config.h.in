@@ -1,0 +1,85 @@
+/* pbd/config.h.in.  Generated automatically from configure.in by aheader.  */
+
+/* Define this if your processor supports the rdtsc instruction */
+#undef HAVE_RDTSC
+/* Define this if you have >1 processor and want to use
+   spin-then-block in pthread_mutex_spinlock()
+*/
+#undef USE_SPINBLOCK
+
+#undef PBD_CXX_NAMESPACES
+
+/* Define if you have the `dir' library (-ldir). */
+#undef HAVE_DIR
+
+/* Define if you have the <dirent.h> header file. */
+#undef HAVE_DIRENT_H
+
+/* Define if you don't have `vprintf' but do have `_doprnt.' */
+#undef HAVE_DOPRNT
+
+/* Define if you have the <fcntl.h> header file. */
+#undef HAVE_FCNTL_H
+
+/* Define if you have the <limits.h> header file. */
+#undef HAVE_LIMITS_H
+
+/* Define if you have the <ndir.h> header file. */
+#undef HAVE_NDIR_H
+
+/* Define if you have the `regcomp' function. */
+#undef HAVE_REGCOMP
+
+/* Define if you have the `select' function. */
+#undef HAVE_SELECT
+
+/* Define if you have the `strdup' function. */
+#undef HAVE_STRDUP
+
+/* Define if you have the `strerror' function. */
+#undef HAVE_STRERROR
+
+/* Define if you have the `strtol' function. */
+#undef HAVE_STRTOL
+
+/* Define if you have the <sys/dir.h> header file. */
+#undef HAVE_SYS_DIR_H
+
+/* Define if you have the <sys/ndir.h> header file. */
+#undef HAVE_SYS_NDIR_H
+
+/* Define if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define if you have the `vprintf' function. */
+#undef HAVE_VPRINTF
+
+/* Define if you have the `x' library (-lx). */
+#undef HAVE_X
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define as the return type of signal handlers (`int' or `void'). */
+#undef RETSIGTYPE
+
+/* Define if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define if you can safely include both <sys/time.h> and <time.h>. */
+#undef TIME_WITH_SYS_TIME
+
+/* Version number of package */
+#undef VERSION
+
+/* Define to empty if the keyword `const' does not work. */
+#undef const
+
+/* Define to `long' if <sys/types.h> does not define. */
+#undef off_t
+
+/* Define to `int' if <sys/types.h> does not define. */
+#undef pid_t
