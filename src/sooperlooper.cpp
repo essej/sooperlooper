@@ -322,12 +322,12 @@ int main(int argc, char** argv)
 	{
 		usleep(1000);
 	}
-	
-	sl_fini ();
 
 	delete midibridge;
 	delete driver;
 	delete engine;
+	
+	sl_fini ();
 	
 	return 0;
 }
