@@ -57,8 +57,8 @@ protected:
 
 	void init();
 
-	void init_loopers (unsigned int count);
-	
+	void init_loopers (int count);
+
 	
 	LoopControl * _loop_control;
 

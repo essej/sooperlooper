@@ -43,7 +43,7 @@ class LooperPanel
 	LooperPanel (LoopControl * control, wxWindow * parent, wxWindowID id=-1,  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 	virtual ~LooperPanel();
 
-	void set_index(int ind) { _index = ind; }
+	void set_index(int ind);
 	int get_index() { return _index; }
 
 	void update_controls();

@@ -24,8 +24,15 @@
 using namespace std;
 using namespace SooperLooperGui;
 
-LoopControl::LoopControl (wxString host, int port)
+
+LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString execname, char **engine_argv)
 {
+	_host = host;
+	_port = port;
+	_force_spawn = force_spawn;
+	_exec_name = execname;
+	_engine_argv = engine_argv;
+	
 	setup_param_map();
 	
 	_osc_server = lo_server_new(NULL, NULL);
@@ -34,7 +41,10 @@ LoopControl::LoopControl (wxString host, int port)
 	
 	/* add handler for control param callbacks, first is loop index , 2nd arg ctrl string, 3nd arg value */
 	lo_server_add_method(_osc_server, "/ctrl", "isf", LoopControl::_control_handler, this);
-	
+
+	// pingack expects: s:engine_url s:version i:loopcount
+	lo_server_add_method(_osc_server, "/pingack", "ssi", LoopControl::_pingack_handler, this);
+	    
 	if (host.empty()) {
 		_osc_addr = lo_address_new(NULL, wxString::Format(wxT("%d"), port).c_str());
 	}
@@ -42,6 +52,26 @@ LoopControl::LoopControl (wxString host, int port)
 		_osc_addr = lo_address_new(host.c_str(), wxString::Format(wxT("%d"), port).c_str());
 	}
 
+
+	_pingack = false;
+	_waiting = 0;
+	_failed = false;
+	_engine_pid = 0;
+
+	_updatetimer = new LoopUpdateTimer(this);
+	
+	if (!_force_spawn) {
+		// send off a ping.  set a timer, if we don't have a response, we'll start our own locally
+		lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
+		_updatetimer->Start(100, true);
+	}
+	// spawn now
+	else if (spawn_looper()) {
+		_waiting = 1;
+		_updatetimer->Start(100, true);
+	}
+
+	
 }
 
 
@@ -67,6 +97,98 @@ LoopControl::setup_param_map()
 	state_map[10] = "muted";
 	state_map[11] = "scratching";
 	state_map[12] = "one shot";
+}
+
+
+void
+LoopControl::pingtimer_expired()
+{ 
+	update_values();
+
+	// check state of pingack
+
+	if (_pingack) {
+		//cerr << "got ping response" << endl;
+	}
+	else if (_waiting > 0)
+	{
+		if (_waiting > 40) {
+			// give up
+			cerr << "gave up" << endl;
+			_failed = true;
+		}
+		else {
+			_waiting++;
+			// lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
+			_updatetimer->Start(100, true);
+		}
+	}
+	else
+	{
+		// lets try to spawn our own
+		if (spawn_looper()) {
+			_updatetimer->Start(100, true);
+			_waiting = 1;
+		}
+		else {
+			cerr << "execute failed" << endl;
+			_failed = true;
+		}
+			
+	}
+}
+
+bool LoopControl::spawn_looper()
+{
+	// use wxExecute
+	wxString cmdstr = _exec_name;
+	char ** argv  = _engine_argv;
+
+	cmdstr += wxString::Format(" -q -U %s", _our_url.c_str());
+	
+	while (*argv) {
+		cmdstr += wxT(" ") + wxString(*argv);
+		argv++;
+	}
+
+#ifdef DEBUG
+	cerr << "execing: '" << cmdstr << "'" << endl;
+#endif
+	_engine_pid = wxExecute(cmdstr, wxEXEC_ASYNC|wxEXEC_MAKE_GROUP_LEADER);
+
+#ifdef DEBUG
+	cerr << "pid is " << _engine_pid << endl;
+#endif	
+	return _engine_pid > 0;
+}
+
+int
+LoopControl::_pingack_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			      void *data, void *user_data)
+{
+	LoopControl * lc = static_cast<LoopControl*> (user_data);
+	return lc->pingack_handler (path, types, argv, argc, data);
+}
+
+int
+LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+{
+	// s:hosturl  s:version  i:loopcount
+
+	wxString hosturl(&argv[0]->s);
+	wxString version(&argv[1]->s);
+	int loopcount = argv[2]->i;
+
+	cerr << "remote looper is at " << hosturl << " version=" << version << "   loopcount=" << loopcount << endl;
+
+	lo_address_free(_osc_addr);
+	_osc_addr = lo_address_new_from_url (hosturl.c_str());
+	
+	_pingack = true;
+	
+	LooperConnected (loopcount); // emit
+
+	return 0;
 }
 
 
@@ -104,7 +226,7 @@ LoopControl::control_handler(const char *path, const char *types, lo_arg **argv,
 	
 	_params_val_map[index][ctrl] = val;
 	
-	// cerr << "got " << ctrl << " = " << val << endl;
+	//cerr << "got " << ctrl << " = " << val << "  index=" << index << endl;
 	
 	return 0;
 }
@@ -216,6 +338,12 @@ LoopControl::post_ctrl_change (int index, wxString ctrl, float val)
 	}
 
 	return true;
+}
+
+void
+LoopControl::send_quit()
+{
+	lo_send(_osc_addr, "/quit", NULL);
 }
 
 

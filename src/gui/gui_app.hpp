@@ -47,14 +47,27 @@ class GuiApp : public wxApp
 
 	wxString get_host() { return _host; }
 	int get_port() { return _port; }
+
+	bool get_force_spawn() { return _force_spawn; }
+	wxString get_exec_name() { return _exec_name; }
+	char ** get_engine_args () { return _engine_argv; }
 	
   protected:
+	
+	void  usage(char *argv0);
+	void  parse_options (int argc, char **argv);
+		
+
 	GuiFrame * _frame;
 
+	
 	wxString _host;
-	int  _port;
-      
-
+	int      _port;
+	int _show_usage;
+	int _show_version;
+	wxString _exec_name;
+	bool  _force_spawn;
+	char ** _engine_argv;
 };
 
 

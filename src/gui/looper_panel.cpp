@@ -264,6 +264,14 @@ LooperPanel::init()
 
 
 void
+LooperPanel::set_index(int ind)
+{
+	_index = ind;
+	_time_panel->set_index (_index);
+}
+
+
+void
 LooperPanel::bind_events()
 {
 	_undo_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("undo")));

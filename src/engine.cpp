@@ -39,7 +39,7 @@ Engine::Engine ()
 	_event_queue = 0;
 }
 
-bool Engine::initialize(AudioDriver * driver, int port)
+bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 {
 	_driver = driver;
 	_driver->set_engine(this);
@@ -58,7 +58,7 @@ bool Engine::initialize(AudioDriver * driver, int port)
 	if (!_osc->is_ok()) {
 		return false;
 	}
-	
+
 	_ok = true;
 
 	return true;

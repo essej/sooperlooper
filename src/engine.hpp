@@ -42,9 +42,10 @@ class Engine
 	Engine();
 	virtual ~Engine();
 
-	bool initialize(AudioDriver * driver, int port=9351);
+	bool initialize(AudioDriver * driver, int port=9951, std::string pingurl="");
 
 	AudioDriver * get_audio_driver () { return _driver; }
+	ControlOSC  * get_control_osc () { return _osc; }
 	
 	bool is_ok() const { return _ok; }
 

@@ -21,6 +21,7 @@
 #define __sooperlooper_gui_loop_control__
 
 #include <wx/string.h>
+#include <wx/timer.h>
 #include <sigc++/sigc++.h>
 #include <map>
 #include <vector>
@@ -29,14 +30,16 @@
 
 namespace SooperLooperGui {
 
+class LoopUpdateTimer;	
 
+	
 class LoopControl
 	: public SigC::Object
 {
   public:
 	
 	// ctor(s)
-	LoopControl (wxString host, int port);
+	LoopControl (wxString host, int port, bool force_spawn=false, wxString execname=wxT("sooperlooper"), char **engine_argv=0);
 	virtual ~LoopControl();
 
 	bool post_down_event (int index, wxString cmd);
@@ -50,21 +53,34 @@ class LoopControl
 
 	void register_input_controls(int index, bool unreg=false);
 
+	void send_quit();
 	
 	bool is_updated (int index, wxString ctrl);
 	
 	bool get_value (int index, wxString ctrl, float &retval);
 	bool get_state (int index, wxString & state);
+
+	void pingtimer_expired();
+
+	SigC::Signal1<void,int> LooperConnected;
+
 	
   protected:
-
+	
 	static int _control_handler(const char *path, const char *types, lo_arg **argv, int argc,
 				    void *data, void *user_data);
 
 	int control_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
-		
+
+	static int _pingack_handler(const char *path, const char *types, lo_arg **argv, int argc,
+				    void *data, void *user_data);
+
+	int pingack_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	
 
 	void setup_param_map();
+
+	bool spawn_looper();
 	
 	wxString   _osc_url;
 	lo_address _osc_addr;
@@ -81,9 +97,37 @@ class LoopControl
 	typedef std::map<wxString, bool> UpdatedCtrlMap;
 	typedef std::vector<ControlValMap> UpdatedCtrlMapList;
 	UpdatedCtrlMapList _updated;
-	
+
+	wxString _host;
+	int      _port;
+	bool     _force_spawn;
+	wxString _exec_name;
+	char **  _engine_argv;
+
+	LoopUpdateTimer * _updatetimer;
+	bool _pingack;
+	int  _waiting;
+	bool _failed;
+
+	long _engine_pid;
 };
 
+class LoopUpdateTimer : public wxTimer
+{
+public:
+	LoopUpdateTimer(LoopControl *loopctrl): wxTimer(), _loopctrl(loopctrl) {}
+	
+	LoopControl * _loopctrl;
+		
+	void Notify() {
+		_loopctrl->pingtimer_expired();
+	}
+};
+
+
+	
+
+	
 };
 
 #endif

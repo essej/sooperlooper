@@ -48,6 +48,8 @@ class ControlOSC
 
 	bool is_ok() { return _ok; }
 
+	void send_pingack (std::string returl, std::string retpath="/pingack");
+	
 	
   private:
 
@@ -65,7 +67,9 @@ class ControlOSC
 	void on_loop_added(int instance);
 	void on_loop_removed();
 	
+	lo_address find_or_cache_addr(std::string returl);
 
+	
 	void send_registered_updates(std::string ctrl, float val, int instance);
 	
 	static int _quit_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
@@ -75,12 +79,14 @@ class ControlOSC
 	static int _dummy_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _ping_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 
 
 	static void * _osc_receiver(void * arg);
 	void osc_receiver();
 	
 	int quit_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data);
+	int ping_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data);
 
 	int updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo * info);
 	int set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);

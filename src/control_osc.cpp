@@ -24,6 +24,7 @@
 #include "control_osc.hpp"
 #include "engine.hpp"
 #include "ringbuffer.hpp"
+#include "version.h"
 
 #include <lo/lo.h>
 #include <sigc++/sigc++.h>
@@ -34,7 +35,9 @@ using namespace std;
 
 static void error_callback(int num, const char *m, const char *path)
 {
+#ifdef DEBUG
 	fprintf(stderr, "liblo server error %d in path %s: %s\n", num, path, m);
+#endif
 }
 
 
@@ -55,8 +58,9 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 		if ((_osc_server = lo_server_new (tmpstr, error_callback))) {
 			break;
 		}
-		
+#ifdef DEBUG		
 		cerr << "can't get osc at port: " << _port << endl;
+#endif
 		_port++;
 		continue;
 	}
@@ -78,6 +82,9 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	/* add method that will match the path /quit with no args */
 	lo_server_add_method(_osc_server, "/quit", "", ControlOSC::_quit_handler, this);
 
+	// add ping handler:  s:returl s:retpath
+	lo_server_add_method(_osc_server, "/ping", "ss", ControlOSC::_ping_handler, this);
+	
 	// lo_server_thread_add_method(_sthread, NULL, NULL, ControlOSC::_dummy_handler, this);
 
 	// initialize string maps
@@ -129,7 +136,7 @@ ControlOSC::~ControlOSC()
 	
 	// send an event to self
 	lo_address addr = lo_address_new_from_url (get_server_url().c_str());
-	lo_send(addr, "/ping", "");
+	lo_send(addr, "/quit", "");
 	lo_address_free (addr);
 
 	pthread_join (_osc_thread, NULL);
@@ -232,6 +239,14 @@ int ControlOSC::_quit_handler(const char *path, const char *types, lo_arg **argv
 
 }
 
+int ControlOSC::_ping_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
+	return osc->ping_handler (path, types, argv, argc, data);
+
+}
+
 int ControlOSC::_updown_handler(const char *path, const char *types, lo_arg **argv, int argc,
 			 void *data, void *user_data)
 {
@@ -275,6 +290,32 @@ int ControlOSC::quit_handler(const char *path, const char *types, lo_arg **argv,
 	return 0;
 }
 
+void ControlOSC::send_pingack (string returl, string retpath)
+{
+	lo_address addr;
+
+	addr = find_or_cache_addr (returl);
+	if (!addr) {
+		return;
+	}
+	
+	// cerr << "sending to " << returl << "  path: " << retpath << "  ctrl: " << ctrl << "  val: " <<  val << endl;
+	if (lo_send(addr, retpath.c_str(), "ssi", get_server_url().c_str(), sooperlooper_version, _engine->loop_count_unsafe()) == -1) {
+		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
+	}
+}
+
+
+int ControlOSC::ping_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+{
+	string returl (&argv[0]->s);
+	string retpath (&argv[1]->s);
+
+	send_pingack(returl, retpath);
+	return 0;
+}
+
+
 int ControlOSC::updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
 {
 	// first arg is a string
@@ -312,18 +353,11 @@ int ControlOSC::set_handler(const char *path, const char *types, lo_arg **argv, 
 
 }
 
-int ControlOSC::get_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+lo_address
+ControlOSC::find_or_cache_addr(string returl)
 {
-	// cerr << "get " << path << endl;
-
-	// todo, push this onto a queue for another thread to return
-
-	// first arg is control string, 2nd is return URL string 3rd is retpath
-	string ctrl (&argv[0]->s);
-	string returl (&argv[1]->s);
-	string retpath (&argv[2]->s);
-	lo_address addr;
-		
+	lo_address addr = 0;
+	
 	if (_retaddr_map.find(returl) == _retaddr_map.end()) {
 		addr = lo_address_new_from_url (returl.c_str());
 		if (lo_address_errno (addr) < 0) {
@@ -335,7 +369,25 @@ int ControlOSC::get_handler(const char *path, const char *types, lo_arg **argv, 
 		addr = _retaddr_map[returl];
 	}
 	
+	return addr;
+}
 
+int ControlOSC::get_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+{
+	// cerr << "get " << path << endl;
+
+	// todo, push this onto a queue for another thread to return
+
+	// first arg is control string, 2nd is return URL string 3rd is retpath
+	string ctrl (&argv[0]->s);
+	string returl (&argv[1]->s);
+	string retpath (&argv[2]->s);
+	lo_address addr;
+
+	addr = find_or_cache_addr (returl);
+	if (!addr) {
+		return 0;
+	}
 	
 	float val = _engine->get_control_value (to_control_t(ctrl), info->instance);
 

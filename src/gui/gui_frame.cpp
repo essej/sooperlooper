@@ -30,8 +30,14 @@ using namespace SooperLooperGui;
 using namespace std;
 
 enum {
-	ID_UpdateTimer = 9000
-
+	ID_UpdateTimer = 9000,
+	ID_AboutMenu,
+	ID_HelpTipsMenu,
+	ID_ConnectionMenu,
+	ID_KeybindingsMenu,
+	ID_MidiBindingsMenu,
+	ID_Quit,
+	ID_QuitStop
 };
 
 
@@ -41,6 +47,9 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 	EVT_SIZE(GuiFrame::OnSize)
 	EVT_PAINT(GuiFrame::OnPaint)
 	EVT_TIMER(ID_UpdateTimer, GuiFrame::OnUpdateTimer)
+
+	EVT_MENU(ID_Quit, GuiFrame::OnQuit)
+	EVT_MENU(ID_QuitStop, GuiFrame::OnQuit)
 	
 END_EVENT_TABLE()
 
@@ -71,11 +80,41 @@ GuiFrame::init()
 	//wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	
 	SetBackgroundColour(*wxBLACK);
+
+	GuiApp & guiapp = ::wxGetApp();
 	
-	_loop_control = new LoopControl(::wxGetApp().get_host(), ::wxGetApp().get_port());
+	_loop_control = new LoopControl(guiapp.get_host(), guiapp.get_port(), guiapp.get_force_spawn(),
+					guiapp.get_exec_name(), guiapp.get_engine_args());
 
 	// todo request how many loopers to construct based on connection
-	init_loopers(1);
+	_loop_control->LooperConnected.connect (slot (*this, &GuiFrame::init_loopers));
+
+
+	wxMenuBar *menuBar = new wxMenuBar();
+
+	wxMenu *menuFile = new wxMenu(wxT(""));
+
+	menuFile->Append(ID_Quit, wxT("Quit but Leave Engine Running\tCtrl-Shift-Q"), wxT("Exit from GUI and leave engine running"));
+	menuFile->Append(ID_QuitStop, wxT("Quit and Stop Engine\tCtrl-Q"), wxT("Exit from GUI and stop engine"));
+	
+	menuBar->Append(menuFile, wxT("&Control"));
+	
+	menuFile = new wxMenu(wxT(""));
+
+	menuFile->Append(ID_ConnectionMenu, wxT("Looper &Connection...\tCtrl-C"), wxT("Configure Looper Engine Connection"));
+	menuFile->Append(ID_KeybindingsMenu, wxT("&Key Bindings...\tCtrl-K"), wxT("Configure Keybindings"));
+	menuFile->Append(ID_MidiBindingsMenu, wxT("&Midi Bindings...\tCtrl-M"), wxT("Configure Midi bindings"));
+	
+	menuBar->Append(menuFile, wxT("&Configure"));
+
+	wxMenu *menuHelp = new wxMenu(wxT(""));
+	menuHelp->Append(ID_HelpTipsMenu, wxT("&Usage Tips...\tCtrl-H"), wxT("Show Usage Tips window"));
+	menuHelp->Append(ID_AboutMenu, wxT("&About...\tCtrl-A"), wxT("Show about dialog"));
+	menuBar->Append(menuHelp, wxT("&Help"));
+	
+	// ... and attach this menu bar to the frame
+	SetMenuBar(menuBar);
+
 	
 	this->SetAutoLayout( true );     // tell dialog to use sizer
 	this->SetSizer( _main_sizer );      // actually set the sizer
@@ -84,20 +123,20 @@ GuiFrame::init()
 }
 
 void
-GuiFrame::init_loopers (unsigned int count)
+GuiFrame::init_loopers (int count)
 {
 	LooperPanel * looperpan;	
 
-	if (count > _looper_panels.size()) {
-		while (count > _looper_panels.size()) {
+	if (count > (int) _looper_panels.size()) {
+		while (count > (int) _looper_panels.size()) {
 			looperpan = new LooperPanel(_loop_control, this, -1);
 			looperpan->set_index(_looper_panels.size());
 			_main_sizer->Add (looperpan, 0, wxEXPAND|wxALL, 0);
 			_looper_panels.push_back (looperpan);
 		}
 	}
-	else if (count < _looper_panels.size()) {
-		while (count < _looper_panels.size()) {
+	else if (count < (int)_looper_panels.size()) {
+		while (count < (int)_looper_panels.size()) {
 			looperpan = _looper_panels.back();
 			_looper_panels.pop_back();
 			_main_sizer->Remove(looperpan);
@@ -106,9 +145,12 @@ GuiFrame::init_loopers (unsigned int count)
 	}
 		
 	_main_sizer->Layout();
-
+	_main_sizer->Fit(this);
+	_main_sizer->SetSizeHints( this );   // set size hints to honour mininum size
+	
 	// request all values for initial state
 	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
+		_looper_panels[i]->set_index(i);
 		_loop_control->register_input_controls((int) i);
 		_loop_control->request_all_values ((int)i);
 	}
@@ -137,7 +179,16 @@ GuiFrame::OnUpdateTimer(wxTimerEvent &ev)
 void
 GuiFrame::OnQuit(wxCommandEvent& event)
 {
-
+	int id = event.GetId();
+	
+	if (id == ID_Quit) {
+		Close();
+	}
+	else if (id == ID_QuitStop) {
+		// send quit command to looper
+		_loop_control->send_quit();
+		Close();
+	}
 }
 
 void

@@ -47,7 +47,7 @@ int do_shutdown = 0;
 #define DEFAULT_LOOP_TIME 200.0f
 
 
-char *optstring = "c:l:j:p:m:t:qVh";
+char *optstring = "c:l:j:p:m:t:U:qVh";
 
 struct option long_options[] = {
 	{ "help", 0, 0, 'h' },
@@ -58,6 +58,7 @@ struct option long_options[] = {
 	{ "osc-port", 1, 0, 'p' },
 	{ "jack-name", 1, 0, 'j' },
 	{ "load-midi-binding", 1, 0, 'm' },
+	{ "ping-url", 1, 0, 'U' },
 	{ "version", 0, 0, 'V' },
 	{ 0, 0, 0, 0 }
 };
@@ -68,7 +69,7 @@ struct OptionInfo
 	OptionInfo() :
 		loop_count(1), channels(2), quiet(false), jack_name(""),
 		oscport(DEFAULT_OSC_PORT), loopsecs(DEFAULT_LOOP_TIME),
-		show_usage(0), show_version(0) {} 
+		show_usage(0), show_version(0), pingurl() {} 
 		
 	int loop_count;
 	int channels;
@@ -80,6 +81,7 @@ struct OptionInfo
 	
 	int show_usage;
 	int show_version;
+	string pingurl;
 };
 
 
@@ -140,6 +142,9 @@ static void parse_options (int argc, char **argv, OptionInfo & option_info)
 			break;
 		case 'p':
 			option_info.oscport = atoi(optarg);
+			break;
+		case 'U':
+			option_info.pingurl = optarg;
 			break;
 		default:
 			fprintf (stderr, "argument error\n");
@@ -277,7 +282,7 @@ int main(int argc, char** argv)
 	Engine * engine = new Engine();
 
 	
-	if (!engine->initialize(driver, option_info.oscport)) {
+	if (!engine->initialize(driver, option_info.oscport, option_info.pingurl)) {
 		cerr << "cannot initialize sooperlooper\n";
 		exit (1);
 	}
@@ -298,6 +303,11 @@ int main(int argc, char** argv)
 	}
 	
 
+	if (!option_info.pingurl.empty()) {
+		// notify whoever asked as to
+		engine->get_control_osc()->send_pingack (option_info.pingurl);
+	}
+	
 	// start up alsamidi bridge
 	// todo: a factory or optional other type
 	MidiBridge * midibridge = new AlsaMidiBridge(driver->get_name(), engine->get_osc_url());
