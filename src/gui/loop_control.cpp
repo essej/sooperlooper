@@ -387,6 +387,7 @@ LoopControl::midi_binding_handler(const char *path, const char *types, lo_arg **
 		}
 	}
 	else if (status == "done") {
+		info.unserialize (bindstr);
 		MidiBindingChanged(info); // emit
 	}
 	

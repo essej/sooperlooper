@@ -159,8 +159,27 @@ void MidiBindDialog::init()
 	_listctrl->SetColumnWidth(2, 100);
 	
 	
+
+	wxBoxSizer * buttsizer = new wxBoxSizer(wxHORIZONTAL);
+
+	wxButton *butt = new wxButton (this, ID_LoadButton, wxT("Load..."));
+	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
+
+	butt = new wxButton (this, ID_SaveButton, wxT("Save..."));
+	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
+
+	buttsizer->Add (1,-1,1, wxALL, 0);
+	
+	butt = new wxButton (this, ID_ClearAllButton, wxT("Clear All"));
+	buttsizer->Add (butt, 0, wxALL|wxALIGN_RIGHT, 3);
+	
+	topsizer->Add (buttsizer, 0, wxLEFT|wxTOP|wxRIGHT|wxEXPAND, 4);
+
+	// add list
 	topsizer->Add (_listctrl, 1, wxEXPAND|wxALL, 4);
 
+
+	
 	_edit_panel = new wxPanel(this, -1);
 	wxBoxSizer * editsizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -264,39 +283,29 @@ void MidiBindDialog::init()
 	
 	topsizer->Add (_edit_panel, 0, wxEXPAND|wxALL, 1);
 
-	wxBoxSizer * buttsizer = new wxBoxSizer(wxHORIZONTAL);
-	//buttsizer->Add (1,1, 1, wxALL, 0);
+	buttsizer = new wxBoxSizer(wxHORIZONTAL);
+	buttsizer->Add (1,1, 1, wxALL, 0);
 
-	wxButton * butt = new wxButton (this, ID_ModifyButton, wxT("Modify"));
+	butt = new wxButton (this, ID_ModifyButton, wxT("Modify"));
 	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
 
 	butt = new wxButton (this, ID_RemoveButton, wxT("Remove"));
 	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
 
-	butt = new wxButton (this, ID_AddButton, wxT("Add"));
+	butt = new wxButton (this, ID_AddButton, wxT("Add New"));
 	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
 
 
-	buttsizer->Add (1,-1,1, wxALL, 0);
+	//buttsizer->Add (1,-1,1, wxALL, 0);
 	
-	butt = new wxButton (this, ID_ClearAllButton, wxT("Clear All"));
-	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
 	
 	//butt = new wxButton (this, ID_CloseButton, wxT("Close"));
 	//buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
 
 
-	topsizer->Add (buttsizer, 0, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 4);
+	topsizer->Add (buttsizer, 0, wxALL|wxEXPAND|wxALIGN_RIGHT, 4);
 
-	buttsizer = new wxBoxSizer(wxHORIZONTAL);
 
-	butt = new wxButton (this, ID_LoadButton, wxT("Load..."));
-	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
-
-	butt = new wxButton (this, ID_SaveButton, wxT("Save..."));
-	buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
-	
-	topsizer->Add (buttsizer, 0, wxLEFT|wxBOTTOM|wxRIGHT|wxEXPAND, 4);
 
 	_parent->get_loop_control().MidiBindingChanged.connect (slot (*this, &MidiBindDialog::got_binding_changed));
 
@@ -332,8 +341,9 @@ void MidiBindDialog::populate_controls()
 void MidiBindDialog::got_binding_changed(SooperLooper::MidiBindInfo & info)
 {
 	if (_learning) {
+		cerr << "got learned: " << info.serialize() << endl;
 		_currinfo = info;
-
+		
 		_learn_button->SetLabel (wxT("Learn"));
 		_learn_button->SetForegroundColour (*wxBLACK); // todo default
 		
@@ -352,6 +362,7 @@ void MidiBindDialog::refresh_state()
 	item.SetMask (wxLIST_MASK_TEXT|wxLIST_MASK_DATA|wxLIST_MASK_STATE);
 	item.SetColumn(0);
 	item.SetWidth(wxLIST_AUTOSIZE);
+	item.SetStateMask(wxLIST_STATE_SELECTED);
 	item.SetState(0);
 
 	_bind_list.clear();
@@ -360,28 +371,26 @@ void MidiBindDialog::refresh_state()
 	_parent->get_loop_control().midi_bindings().get_bindings(_bind_list);
 	
 	int itemid = 0;
-	int selexists = false;
+	int selexists = -1;
 	
 	for (MidiBindings::BindingList::iterator biter = _bind_list.begin(); biter != _bind_list.end(); ++biter)
 	{
 		MidiBindInfo & info = (*biter);
 
-		if (info == _currinfo) {
-			item.SetState(wxLIST_STATE_SELECTED);
-			selexists = true;
-			cerr << "matched curringo" << endl;
-		}
-		else {
-			item.SetState(0);
-		}
 		
 		// control
-		item.SetId(itemid++);
+		item.SetId(itemid);
 		item.SetColumn(0);
 		item.SetData((void *) &info);
 		item.SetText (wxString::FromAscii (info.control.c_str()));
+
 		_listctrl->InsertItem (item);
 
+		if (info == _currinfo) {
+			selexists = itemid;
+		}
+		
+		
 		// loop #
 		item.SetColumn(1);
 		item.SetText (wxString::Format(wxT("%d"), info.instance + 1));
@@ -405,9 +414,16 @@ void MidiBindDialog::refresh_state()
 		}
 		_listctrl->SetItem (item);
 		
-		
+
+		itemid++;
 	}
 
+	if (selexists >= 0) {
+		_listctrl->SetItemState(selexists, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+		_listctrl->EnsureVisible(selexists);
+		cerr << "matched curringo " << selexists << endl;
+	}
+	
 	_listctrl->SortItems (list_sort_callback, (unsigned) _listctrl);
 
 // 	if (selexists) {

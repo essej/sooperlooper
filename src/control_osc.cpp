@@ -1113,7 +1113,7 @@ void ControlOSC::finish_midi_binding_event (MidiBindingEvent & event)
 			fprintf(stderr, "OSC error sending binding %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
 			return;
 		}
-		lo_send(addr, event.ret_path.c_str(), "ss", "done", "");
+		lo_send(addr, event.ret_path.c_str(), "ss", "done", event.bind_str.c_str());
 	}
 }
 
