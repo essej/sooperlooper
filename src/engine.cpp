@@ -1199,7 +1199,6 @@ void Engine::update_sync_source ()
 		// cerr << "using sync from " << _sync_source -1 << endl;
 	}
 	
-	
 	for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i)
 	{
 		(*i)->use_sync_buf (sync_buf);

@@ -2345,6 +2345,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 loop = pushNewLoopChunk(pLS, 0, NULL);
 		 if (loop) {
 		    DBG(fprintf(stderr,"Entering RECORD state\n"));
+		 
 		    pLS->state = STATE_RECORD;
 		    // force rate to be 1.0
 		    fRate = pLS->fCurrRate = 1.0f;

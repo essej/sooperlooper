@@ -496,14 +496,13 @@ Looper::do_event (Event *ev)
 
 			switch (ev->Control) 
 			{
-			case  Event::Quantize:
-				ev->Value = roundf(ev->Value);
-				break;
-			
 			case Event::DryLevel:
 				_target_dry = ev->Value;
 				break;
 
+			case  Event::Quantize:
+				ev->Value = roundf(ev->Value);
+				// passthru is intentional
 			default:
 				ports[ev->Control] = ev->Value;
 				//cerr << "set port " << ev->Control << "  to: " << ev->Value << endl;
