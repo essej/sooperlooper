@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>SooperLooper -  Documentation ::: Getting Started</title>
+    
+    <link rel="stylesheet" href="css/nn4.css" type="text/css" media="screen" />
+    <!--link before import prevents Flash Of Unstyled Content in ie6pc -->
+    <style type="text/css" media="screen">@import "css/jlc.css";</style>
+  </head>
+    
+    <body>
+      
+      <div id="Header">      
+	<a href="index.html" border=0>
+	<img src="sl_web_logo_black.png" id="titleimage"></a>
+
+	<div id="headertitle">
+	  <h4 id="titletext">Live Looping Sampler</h4>
+	</div>
+
+	<div id="pagetitle">
+	  <h4 id="pagetitletext">Documentation ::: Getting Started</h4>
+	</div>
+
+      </div>
+      
+      
+      <div id="Content">
+
+		    To install, do the normal ritual after unpacking
+		    the tarball: <p>
+		      <div class="cmdbox">
+<pre>./configure [--prefix=prefix]
+make<br></pre>
+<i>[probably need to become root]</i> <br>
+	  <pre>
+make install </pre>
+</div>
+		    <p>
+		    
+		    Once the software is installed, you must have JACK
+		    running, then you can run <p>
+		    <div class="cmdbox">
+		      slgui  &
+		    </div>
+		    to start the GUI, which will also start an engine
+		    in the background.  If there is already an engine
+		    running at the default port on the local machine,
+		    it will connect to this one.  Note that the GUI
+		    has two Quit commands, one of which will not stop
+		    the engine.  The audio ports may now be connected
+		    with your favorite JACK patchbay. 
+		    <p>
+		      Alternatively you can run the engine separately,
+		     if not in a graphical setting, or in a headless
+		     computer system. <br>
+		      <div class="cmdbox">
+		      sooperlooper &
+		      </div>
+		      
+		      
+		      See the MIDI control section
+		      for specifying MIDI bindings that allow you to
+		      control the looper.  Giving -h as an option will
+		    show you the commandline usage for both.
+
+
+
+      </div>
+
+
+      <div class="copyright">
+	&copy; 2004  Jesse Chappell  <i>&lt;jesse at essej dot net&gt;</i>
+	
+      </div>
+      
+      <div id="Menu">
+    	<a href="index.html" title="Home">Home</a><br>
+    	<a href="features.html" title="Features">Features</a><br>
+    	<a href="download.html" title="Download">Download</a><br>
+    	<a href="docs.html" title="Documentation">Documentation</a><br>
+    	<a href="doc_commands.html" title="Command Reference" class="offset">Getting Started</a><br>
+    	<a href="doc_commands.html" title="Command Reference"
+	  class="offset">Commands</a><br>
+    	<a href="doc_midi.html" title="MIDI Bindings"
+	  class="offset">MIDI Bindings</a><br>
+    	<a href="doc_osc.html" title="OSC Interface"
+	  class="offset">OSC Interface</a><br>
+
+
+	<a href="donate.html" title="Donate">Donate</a><br>
+	
+      </div>
+      
+    </body>
+</html>
+	

@@ -1,0 +1,293 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>SooperLooper -  Documentation :: Command Reference</title>
+    
+    <link rel="stylesheet" href="css/nn4.css" type="text/css" media="screen" />
+    <!--link before import prevents Flash Of Unstyled Content in ie6pc -->
+    <style type="text/css" media="screen">@import "css/jlc.css";</style>
+  </head>
+    
+    <body>
+      
+      <div id="Header">      
+	<a href="index.html" border=0>
+	<img src="sl_web_logo_black.png" id="titleimage"></a>
+
+	<div id="headertitle">
+	  <h4 id="titletext">Live Looping Sampler</h4>
+	</div>
+
+	<div id="pagetitle">
+	  <h4 id="pagetitletext">Documentation ::: Command Reference</h4>
+	</div>
+
+      </div>
+      
+      
+      <div id="Content">
+
+
+
+
+The feature-set is closely based on that of the EDP (LoopIII and many features from LoopIV)
+ so reading the
+	   <a
+	      href="http://www.loopers-delight.com/tools/echoplex/echoplex.html">EDP Manuals</a> can be useful.
+
+	<p>
+	  Certain aspects are obviously different, especially in the
+	  area of synchronization, which is still under
+	  development.  More complete documentation will follow later.
+	</p>
+	<p>
+	  SooperLooper allows you to have any number
+	  (limited by available RAM) of loops running
+	  simultaneously, and each loop can have an
+	  arbitrary number of channels.  Each channel of
+	  each loop will have an input and output port
+	  available for connection under JACK.
+	</p>
+	<p>
+		      Use the Add and Remove loop
+		      menu items to control the loop count.  Note that
+		      the default maximum loop memory is fairly large,
+		      so you might want to use the -t option on the
+		      engine to limit the memory used per channel of
+		      each loop.
+	</p>
+	<p> SooperLooper does support long-presses (from gui, or when commands
+	  are bound from MIDI note message).  When a command is held down for more than 2 seconds,
+	  it becomes a momentary (or SUS) control, so that when the command is released, it ends the
+	  operation (as if you had quickly pressed and released a command twice).  In the gui, middle-mouse button
+	  press-releases are always momentary (releases always end the operation immediately).  
+	  MIDI bindings have a SUS option, that if set will treat that binding as an immediate
+	  momentary operation (SUS).
+	  </p>
+	
+	<div class="commandbox_head">
+	  <b>RECORD</b>
+	</div>
+	<div class="commandbox">
+	  Start here.  If the record threshold is all the way down,
+	  pressing it once will start recording and pressing
+	  again will end the recording. <p>
+	    
+	    If the Threshold is set higher the loop recording doesn't start until
+	    the audio data is greater than the threshold.  When finishing the loop, the threshold value is ignored. 
+	    
+	    See the tips in the EDP manual, it works best if you
+	    stop and start recording the moment you hit the downbeat, not
+	    before.  Trust them.
+	  <p>
+	    If you end a RECORD with another function it will finish the loop
+	    immediately (threshold ignored) and start doing the new function.  A
+	    special feature: ending with REVERSE stops recording and plays the
+	    loop backwards once then goes into MUTE mode.
+	</div>
+	
+	<div class="commandbox_head">
+	  <b>OVERDUB</b>
+	</div>
+
+	<div class="commandbox">
+	  This keeps playing the loop and adds whatever you
+	  play on top until you stop overdubbing.  Very useful.... this is the main
+	  tool.  The Feedback controls the amount of the original loop that
+	  is used every pass.  In actuality, when
+	  Feedback is set to 100%, it actually uses a
+	  slightly less amount to prevent overloading.
+	</div>
+
+	<div class="commandbox_head">
+	  <b>MULTIPLY</b>
+	</div>
+	
+	<div class="commandbox">
+	  
+	  This similar to overdub, except the original loop is repeated
+	  underneath you "multiplying" the loop length until you stop it.
+	  Thus it can turn a 1 measure loop into a 2,3, etc measure loop.
+	  QuantizeMode and RoundMode affect how the overdubbing starts and
+	  stops.  See if you can figure it out. Keep in mind that the original
+	  loop length is a "cycle" and the loop length will be a multiple of
+	  that.  You can actually make an already multiplied loop have fewer
+	  cycles with the right combination of options.
+	  <p>
+	    If you end a MULTIPLY with a RECORD press it ends the loop
+	    immediately and resets the cycle length to the whole loop, if you
+	    want that.
+	</div>
+
+	<div class="commandbox_head">
+	  <b>INSERT</b>
+	</div>
+	<div class="commandbox">
+	  It inserts new input in place, but always one "cycle" length...
+	  QuantizeMode and RoundMode have effects (RTF EDP Manual).  
+	</div>
+	
+	<div class="commandbox_head">
+	  <b>REPLACE</b>
+	</div>
+	<div class="commandbox">
+	  Is like overdub without keeping or playing the underlying
+	  audio.  
+	</div>
+	
+
+	<div class="commandbox_head">
+	  <b>SUBSTITUTE</b>
+	  </div>
+	<div class="commandbox">
+	  Is like Replace except you still hear the current underlying loop audio 
+	  as it records new audio into the loop.  On the next time around, only the 
+	  newly recorded audio will be heard.  This helps maintain the groove 
+	  when recording a replacement section, because you can play with what was there.
+	</div>
+
+	<div class="commandbox_head">
+	  <b>REVERSE</b>
+	</div>
+	<div class="commandbox">
+
+	  Reverses playback direction.  Can be used in play mode, and even
+	  during an OVERDUB, which makes for some pretty interesting stuff.
+	  Can also be used in DELAY mode.  If Quantize is on, the reversal 
+	  doesn't happen until the next sync boundary, thus keeping the
+	  loop in time.
+	</div>
+
+	<div class="commandbox_head">
+	  <b>UNDO</b>
+	  </div>
+	
+	<div class="commandbox">
+	  Undoes the last operation and immediately plays the previous loop
+	  maintaining the current time position if the loop you are undoing was based
+	  on the previous loop (usually is).  You can go all the way back to
+	  the first one.
+	</div>
+	
+
+	<div class="commandbox_head">
+	  <b>REDO</b>
+	  </div>
+	<div class="commandbox">
+	  Redoes the loop if it can (if you haven't done a new operation since
+	  your last undo).  Taken together UNDO and REDO allow you to do some
+	  neat things: record a verse part, then hit record to do a chorus
+	  part.  To get back to the verse, press UNDO... to get to the chorus
+	  press REDO...  Pressing UNDO while in MUTE mode undoes all the way
+	  back (can be redone).
+	</div>
+	
+	<div class="commandbox_head">
+	  <b>MUTE MODE</b>
+	</div>
+  	<div class="commandbox">
+	  Press to mute loop output.  Dry passthough audio will be unaffected.
+	  To continue playing the loop in time press MUTE again.  To continue playing
+	  the loop from the top press TRIG.  To play back the loop once and
+	  return to mute, press ONCE.
+	</div>
+	<div class="commandbox_head">
+	  <b>TRIGGER</b>
+	  </div>
+	<div class="commandbox">
+	  this immediately restarts the loop
+	  playing back from the beginning
+	</div>
+	
+	<div class="commandbox_head">
+	  <b>ONCE</b>
+	  </div>
+	<div class="commandbox">
+	  this immediately restarts the loop
+	  playing back from the beginning, and goes into
+	  MUTE mode at the end of the loop
+	</div>	
+
+	<div class="commandbox_head">
+	  <b>LOAD/SAVE</b>
+	</div>
+	<div class="commandbox">
+	  These commands allow you to load a loop from an audio file.
+	  The file becomes a new loop, so it must be
+	  shorter than the available loop time, or the
+	  operation will fail.   Save will save the
+	  current loop to an audio file.  The loop is not
+	  interrupted when saving.
+	</div>
+	
+	<div class="commandbox_head">
+	  <b> DELAY MODE</b>
+	  </div>
+	
+  	<div class="commandbox">
+	  Pressing the Delay control triggers Delay Mode. The time between the
+	  most recent two presses is the new delay time.  While in DELAY mode,
+	  you can toggle Hold Mode (by pressing Replace), or Reverse at any time for a cool effect.
+	  To get out of delay mode press any other function or UNDO.  You will
+	  probably want to adjust Feedback down from 1 before you enter delay
+	  mode or you'll build up a nice cacophony fast.
+	</div>
+
+	
+	<div class="commandbox_head">
+	  <b>SCRATCH MODE</b>
+	</div>
+	<div class="commandbox">
+	  By default the Scratch Rate Active is toggled off which means it
+	  ignores the Scratch Rate parameter.  Changes in the Scratch Position
+	  parameter over time define the rate of playback (position unit
+	  is ratio of current loop length).  The implementation is still pretty rough sounding.
+	  <p>
+	    I've personally used a
+	    theremin
+	    (the <a href="http://www.paia.com">PAIA</a> Theremax) with CV output through
+	    my MIDI pedal, very cool, although the scratching code needs some work.
+	</div>
+
+	<div class="commandbox_head">
+	  <b>Rate Adjustment</b>
+	</div>
+	<div class="commandbox">
+	  The rate can be adjusted anytime (even during Recording) and will affect both the
+	  underlying loop and any new incoming audio recorded onto the loop, reminiscent of 
+	  tape delay systems.  Altering the Rate during recording/overdubbing, etc can result 
+	  in interesting recorded audio.  The GUI has buttons for easy access to 1/2 speed, double speed, and 
+	  normal (1x) speed.   MIDI bindings can be created to act like these buttons by specifying the range 
+          min and max to equal the target rate.
+	  </div>
+
+	
+      </div>
+
+
+      <div class="copyright">
+	&copy; 2004  Jesse Chappell  <i>&lt;jesse at essej dot net&gt;</i>
+	
+      </div>
+      
+      <div id="Menu">
+    	<a href="index.html" title="Home">Home</a><br>
+    	<a href="features.html" title="Features">Features</a><br>
+    	<a href="download.html" title="Download">Download</a><br>
+    	<a href="docs.html" title="Documentation">Documentation</a><br>
+
+    	<a href="doc_start.html" title="Command Reference" class="offset">Getting Started</a><br>
+    	<a href="doc_commands.html" title="Command Reference"  class="offset">Commands</a><br>
+    	<a href="doc_midi.html" title="MIDI Bindings"
+	  class="offset">MIDI Bindings</a><br>
+    	<a href="doc_osc.html" title="OSC Interface"
+	  class="offset">OSC Interface</a><br>
+
+
+	<a href="donate.html" title="Donate">Donate</a><br>
+	
+      </div>
+      
+    </body>
+</html>
+	

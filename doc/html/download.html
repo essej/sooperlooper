@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>SooperLooper - real-time looping sampler</title>
+    
+    <link rel="stylesheet" href="css/nn4.css" type="text/css" media="screen" />
+    <!--link before import prevents Flash Of Unstyled Content in ie6pc -->
+    <style type="text/css" media="screen">@import "css/jlc.css";</style>
+  </head>
+    
+    <body>
+      
+      <div id="Header">      
+	<img src="sl_web_logo_black.png" id="titleimage">
+
+	<div id="headertitle">
+	  <h4 id="titletext">Live Looping Sampler</h4>
+	</div>
+
+	<div id="pagetitle">
+	  <h4 id="pagetitletext">Download</h4>
+	</div>
+
+      </div>
+      
+      
+      <div id="Content">
+	<p>
+	  <strong>SooperLooper</strong> is written by Jesse Chappell.  It is licensed under the GPL and comes with NO WARRANTY of any kind.
+	  You are welcome to copy it, give copies to your friends, and modify it.
+	  But if you find it useful, then please consider making a <a href="donate.html">donation</a>.
+	</p>
+
+	<div class="textbox_head"><strong>Source Code Release</strong> &nbsp;
+	  <small>[22 November 2004]</small></div>
+	<div class="textbox">
+	  Source tarball - v1.0.0dev25
+	  <ul>
+	    <li>
+	      <a href="sooperlooper-1.0.0dev25.tar.gz">sooperlooper-1.0.0dev25.tar.gz</a>
+	    </li>
+	  </ul>
+	</div>
+
+	<div class="textbox_head"><strong>Binary Packages</strong></div>
+	<div class="textbox">
+	  You can currently get the following prebuilt binary packages:
+	  <ul>
+	    <li>
+	      RedHat/Fedora - from
+	      <a href="http://www-ccrma.stanford.edu/planetccrma/software/soundapps.html#sooperlooper">Planet CCRMA</a>.
+	    </li>
+	  </ul>
+
+	  <p>
+	  <i>Note:  Mac OS X packages will be available shortly, watch this space!</i>
+	  </p>
+	</div>
+	
+
+	<div class="textbox_head"><strong> CVS Access </strong></div>
+	<div class="textbox">
+	  
+	  You can use anonymous CVS to get the very latest source code.
+
+	  <small><pre>
+	  cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/sooperlooper co sooperlooper </pre></small>
+
+	  More information about using CVS can be found <a href="http://sourceforge.net/cvs/?group_id=78794">here</a>.
+	</div>
+
+
+	<div class="textbox_head"><strong>Build Requirements</strong></div>
+	<div class="textbox">
+	  In order to build SooperLooper from source code, you must first have the following
+	  libraries installed:
+	  
+	    <ul class="smaller">
+	      <li> <a href="http://jackit.sf.net">JACK</a> -- version &ge; 0.80.0 <br>
+		providing
+		real-time low-latency audio interconnection and
+		delivery.   If you haven't used JACK before
+		please study the FAQs on the JACK site and check out <a href="http://www.djcj.org">Linux
+		  Audio User Guide</a> and make sure to read the
+		section on JACK.  You'll also need ALSA on linux for now.
+	      <li> <a href="http://www.wxwidgets.org">wxWidgets</a>
+		(wxGTK) -- the toolkit I've chosen to use for the GUI.
+		It should work with the most recent 2.4.x series
+		and 2.5.x series.  For best look, you will want wxGTK compiled
+			against gtk2 using the --enable-gtk2 option to
+			configure.
+
+	      <li><a href="http://libsigc.sourceforge.net/">libsigc++
+			  = 1.2</a>
+			-- this library is usually already on recent
+			systems, but if not get it and install it.
+
+	      <li><a
+			  href="http://www.mega-nerd.com/libsndfile/">libsndfile
+			  </a> --
+			sound file format reading/writing
+			
+	      <li><a href="http://plugin.org.uk/liblo/">liblo &ge; 0.10</a>
+			--
+			
+			Lightweight OSC library
+			
+	      <li><a href="http://www.xmlsoft.org/">libxml2</a> --
+			XML library that is usually already installed
+			on your system.
+			
+	    </ul>
+
+	
+	</div>
+
+      </div>
+      
+      <div class="copyright">
+	&copy; 2004  Jesse Chappell  <i>&lt;jesse at essej dot net&gt;</i>
+	
+      </div>
+
+	
+      <div id="Menu">
+    	<a href="index.html" title="Home">Home</a><br>
+    	<a href="features.html" title="Features">Features</a><br>
+    	<a href="download.html" title="Download">Download</a><br>
+    	<a href="docs.html" title="Documentation">Documentation</a><br>
+    	<a href="donate.html" title="Donate">Donate</a><br>
+	
+      </div>
+      
+    </body>
+</html>

@@ -1,0 +1,81 @@
+
+/*simple styles for simple browsers. primarily nn4. make darn sure everything in here is overridden in the real css*/
+
+/*ie4.5mac has problems with this. it makes text small, and the nested list is impossibly small, even when user increases to largest. solution? ignore it. you will go nuts trying to serve different styles to nn4 and ie4.5mac. either give them both plain xhtml, or style for nn4 at the slight inconvenience of the few, or zero, remaining ie4.5mac users.*/
+
+body, h1, h2, h3, h4, h5, h6,ol, ul, li, p {
+	font-family: verdana, arial, helvetica, sans-serif;
+	color: #000;
+	}
+body {
+	margin: 0;
+	padding: 40px 5% 5% 5%;
+	background-color: #fff;
+	background-image: url(n4_upgrade.gif);/*use full url so both ie45mac and nn4 can find it. and for gosh sakes people, if you use this code, point to an img on _your_ server, not mine.*/
+	background-repeat: no-repeat;
+	background-position: top left;
+	}
+		
+/*the following classes are to demonstrate better line heights for narrow columns*/	
+.narrow1{
+	width: 50%;
+	line-height: 90%;
+	}
+.narrow2{
+	width: 50%;
+	line-height: 105%;
+	}
+	
+/*typography*/
+a:link {
+	}
+a:visited {
+	}
+a:active {
+	}
+a:hover {
+	/*hover doesn't work in nn4*/
+	}
+h1 {
+	font-size: 150%;
+	font-weight: normal;
+	}
+h2 {
+	font-size: 120%;
+	font-weight: normal;
+	}
+h3 {
+	font-size: 100%;
+	font-weight: normal;
+	}
+h4 {
+	font-size: 80%;
+	font-weight: bold;
+	}
+h5 {
+	font-size: 70%;
+	font-weight: bold;
+	}
+h6 {
+	font-size: 64%;
+	font-weight: bold;
+	}
+img {
+	border: 0;
+	}
+ol, ul, li {/*
+	list-style: none;*/
+	font-size: 80%;
+	line-height: 120%;
+	}
+p {
+	font-size: 80%;
+	line-height: 120%;
+	}
+pre {
+	font-family: monospace;
+	font-size: 80%;
+	}
+strong, b {
+	font-weight: bold;
+	}

@@ -1,0 +1,313 @@
+
+body {
+	margin: 0;
+	padding: 0;
+	font-family: verdana, arial, helvetica, sans-serif;
+	font-size: 78%;/* font sizing in ems, baby. if you want to change anything, just change this.*/
+	/*funny thing happens at 75% and lower. opera goes to a nice small size, but moz and ie pc change almost not at all. seems 76% is as small as you can go and stay the same across browsers. poop.*/
+	color: #000;
+	background-color: #ccd;
+/*	background-image: url(_.gif);
+	background-repeat: no-repeat;
+	background-position: top left; */
+  	background-image: url('head_gradient_bg.png');
+	background-repeat: repeat-y;
+	background-position: top left;
+
+
+}
+#content {
+	margin: 0em;
+	padding: 4em 6em 2em 6em;/* use padding instead of margin for multicolumn layouts because of a really odd ie5pc bug where it sometimes relates the width of an unrelated menu div to this div. i'll, uh, write about that somewhere. it was hard to figure out what was causing it, so i want this note here to remind me. */
+
+}
+	
+/*the following classes are to demonstrate better line heights for narrow columns*/	
+.narrow1{
+	width: 50%;
+	line-height: 1.3em;
+	}
+.narrow2{
+	width: 50%;
+	line-height: 1.5em;
+	}
+		
+/*typography*/
+a {
+	text-decoration: none;
+	font-weight: bold;
+	color: #000;
+	}
+a:link {color:#059;}
+a:visited {color:#922;}
+a:hover {
+	text-decoration: underline;
+        background-color:#eee;}
+
+h1 {
+	font-size: 2.0em;
+	font-weight: normal;
+	margin-top: 0em;
+	margin-bottom: 0em;/*both set to zero and padding in header div is used intead to deal with compound ie pc problems that are beyound summary in a simple comment.*/
+	}
+h2 {
+	font-size: 1.7em;
+	margin: 1.2em 0em 1.2em 0em;
+	font-weight: normal;
+	}
+h3 {
+	font-size: 1.4em;
+	margin: 1.2em 0em 1.2em 0em;
+	font-weight: normal;
+	}
+h4 {
+	font-size: 1.2em;
+	margin: 1.2em 0em 1.2em 0em;
+	font-weight: bold;
+	}
+h5 {
+	font-size: 1.0em;
+	margin: 1.2em 0em 1.2em 0em;
+	font-weight: bold;
+	}
+h6 {
+	font-size: 0.8em;
+	margin: 1.2em 0em 1.2em 0em;
+	font-weight: bold;
+	}
+img {
+	border: 0;
+	}
+ol, ul, li {/*
+	list-style: none;*/
+	font-size: 1.0em;
+	line-height: 1.8em;
+	margin-top: 0.2em;
+	margin-bottom: 0.1em; 
+	}
+p {
+	font-size: 1.0em;
+	line-height: 1.6em;
+	margin: 1.2em 0em 1.2em 0em;
+	}
+li > p {
+	margin-top: 0.2em;
+	}
+pre {/*moz 1.0/1.1/1.2.1, net 7.0/7.01 make this way too small, but i'm not going to go larger because monospace tends to run you into overflow pretty quick. prior moz and net are okay.*/
+	font-family: monospace;
+	font-size: 1.0em;
+	}
+strong, b {
+	font-weight: bold;
+	}
+
+HR {
+  height:3px;
+  width:70%;
+  border: 1px solid #999;
+  background:#aaa;
+  margin: 10px 0px 10px 0px;  
+}
+
+
+/* the following is from glish.com */
+
+
+
+#Header {
+	margin:0px 0px 5px 0px;
+	padding:2px 0px 0px 0px;
+	/* For IE5/Win's benefit height = [correct height] + [top padding] + [top and bottom border widths] */
+	height:79px; /* 75px + 5px + 2px = 82px */
+	border-style:solid;
+	border-color:black;
+	border-width:1px 0px; /* top and bottom borders: 1px; left and right borders: 0px */
+	line-height:11px;
+	background-color:#000;
+	color: #fff;
+
+  	background-image: url('head_gradient_bg.png');
+	background-repeat: repeat-y;
+	background-position: top left;
+
+/* Here is the ugly brilliant hack that protects IE5/Win from its own stupidity. 
+Thanks to Tantek Celik for the hack and to Eric Costello for publicizing it. 
+IE5/Win incorrectly parses the "\"}"" value, prematurely closing the style 
+declaration. The incorrect IE5/Win value is above, while the correct value is 
+below. See http://glish.com/css/hacks.asp for details. */
+	voice-family: "\"}\"";
+	voice-family:inherit;
+	height:72px; /* the correct height */
+	}
+/* I've heard this called the "be nice to Opera 5" rule. Basically, it feeds correct 
+length values to user agents that exhibit the parsing error exploited above yet get 
+the CSS box model right and understand the CSS2 parent-child selector. ALWAYS include
+a "be nice to Opera 5" rule every time you use the Tantek Celik hack (above). */
+body>#Header {height:72px;}
+
+#Content {
+	margin:0px 171px 6px 5px;
+	padding:10px;
+	background-color: #fff;
+	}
+
+#Menu {
+	position:absolute;
+	top:81px;
+	right:7px;
+	/* For IE5/Win's benefit width = [correct width] + [right padding] + [top and bottom border widths] */
+	width:142px; /* 130px + 10px + 2px = 142px */
+	padding:10px;
+	background-color:#eee;
+	border:1px solid #aaa;
+	line-height:17px;
+/* Again, the ugly brilliant hack. */
+	voice-family: "\"}\"";
+	voice-family:inherit;
+	width:135px;
+	}
+/* Again, "be nice to Opera 5". */
+body>#Menu {width:135px;}
+
+
+DIV.textbox {
+  margin: 0px 0px 15px 10px;
+  border: solid 1px #ddd;
+  padding: 5px 10px 5px 10px;
+  background-color:#eee;
+ /* width: 591px; */
+}
+
+DIV.textbox_head {
+  margin: 0px 0px 0px 0px;
+  border: solid 1px #99b;
+  padding: 2px 10px 2px 10px;
+  background-color:#aac;
+ /* width: 600px; */
+}
+
+DIV.textbox_indent {
+  margin: 20px 20px 15px 40px;
+  border: none 1px #003000;
+  padding: 5px 10px 5px 10px;
+  background-color:#eee;
+  width: 500px;
+}
+
+
+DIV.newsbox {
+  margin: 0px 0px 15px 10px;
+  border: solid 1px #e0e0e0;
+  padding: 5px 10px 5px 10px;
+  background-color:#eee;
+  /* width: 591px; */
+}
+
+DIV.newsbox_head {
+  margin: 0px 0px 0px 1px;
+  border: solid 1px #dd9;
+  padding: 2px 10px 2px 10px;
+  background-color:#ffb;
+/*   width: 600px; */
+}
+
+DIV.commandbox {
+  margin: 0px 0px 15px 10px;
+  border: solid 1px #ddd;
+  padding: 5px 10px 5px 10px;
+  background-color:#eee;
+ /* width: 591px; */
+}
+
+DIV.commandbox_head {
+  margin: 0px 0px 0px 0px;
+  border: solid 1px #99b;
+  padding: 2px 10px 2px 10px;
+  background-color:#aac;
+ /* width: 600px; */
+}
+
+
+UL.smaller { 
+  font-size: 0.8em;
+  line-height: 1.4em;
+}
+
+.flowimage {
+  float: left;
+  clear: left;
+  margin: 5px 5px 5px 5px;
+}
+
+.flowimageright {
+  float: right;
+  clear: right;
+  margin: 5px 5px 5px 5px;
+}
+
+DIV.copyright {
+  /*position: relative; */
+  /*left: 25px; */
+  margin: 0px 0px 5px 10px;
+  /*float: right;*/
+  font-size: 0.8em;
+  color: #666;
+  
+}
+
+#titleimage {
+  float: left;
+  margin: 0px;
+}
+
+#sb1 {
+float: left;
+clear: left;
+}
+#sb1 {width: 500px; height: 130px;}
+
+
+#titletext {
+  color: #ffc;
+}
+
+#headertitle {
+  position:absolute;
+  top:20px;
+  left:210px;
+  color: #ffc;
+ /* width:172px; */
+}
+
+#pagetitletext {
+  color: #beb;
+}
+
+#pagetitle {
+  position:absolute;
+  top: 38px;
+  right: 200px;
+  
+  color: #ffc;
+  margin: 0px 0px 0px 0px;
+ /* width:172px; */
+}
+
+.offset { 
+  font-size: 0.9em;
+ /* margin-left: 10px;*/
+  position: relative;
+  left: 10px;
+}
+
+
+.cmdbox {
+/*  font-family: monospace;
+  font-size: 1.0em;
+   */
+  margin: 0px 100px 15px 20px;
+  border: solid 1px #ddd;
+  padding: 5px 10px 5px 10px;
+  background-color:#eee;
+  
+}
