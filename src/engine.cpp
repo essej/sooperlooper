@@ -689,7 +689,7 @@ void Engine::update_sync_source ()
 	}
 	else if (_sync_source > 0 && (int)_sync_source <= (int) _instances.size()) {
 		sync_buf = _instances[(int)_sync_source - 1]->get_sync_out_buf();
-		cerr << "using sync from " << _sync_source -1 << endl;
+		// cerr << "using sync from " << _sync_source -1 << endl;
 	}
 	
 	
