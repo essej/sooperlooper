@@ -20,6 +20,7 @@
 #include <wx/wx.h>
 
 #include <iostream>
+#include <cmath>
 
 #include "slider_bar.hpp"
 
@@ -27,6 +28,30 @@
 
 using namespace SooperLooperGui;
 using namespace std;
+
+// Convert a value in dB's to a coefficent
+#define DB_CO(g) ((g) > -90.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
+#define CO_DB(v) (20.0f * log10f(v))
+
+static inline double 
+gain_to_slider_position (double g)
+{
+	if (g == 0) return 0;
+	//return pow((6.0*log(g)/log(2.0)+192.0)/198.0, 8.0);
+	return pow((6.0*log(g)/log(2.0)+198.0)/198.0, 8.0);
+
+}
+
+static inline double 
+slider_position_to_gain (double pos)
+{
+	if (pos == 0) {
+		return 0.0;
+	}
+	/* XXX Marcus writes: this doesn't seem right to me. but i don't have a better answer ... */
+	//return pow (2.0,(sqrt(sqrt(sqrt(pos)))*198.0-192.0)/6.0);
+	return pow (2.0,(sqrt(sqrt(sqrt(pos)))*198.0-198.0)/6.0);
+}
 
 
 BEGIN_EVENT_TABLE(SliderBar, wxWindow)
@@ -46,6 +71,7 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_value = val;
 	_backing_store = 0;
 	_dragging = false;
+	_gain_style = false;
 	
 	_bgcolor.Set(30,30,30);
 	_bgbrush.SetColour (_bgcolor);
@@ -80,6 +106,16 @@ SliderBar::set_style (BarStyle md)
 {
 	if (md != _bar_style) {
 		_bar_style = md;
+		Refresh(false);
+	}
+}
+
+void
+SliderBar::set_gain_style (bool flag)
+{
+	if (flag != _gain_style) {
+		_gain_style = flag;
+		update_value_str();
 		Refresh(false);
 	}
 }
@@ -123,18 +159,46 @@ SliderBar::set_units (const wxString & units)
 void
 SliderBar::set_value (float val)
 {
-	if (val != _value) {
-		_value = val;
+	float newval = val;
+	
+	if (_gain_style) {
+		newval = gain_to_slider_position (val);
+	}
+	
+	if (newval != _value) {
+		_value = newval;
 		update_value_str();
 		Refresh(false);
 	}
 }
 
+float
+SliderBar::get_value ()
+{
+	if (_gain_style) {
+		return slider_position_to_gain(_value);
+	}
+	else {
+		return _value;
+	}
+}
+	
 
 void
 SliderBar::update_value_str()
 {
-	_value_str.Printf(wxT("%.1f %s"), _value, _units_str.c_str());
+	if (_gain_style) {
+		float gain = slider_position_to_gain(_value);
+		if (gain == 0) {
+			_value_str.Printf(wxT("-inf %s"), _units_str.c_str());
+		}
+		else {
+			_value_str.Printf(wxT("%.1f %s"), CO_DB(gain), _units_str.c_str());
+		}
+	}
+	else {
+		_value_str.Printf(wxT("%.1f %s"), _value, _units_str.c_str());
+	}
 }
 
 
@@ -231,7 +295,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		}
 
 		float newval = _value + fdelta;
-		
+
 		if (newval > _upper_bound) {
 			newval = _upper_bound;
 		}
@@ -244,7 +308,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		if (newval != _value) {
 			_value = newval;
 			
-			value_changed (_value); // emit
+			value_changed (get_value()); // emit
 
 			update_value_str();
 			Refresh(false);
@@ -270,9 +334,20 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		else {
 			newval = _value - (_upper_bound - _lower_bound) * fscale;			
 		}
-			     
-		set_value (newval);
-		value_changed (_value); //emit
+
+		if (newval > _upper_bound) {
+			newval = _upper_bound;
+		}
+		else if (newval < _lower_bound) {
+			newval = _lower_bound;
+		}
+
+		_value = newval;
+		
+		value_changed (get_value()); // emit
+		
+		update_value_str();
+		Refresh(false);
 	}
 	else if (ev.ButtonDown())
 	{
@@ -283,9 +358,12 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		if (ev.MiddleDown()) {
 			// set immediately
 			float newval = (ev.GetX() * _val_scale) + _lower_bound;
-			set_value (newval);
+			_value = newval;
+			
+			value_changed (get_value()); // emit
 
-			value_changed (_value); //emit
+			update_value_str();
+			Refresh(false);
 			
 		}
 	}

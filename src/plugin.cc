@@ -157,12 +157,10 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 #define LIMIT_BETWEEN_0_AND_MAX_DELAY(x)  \
 (((x) < 0) ? 0 : (((x) > MAX_DELAY) ? MAX_DELAY : (x)))
 
-// lininterp the target, and 	LP the value
-//wetTarget += wetDelta;
-//fWet = fWet * 0.1f + wetTarget * 0.9f;
+// Convert a value in dB's to a coefficent
+#define DB_CO(g) ((g) > -90.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
+#define CO_DB(v) (20.0f * log10f(v))
 
-#define LOWPASS_AND_LIN_INTERP(targ, val, delta) \
-( (val) = (val)*0.1f + ((targ+=delta))*0.9f)
 
 
 /*****************************************************************************/
@@ -2810,9 +2808,9 @@ sl_init() {
     g_psDescriptor->PortNames
       = (const char **)pcPortNames;
     pcPortNames[SDL_DRY] 
-      = strdup("Dry Level");
+      = strdup("Dry Level (dB)");
     pcPortNames[SDL_WET] 
-      = strdup("Wet Level");
+      = strdup("Wet Level (dB)");
 
     pcPortNames[SDL_FEEDBACK] 
       = strdup("Feedback");
@@ -2865,18 +2863,18 @@ sl_init() {
       = (const LADSPA_PortRangeHint *)psPortRangeHints;
 
     psPortRangeHints[SDL_DRY].HintDescriptor
-      = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_LOGARITHMIC;
+      = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE;
     psPortRangeHints[SDL_DRY].LowerBound 
-      = 0.0;
+      = -90.0f;
     psPortRangeHints[SDL_DRY].UpperBound
-      = 1.0;
+      = 0.0;
 
     psPortRangeHints[SDL_WET].HintDescriptor
-      = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_LOGARITHMIC;
+      = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE;
     psPortRangeHints[SDL_WET].LowerBound 
-      = 0.0;
+      = -90.0f;
     psPortRangeHints[SDL_WET].UpperBound
-      = 1.0;
+      = 0.0;
     
     psPortRangeHints[SDL_FEEDBACK].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE;

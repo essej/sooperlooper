@@ -1,8 +1,9 @@
 # midi binding file for sooperlooper
-#  ch type val   cmd  ctrl  instance  min_val_bound max_val_bound
+#  ch type val   cmd  ctrl  instance  [min_val_bound max_val_bound scale_style]
 #   type is one of:  'pc' = program change  'cc' = control change  'on' = note on
 #                    'off' = note off   
 #    cmd is one of: note down up set
+#    scale_style is one of:  gain 
 
 0 n 49	note	undo		0
 0 n 51	note	redo		0
@@ -17,8 +18,9 @@
 
 0 cc 1   set	feedback	0	0.0	1.0		
 0 cc 7   set	scratch_pos	0	0.0	1.0		
-0 cc 74  set	dry		0	0.0	1.0		
-0 cc 71  set	wet		0	0.0	1.0		
+0 cc 7  set	dry		0	0.0	1.0	gain
+0 cc 71  set	wet		0	0.0	1.0	gain
 0 cc 16  set	rate		0	-4.0	4.0		
 0 cc 81  set	quantize	0	0	1		
 0 cc 91  set	round		0	0	1		
+#0 cc 17  set	rec_thresh	0	0.0	1.0	gain	

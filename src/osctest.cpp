@@ -61,14 +61,14 @@ static int do_control_change(char cmd)
 	{
 	case '1':
 		control = "dry";
-		mvprintw (row, 0, "Enter Dry Level (0..1) : ");
+		mvprintw (row, 0, "Enter Dry Level (-90..0) dB : ");
 		clrtoeol();
 		refresh();
 		ret = scanw ("%f", &val);
 		break;
 	case '2':
 		control = "wet";
-		mvprintw (row, 0, "Enter Wet Level (0..1) : ");
+		mvprintw (row, 0, "Enter Wet Level (-90..0) dB : ");
 		clrtoeol();
 		refresh();
 		ret = scanw ("%f", &val);

@@ -127,9 +127,10 @@ LooperPanel::init()
 	SliderBar *slider;
 	wxFont sliderFont = *wxSMALL_FONT;
 	
-	_thresh_control = slider = new SliderBar(this, ID_ThreshControl, 0.0f, 100.0f, 0.0f);
-	slider->set_units(wxT("%"));
+	_thresh_control = slider = new SliderBar(this, ID_ThreshControl, 0.0f, 1.0f, 0.0f);
+	slider->set_units(wxT("dB"));
 	slider->set_label(wxT("rec thresh"));
+	slider->set_gain_style(true);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	colsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 5);
@@ -178,16 +179,18 @@ LooperPanel::init()
 
 	colsizer->Add (20, -1, 1);
 
-	_dry_control = slider = new SliderBar(this, ID_DryControl, 0.0f, 100.0f, 0.0f);
-	slider->set_units(wxT("%"));
+	_dry_control = slider = new SliderBar(this, ID_DryControl, 0.0f, 1.0f, 1.0f);
+	slider->set_units(wxT("dB"));
 	slider->set_label(wxT("dry"));
+	slider->set_gain_style(true);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 4);
 
-	_wet_control = slider = new SliderBar(this, ID_WetControl, 0.0f, 100.0f, 0.0f);
-	slider->set_units(wxT("%"));
+	_wet_control = slider = new SliderBar(this, ID_WetControl, 0.0f, 1.0f, 1.0f);
+	slider->set_units(wxT("dB"));
 	slider->set_label(wxT("wet"));
+	slider->set_gain_style(true);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 4);
@@ -389,15 +392,15 @@ LooperPanel::update_controls()
 	}
 	if (_loop_control->is_updated(_index, "rec_thresh")) {
 		_loop_control->get_value(_index, "rec_thresh", val);
-		_thresh_control->set_value ((val * 100.0f));
+		_thresh_control->set_value (val);
 	}
 	if (_loop_control->is_updated(_index, "dry")) {
 		_loop_control->get_value(_index, "dry", val);
-		_dry_control->set_value ((val * 100.0f));
+		_dry_control->set_value (val);
 	}
 	if (_loop_control->is_updated(_index, "wet")) {
 		_loop_control->get_value(_index, "wet", val);
-		_wet_control->set_value (val * 100.0f);
+		_wet_control->set_value (val);
 	}
 	if (_loop_control->is_updated(_index, "rate")) {
 		_loop_control->get_value(_index, "rate", val);
@@ -522,7 +525,7 @@ LooperPanel::slider_events(float val, int id)
 	{
 	case ID_ThreshControl:
 		ctrl = "rec_thresh";
-		val = val / 100.0f;
+		val = val;
 		break;
 	case ID_FeedbackControl:
 		ctrl = "feedback";
@@ -530,11 +533,11 @@ LooperPanel::slider_events(float val, int id)
 		break;
 	case ID_DryControl:
 		ctrl = "dry";
-		val = _dry_control->get_value() / 100.0f;
+		val = _dry_control->get_value();
 		break;
 	case ID_WetControl:
 		ctrl = "wet";
-		val = _wet_control->get_value() / 100.0f;
+		val = _wet_control->get_value();
 		break;
 	case ID_ScratchControl:
 		ctrl = "scratch_pos";

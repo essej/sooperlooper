@@ -53,7 +53,7 @@ class SliderBar
 	void get_bounds (float &lb, float &ub) { lb = _lower_bound; ub = _upper_bound; }
 
 	void set_value (float val);
-	float get_value () { return _value; }
+	float get_value ();
 
 	void set_label (const wxString &label);
 	wxString get_label () { return _label_str; }
@@ -61,7 +61,9 @@ class SliderBar
 	void set_units (const wxString &units);
 	wxString get_units () { return _units_str; }
 	
-
+	void set_gain_style (bool flag);
+	bool get_gain_style () { return _gain_style; }
+	
  	void set_bg_color (const wxColour & col);
 	wxColour & get_bg_color () { return _bgcolor; }
 
@@ -122,6 +124,7 @@ class SliderBar
 	int _last_x;
 
 	float _val_scale;
+	bool  _gain_style;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

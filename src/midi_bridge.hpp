@@ -54,9 +54,14 @@ class MidiBridge
 
 	struct EventInfo
 	{
+		enum Style {
+			NormalStyle = 0,
+			GainStyle,
+		};
+		
 		EventInfo() {}
-		EventInfo (std::string tp, std::string cmd, int instc, float lbnd=0.0f, float ubnd=1.0f)
-			: type(tp), command(cmd), instance(instc), lbound(lbnd), ubound(ubnd) {}
+		EventInfo (std::string tp, std::string cmd, int instc, float lbnd=0.0f, float ubnd=1.0f, Style styl=NormalStyle)
+			: type(tp), command(cmd), instance(instc), lbound(lbnd), ubound(ubnd), style(styl) {}
 
 		std::string type;
 		std::string command;
@@ -64,6 +69,8 @@ class MidiBridge
 
 		float       lbound;
 		float       ubound;
+
+		Style       style;
 	};
 
 	void send_osc (EventInfo & info, float val);

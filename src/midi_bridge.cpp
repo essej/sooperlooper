@@ -22,9 +22,40 @@
 
 #include <iostream>
 #include <cstdio>
+#include <cmath>
 
 using namespace SooperLooper;
 using namespace std;
+
+// Convert a value in dB's to a coefficent
+#define DB_CO(g) ((g) > -90.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
+#define CO_DB(v) (20.0f * log10f(v))
+
+static inline double 
+gain_to_uniform_position (double g)
+{
+	if (g == 0) return 0;
+	// this one maxes at 6 dB
+	//return pow((6.0*log(g)/log(2.0)+192.0)/198.0, 8.0);
+
+	// this one maxes out at 0 db
+	return pow((6.0*log(g)/log(2.0)+198.0)/198.0, 8.0);
+
+}
+
+static inline double 
+uniform_position_to_gain (double pos)
+{
+	if (pos == 0) {
+		return 0.0;
+	}
+	/* XXX Marcus writes: this doesn't seem right to me. but i don't have a better answer ... */
+	// this one maxes at 6 dB
+	//return pow (2.0,(sqrt(sqrt(sqrt(pos)))*198.0-192.0)/6.0);
+
+	// this one maxes out at 0 db
+	return pow (2.0,(sqrt(sqrt(sqrt(pos)))*198.0-198.0)/6.0);
+}
 
 
 MidiBridge::MidiBridge (string name, string oscurl)
@@ -90,12 +121,13 @@ MidiBridge::search_open_file (std::string filename)
 bool
 MidiBridge::load_bindings (std::string filename)
 {
-	//  ch:cmds:param   type  ctrl  instance  min_val_bound max_val_bound
+	//  ch:cmds:param   type  ctrl  instance  [min_val_bound max_val_bound valstyle]
 	// cmds is one of:  'pc' = program change  'cc' = control change  'n' = note on/off
 
 	// cmd is { pc = 0xc0 , cc = 0xb0 , on = 0x80 , n = 0x90  }
 	// chcmd = cmd + ch
 	// lookup key = (chcmd << 8) | param
+	// valstyle can be 'gain'
 	
 	FILE * bindfile = 0;
 	char  line[200];
@@ -106,6 +138,8 @@ MidiBridge::load_bindings (std::string filename)
 	char type[32];
 	int typei;
 	char ctrl[32];
+	char stylestr[32];
+	EventInfo::Style style = EventInfo::NormalStyle;
 	int  instance = -1;
 	float lbound = 0.0f;
 	float ubound = 1.0f;
@@ -122,14 +156,16 @@ MidiBridge::load_bindings (std::string filename)
 		instance = -1;
 		lbound = 0.0f;
 		ubound = 1.0f;
-
+		stylestr[0] = '\0';
+		style = EventInfo::NormalStyle;
+		
 		// ignore empty lines and # lines
 		if (line[0] == '\n' || line[0] == '#') {
 			continue;
 		}
 		
-		if ((ret=sscanf (line, "%d %3s %d  %30s  %30s  %d  %f  %f",
-			    &chan, cmds, &param, type, ctrl, &instance, &lbound, &ubound) < 5)) {
+		if ((ret=sscanf (line, "%d %3s %d  %30s  %30s  %d  %f  %f  %6s",
+			    &chan, cmds, &param, type, ctrl, &instance, &lbound, &ubound, stylestr) < 5)) {
 			cerr << "ret: " << ret << " invalid input line: " << line;
 			continue;
 		}
@@ -141,8 +177,12 @@ MidiBridge::load_bindings (std::string filename)
 
 		typei = _typemap[cmds];
 		key = ((typei + chan) << 8) | param;
+
+		if (stylestr[0] == 'g') {
+			style = EventInfo::GainStyle;
+		}
 		
-		_bindings[key] =  EventInfo(type, ctrl, instance, lbound, ubound);
+		_bindings[key] =  EventInfo(type, ctrl, instance, lbound, ubound, style);
 		cerr << "added binding: " << type << "  "  << ctrl << "  " << instance << "  " << lbound << "  " << ubound << endl;
 	}
 
@@ -165,9 +205,15 @@ MidiBridge::queue_midi (int chcmd, int param, int val)
 	if (iter != _bindings.end())
 	{
 		EventInfo & info = (*iter).second;
-
-		float scaled_val = (float) ((val/127.0) *  ( info.ubound - info.lbound)) + info.lbound;
-
+		float scaled_val;
+		
+		if (info.style == EventInfo::GainStyle) {
+			scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
+			scaled_val = uniform_position_to_gain (scaled_val);
+		}
+		else {
+			scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
+		}
 		// cerr << "found binding: val is " << val << "  scaled: " << scaled_val << endl;
 		
 		send_osc (info, scaled_val);
