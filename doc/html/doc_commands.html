@@ -119,8 +119,17 @@ The feature-set is closely based on that of the EDP (LoopIII and many features f
 
 	  <div class="ending_box">
 	    <b>Special Endings</b> <br>
-	    If you end a MULTIPLY with a RECORD press it ends the loop
+	    <ul>
+	      <li> If you end a MULTIPLY with a RECORD press it ends the loop
 	    immediately and resets the cycle length to the whole loop.
+	      <li> The MultiIncrease function is implemented which allows you to 
+		increment the cycle count ahead of time, without needing to wait 
+		until the exact time to finish the multiply.  See the EDP LoopIV
+		documentation for more info.  Basically, press Multiply as if you 
+                were finishing it, then before the current cycle plays out, press Multiply again 
+                repeatedly to add cycles. The multiply will resume and automatically go into 
+                playback after the specified number of cycles.
+	    </ul>
 	  </div>
 	</div>
 

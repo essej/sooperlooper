@@ -7,9 +7,10 @@ DESCRIPTION
 SooperLooper is a live looping sampler capable of immediate loop
 recording, overdubbing, multiplying, reversing and more.  It allows
 for multiple simultaneous multi-channel loops limited only by your
-computer's available memory.  When used with a low-latency audio
-configuration it is capable of truly realtime live performance
-looping.
+computer's available memory.  The feature-set and operation was
+inspired by the impressive Gibson Echoplex Digital Pro (EDP). When used
+with a low-latency audio configuration it is capable of truly realtime
+live performance looping.
 	  
 The application is a standalone JACK client with an engine
 controllable via OSC and MIDI.  It also includes a GUI which
