@@ -45,6 +45,7 @@ Engine::Engine ()
 	_tempo = 110.0f;
 	_eighth_cycle = 16.0f;
 	_sync_source = NoSync;
+	_tempo_counter = 0;
 	
 	pthread_cond_init (&_event_cond, NULL);
 
@@ -69,6 +70,8 @@ bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 
 	_internal_sync_buf = new float[driver->get_buffersize()];
 	memset(_internal_sync_buf, 0, sizeof(float) * driver->get_buffersize());
+
+	calculate_tempo_frames();
 	
 	_osc = new ControlOSC(this, port);
 
@@ -217,7 +220,10 @@ Engine::process (nframes_t nframes)
 		
 	// update event generator
 	_event_generator->updateFragmentTime (nframes);
-		
+
+	// update internal sync
+	generate_sync (nframes);
+	
 
 	nframes_t usedframes = 0;
 	nframes_t doframes;
@@ -343,6 +349,7 @@ Engine::push_control_event (Event::type_t type, Event::control_t ctrl, float val
 
 	_event_queue->increment_write_ptr (1);
 
+	
 	return true;
 }
 
@@ -437,7 +444,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (gg_event->param == "tempo") {
 			gg_event->ret_value = _tempo;
 		}
-		else if (gg_event->param == "eighth_cycle") {
+		else if (gg_event->param == "eighth_per_cycle") {
 			gg_event->ret_value = _eighth_cycle;
 		}
 
@@ -451,16 +458,20 @@ Engine::process_nonrt_event (EventNonRT * event)
 			{
 				_sync_source = (SyncSourceType) (int) gs_event->value;
 				update_sync_source();
+				calculate_tempo_frames();
 			}
 		}
 		else if (gs_event->param == "tempo") {
 			if (gs_event->value > 0.0f) {
 				_tempo = gs_event->value;
+				_tempo_counter = 0;
+				calculate_tempo_frames();
 			}
 		}
-		else if (gs_event->param == "eighth_cycle") {
+		else if (gs_event->param == "eighth_per_cycle") {
 			if (gs_event->value > 0.0f) {
 				_eighth_cycle = gs_event->value;
+				calculate_tempo_frames();
 			}
 		}
 	}
@@ -538,5 +549,68 @@ void Engine::update_sync_source ()
 	for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i)
 	{
 		(*i)->use_sync_buf (sync_buf);
+	}
+}
+
+
+void
+Engine::calculate_tempo_frames ()
+{
+	// TODO: use floats!
+	float quantize_value = (float) QUANT_8TH;
+		
+	if (!_instances.empty()) {
+		quantize_value = _instances[0]->get_control_value (Event::Quantize);
+	}
+	
+	if (_sync_source == InternalTempoSync)
+	{
+		if (quantize_value == QUANT_8TH) {
+			// calculate number of samples per eighth-note (assuming 2 8ths per beat)
+			// samples / 8th = samplerate * (1 / tempo) * 60/2; 
+			_tempo_frames = (nframes_t) lrint(_driver->get_samplerate() * (1/_tempo) * 30.0);
+		}
+		else if (quantize_value == QUANT_CYCLE) {
+			// calculate number of samples per cycle given the current eighths per cycle
+			// samples / 8th = samplerate * (1 / tempo) * 60/2; 
+			// samples / cycle = samples / 8th  *  eighth_per_cycle
+			_tempo_frames = (nframes_t) (lrint(_driver->get_samplerate() * (1/_tempo) * 30.0) * _eighth_cycle);
+		}
+		else {
+			_tempo_frames = 0; // ???
+		}
+
+		cerr << "tempo frames is " << _tempo_frames << endl;
+	}
+
+}
+
+void
+Engine::generate_sync (nframes_t nframes)
+{
+	if (_sync_source == InternalTempoSync && _tempo_frames != 0) {
+		nframes_t npos = 0;
+		nframes_t curr = _tempo_counter;
+		
+		while (npos < nframes) {
+			
+			while (curr < _tempo_frames && npos < nframes) {
+				_internal_sync_buf[npos++] = 0.0f;
+				curr++;
+			}
+
+			if (npos < nframes) {
+				//cerr << "tempo hit" << endl;
+				_internal_sync_buf[npos++] = 1.0f;
+				// reset curr counter
+				curr = 1;
+			}
+		}
+
+		_tempo_counter = curr;
+		//cerr << "tempo counter is now: " << _tempo_counter << endl;
+	}
+	else {
+		memset (_internal_sync_buf, 0, nframes * sizeof(float));
 	}
 }

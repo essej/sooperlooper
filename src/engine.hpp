@@ -92,7 +92,10 @@ class Engine
 
 	bool process_nonrt_event (EventNonRT * event);
 
+	void generate_sync (nframes_t nframes);
+	
 	void update_sync_source ();
+	void calculate_tempo_frames ();
 	
 	AudioDriver * _driver;
 	
@@ -134,7 +137,11 @@ class Engine
 
 	float    _tempo;        // bpm
 	float    _eighth_cycle; // eighth notes per loop cycle
-	
+
+   private:
+
+	nframes_t _tempo_counter;
+	nframes_t _tempo_frames;
 	
 };
 

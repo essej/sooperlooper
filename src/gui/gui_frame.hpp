@@ -65,8 +65,14 @@ protected:
 	void on_remove_loop (wxCommandEvent &ev);
 
 	void on_tempo_change (float value);
+	void on_eighth_change (float value);
 	void on_syncto_change (int index, wxString val);
 
+	void on_quantize_change (int index, wxString val);
+	void on_round_check (wxCommandEvent &ev);
+	
+	void init_syncto_choice();
+	
 	void update_controls();
 
 	
@@ -82,6 +88,9 @@ protected:
 
 	SliderBar * _tempo_bar;
 	ChoiceBox * _sync_choice;
+	SliderBar * _eighth_cycle_bar;
+	ChoiceBox * _quantize_choice;
+	wxCheckBox * _round_check;
 	
 private:
     // any class wishing to process wxWindows events must use this macro

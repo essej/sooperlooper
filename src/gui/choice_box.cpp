@@ -41,6 +41,7 @@ BEGIN_EVENT_TABLE(ChoiceBox, wxWindow)
 	EVT_PAINT(ChoiceBox::OnPaint)
 	EVT_MOUSE_EVENTS(ChoiceBox::OnMouseEvents)
 	EVT_MOUSEWHEEL (ChoiceBox::OnMouseEvents)
+	EVT_KILL_FOCUS (ChoiceBox::OnFocusEvent)
 	
 END_EVENT_TABLE()
 
@@ -339,6 +340,18 @@ ChoiceBox::OnMouseEvents (wxMouseEvent &ev)
 
 	ev.Skip();
 }
+
+void ChoiceBox::OnFocusEvent (wxFocusEvent &ev)
+{
+	if (ev.GetEventType() == wxEVT_KILL_FOCUS) {
+		// focus kill
+		_borderbrush.SetColour(_bgcolor);
+		Refresh(false);
+	}
+
+	ev.Skip();
+}
+
 
 
 void ChoiceBox::draw_area(wxDC & dc)

@@ -245,12 +245,20 @@ wxString SliderBar::get_precise_value_str()
 		if (gain == 0) {
 			valstr.Printf(wxT("-inf"));
 		}
+		else if (_snap_mode == IntegerSnap) {
+			valstr.Printf(wxT("%g"), CO_DB(gain));
+		}
 		else {
 			valstr.Printf(wxT("%.8f"), CO_DB(gain));
 		}
 	}
 	else {
-		valstr.Printf(wxT("%.8f"), _value);
+		if (_snap_mode == IntegerSnap) {
+			valstr.Printf(wxT("%g"), _value);
+		}
+		else {
+			valstr.Printf(wxT("%.8f"), _value);
+		}
 	}
 
 	return valstr;

@@ -43,7 +43,10 @@ enum {
 	ID_AddLoop,
 	ID_RemoveLoop,
 	ID_TempoSlider,
-	ID_SyncChoice
+	ID_SyncChoice,
+	ID_EighthSlider,
+	ID_QuantizeChoice,
+	ID_RoundCheck
 };
 
 
@@ -60,6 +63,8 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 	EVT_MENU(ID_AddLoop, GuiFrame::on_add_loop)
 	EVT_MENU(ID_RemoveLoop, GuiFrame::on_remove_loop)
 
+	EVT_CHECKBOX (ID_RoundCheck, GuiFrame::on_round_check)
+	
 	
 END_EVENT_TABLE()
 
@@ -102,6 +107,13 @@ GuiFrame::init()
 	wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
 
 	rowsizer->Add (1, 1, 1);
+
+	_sync_choice = new ChoiceBox (this, ID_SyncChoice, wxDefaultPosition, wxSize (140, 22));
+	_sync_choice->set_label (wxT("sync to"));
+	_sync_choice->SetFont (sliderFont);
+	_sync_choice->value_changed.connect (slot (*this,  &GuiFrame::on_syncto_change));
+	
+	rowsizer->Add (_sync_choice, 0, wxALL, 2);
 	
 	_tempo_bar = new SliderBar(this, ID_TempoSlider, 0.0f, 300.0f, 120.0f, wxDefaultPosition, wxSize(150, 22));
 	_tempo_bar->set_units(wxT("bpm"));
@@ -111,19 +123,35 @@ GuiFrame::init()
 	_tempo_bar->value_changed.connect (slot (*this,  &GuiFrame::on_tempo_change));
 	rowsizer->Add (_tempo_bar, 0, wxALL, 2);
 
-	_sync_choice = new ChoiceBox (this, ID_SyncChoice, wxDefaultPosition, wxSize (140, 22));
-	_sync_choice->set_label (wxT("sync to"));
-	_sync_choice->SetFont (sliderFont);
-	_sync_choice->value_changed.connect (slot (*this,  &GuiFrame::on_syncto_change));
-	_sync_choice->append_choice (wxT("Internal"));
-	_sync_choice->append_choice (wxT("MidiClock"));
-	_sync_choice->append_choice (wxT("Jack"));
-	_sync_choice->append_choice (wxT("BrotherSync"));
-		
-	rowsizer->Add (_sync_choice, 0, wxALL, 2);
 
+	_eighth_cycle_bar = new SliderBar(this, ID_EighthSlider, 1.0f, 128.0f, 8.0f, wxDefaultPosition, wxSize(110, 22));
+	_eighth_cycle_bar->set_units(wxT(""));
+	_eighth_cycle_bar->set_label(wxT("8th/cycle"));
+	_eighth_cycle_bar->set_snap_mode (SliderBar::IntegerSnap);
+	_eighth_cycle_bar->SetFont (sliderFont);
+	_eighth_cycle_bar->value_changed.connect (slot (*this,  &GuiFrame::on_eighth_change));
+	rowsizer->Add (_eighth_cycle_bar, 0, wxALL, 2);
+	
+
+	_quantize_choice = new ChoiceBox (this, ID_QuantizeChoice, wxDefaultPosition, wxSize (110, 22));
+	_quantize_choice->set_label (wxT("quantize"));
+	_quantize_choice->SetFont (sliderFont);
+	_quantize_choice->value_changed.connect (slot (*this,  &GuiFrame::on_quantize_change));
+	_quantize_choice->append_choice (wxT("off"));
+	_quantize_choice->append_choice (wxT("cycle"));
+	_quantize_choice->append_choice (wxT("8th"));
+	_quantize_choice->append_choice (wxT("loop"));
+	rowsizer->Add (_quantize_choice, 0, wxALL, 2);
+
+	_round_check = new wxCheckBox(this, ID_RoundCheck, wxT("round"));
+	_round_check->SetFont(sliderFont);
+	_round_check->SetBackgroundColour(wxColour(90,90,90));
+	_round_check->SetForegroundColour(*wxWHITE);
+	rowsizer->Add (_round_check, 0, wxALL, 2);
+	
 	rowsizer->Add (1, 1, 1);
 
+	
 	
 	_topsizer->Add (rowsizer, 0, wxALL|wxEXPAND, 4);
 
@@ -188,6 +216,26 @@ GuiFrame::init()
 }
 
 void
+GuiFrame::init_syncto_choice()
+{
+	_sync_choice->clear_choices ();
+	_sync_choice->append_choice (wxT("None"));
+	_sync_choice->append_choice (wxT("Internal"));
+	_sync_choice->append_choice (wxT("MidiClock"));
+	_sync_choice->append_choice (wxT("Jack"));
+	_sync_choice->append_choice (wxT("BrotherSync"));
+
+	// the remaining choices are loops
+	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
+		_sync_choice->append_choice (wxString::Format(wxT("Loop %d"), i+1));
+	}
+	
+}
+
+    
+
+
+void
 GuiFrame::init_loopers (int count)
 {
 	LooperPanel * looperpan;	
@@ -235,7 +283,8 @@ GuiFrame::init_loopers (int count)
 		_loop_control->register_input_controls((int) i);
 		_loop_control->request_all_values ((int)i);
 	}
-	
+
+	init_syncto_choice ();
 }
 
 
@@ -268,6 +317,11 @@ GuiFrame::update_controls()
 		_tempo_bar->set_value (val);
 	}
 
+	if (_loop_control->is_global_updated("eighth_per_cycle")) {
+		_loop_control->get_global_value("eighth_per_cycle", val);
+		_eighth_cycle_bar->set_value (val);
+	}
+	
 	if (_loop_control->is_global_updated("sync_source")) {
 		_loop_control->get_global_value("sync_source", val);
 
@@ -278,22 +332,37 @@ GuiFrame::update_controls()
 // 		JackSync = -1,
 // 		NoSync = 0
 
-		if (val == -3.0f) {
+	        if (val == 0.0f) {
 			index = 0;
-		} else if (val == -2.0f) {
-			index = 1;
-		} else if (val == -1.0f) {
-			index = 2;
-		} else if (val == -4.0f) {
-			index = 3;
 		}
-		else if (val >= 0.0f) {
+		if (val == -3.0f) {
+			index = 1;
+		} else if (val == -2.0f) {
+			index = 2;
+		} else if (val == -1.0f) {
+			index = 3;
+		} else if (val == -4.0f) {
+			index = 4;
+		}
+		else if (val > 0.0f) {
 			// the loop instances
 			index = (int) (val + 4);
 		}
 
 		_sync_choice->set_index_value (index);
 	}
+
+	// quantize from first loop
+ 	if (_loop_control->is_updated(0, "quantize")) {
+		_loop_control->get_value(0, "quantize", val);
+ 		_quantize_choice->set_index_value ((int)val);
+	}
+
+ 	if (_loop_control->is_updated(0, "round")) {
+		_loop_control->get_value(0, "round", val);
+ 		_round_check->SetValue (val > 0.0);
+	}
+	
 	
 }
 
@@ -358,6 +427,13 @@ GuiFrame::on_tempo_change (float value)
 }
 
 void
+GuiFrame::on_eighth_change (float value)
+{
+	_loop_control->post_global_ctrl_change ("eighth_per_cycle", value);
+}
+
+
+void
 GuiFrame::on_syncto_change (int index, wxString val)
 {
 // 		BrotherSync = -4,
@@ -365,22 +441,42 @@ GuiFrame::on_syncto_change (int index, wxString val)
 // 		MidiClockSync = -2,
 // 		JackSync = -1,
 // 		NoSync = 0
-
+//            >0 is loop number
+	
 	float value = 0.0f;
 	
 	if (index == 0) {
+		value = 0;
+	}
+	else if (index == 1) {
 		value = -3;
-	} else if (index == 1) {
-		value = -2;
 	} else if (index == 2) {
-		value = -1;
+		value = -2;
 	} else if (index == 3) {
+		value = -1;
+	} else if (index == 4) {
 		value = -4;
 	}
-	else if (index > 3) {
+	else if (index > 4) {
 		// the loop instances
 		value = (float) (index - 4);
 	}
 
 	_loop_control->post_global_ctrl_change ("sync_source", value);
+}
+
+
+void
+GuiFrame::on_quantize_change (int index, wxString val)
+{
+	// 0 is none, 1 is cycle, 2 is eighth, 3 is loop
+	// send for all loops
+	_loop_control->post_ctrl_change (-1, wxT("quantize"), (float) index);
+}
+
+void
+GuiFrame::on_round_check (wxCommandEvent &ev)
+{
+	// send for all loops
+	_loop_control->post_ctrl_change (-1, wxT("round"), _round_check->GetValue() ? 1.0f: 0.0f);
 }

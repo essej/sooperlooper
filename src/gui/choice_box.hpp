@@ -76,7 +76,8 @@ class ChoiceBox
 	void OnPaint (wxPaintEvent &ev);
 	void OnSize (wxSizeEvent &ev);
 	void OnMouseEvents (wxMouseEvent &ev);
-
+	void OnFocusEvent (wxFocusEvent &ev);
+	
 	void draw_area (wxDC & dc);
 
 	void ensure_popup (bool force_build=false);

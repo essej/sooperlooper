@@ -66,6 +66,14 @@ enum AudioPort {
 	SyncOutputPort
 };
 
+enum {
+	QUANT_OFF=0,
+	QUANT_CYCLE,
+	QUANT_8TH,
+	QUANT_LOOP
+};
+
+	
 class Looper 
 {
   public:
