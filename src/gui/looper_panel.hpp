@@ -68,6 +68,8 @@ class LooperPanel
 	void pressed_events (wxString cmd);
 	void released_events (wxString cmd);
 	void clicked_events (wxString cmd);
+	void tap_button_event ();
+	void rate_button_event();
 	
 	PixButton * _undo_button;
 	PixButton * _redo_button;
@@ -104,6 +106,7 @@ class LooperPanel
 	int _index;
 
 	LooperState _last_state;
+	float _tap_val;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

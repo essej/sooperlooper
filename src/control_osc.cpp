@@ -126,6 +126,8 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	_str_ctrl_map["quantize"]  = Event::Quantize;
 	_str_ctrl_map["round"]  = Event::Round;
 	_str_ctrl_map["redo_is_tap"]  = Event::RedoTap;
+	_str_ctrl_map["sync"]  = Event::SyncMode;
+	_str_ctrl_map["use_rate"]  = Event::UseRate;
 	_str_ctrl_map["state"]  = Event::State;
 	_str_ctrl_map["loop_len"]  = Event::LoopLength;
 	_str_ctrl_map["loop_pos"]  = Event::LoopPosition;
@@ -643,6 +645,26 @@ void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 	}
 }
 
+void ControlOSC::finish_loop_config_event (ConfigLoopEvent &event)
+{
+	if (event.type == ConfigLoopEvent::Remove) {
+		// unregister everything for this instance
+		ControlRegistrationMap::iterator citer = _registration_map.begin();
+		ControlRegistrationMap::iterator tmp;
+		
+		while ( citer != _registration_map.end()) {
+			if ((*citer).first.first == event.index) {
+				tmp = citer;
+				++tmp;
+				_registration_map.erase(citer);
+				citer = tmp;
+			}
+			else {
+				++citer;
+			}
+		}
+	}
+}
 
 void
 ControlOSC::send_registered_updates(string ctrl, float val, int instance)

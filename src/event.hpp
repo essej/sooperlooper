@@ -97,7 +97,7 @@ namespace SooperLooper {
 		    REDO_TOG,
 		    QUANT_TOG,
 		    ROUND_TOG
-
+		    
 	    } Command;
 
 
@@ -115,6 +115,8 @@ namespace SooperLooper {
 		    Quantize,
 		    Round,
 		    RedoTap,
+		    SyncMode,
+		    UseRate,
 		    // read only
 		    State,
 		    LoopLength,

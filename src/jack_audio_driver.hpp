@@ -27,6 +27,7 @@
 #include <jack/jack.h>
 
 #include "audio_driver.hpp"
+#include "lockmonitor.hpp"
 
 namespace SooperLooper {
 
@@ -50,6 +51,11 @@ class JackAudioDriver
 	
 	sample_t * get_input_port_buffer (port_id_t port, nframes_t nframes);
 	sample_t * get_output_port_buffer (port_id_t port, nframes_t nframes);
+
+	unsigned int get_input_port_count () { return _input_ports.size(); }
+	unsigned int get_output_port_count () { return _output_ports.size(); }
+
+	void process_silence (nframes_t frames); // called from audio callback
 	
   protected:
 
@@ -63,7 +69,8 @@ class JackAudioDriver
 
 	std::vector<jack_port_t *> _input_ports;
 	std::vector<jack_port_t *> _output_ports;
-	
+
+	PBD::Lock  _port_lock;
 };
 
 };

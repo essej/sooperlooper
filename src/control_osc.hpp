@@ -56,6 +56,8 @@ class ControlOSC
 	void finish_get_event (GetParamEvent & event);
 	void finish_update_event (ConfigUpdateEvent & event);
 	void finish_register_event (RegisterConfigEvent &event);
+	void finish_loop_config_event (ConfigLoopEvent &event);
+	
 	
   private:
 

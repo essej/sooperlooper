@@ -26,6 +26,7 @@
 #include "engine.hpp"
 
 using namespace SooperLooper;
+using namespace PBD;
 using namespace std;
 
 JackAudioDriver::JackAudioDriver(string client_name)
@@ -53,7 +54,8 @@ JackAudioDriver::initialize()
 	}
 
 	_samplerate = jack_get_sample_rate (_jack);
-
+	_buffersize = jack_get_buffer_size (_jack);
+	
 	if (jack_set_process_callback (_jack, _process_callback, this) != 0) {
 		cerr << "cannot set process callback" << endl;
 		return false;
@@ -163,6 +165,30 @@ JackAudioDriver::process_callback (jack_nframes_t nframes)
 	return 0;
 }
 
+void
+JackAudioDriver::process_silence (nframes_t nframes)
+{
+	unsigned int cnt = _output_ports.size();
+
+	// size never decreases
+	
+	for (unsigned int i=0; i < cnt; ++i)
+	{
+		jack_port_t * jport = _output_ports[i];
+		if (jport) {
+			// this really is a race, should take the port lock, but eh
+			sample_t * outbuf = (sample_t*) jack_port_get_buffer (jport, nframes);	
+
+			if (outbuf) {
+				for (nframes_t n=0; n < nframes; ++n) {
+					outbuf[n] = 0.0;
+				}
+			}
+		}
+	}
+}
+
+
 
 bool
 JackAudioDriver::create_input_port (std::string name, port_id_t & portid)
@@ -178,9 +204,11 @@ JackAudioDriver::create_input_port (std::string name, port_id_t & portid)
 		return false;
 	}
 
-	portid = _input_ports.size();
-	_input_ports.push_back (port);
-
+	{
+		//LockMonitor mon(_port_lock, __LINE__, __FILE__);
+		_input_ports.push_back (port);
+		portid = _input_ports.size();
+	}
 	return true;
 }
 
@@ -198,9 +226,12 @@ JackAudioDriver::create_output_port (std::string name, port_id_t & portid)
 		return false;
 	}
 
-	portid = _output_ports.size();
-	_output_ports.push_back (port);
-
+	{
+		//LockMonitor mon(_port_lock, __LINE__, __FILE__);
+		_output_ports.push_back (port);
+		portid = _output_ports.size();
+	}
+	
 	return true;
 
 }
@@ -210,9 +241,11 @@ JackAudioDriver::destroy_output_port (port_id_t portid)
 {
 	jack_port_t * port = 0;
 
-	if (portid < _output_ports.size()) {
-		port = _output_ports[portid];
-		_output_ports[portid] = 0;
+	//LockMonitor mon(_port_lock, __LINE__, __FILE__);
+	
+	if (portid <= _output_ports.size() && portid > 0) {
+		port = _output_ports[portid-1];
+		_output_ports[portid-1] = 0;
 		return (jack_port_unregister (_jack, port) == 0);
 	}
 	
@@ -224,9 +257,10 @@ JackAudioDriver::destroy_input_port (port_id_t portid)
 {
 	jack_port_t * port = 0;
 
-	if (portid < _input_ports.size()) {
-		port = _input_ports[portid];
-		_input_ports[portid] = 0;
+	//LockMonitor mon(_port_lock, __LINE__, __FILE__);
+	if (portid <= _input_ports.size() && portid > 0) {
+		port = _input_ports[portid-1];
+		_input_ports[portid-1] = 0;
 		return (jack_port_unregister (_jack, port) == 0);
 	}
 	
@@ -237,15 +271,17 @@ JackAudioDriver::destroy_input_port (port_id_t portid)
 sample_t *
 JackAudioDriver::get_input_port_buffer (port_id_t port, nframes_t nframes)
 {
-	if (!_jack || port >= _input_ports.size()) return 0;
+	// not locked 
+	if (!_jack || port > _input_ports.size() || port == 0) return 0;
 
-	return (sample_t*) jack_port_get_buffer (_input_ports[port], nframes);	
+	return (sample_t*) jack_port_get_buffer (_input_ports[port-1], nframes);	
 }
 
 sample_t *
 JackAudioDriver::get_output_port_buffer (port_id_t port, nframes_t nframes)
 {
-	if (!_jack || port >= _output_ports.size()) return 0;
+	// not locked 
+	if (!_jack || port > _output_ports.size() || port == 0) return 0;
 
-	return (sample_t*) jack_port_get_buffer (_output_ports[port], nframes);	
+	return (sample_t*) jack_port_get_buffer (_output_ports[port-1], nframes);	
 }

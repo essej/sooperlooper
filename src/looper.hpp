@@ -44,16 +44,25 @@ enum ControlPort {
 	Quantize,
 	Round,
 	RedoTap,
+	Sync,
+	UseRate
 };
 
 enum OutputPort {
-	State = 12,
+	State = 14,
 	LoopLength,
 	LoopPosition,
 	CycleLength,
 	LoopFreeMemory,
 	LoopMemory,
 	LASTPORT
+};
+
+enum AudioPort {
+	AudioInputPort=20,
+	AudioOutputPort,
+	SyncInputPort,
+	SyncOutputPort
 };
 
 class Looper 
@@ -77,6 +86,13 @@ class Looper
 
 	bool load_loop (std::string fname);
 	bool save_loop (std::string fname, LoopFileEvent::FileFormat format = LoopFileEvent::FormatFloat);
+
+	void set_buffer_size (nframes_t bufsize);
+
+	float * get_sync_in_buf() { return _our_syncin_buf; }
+	float * get_sync_out_buf() { return _our_syncout_buf; }
+
+	void use_sync_buf(float * buf);
 	
   protected:
 
@@ -95,6 +111,11 @@ class Looper
 	static const LADSPA_Descriptor* descriptor;
 
 	LADSPA_Data        ports[18];
+
+	nframes_t          _buffersize;
+	LADSPA_Data        * _our_syncin_buf;
+	LADSPA_Data        * _our_syncout_buf;
+	LADSPA_Data        * _use_sync_buf;
 	
 	bool _ok;
 	bool request_pending;

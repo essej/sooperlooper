@@ -295,15 +295,17 @@ int main(int argc, char** argv)
 		cerr << "OSC server URI is: " << engine->get_osc_url() << endl;
 	}
 	
-	for (int i=0; i < option_info.loop_count; ++i)
+
+ 	for (int i=0; i < option_info.loop_count; ++i)
 	{
 		engine->add_loop ((unsigned int) option_info.channels);
 	}
 	
-
+	
 	if (!driver->activate()) {
 		exit(1);
 	}
+
 	
 
 	if (!option_info.pingurl.empty()) {

@@ -35,6 +35,7 @@ class LoopUpdateTimer;
 
 enum LooperState
 {
+	LooperStateUnknown = -1,
 	LooperStateOff = 0,
 	LooperStateWaitStart,
 	LooperStateRecording,

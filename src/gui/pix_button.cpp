@@ -215,7 +215,10 @@ void PixButton::draw_area(wxDC & dc)
 	dc.SetBackground(_bgbrush);
 	dc.Clear();
 
-	if (_active) {
+	if (!IsEnabled()) {
+		dc.DrawBitmap (_disabled_bitmap, 0, 0);
+	}
+	else if (_active) {
 		dc.DrawBitmap (_active_bitmap, 0, 0);
 	}
 	else {

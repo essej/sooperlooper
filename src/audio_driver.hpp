@@ -54,6 +54,10 @@ class AudioDriver
 	virtual sample_t * get_input_port_buffer (port_id_t port, nframes_t nframes) = 0;
 	virtual sample_t * get_output_port_buffer (port_id_t port, nframes_t nframes) = 0;
 
+	virtual unsigned int get_input_port_count () = 0;
+	virtual unsigned int get_output_port_count () = 0;
+
+	virtual void process_silence (nframes_t frames) = 0; // called from audio callback
 	
 	virtual std::string get_name() { return _client_name; }
 
@@ -62,6 +66,7 @@ class AudioDriver
 
 
 	nframes_t get_samplerate() { return _samplerate; }
+	nframes_t get_buffersize() { return _buffersize; }
 
 	
   protected:
@@ -71,7 +76,7 @@ class AudioDriver
 	Engine *    _engine;
 
 	nframes_t _samplerate;
-
+	nframes_t _buffersize;
 	
 };
 

@@ -302,6 +302,7 @@ LoopControl::request_all_values(int index)
 	lo_send(_osc_addr, buf, "sss", "quantize", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "round", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "redo_is_tap", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "use_rate", _our_url.c_str(), "/ctrl");
 
 }
 
@@ -311,8 +312,14 @@ LoopControl::register_input_controls(int index, bool unreg)
 {
 	char buf[30];
 
+	if ((int)_params_val_map.size() > index) {
+		_params_val_map[index].clear();
+		_updated[index].clear();
+	}
+	
 	if (unreg) {
 		snprintf(buf, sizeof(buf), "/sl/%d/unregister_update", index);
+
 	} else {
 		snprintf(buf, sizeof(buf), "/sl/%d/register_update", index);
 	}
@@ -328,6 +335,7 @@ LoopControl::register_input_controls(int index, bool unreg)
 	lo_send(_osc_addr, buf, "sss", "quantize", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "round", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "redo_is_tap", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "use_rate", _our_url.c_str(), "/ctrl");
 }
 
 

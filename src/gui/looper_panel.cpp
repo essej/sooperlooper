@@ -71,7 +71,7 @@ BEGIN_EVENT_TABLE(LooperPanel, wxPanel)
 END_EVENT_TABLE()
 
 LooperPanel::LooperPanel(LoopControl * control, wxWindow * parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
-	: wxPanel(parent, id, pos, size), _loop_control(control), _index(0), _last_state(LooperStateOff)
+	: wxPanel(parent, id, pos, size), _loop_control(control), _index(0), _last_state(LooperStateUnknown), _tap_val(1.0f)
 {
 	init();
 }
@@ -331,8 +331,7 @@ LooperPanel::bind_events()
 	_insert_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("insert")));
 	_insert_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("insert")));
 
-	_tap_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("tap")));
-	_tap_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("tap")));
+	_tap_button->pressed.connect (slot (*this, &LooperPanel::tap_button_event));
 
 	_reverse_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("reverse")));
 	_reverse_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("reverse")));
@@ -340,8 +339,7 @@ LooperPanel::bind_events()
 	_mute_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("mute")));
 	_mute_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("mute")));
 
-	_rate_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("rate")));
-	_rate_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("rate")));
+	_rate_button->pressed.connect (slot (*this, &LooperPanel::rate_button_event));
 
 	_scratch_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("scratch")));
 	_scratch_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("scratch")));
@@ -436,6 +434,10 @@ LooperPanel::update_controls()
 		_loop_control->get_value(_index, "round", val);
 		_round_check->SetValue (val > 0.0);
 	}
+	if (_loop_control->is_updated(_index, "use_rate")) {
+		_loop_control->get_value(_index, "use_rate", val);
+		_rate_button->set_active(val != 0.0f);
+	}
 
 	bool state_updated = _loop_control->is_updated(_index, "state");
 	
@@ -456,6 +458,8 @@ LooperPanel::update_state()
 	LooperState state;
 	
 	_loop_control->get_state(_index, state, statestr);
+
+	_rate_button->Enable(false);
 	
 	// set not active for all state buttons
 	switch(_last_state) {
@@ -509,6 +513,7 @@ LooperPanel::update_state()
 		break;
 	case LooperStateScratching:
 		_scratch_button->set_active(true);
+		_rate_button->Enable(true);
 		break;
 	case LooperStateMuted:
 		_mute_button->set_active(true);
@@ -535,12 +540,29 @@ LooperPanel::released_events (wxString cmd)
 }
 
 void
+LooperPanel::tap_button_event ()
+{
+	_tap_val *= -1.0f;
+	post_control_event (wxString("tap_trigger"), _tap_val);
+}
+
+void
+LooperPanel::rate_button_event ()
+{
+	float val = 0.0;
+	_loop_control->get_value(_index, "use_rate", val);
+
+	val = val == 0.0f ? 1.0f : 0.0f;
+	post_control_event (wxString("use_rate"), val);
+}
+
+void
 LooperPanel::clicked_events (wxString cmd)
 {
 	if (cmd == wxT("save"))
 	{
 		// popup local file dialog if we are local
-		if (!_loop_control->is_engine_local()) {
+		if (_loop_control->is_engine_local()) {
 
 			wxString filename = ::wxFileSelector(wxT("Choose file to save loop"), wxT(""), wxT(""), wxT(".wav"), wxT("*.*"), wxSAVE|wxCHANGE_DIR);
 			if ( !filename.empty() )
@@ -566,7 +588,7 @@ LooperPanel::clicked_events (wxString cmd)
 	}
 	else if (cmd == wxT("load"))
 	{
-		if (!_loop_control->is_engine_local()) {
+		if (_loop_control->is_engine_local()) {
 
 			wxString filename = wxFileSelector(wxT("Choose file to open"), wxT(""), wxT(""), wxT(""), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
 			if ( !filename.empty() )

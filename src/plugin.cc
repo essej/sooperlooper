@@ -74,7 +74,7 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 
 /* The port numbers for the plugin: */
 
-#define PORT_COUNT  20
+#define PORT_COUNT  24
 
 #define SDL_THRESH       0
 #define SDL_DRY          1
@@ -88,19 +88,23 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 #define SDL_QUANTMODE    9
 #define SDL_ROUNDMODE    10
 #define SDL_REDOTAPMODE  11
+#define SDL_SYNCMODE     12
+#define SDL_USERATE      13
 
 
 // control outs
-#define SDL_STATE_OUT     12
-#define SDL_LOOPLEN_OUT   13
-#define SDL_LOOPPOS_OUT   14
-#define SDL_CYCLELEN_OUT  15
-#define SDL_SECSFREE_OUT  16
-#define SDL_SECSTOTAL_OUT 17
+#define SDL_STATE_OUT     14
+#define SDL_LOOPLEN_OUT   15
+#define SDL_LOOPPOS_OUT   16
+#define SDL_CYCLELEN_OUT  17
+#define SDL_SECSFREE_OUT  18
+#define SDL_SECSTOTAL_OUT 19
 
 /* audio */
-#define SDL_INPUT        18
-#define SDL_OUTPUT       19
+#define SDL_INPUT        20
+#define SDL_OUTPUT       21
+#define SDL_SYNC_INPUT        22
+#define SDL_SYNC_OUTPUT       23
 
 
 
@@ -144,6 +148,13 @@ ecasound -r -X -z:nointbuf -z:noxruns -z:nodb -z:psr -f:s16_le,1,44100 -i:/dev/d
 #define MULTI_QUANT_TOG  12   // only when in mute mode
 #define MULTI_ROUND_TOG  13   // only when in mute mode
 
+
+enum {
+	QUANT_OFF=0,
+	QUANT_CYCLE,
+	QUANT_8TH,
+	QUANT_LOOP
+};
 
 
 /*****************************************************************************/
@@ -235,6 +246,7 @@ typedef struct {
     LADSPA_Data fQuantizeMode;
     LADSPA_Data fRoundMode;    
     LADSPA_Data fRedoTapMode;
+    LADSPA_Data fSyncMode;
 
     
     // used only when in DELAY mode
@@ -334,6 +346,8 @@ typedef struct {
      */
     LADSPA_Data *pfQuantMode;
     LADSPA_Data *pfRoundMode;    
+    LADSPA_Data *pfSyncMode;    
+    LADSPA_Data *pfRateCtrlActive;
 
     /* if non zero, the redo command is treated like a tap trigger */
     LADSPA_Data *pfRedoTapMode;
@@ -343,6 +357,9 @@ typedef struct {
     
     /* Output audio port data location. */
     LADSPA_Data * pfOutput;
+
+    LADSPA_Data * pfSyncInput;
+    LADSPA_Data * pfSyncOutput;
 
     
     /* Control outputs */
@@ -580,8 +597,9 @@ activateSooperLooper(LADSPA_Handle Instance) {
   pLS->fQuantizeMode = 0;
   pLS->fRoundMode = 0;  
   pLS->bHoldMode = 0;
+  pLS->fSyncMode = 0;
   pLS->fRedoTapMode = 1;
-  pLS->bRateCtrlActive = 0;
+  pLS->bRateCtrlActive = (int) *pLS->pfRateCtrlActive;
 
   pLS->fWetCurr = pLS->fWetTarget = *pLS->pfWet;
   pLS->fDryCurr = pLS->fDryTarget = *pLS->pfDry;
@@ -648,6 +666,12 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
       case SDL_QUANTMODE:
 	 pLS->pfQuantMode = DataLocation;
 	 break;
+      case SDL_SYNCMODE:
+	 pLS->pfSyncMode = DataLocation;
+	 break;
+      case SDL_USERATE:
+	 pLS->pfRateCtrlActive = DataLocation;
+	 break;
       case SDL_ROUNDMODE:
 	 pLS->pfRoundMode = DataLocation;
 	 break;
@@ -661,6 +685,12 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
 	 break;
       case SDL_OUTPUT:
 	 pLS->pfOutput = DataLocation;
+	 break;
+      case SDL_SYNC_INPUT:
+	 pLS->pfSyncInput = DataLocation;
+	 break;
+      case SDL_SYNC_OUTPUT:
+	 pLS->pfSyncOutput = DataLocation;
 	 break;
 
       case SDL_STATE_OUT:
@@ -1221,6 +1251,10 @@ runSooperLooper(LADSPA_Handle Instance,
      fTrigThresh = *pLS->pfTrigThresh;
   }
 
+  if (pLS->pfRateCtrlActive) {
+     pLS->bRateCtrlActive = (int) *pLS->pfRateCtrlActive;
+  }
+  
   if (pLS->pfMultiCtrl && pLS->pfMultiTens) {
      lMultiCtrl = (int) *(pLS->pfMultiCtrl);
      lMultiTens = (int) *(pLS->pfMultiTens);
@@ -1823,8 +1857,8 @@ runSooperLooper(LADSPA_Handle Instance,
 
 	      case STATE_SCRATCH:
 		 // reverse button toggles rate control active when in scratch mode
-		 pLS->bRateCtrlActive = ! pLS->bRateCtrlActive;
-		 DBG(fprintf(stderr, "Rate control active state now %d\n", pLS->bRateCtrlActive));
+		 //pLS->bRateCtrlActive = ! pLS->bRateCtrlActive;
+		 //DBG(fprintf(stderr, "Rate control active state now %d\n", pLS->bRateCtrlActive));
 		 break;
 		 
 	      default:
@@ -1848,9 +1882,9 @@ runSooperLooper(LADSPA_Handle Instance,
 	   // changing input param!!! Not strictly allowed!
 	   if (pLS->pfQuantMode) {
 	      if (*pLS->pfQuantMode == 0)
-		 *pLS->pfQuantMode = 1.0f;
+		 *pLS->pfQuantMode = (LADSPA_Data) QUANT_CYCLE;
 	      else
-		 *pLS->pfQuantMode = 0;
+		 *pLS->pfQuantMode = (LADSPA_Data) QUANT_OFF;
 	   
 	      DBG(fprintf(stderr,"Quantize mode is now %g\n", *pLS->pfQuantMode));
 	   }
@@ -2779,6 +2813,10 @@ sl_init() {
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
     piPortDescriptors[SDL_ROUNDMODE]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
+    piPortDescriptors[SDL_SYNCMODE]
+      = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
+    piPortDescriptors[SDL_USERATE]
+      = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
     
     piPortDescriptors[SDL_REDOTAPMODE]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
@@ -2787,7 +2825,12 @@ sl_init() {
       = LADSPA_PORT_INPUT | LADSPA_PORT_AUDIO;
     piPortDescriptors[SDL_OUTPUT]
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_AUDIO;
+    piPortDescriptors[SDL_SYNC_INPUT]
+      = LADSPA_PORT_INPUT | LADSPA_PORT_AUDIO;
+    piPortDescriptors[SDL_SYNC_OUTPUT]
+      = LADSPA_PORT_OUTPUT | LADSPA_PORT_AUDIO;
 
+    
     piPortDescriptors[SDL_STATE_OUT]
       = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
     piPortDescriptors[SDL_LOOPPOS_OUT]
@@ -2835,6 +2878,10 @@ sl_init() {
       = strdup("Round Mode");
     pcPortNames[SDL_REDOTAPMODE] 
       = strdup("Redo Tap Mode");
+    pcPortNames[SDL_SYNCMODE] 
+      = strdup("Sync Mode");
+    pcPortNames[SDL_USERATE] 
+      = strdup("Use Rate Ctrl");
 
     
     pcPortNames[SDL_INPUT] 
@@ -2842,6 +2889,11 @@ sl_init() {
     pcPortNames[SDL_OUTPUT]
       = strdup("Output");
 
+    pcPortNames[SDL_SYNC_INPUT] 
+      = strdup("Sync Input");
+    pcPortNames[SDL_SYNC_OUTPUT]
+      = strdup("Sync Output");
+    
     pcPortNames[SDL_STATE_OUT] 
       = strdup("State Output");
     pcPortNames[SDL_LOOPLEN_OUT]
@@ -2922,10 +2974,20 @@ sl_init() {
       = 12.0;
 
     psPortRangeHints[SDL_QUANTMODE].HintDescriptor
-      = LADSPA_HINT_TOGGLED;
+      = LADSPA_HINT_BOUNDED_ABOVE|LADSPA_HINT_BOUNDED_BELOW|LADSPA_HINT_INTEGER;
+    psPortRangeHints[SDL_QUANTMODE].LowerBound 
+      = 0.0f;
+    psPortRangeHints[SDL_QUANTMODE].UpperBound
+      = 3.0f;
+
+    
     psPortRangeHints[SDL_ROUNDMODE].HintDescriptor
       = LADSPA_HINT_TOGGLED;
     psPortRangeHints[SDL_REDOTAPMODE].HintDescriptor
+      = LADSPA_HINT_TOGGLED;
+    psPortRangeHints[SDL_SYNCMODE].HintDescriptor
+      = LADSPA_HINT_TOGGLED;
+    psPortRangeHints[SDL_USERATE].HintDescriptor
       = LADSPA_HINT_TOGGLED;
     
     psPortRangeHints[SDL_INPUT].HintDescriptor

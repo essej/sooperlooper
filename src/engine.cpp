@@ -119,11 +119,11 @@ Engine::add_loop (unsigned int chans)
 	
 	{
 		LockMonitor lm (_instance_lock, __LINE__, __FILE__);
+		n = _instances.size();
 
 		Looper * instance;
 		
-		instance = new Looper (_driver, (unsigned int) _instances.size(), chans);
-		n = _instances.size();
+		instance = new Looper (_driver, (unsigned int) n, chans);
 		
 		if (!(*instance)()) {
 			cerr << "can't create a new loop!\n";
@@ -191,87 +191,87 @@ Engine::process (nframes_t nframes)
 	if (!lm.locked()) {
 		// todo pass silence
 		cerr << "already locked!" << endl;
+
+		//_driver->process_silence (nframes);
+		
+		return 0;
 	}
-	else
-	{
-		// process events
+
+	// process events
 		
-		Event * evt;
-		RingBuffer<Event>::rw_vector vec;
+	Event * evt;
+	RingBuffer<Event>::rw_vector vec;
 		
-		// get available events
-		_event_queue->get_read_vector (&vec);
+	// get available events
+	_event_queue->get_read_vector (&vec);
 		
-		// update event generator
-		_event_generator->updateFragmentTime (nframes);
+	// update event generator
+	_event_generator->updateFragmentTime (nframes);
 		
 
-		nframes_t usedframes = 0;
-		nframes_t doframes;
-		size_t num = vec.len[0];
-		size_t n = 0;
-		size_t vecn = 0;
-		nframes_t fragpos;
+	nframes_t usedframes = 0;
+	nframes_t doframes;
+	size_t num = vec.len[0];
+	size_t n = 0;
+	size_t vecn = 0;
+	nframes_t fragpos;
 		
-		if (num > 0) {
+	if (num > 0) {
 		
-			while (n < num)
-			{ 
-				evt = vec.buf[vecn] + n;
-				fragpos = (nframes_t) evt->FragmentPos();
+		while (n < num)
+		{ 
+			evt = vec.buf[vecn] + n;
+			fragpos = (nframes_t) evt->FragmentPos();
 
-				++n;
-				// to avoid code copying
-				if (n == num) {
-					if (vecn == 0) {
-						++vecn;
-						n = 0;
-						num = vec.len[1];
-					}
+			++n;
+			// to avoid code copying
+			if (n == num) {
+				if (vecn == 0) {
+					++vecn;
+					n = 0;
+					num = vec.len[1];
 				}
+			}
 				
-				if (fragpos < usedframes || fragpos >= nframes) {
-					// bad fragment pos
+			if (fragpos < usedframes || fragpos >= nframes) {
+				// bad fragment pos
 #ifdef DEBUG
-					cerr << "BAD FRAGMENT POS: " << fragpos << endl;
+				cerr << "BAD FRAGMENT POS: " << fragpos << endl;
 #endif
-					continue;
-				}
+				continue;
+			}
 				
-				doframes = fragpos - usedframes;
-				int m = 0;
-				for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i, ++m)
-				{
-					// run for the time before this event
-					(*i)->run (usedframes, doframes);
+			doframes = fragpos - usedframes;
+			int m = 0;
+			for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i, ++m)
+			{
+				// run for the time before this event
+				(*i)->run (usedframes, doframes);
 					
-					// process event
-					if (evt->Instance == -1 || evt->Instance == m) {
-						(*i)->do_event (evt);
-					}
+				// process event
+				if (evt->Instance == -1 || evt->Instance == m) {
+					(*i)->do_event (evt);
 				}
+			}
 				
-				usedframes += doframes;
-			}
+			usedframes += doframes;
+		}
 
-			// advance events
-			_event_queue->increment_read_ptr (vec.len[0] + vec.len[1]);
+		// advance events
+		_event_queue->increment_read_ptr (vec.len[0] + vec.len[1]);
 			
-			// run the rest of the frames
-			for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i) {
-				(*i)->run (usedframes, nframes - usedframes);
-			}
-
-		}
-		else {
-			// no events
-			for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i) {
-				(*i)->run (0, nframes);
-			}
-
+		// run the rest of the frames
+		for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i) {
+			(*i)->run (usedframes, nframes - usedframes);
 		}
 
-		
+	}
+	else {
+		// no events
+		for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i) {
+			(*i)->run (0, nframes);
+		}
+
 	}
 
 	
@@ -411,6 +411,7 @@ Engine::mainloop()
 						cl_event->index = _instances.size() - 1;
 					}
 					remove_loop (cl_event->index);
+					_osc->finish_loop_config_event (*cl_event);
 				}
 			}
 			else if ((ping_event = dynamic_cast<PingEvent*> (event)) != 0)
