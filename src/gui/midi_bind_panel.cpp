@@ -202,11 +202,12 @@ void MidiBindPanel::init()
 	rowsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
 	_loopnum_combo =  new wxChoice(_edit_panel, ID_LoopNumCombo, wxDefaultPosition, wxSize(100, -1), 0, 0);
+	_loopnum_combo->Append (wxT("Global"), (void *) -1);
 	_loopnum_combo->Append (wxT("All"), (void *) 0);
 	for (int i=1; i <= 16; ++i) {
 		_loopnum_combo->Append (wxString::Format(wxT("%d"), i), (void *) i);
 	}
-	_loopnum_combo->SetSelection(0);
+	_loopnum_combo->SetSelection(1);
 	rowsizer->Add (_loopnum_combo, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
 
 	_sus_check = new wxCheckBox(_edit_panel, ID_SusCheck, wxT("SUS"));
@@ -422,8 +423,11 @@ void MidiBindPanel::refresh_state()
 		// loop #
 		item.SetColumn(1);
 		item.SetText (wxString::Format(wxT("%d"), info.instance + 1));
-		if (info.instance < 0) {
+		if (info.instance == -1) {
 			item.SetText (wxT("All"));
+		}
+		else if (info.instance == -2) {
+			item.SetText (wxT("Global"));
 		}
 		_listctrl->SetItem (item);
 
@@ -501,7 +505,7 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 		}
 	}
 
-	_loopnum_combo->SetSelection(info->instance + 1);
+	_loopnum_combo->SetSelection(info->instance + 2);
 	_chan_spin->SetValue(info->channel + 1);
 
 	if (info->type == "cc") {

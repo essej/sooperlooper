@@ -573,6 +573,11 @@ GuiFrame::update_controls()
 	_common_dry_bar->set_indicator_value (val);
 
 	
+	if (_loop_control->is_global_updated(wxT("wet"))) {
+		_loop_control->get_global_value(wxT("wet"), val);
+		_common_wet_bar->set_value (val);
+	}
+	
 	if (_loop_control->is_global_updated (wxT("out_peak_meter"))) {
 		_loop_control->get_global_value (wxT("out_peak_meter"), val);
 		_common_wet_bar->set_indicator_value (val);

@@ -372,7 +372,7 @@ LoopControl::osc_traffic()
 				// goto again;
 			}
 			
-			cerr << "OSC thread poll failed: " <<  strerror (errno) << endl;
+			//cerr << "OSC thread poll failed: " <<  strerror (errno) << endl;
 			
 			continue;
 		}
@@ -688,6 +688,8 @@ LoopControl::request_global_values()
 	//lo_send(_osc_addr, buf, "sss", "tap_tempo", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "dry", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "wet", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "in_peak_meter", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "out_peak_meter", _our_url.c_str(), "/ctrl");
 
 }
 
@@ -709,6 +711,8 @@ LoopControl::request_values(int index)
 	lo_send(_osc_addr, buf, "sss", "waiting", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "rate_output", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "channel_count", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "in_peak_meter", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "out_peak_meter", _our_url.c_str(), "/ctrl");
 
 }
 
