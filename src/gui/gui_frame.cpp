@@ -164,13 +164,14 @@ GuiFrame::init_loopers (int count)
 	_scroller->Layout();
 	_scroller->SetScrollRate(0,30);
 
-// 	if (!_looper_panels.empty()) {
-// 		wxSize bestsz = _looper_panels[0]->GetBestSize();
-		
-// 		_scroller->SetVirtualSizeHints (bestsz.GetWidth(), -1);
+ 	if (!_looper_panels.empty()) {
+ 		wxSize bestsz = _looper_panels[0]->GetBestSize();
+		cerr << "best w: " << bestsz.GetWidth() << endl;
+ 		_scroller->SetVirtualSizeHints (bestsz.GetWidth(), -1);
+		_topsizer->Layout();
 // 		_topsizer->Fit(this);
 // 		_topsizer->SetSizeHints(this);
-// 	}
+ 	}
 	
 
 	//_main_sizer->Layout();
