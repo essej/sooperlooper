@@ -52,6 +52,8 @@ Engine::Engine ()
 	_sync_source = NoSync;
 	_tempo_counter = 0;
 	_tempo_frames = 0;
+	_quarter_counter = 0.0;
+	_quarter_note_frames = 0.0;
 	_midi_ticks = 0;
 	_midi_loop_tick = 12;
 	_midi_bridge = 0;
@@ -61,6 +63,7 @@ Engine::Engine ()
 	_running_frames = 0;
 	_last_tempo_frame = 0;
 	_tempo_changed = false;
+	_beat_occurred = false;
 	
 	pthread_cond_init (&_event_cond, NULL);
 
@@ -405,6 +408,7 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			//cerr << "TAP: new tempo: " << _tempo  << "  off: " << offset << endl;
 
 			_tempo_counter = 0;
+			_quarter_counter = 0;
 			calculate_tempo_frames ();
 
 			if (_sync_source == InternalTempoSync) {
@@ -597,6 +601,17 @@ Engine::mainloop()
 			_tempo_changed = false;
 		}
 
+		if (_beat_occurred)
+		{
+			//cerr << "beat occurred" << endl;
+			// just use some unique number
+			ConfigUpdateEvent cu_event(ConfigUpdateEvent::Send, -2, Event::TapTempo, "", "", (float) _running_frames);
+			_osc->finish_update_event (cu_event);
+			
+			_beat_occurred = false;
+		}
+		
+		
 		// handle learning done from the midi thread
 		if (_learn_done) {
 			_midi_bridge->bindings().add_binding (_learninfo, _learn_event.options == "exclusive");
@@ -848,6 +863,8 @@ Engine::calculate_tempo_frames ()
 			_tempo_frames = 0; // ???
 		}
 
+		_quarter_note_frames = _driver->get_samplerate() * (1.0/_tempo) * 60;
+		
 		// cerr << "tempo frames is " << _tempo_frames << endl;
 	}
 	else if (_sync_source == MidiClockSync) {
@@ -873,31 +890,56 @@ Engine::calculate_midi_tick ()
 }
 
 
-void
+int
 Engine::generate_sync (nframes_t offset, nframes_t nframes)
 {
 	nframes_t npos = offset;
+	int hit_at = -1;
 	
-	if (_sync_source == InternalTempoSync && _tempo_frames != 0) {
-		double curr = _tempo_counter;
-		
-		while (npos < nframes) {
+	if (_sync_source == InternalTempoSync) {
+
+		if (_tempo_frames == 0.0) {
+			// just calculate quarter note beats for update
+			double qcurr = _quarter_counter;
+			qcurr += (double) nframes;
 			
-			while (curr < _tempo_frames && npos < nframes) {
-				_internal_sync_buf[npos++] = 0.0f;
-				curr += 1.0f;
+			if (qcurr >= _quarter_note_frames) {
+				// inaccurate
+				hit_at = (int) npos;
+				qcurr = ((qcurr - _quarter_note_frames) - truncf(qcurr - _quarter_note_frames)) + 1.0;
 			}
 
-			if (curr >= _tempo_frames) {
-				// cerr << "tempo hit" << endl;
-				_internal_sync_buf[npos++] = 1.0f;
-				// reset curr counter
-				curr = ((curr - _tempo_frames) - truncf(curr - _tempo_frames)) + 1.0;
-			}
+			_quarter_counter = qcurr;
 		}
-
-		_tempo_counter = curr;
-		//cerr << "tempo counter is now: " << _tempo_counter << endl;
+		else {
+			double curr = _tempo_counter;
+			double qcurr = _quarter_counter;
+			
+			while (npos < nframes) {
+				
+				while (curr < _tempo_frames && qcurr < _quarter_note_frames && npos < nframes) {
+					_internal_sync_buf[npos++] = 0.0f;
+					curr += 1.0;
+					qcurr += 1.0;
+				}
+				
+				if (qcurr >= _quarter_note_frames) {
+					hit_at = (int) npos;
+					qcurr = ((qcurr - _quarter_note_frames) - truncf(qcurr - _quarter_note_frames)) + 1.0;
+				}
+				
+				if (curr >= _tempo_frames) {
+					// cerr << "tempo hit" << endl;
+					_internal_sync_buf[npos++] = 1.0f;
+					// reset curr counter
+					curr = ((curr - _tempo_frames) - truncf(curr - _tempo_frames)) + 1.0;
+				}
+			}
+			
+			_tempo_counter = curr;
+			_quarter_counter = qcurr;
+			//cerr << "tempo counter is now: " << _tempo_counter << endl;
+		}
 	}
 	else if (_sync_source == MidiClockSync) {
 
@@ -957,7 +999,11 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 					//cerr << "got stop at " << fragpos << endl;
 				}
 
-
+				if ((_midi_ticks % 24) == 0) {
+					// every quarter note
+					hit_at = (int) usedframes;
+				}
+				
 				if ((_midi_ticks % _midi_loop_tick) == 0) {
 					//cerr << "GOT TICK at " << fragpos << endl;
 
@@ -993,4 +1039,14 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 		}
 		//memset (_internal_sync_buf, 0, nframes * sizeof(float));
 	}
+
+	if (hit_at >= 0) {
+		_beat_occurred = true;
+		// wake up mainloop safely
+		//TentativeLockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
+		//if (mon.locked()) {
+		pthread_cond_signal (&_event_cond);
+	}
+	
+	return hit_at;
 }

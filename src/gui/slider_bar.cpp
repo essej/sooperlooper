@@ -81,6 +81,7 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_decimal_digits = 1;
 	_text_ctrl = 0;
 	_ignoretext = false;
+	_oob_flag = false;
 	
 	_bgcolor.Set(30,30,30);
 	_bgbrush.SetColour (_bgcolor);
@@ -197,8 +198,10 @@ SliderBar::set_value (float val)
 // 		newval = nearbyintf (newval);
 // 	}
 
-	newval = min (newval, _upper_bound);
-	newval = max (newval, _lower_bound);
+	if (!_oob_flag) {
+		newval = min (newval, _upper_bound);
+		newval = max (newval, _lower_bound);
+	}
 	
 	if (newval != _value) {
 		_value = newval;

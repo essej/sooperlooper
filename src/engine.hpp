@@ -100,7 +100,8 @@ class Engine
 
 	bool process_nonrt_event (EventNonRT * event);
 
-	void generate_sync (nframes_t offset, nframes_t nframes);
+	// returns >= 0 offset position on tempo beats
+	int generate_sync (nframes_t offset, nframes_t nframes);
 	
 	void update_sync_source ();
 	void calculate_tempo_frames ();
@@ -162,6 +163,8 @@ class Engine
 
 	double _tempo_counter;
 	double _tempo_frames;
+	double _quarter_note_frames;
+	double _quarter_counter;
 
 	unsigned int _midi_ticks;     // counts ticks as they're coming in
 	unsigned int _midi_loop_tick; // tick number to loop (sync) on
@@ -169,6 +172,7 @@ class Engine
 	nframes_t _running_frames;
 	nframes_t _last_tempo_frame;
 	volatile bool _tempo_changed;
+	volatile bool _beat_occurred;
 };
 
 };  // sooperlooper namespace

@@ -78,6 +78,8 @@ class SliderBar
 	void set_snap_mode (SnapMode mode);
 	SnapMode get_snap_mode () { return _snap_mode; }
 	
+	void set_allow_outside_bounds (bool val) { _oob_flag = val; }
+	bool get_allow_outside_bounds () { return _oob_flag; }
 	
  	void set_bg_color (const wxColour & col);
 	wxColour & get_bg_color () { return _bgcolor; }
@@ -168,7 +170,7 @@ class SliderBar
 	ScaleMode  _scale_mode;
 	SnapMode   _snap_mode;
 	int        _decimal_digits;
-	
+	bool       _oob_flag;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

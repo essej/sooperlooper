@@ -65,7 +65,8 @@ enum {
 	ID_EighthSlider,
 	ID_QuantizeChoice,
 	ID_RoundCheck,
-	ID_TapTempoButton
+	ID_TapTempoButton,
+	ID_TapTempoTimer
 };
 
 
@@ -75,6 +76,7 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 	EVT_SIZE(GuiFrame::OnSize)
 	EVT_PAINT(GuiFrame::OnPaint)
 	EVT_TIMER(ID_UpdateTimer, GuiFrame::OnUpdateTimer)
+	EVT_TIMER(ID_TapTempoTimer, GuiFrame::on_taptempo_timer)
 
 	EVT_MENU(ID_Quit, GuiFrame::OnQuit)
 	EVT_MENU(ID_QuitStop, GuiFrame::OnQuit)
@@ -108,6 +110,9 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
 	_update_timer->Start(100);
+
+	_taptempo_button_timer = new wxTimer(this, ID_TapTempoTimer);
+
 }
 
 GuiFrame::~GuiFrame()
@@ -155,6 +160,7 @@ GuiFrame::init()
 	_tempo_bar->set_units(wxT("bpm"));
 	_tempo_bar->set_label(wxT("tempo"));
 	_tempo_bar->set_snap_mode (SliderBar::IntegerSnap);
+	_tempo_bar->set_allow_outside_bounds(true);
 	_tempo_bar->SetFont (sliderFont);
 	_tempo_bar->value_changed.connect (slot (*this,  &GuiFrame::on_tempo_change));
 	rowsizer->Add (_tempo_bar, 0, wxALL, 2);
@@ -362,16 +368,41 @@ GuiFrame::OnUpdateTimer(wxTimerEvent &ev)
 }
 
 void
+GuiFrame::on_taptempo_timer(wxTimerEvent &ev)
+{
+	_taptempo_button->set_active(false);
+}
+
+void
 GuiFrame::update_controls()
 {
 	// get recent controls from loop control
 	float val;
-	
+
 	if (_loop_control->is_global_updated("tempo")) {
 		_loop_control->get_global_value("tempo", val);
 		_tempo_bar->set_value (val);
 	}
 
+	if (_loop_control->is_global_updated("tap_tempo")) {	
+		_loop_control->get_global_value("tap_tempo", val);
+
+		float tempo;
+		_loop_control->get_global_value("tempo", tempo);
+		// turn on tap active, then timeout to flip it back
+		_taptempo_button->set_active(true);
+
+		if (tempo > 200) {
+			// half the tempo in ms
+			int ms = (int) (1.0f/tempo * 30000.0f);
+			_taptempo_button_timer->Start(ms, true);
+		}
+		else {
+			_taptempo_button_timer->Start(150, true);
+		}
+	}
+	
+	
 	if (_loop_control->is_global_updated("eighth_per_cycle")) {
 		_loop_control->get_global_value("eighth_per_cycle", val);
 		_eighth_cycle_bar->set_value (val);

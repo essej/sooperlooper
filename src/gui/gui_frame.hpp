@@ -90,6 +90,8 @@ protected:
 	void on_add_loop (wxCommandEvent &ev);
 	void on_remove_loop (wxCommandEvent &ev);
 
+	void on_taptempo_timer(wxTimerEvent &ev);
+	
 	void on_tempo_change (float value);
 	void on_eighth_change (float value);
 	void on_syncto_change (int index, wxString val);
@@ -119,6 +121,7 @@ protected:
 	std::vector<LooperPanel *> _looper_panels;
 	
 	wxTimer * _update_timer;
+	wxTimer * _taptempo_button_timer;
 
 	wxScrolledWindow * _scroller;
 	wxBoxSizer * _main_sizer;

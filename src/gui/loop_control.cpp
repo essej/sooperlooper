@@ -105,6 +105,7 @@ LoopControl::~LoopControl()
 	lo_send(_osc_addr, "/unregister_update", "sss", "tempo", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, "/unregister_update", "sss", "sync_source", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, "/unregister_update", "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, "/unregister_update", "sss", "tap_tempo", _our_url.c_str(), "/ctrl");
 
 	lo_server_free (_osc_server);
 	lo_address_free (_osc_addr);
@@ -297,6 +298,7 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 		lo_send(_osc_addr, "/register_update", "sss", "tempo", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_update", "sss", "sync_source", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_update", "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/register_update", "sss", "tap_tempo", _our_url.c_str(), "/ctrl");
 
 		cerr << "ask for bindings" << endl;
 		lo_send(_osc_addr, "/get_all_midi_bindings", "ss", _our_url.c_str(), "/recv_midi_bindings");
@@ -416,6 +418,7 @@ LoopControl::request_global_values()
 	lo_send(_osc_addr, buf, "sss", "tempo", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "sync_source", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
+	//lo_send(_osc_addr, buf, "sss", "tap_tempo", _our_url.c_str(), "/ctrl");
 
 }
 
