@@ -28,3 +28,5 @@ mac: all
 	cp -f mac/slgui.icns SooperLooper/SooperLooper.app/Contents/Resources/
 	cp -f src/*.slb SooperLooper/Presets/
 	cp -f README SooperLooper/
+	rm -f SooperLooper-@SOOP_VERSION@.dmg
+	hdiutil create -fs HFS+ -volname SooperLooper  -srcfolder SooperLooper  SooperLooper-@SOOP_VERSION@.dmg
