@@ -29,9 +29,11 @@
 namespace SooperLooper {
 
 	class EventNonRT {
+	public:
+		virtual ~EventNonRT() {}
 	protected:
 		EventNonRT() {};
-
+		
 		virtual void dummy(){};
 	};
 

@@ -20,6 +20,7 @@
 #ifndef __sooperlooper_midi_bridge__
 #define __sooperlooper_midi_bridge__
 
+#include <stdint.h>
 #include <lo/lo.h>
 
 #include <cstdio>

@@ -20,6 +20,7 @@
 
 #include "event.hpp"
 #include <iostream>
+#include <stdint.h>
 #include <sys/time.h>
 
 using namespace std;

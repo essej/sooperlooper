@@ -22,6 +22,7 @@
 
 
 #include <wx/wx.h>
+#include <wx/listbase.h>
 
 #include <string>
 #include <vector>

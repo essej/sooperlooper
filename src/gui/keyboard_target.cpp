@@ -438,7 +438,7 @@ KeyboardTarget::translate_key_name (const string& name)
 	string keyname;
 	string whatevers_left;
 	KeyState result;
-	guint keycode;
+	unsigned int keycode;
 	
 	i = 0;
 	len = name.length();

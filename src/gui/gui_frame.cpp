@@ -20,6 +20,7 @@
 #include <wx/wx.h>
 #include <wx/file.h>
 #include <wx/filename.h>
+#include <wx/image.h>
 #include <wx/utils.h>
 #include <wx/dir.h>
 
