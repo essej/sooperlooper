@@ -68,7 +68,7 @@ class LoopControl
 	virtual ~LoopControl();
 
 	bool post_down_event (int index, wxString cmd);
-	bool post_up_event (int index, wxString cmd);
+	bool post_up_event (int index, wxString cmd, bool force=false);
 
 	bool post_ctrl_change (int index, wxString ctrl, float val);
 	bool post_global_ctrl_change (wxString ctrl, float val);

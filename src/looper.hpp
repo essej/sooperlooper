@@ -98,8 +98,6 @@ class Looper
 
 	float get_control_value (Event::control_t ctrl);
 	
-	void request_cmd (int cmd);
-	
 	void set_port (ControlPort n, LADSPA_Data val) {
 		ports[n] = val;
 	}
@@ -136,6 +134,11 @@ class Looper
 
 	LADSPA_Data        ports[LASTPORT];
 
+	// keeps track of down/up commands for SUS purposes
+	nframes_t          _down_stamps[Event::LAST_COMMAND+1];
+	nframes_t          _longpress_frames;
+	nframes_t          _running_frames;
+	
 	nframes_t          _buffersize;
 	LADSPA_Data        * _our_syncin_buf;
 	LADSPA_Data        * _our_syncout_buf;

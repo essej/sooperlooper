@@ -58,10 +58,18 @@ class PixButton
 	
 	void set_bg_color (const wxColour & col);
 	wxColour & get_bg_color () { return _bgcolor; }
+
+	enum MouseButton {
+		LeftButton=1,
+		MiddleButton,
+		RightButton
+	};
+
+	// int argument is mouse button as above
+	SigC::Signal1<void,int> pressed;
+	SigC::Signal1<void,int> released;
+	SigC::Signal1<void,int> clicked;
 	
-	SigC::Signal0<void> pressed;
-	SigC::Signal0<void> released;
-	SigC::Signal0<void> clicked;
 	SigC::Signal0<void> enter;
 	SigC::Signal0<void> leave;
 

@@ -76,13 +76,13 @@ class LooperPanel
 	void update_state();
 	void bind_events();
 
-	void pressed_events (wxString cmd);
-	void released_events (wxString cmd);
+	void pressed_events (int button, wxString cmd);
+	void released_events (int button, wxString cmd);
 	void scratch_events (wxString cmd);
-	void clicked_events (wxString cmd);
+	void clicked_events (int button, wxString cmd);
 	void button_bind_events (wxString cmd);
-	void tap_button_event ();
-	void rate_button_event(float rate);
+	void tap_button_event (int button);
+	void rate_button_event(int button, float rate);
 	void update_rate_buttons (float rate);
 	
 	void on_quantize_change (int index, wxString strval);

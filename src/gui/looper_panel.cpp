@@ -716,16 +716,22 @@ LooperPanel::update_rate_buttons(float val)
 }
 
 void
-LooperPanel::pressed_events (wxString cmd)
+LooperPanel::pressed_events (int button, wxString cmd)
 {
 	_loop_control->post_down_event (_index, cmd);
 }
 
 void
-LooperPanel::released_events (wxString cmd)
+LooperPanel::released_events (int button, wxString cmd)
 {
-	_loop_control->post_up_event (_index, cmd);
-
+	
+	if (button == PixButton::MiddleButton) {
+		// force up
+		_loop_control->post_up_event (_index, cmd, true);
+	}
+	else {
+		_loop_control->post_up_event (_index, cmd);
+	}
 }
 
 
@@ -764,14 +770,14 @@ LooperPanel::button_bind_events (wxString cmd)
 
 
 void
-LooperPanel::tap_button_event ()
+LooperPanel::tap_button_event (int button)
 {
 	_tap_val *= -1.0f;
 	post_control_event (wxString("tap_trigger"), _tap_val);
 }
 
 void
-LooperPanel::rate_button_event (float rate)
+LooperPanel::rate_button_event (int button, float rate)
 {
 // 	float val = 0.0;
 // 	_loop_control->get_value(_index, "use_rate", val);
@@ -783,7 +789,7 @@ LooperPanel::rate_button_event (float rate)
 }
 
 void
-LooperPanel::clicked_events (wxString cmd)
+LooperPanel::clicked_events (int button, wxString cmd)
 {
 	if (cmd == wxT("save"))
 	{

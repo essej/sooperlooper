@@ -153,6 +153,30 @@ void PixButton::OnPaint(wxPaintEvent & event)
  	pdc.Blit(0, 0, _width, _height, &_memdc, 0, 0);
 }
 
+static inline int get_mouse_up_button(const wxMouseEvent &ev)
+{
+	if (ev.LeftUp()) return (int) PixButton::LeftButton;
+	else if (ev.MiddleUp()) return (int) PixButton::MiddleButton;
+	else if (ev.RightUp()) return (int) PixButton::RightButton;
+	else return 0;
+}
+
+static inline int get_mouse_button(const wxMouseEvent &ev)
+{
+	if (ev.ButtonDown()) {
+		if (ev.LeftDown()) return (int) PixButton::LeftButton;
+		else if (ev.MiddleDown()) return (int) PixButton::MiddleButton;
+		else if (ev.RightDown()) return (int) PixButton::RightButton;
+		else return 0;
+	}
+	else if (ev.ButtonUp()) {
+		if (ev.LeftUp()) return (int) PixButton::LeftButton;
+		else if (ev.MiddleUp()) return (int) PixButton::MiddleButton;
+		else if (ev.RightUp()) return (int) PixButton::RightButton;
+		else return 0;
+	}
+	else return 0;
+}
 
 void
 PixButton::OnMouseEvents (wxMouseEvent &ev)
@@ -169,7 +193,7 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 	{
 		if (!(ev.MiddleDown() && ev.ControlDown())) {
 			_bstate = Selected;
-			pressed (); // emit
+			pressed (get_mouse_button(ev)); // emit
 			CaptureMouse();
 			Refresh(false);
 		}
@@ -178,15 +202,15 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 	{
 		_bstate = Normal;
 		ReleaseMouse();
-		released(); // emit
-
+		released (get_mouse_button(ev)); // emit
+			  
 		wxPoint pt = ev.GetPosition();
 		wxRect bounds = GetRect();
 		pt.x += bounds.x;
 		pt.y += bounds.y;
 
 		if (bounds.Inside(pt)) {
-			clicked(); // emit
+			clicked (get_mouse_button(ev)); // emit
 
 			if (ev.MiddleUp() && ev.ControlDown()) {
 				bind_request(); // emit
@@ -197,7 +221,7 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 	}
 	else if (ev.ButtonDClick()) {
 		_bstate = Selected;
-		pressed (); // emit
+		pressed (get_mouse_button(ev)); // emit
 		Refresh(false);
 	}
 	else if (ev.Entering())

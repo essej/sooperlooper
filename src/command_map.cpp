@@ -58,6 +58,7 @@ CommandMap::CommandMap()
 	_input_controls["round"]  = Event::Round;
 	_input_controls["redo_is_tap"]  = Event::RedoTap;
 	_input_controls["sync"]  = Event::SyncMode;
+	_input_controls["playback_sync"]  = Event::PlaybackSync;
 	_input_controls["use_rate"]  = Event::UseRate;
 	_input_controls["fade_samples"]  = Event::FadeSamples;
 

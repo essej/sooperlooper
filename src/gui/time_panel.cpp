@@ -226,7 +226,7 @@ void
 TimePanel::draw_area(wxDC & dc)
 {
 	wxCoord sw=0, sh=0, tw=0, th=0, w=0, h=0;
-	wxCoord cw=0, ch=0, rw=0, rh=0;
+	// wxCoord cw=0, ch=0, rw=0, rh=0;
 
 	dc.SetBackground(_bgbrush);
 	dc.Clear();

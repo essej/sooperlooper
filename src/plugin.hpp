@@ -43,11 +43,12 @@ enum ControlPort {
 	Sync,
 	UseRate,
 	FadeSamples,
-	TempoInput
+	TempoInput,
+	PlaybackSync
 };
 
 enum OutputPort {
-	State = 16,
+	State = 17,
 	LoopLength,
 	LoopPosition,
 	CycleLength,
@@ -59,7 +60,7 @@ enum OutputPort {
 };
 
 enum AudioPort {
-	AudioInputPort=24,
+	AudioInputPort=25,
 	AudioOutputPort,
 	SyncInputPort,
 	SyncOutputPort,
@@ -89,7 +90,6 @@ enum LooperState
 	LooperStateMuted,
 	LooperStateScratching,
 	LooperStateOneShot
-
 };
 
 	
@@ -228,6 +228,9 @@ typedef struct {
 	LADSPA_Data fLoopFadeAtten;
 	LADSPA_Data fLoopFadeDelta;
 
+	LADSPA_Data fPlayFadeAtten;
+	LADSPA_Data fPlayFadeDelta;
+	
 	LADSPA_Data fLoopXfadeTime;
 	
 	/* Ports:
@@ -278,6 +281,7 @@ typedef struct {
 	LADSPA_Data *pfQuantMode;
 	LADSPA_Data *pfRoundMode;    
 	LADSPA_Data *pfSyncMode;    
+	LADSPA_Data *pfPlaybackSyncMode;    
 	LADSPA_Data *pfRateCtrlActive;
 
 	LADSPA_Data *pfXfadeSamples;

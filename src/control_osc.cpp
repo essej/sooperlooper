@@ -288,7 +288,10 @@ ControlOSC::on_loop_added (int instance)
 	
 		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/up", instance);
 		lo_server_add_method(serv, tmpstr, "s", ControlOSC::_updown_handler, new CommandInfo(this, instance, Event::type_cmd_up));
-	
+
+		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/upforce", instance);
+		lo_server_add_method(serv, tmpstr, "s", ControlOSC::_updown_handler, new CommandInfo(this, instance, Event::type_cmd_upforce));
+		
 		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/set", instance);
 		lo_server_add_method(serv, tmpstr, "sf", ControlOSC::_set_handler, new CommandInfo(this, instance, Event::type_control_change));
 	

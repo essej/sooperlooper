@@ -603,11 +603,16 @@ LoopControl::post_down_event(int index, wxString cmd)
 }
 
 bool
-LoopControl::post_up_event(int index, wxString cmd)
+LoopControl::post_up_event(int index, wxString cmd, bool force)
 {
 	char buf[30];
 
-	snprintf(buf, sizeof(buf), "/sl/%d/up", index);
+	if (force) {
+		snprintf(buf, sizeof(buf), "/sl/%d/upforce", index);
+	}
+	else {
+		snprintf(buf, sizeof(buf), "/sl/%d/up", index);
+	}
 	
 	if (lo_send(_osc_addr, buf, "s", cmd.c_str()) == -1) {
 		return false;

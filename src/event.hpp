@@ -76,6 +76,7 @@ namespace SooperLooper {
             enum type_t {
 		    type_cmd_down,
 		    type_cmd_up,
+		    type_cmd_upforce,
 		    type_control_change,
 		    type_control_request,
 		    type_global_control_change,
@@ -101,7 +102,8 @@ namespace SooperLooper {
 		    QUANT_TOG,
 		    ROUND_TOG,
 		    ONESHOT,
-		    TRIGGER
+		    TRIGGER,
+		    LAST_COMMAND
 	    } Command;
 
 
@@ -123,6 +125,7 @@ namespace SooperLooper {
 		    UseRate,
 		    FadeSamples,
 		    TempoInput,
+		    PlaybackSync,
 		    // read only
 		    State,
 		    LoopLength,

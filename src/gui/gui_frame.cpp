@@ -570,7 +570,7 @@ GuiFrame::on_round_check (bool val)
 }
 
 void
-GuiFrame::on_taptempo_event ()
+GuiFrame::on_taptempo_event (int button)
 {
 	_loop_control->post_ctrl_change (-2, wxT("tap_tempo"), 1.0f);
 }
@@ -782,7 +782,7 @@ void GuiFrame::misc_action (bool release, wxString cmd)
 	
 	if (cmd == wxT("taptempo")) {
 
-		on_taptempo_event();
+		on_taptempo_event(1);
 	}
 	else if (cmd == wxT("delay")) {
 		_tapdelay_val *= -1.0f;

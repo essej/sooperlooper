@@ -525,6 +525,9 @@ activateSooperLooper(LADSPA_Handle Instance) {
 
   pLS->fLoopFadeDelta = 0.0f;
   pLS->fLoopFadeAtten = 0.0f;
+  pLS->fPlayFadeDelta = 0.0f;
+  pLS->fPlayFadeAtten = 0.0f;
+
   // todo make this a port, for now 2ms
   //pLS->fLoopXfadeSamples = 0.002 * pLS->fSampleRate;
   
@@ -589,6 +592,9 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
 	 break;
       case Sync:
 	 pLS->pfSyncMode = DataLocation;
+	 break;
+      case PlaybackSync:
+	 pLS->pfPlaybackSyncMode = DataLocation;
 	 break;
       case UseRate:
 	 pLS->pfRateCtrlActive = DataLocation;
@@ -778,6 +784,7 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 
       pLS->state = STATE_MULTIPLY;
       pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
+      //pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 
       // start out with the single cycle as our length as a marker
       loop->lLoopLength = srcloop->lCycleLength;
@@ -936,6 +943,7 @@ static LoopChunk * beginInsert(SooperLooperI *pLS, LoopChunk *loop)
 
       pLS->state = STATE_INSERT;
       pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
+      pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
       
       // start out with the single cycle extra as our length
       loop->lLoopLength = srcloop->lLoopLength + srcloop->lCycleLength;
@@ -1018,6 +1026,7 @@ static LoopChunk * endInsert(SooperLooperI *pLS, LoopChunk *loop, int nextstate)
    pLS->nextState = nextstate;
 
    pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+   pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
    
    return loop;
    
@@ -1117,6 +1126,7 @@ static LoopChunk * beginReplace(SooperLooperI *pLS, LoopChunk *loop)
       pLS->state = STATE_REPLACE;
 
       pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
+      pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 
       if (!loop->prev) {
 	      // then we are overwriting our own source
@@ -1195,10 +1205,13 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
    switch(nextstate)
    {
       case STATE_PLAY:
-      case STATE_MUTE:
-	      // nothing special
 	      pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
-	 break;
+	      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+	      break;
+      case STATE_MUTE:
+	      pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
+	      pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
+	      break;
 
       case STATE_OVERDUB:
 	 newloop = beginOverdub(pLS, loop);
@@ -1224,6 +1237,7 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
 
       case STATE_TRIGGER_PLAY:
 	      pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
+	      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 	      if (loop) {
 		      pLS->state = STATE_PLAY;
 		      nextstate = STATE_PLAY;
@@ -1236,6 +1250,7 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
       case STATE_ONESHOT:
 	      // play the loop one_shot mode
 	      pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
+	      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 	      if (loop) {
 		      DBG(fprintf(stderr,"Starting ONESHOT state\n"));
 		      pLS->state = STATE_ONESHOT;
@@ -1309,6 +1324,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
   LADSPA_Data fSyncMode = 0.0f;
   LADSPA_Data fQuantizeMode = 0.0f;
+  LADSPA_Data fPlaybackSyncMode = 0.0f;
 
   unsigned long lSampleIndex;
 
@@ -1351,6 +1367,9 @@ runSooperLooper(LADSPA_Handle Instance,
   }
   if (pLS->pfSyncMode) {
 	  fSyncMode = *pLS->pfSyncMode;
+  }
+  if (pLS->pfPlaybackSyncMode) {
+	  fPlaybackSyncMode = *pLS->pfPlaybackSyncMode;
   }
   if (pLS->pfQuantMode) {
 	  fQuantizeMode = *pLS->pfQuantMode;
@@ -1493,6 +1512,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			      // skip trig stop
 			      pLS->state = STATE_PLAY;
 			      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+			      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 		      }
 		      else {
 			      pLS->state = STATE_TRIG_STOP;
@@ -1512,6 +1532,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    loop->lCycles = 1;
 
 		    pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+		    pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 			      
 		    pLS->state = STATE_PLAY;
 		    DBG(fprintf(stderr,"Entering PLAY state after Multiply NEW loop\n"));
@@ -1535,6 +1556,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    loop->lCycles = 1;
 
 		    pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+		    pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 		    
 		    pLS->state = STATE_PLAY;
 		    DBG(fprintf(stderr,"Entering PLAY state after Multiply NEW loop\n"));
@@ -1567,6 +1589,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		      pLS->state = STATE_PLAY;
 		      DBG(fprintf(stderr,"Entering PLAY state\n"));
 		      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+		      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 		      
 		      break;
 	      case STATE_MULTIPLY:
@@ -1736,6 +1759,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			      pLS->state = STATE_PLAY;
 			      DBG(fprintf(stderr,"Entering PLAY state\n"));
 			      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+			      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 
 			      if (fQuantizeMode == QUANT_OFF) {
 				      // then send out a sync here for any slaves
@@ -1795,12 +1819,13 @@ runSooperLooper(LADSPA_Handle Instance,
 	{
 	   switch(pLS->state) {
 	      case STATE_MUTE:
-		 // reset for audio ramp
-		 pLS->lRampSamples = xfadeSamples;
+		      // reset for audio ramp
+		      pLS->lRampSamples = xfadeSamples;
 	      case STATE_ONESHOT:
 		 // this enters play mode but from the continuous position
 		 pLS->state = STATE_PLAY;
 		 DBG(fprintf(stderr,"Entering PLAY state continuous\n"));
+		 pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 
 		 break;
 
@@ -1830,7 +1855,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		 pLS->state = STATE_MUTE;
 		 DBG(fprintf(stderr,"Entering MUTE state\n"));
 		 // reset for audio ramp
-		 pLS->lRampSamples = xfadeSamples;
+		 //pLS->lRampSamples = xfadeSamples;
+		 pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
+
 		 pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 
 	   }
@@ -1983,6 +2010,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 // cancel whatever mode, back to play mode
 		 pLS->state = STATE_PLAY;
+		 pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 		 pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		 DBG(fprintf(stderr,"Undoing and reentering PLAY state from UNDO\n"));
 		 break;
@@ -2077,6 +2105,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		      if (fSyncMode == 0.0f) {
 			      if (loop) {
 				      DBG(fprintf(stderr,"Starting ONESHOT state\n"));
+				      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 				      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 				      pLS->state = STATE_ONESHOT;
 				      if (pLS->fCurrRate > 0)
@@ -2222,6 +2251,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
 		    // cause input-to-loop fade in
 		    pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
+		    //pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 
 		 }
 		 else {
@@ -2396,6 +2426,8 @@ runSooperLooper(LADSPA_Handle Instance,
 	         fFeedback += feedbackDelta;
 	         fScratchPos += scratchDelta;
 
+		 pLS->fPlayFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fPlayFadeAtten + pLS->fPlayFadeDelta);
+		 
 
 		 lCurrPos =(unsigned int) fmod(loop->dCurrPos, loop->lLoopLength);
 		 pLoopSample = & pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask];
@@ -2439,7 +2471,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		 else {
 		    // state REPLACE use only the new input
 		    // use our self as the source (we have been filled by the call above)
-		    fOutputSample = fDry * fInputSample;
+		    fOutputSample = pLS->fPlayFadeAtten * fWet  *  *(pLoopSample)
+			    + fDry * fInputSample;
 		    
 		    *(pLoopSample) = fInputSample;
 
@@ -2678,6 +2711,8 @@ runSooperLooper(LADSPA_Handle Instance,
 	         fFeedback += feedbackDelta;
 	         fScratchPos += scratchDelta;
 
+		 pLS->fPlayFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fPlayFadeAtten + pLS->fPlayFadeDelta);
+		 
 		 lpCurrPos =(unsigned int) fmod(loop->dCurrPos, srcloop->lLoopLength);
 		 lCurrPos =(unsigned int) loop->dCurrPos;
 		 spLoopSample = & pLS->pSampleBuf[(srcloop->lLoopStart + lpCurrPos) & pLS->lBufferSizeMask];
@@ -2899,24 +2934,25 @@ runSooperLooper(LADSPA_Handle Instance,
      	         fFeedback += feedbackDelta;
 	         fScratchPos += scratchDelta;
 		 pLS->fLoopFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopFadeDelta);
+		 pLS->fPlayFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fPlayFadeAtten + pLS->fPlayFadeDelta);
 		 
 		      
+		 tmpWet *= pLS->fPlayFadeAtten;
 
+// 		 // modify fWet if we are in a ramp up/down
+// 		 if (pLS->lRampSamples > 0) {
+// 		    if (pLS->state == STATE_MUTE) {
+// 		       //negative linear ramp
+// 		       tmpWet = fWet * (pLS->lRampSamples * 1.0f) / xfadeSamples;
+// 		    }
+// 		    else {
+// 		       // positive linear ramp
+// 		       tmpWet = fWet * (xfadeSamples - pLS->lRampSamples)
+// 			  * 1.0f / xfadeSamples;
+// 		    }
 
-		 // modify fWet if we are in a ramp up/down
-		 if (pLS->lRampSamples > 0) {
-		    if (pLS->state == STATE_MUTE) {
-		       //negative linear ramp
-		       tmpWet = fWet * (pLS->lRampSamples * 1.0f) / xfadeSamples;
-		    }
-		    else {
-		       // positive linear ramp
-		       tmpWet = fWet * (xfadeSamples - pLS->lRampSamples)
-			  * 1.0f / xfadeSamples;
-		    }
-
-		    pLS->lRampSamples -= 1;
-		 }
+// 		    pLS->lRampSamples -= 1;
+// 		 }
 
 		 
 		 // fill loops if necessary
@@ -2956,7 +2992,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		       // done with one shot
 		       DBG(fprintf(stderr, "finished ONESHOT\n"));
 		       pLS->state = STATE_MUTE;
-		       pLS->lRampSamples = xfadeSamples;
+		       pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
+
+		       //pLS->lRampSamples = xfadeSamples;
 		       //fWet = 0.0;
 		    }
 
@@ -2978,7 +3016,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		       DBG(fprintf(stderr, "finished ONESHOT neg\n"));
 		       pLS->state = STATE_MUTE;
 		       //fWet = 0.0;
-		       pLS->lRampSamples = xfadeSamples;
+		       pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
+		       //pLS->lRampSamples = xfadeSamples;
 		    }
 
 		    if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
@@ -3269,6 +3308,8 @@ sl_init() {
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
     piPortDescriptors[Sync]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
+    piPortDescriptors[PlaybackSync]
+      = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
     piPortDescriptors[UseRate]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
     piPortDescriptors[FadeSamples]
@@ -3342,6 +3383,8 @@ sl_init() {
       = strdup("Redo Tap Mode");
     pcPortNames[Sync] 
       = strdup("Sync Mode");
+    pcPortNames[PlaybackSync] 
+      = strdup("Playback Sync Mode");
     pcPortNames[UseRate] 
       = strdup("Use Rate Ctrl");
     pcPortNames[FadeSamples] 
@@ -3473,6 +3516,8 @@ sl_init() {
     psPortRangeHints[RedoTap].HintDescriptor
       = LADSPA_HINT_TOGGLED;
     psPortRangeHints[Sync].HintDescriptor
+      = LADSPA_HINT_TOGGLED;
+    psPortRangeHints[PlaybackSync].HintDescriptor
       = LADSPA_HINT_TOGGLED;
     psPortRangeHints[UseRate].HintDescriptor
       = LADSPA_HINT_TOGGLED;

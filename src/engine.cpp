@@ -1169,7 +1169,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 		
 	}
 		
-	if (hit_at >= 0) {
+	if (hit_at >= 0 && _tempo < 400.0) {
 		_beat_occurred = true;
 		// wake up mainloop safely
 		//TentativeLockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);

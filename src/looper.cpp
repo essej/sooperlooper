@@ -68,7 +68,8 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	_our_syncin_buf = 0;
 	_our_syncout_buf = 0;
 	_dummy_buf = 0;
-	
+	_running_frames = 0;
+
 	if (!descriptor) {
 		descriptor = ladspa_descriptor (0);
 	}
@@ -101,8 +102,11 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	memset (_instances, 0, sizeof(LADSPA_Handle) * _chan_count);
 	memset (_input_ports, 0, sizeof(port_id_t) * _chan_count);
 	memset (_output_ports, 0, sizeof(port_id_t) * _chan_count);
-	memset (ports, 0, sizeof(float) * 20);
+	memset (ports, 0, sizeof(float) * LASTPORT);
 
+	memset(_down_stamps, 0, sizeof(nframes_t) * (Event::LAST_COMMAND+1));
+
+	_longpress_frames = (nframes_t) lrint (_driver->get_samplerate() * 2.0); // more than 2 secs is SUS
 	
 	// set some rational defaults
 	ports[DryLevel] = 1.0f;
@@ -113,7 +117,8 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	ports[Sync] = 0.0f;
 	ports[Quantize] = 0.0f;
 	ports[UseRate] = 0.0f;
-	ports[FadeSamples] = nearbyint(_driver->get_samplerate() * 0.002f); // 1ms
+	ports[FadeSamples] = nearbyint(_driver->get_samplerate() * 0.002f); // 2ms
+	ports[PlaybackSync] = 0.0f;
 	
 	_slave_sync_port = 1.0f;
 	
@@ -300,19 +305,36 @@ Looper::get_control_value (Event::control_t ctrl)
 }
 
 
-void
-Looper::request_cmd (int cmd)
-{
-	requested_cmd = cmd;
-	request_pending = true;
-}
 
 void
 Looper::do_event (Event *ev)
 {
 	if (ev->Type == Event::type_cmd_down)
 	{
-		request_cmd ((int) ev->Command);
+		Event::command_t cmd = ev->Command;
+		if ((int) cmd >= 0 && (int) cmd < (int) Event::LAST_COMMAND) {
+			requested_cmd = cmd;
+			request_pending = true;
+
+			_down_stamps[cmd] = _running_frames;
+		}
+	}
+	else if (ev->Type == Event::type_cmd_up || ev->Type == Event::type_cmd_upforce)
+	{
+		// do if release after long press, but not if already in Play
+		
+		Event::command_t cmd = ev->Command;
+		if ((int) cmd >= 0 && (int) cmd < (int) Event::LAST_COMMAND
+		    && ports[State] != LooperStatePlaying
+		    && (ev->Type == Event::type_cmd_upforce
+			|| (_running_frames > (_down_stamps[cmd] + _longpress_frames))))
+		{
+			//cerr << "long up or force" << endl;
+			requested_cmd = cmd;
+			request_pending = true;
+
+			_down_stamps[cmd] = 0;
+		}
 	}
 	else if (ev->Type == Event::type_control_change)
 	{
@@ -368,6 +390,8 @@ Looper::run (nframes_t offset, nframes_t nframes)
 		
 		return;
 	}
+
+	_running_frames += nframes;
 	
 	if (request_pending) {
 		
