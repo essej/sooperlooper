@@ -57,7 +57,7 @@ using namespace SooperLooper;
 
 
 /*****************************************************************************/
-//#define LOOPDEBUG
+#define LOOPDEBUG
 
 #ifdef LOOPDEBUG
 #define DBG(x) x
@@ -519,6 +519,7 @@ activateSooperLooper(LADSPA_Handle Instance) {
   pLS->bRateCtrlActive = (int) *pLS->pfRateCtrlActive;
 
   pLS->waitingForSync = 0;
+  pLS->donePlaySync = false;
   
   pLS->fWetCurr = pLS->fWetTarget = *pLS->pfWet;
   pLS->fDryCurr = pLS->fDryTarget = *pLS->pfDry;
@@ -609,6 +610,9 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
 	 break;
       case TempoInput:
 	 pLS->pfTempo = DataLocation;
+	 break;
+      case EighthPerCycleLoop:
+	 pLS->pfEighthPerCycle = DataLocation;
 	 break;
       case Round:
 	 pLS->pfRoundMode = DataLocation;
@@ -1275,6 +1279,8 @@ runSooperLooper(LADSPA_Handle Instance,
   LADSPA_Data fTrigThresh = 0.0f;
   LADSPA_Data fTempo;
   unsigned int eighthSamples = 1;
+  unsigned int syncSamples = 0;
+  unsigned int eighthPerCycle = 8;
   
   int lMultiCtrl=-1;  
   bool useFeedbackPlay = false;
@@ -1299,7 +1305,7 @@ runSooperLooper(LADSPA_Handle Instance,
   LADSPA_Data fSyncMode = 0.0f;
   LADSPA_Data fQuantizeMode = 0.0f;
   LADSPA_Data fPlaybackSyncMode = 0.0f;
-
+  
   unsigned long lSampleIndex;
 
   
@@ -1327,11 +1333,6 @@ runSooperLooper(LADSPA_Handle Instance,
   xfadeSamples = (int) (*pLS->pfXfadeSamples);
   if (xfadeSamples < 1) xfadeSamples = 1;
   
-  fTempo = *pLS->pfTempo;
-  if (fTempo > 0.0f) {
-	  eighthSamples = (unsigned int) (pLS->fSampleRate * 30.0 / fTempo);
-  }
-  
   if (pLS->pfTrigThresh) {
      fTrigThresh = *pLS->pfTrigThresh;
   }
@@ -1348,6 +1349,21 @@ runSooperLooper(LADSPA_Handle Instance,
   if (pLS->pfQuantMode) {
 	  fQuantizeMode = *pLS->pfQuantMode;
   }
+
+  eighthPerCycle = (unsigned int) *pLS->pfEighthPerCycle;
+  
+  fTempo = *pLS->pfTempo;
+  if (fTempo > 0.0f) {
+	  eighthSamples = (unsigned int) (pLS->fSampleRate * 30.0 / fTempo);
+
+	  if (fQuantizeMode == QUANT_CYCLE || fQuantizeMode == QUANT_LOOP) {
+		  syncSamples = (unsigned int) eighthSamples * eighthPerCycle / 2;
+	  }
+	  else if (fQuantizeMode == QUANT_8TH) {
+		  syncSamples = eighthSamples / 2;
+	  }
+  }
+  
   
   if (pLS->pfMultiCtrl) {
      lMultiCtrl = (int) *(pLS->pfMultiCtrl);
@@ -3012,6 +3028,32 @@ runSooperLooper(LADSPA_Handle Instance,
 			 pfSyncOutput[lSampleIndex] = 1.0f;
 		 }
 
+
+ 		 if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0 && fTempo > 0.0f) {
+ 		       // commit the new rate at boundary (quantized)
+ 		       pLS->fCurrRate = pLS->fNextCurrRate;
+ 		       pLS->fNextCurrRate = 0.0f;
+ 		       DBG(fprintf(stderr, "%08x Starting quantized rate change at %d\n", (unsigned) pLS, lCurrPos));
+ 		 }
+		 
+		 // test playback sync
+
+		 if (syncSamples && fPlaybackSyncMode != 0.0f && fQuantizeMode != QUANT_OFF && !pLS->donePlaySync
+		     && ( pfSyncInput[lSampleIndex] != 0.0f)
+		     && ((lCurrPos + syncSamples) >= loop->lLoopLength
+			 || (lCurrPos > 0 && lCurrPos < (unsigned int) lrintf(syncSamples) )))
+		 {
+			 //cerr << "PLAYBACK SYNC hit at " << lCurrPos << endl;
+			 //pLS->waitingForSync = 1;
+			 pLS->donePlaySync = true;
+			 if (pLS->fCurrRate > 0)
+				 loop->dCurrPos = 0.0;
+			 else
+				 loop->dCurrPos = loop->lLoopLength - 1;
+
+			 pfSyncOutput[lSampleIndex] = 1.0f;
+		 }
+		 
 		 
 		 if (pLS->waitingForSync && ((fSyncMode == 0.0f && pfSyncOutput[lSampleIndex] != 0.0f) || pfSyncInput[lSampleIndex] != 0.0f))
 		 {
@@ -3084,12 +3126,12 @@ runSooperLooper(LADSPA_Handle Instance,
 		 pfOutput[lSampleIndex] = fOutputSample;
 		 
 
-		 if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
-		       // commit the new rate at boundary (quantized)
-		       pLS->fCurrRate = pLS->fNextCurrRate;
-		       pLS->fNextCurrRate = 0.0f;
-		       DBG(fprintf(stderr, "%08x Starting quantized rate change at %d\n", (unsigned) pLS, lCurrPos));
-		 }
+ 		 if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0 && fTempo > 0.0f) {
+ 		       // commit the new rate at boundary (quantized)
+ 		       pLS->fCurrRate = pLS->fNextCurrRate;
+ 		       pLS->fNextCurrRate = 0.0f;
+ 		       DBG(fprintf(stderr, "%08x Starting quantized rate change at %d\n", (unsigned) pLS, lCurrPos));
+ 		 }
 		 
 		 if (loop->dCurrPos >= loop->lLoopLength) {
 		    if (pLS->state == STATE_ONESHOT) {
@@ -3108,7 +3150,8 @@ runSooperLooper(LADSPA_Handle Instance,
 			    pLS->fNextCurrRate = 0.0f;
 			    DBG(fprintf(stderr, "%08x 2 Starting quantized rate change at %d\n", (unsigned) pLS, lCurrPos));
 		    }
-		    
+
+		    pLS->donePlaySync = false;
 		 }
 		 else if (loop->dCurrPos < 0)
 		 {
@@ -3130,6 +3173,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		       pLS->fNextCurrRate = 0.0f;
 		       DBG(fprintf(stderr, "%08x 3 Starting quantized rate change at %d\n", (unsigned) pLS, lCurrPos));
 		    }
+
+		    pLS->donePlaySync = false;
 
 		 }
 

@@ -76,7 +76,8 @@ enum {
 	ID_QuantizeChoice,
 	ID_RoundCheck,
 	ID_SyncCheck,
-	ID_UseFeedbackPlayCheck
+	ID_UseFeedbackPlayCheck,
+	ID_PlaySyncCheck
 
 };
 
@@ -254,16 +255,25 @@ LooperPanel::init()
 // 	_round_check->SetForegroundColour(*wxWHITE);
 // 	lilrowsizer->Add (_round_check, 0, wxEXPAND);
 
-	_sync_check = new CheckBox(this, ID_SyncCheck, wxT("sync"), true, wxDefaultPosition, wxSize(55, 20));
+	_sync_check = new CheckBox(this, ID_SyncCheck, wxT("sync"), true, wxDefaultPosition, wxSize(55, 18));
 	_sync_check->SetFont(sliderFont);
-	_sync_check->SetToolTip(wxT("sync to quantize source"));
+	_sync_check->SetToolTip(wxT("sync operations to quantize source"));
 	_sync_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("sync")));
 	_sync_check->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) _sync_check->GetId()));
 	lilrowsizer->Add (_sync_check, 1, wxLEFT, 3);
 	lilcolsizer->Add (lilrowsizer, 0, wxTOP|wxEXPAND, 0);
 
 	lilrowsizer = new wxBoxSizer(wxHORIZONTAL);
-	_play_feed_check = new CheckBox(this, ID_UseFeedbackPlayCheck, wxT("p. feedb"), true, wxDefaultPosition, wxSize(55, 20));
+	_play_sync_check = new CheckBox(this, ID_PlaySyncCheck, wxT("play sync"), true, wxDefaultPosition, wxSize(55, 18));
+	_play_sync_check->SetFont(sliderFont);
+	_play_sync_check->SetToolTip(wxT("sync playback auto-triggering to quantized sync source"));
+	_play_sync_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("playback_sync")));
+	_play_sync_check->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) _play_sync_check->GetId()));
+	lilrowsizer->Add (_play_sync_check, 1, wxLEFT, 3);
+	lilcolsizer->Add (lilrowsizer, 0, wxTOP|wxEXPAND, 0);
+	
+	lilrowsizer = new wxBoxSizer(wxHORIZONTAL);
+	_play_feed_check = new CheckBox(this, ID_UseFeedbackPlayCheck, wxT("p. feedb"), true, wxDefaultPosition, wxSize(55, 18));
 	_play_feed_check->SetFont(sliderFont);
 	_play_feed_check->SetToolTip(wxT("enable feedback during playback"));
 	_play_feed_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("use_feedback_play")));
@@ -707,6 +717,10 @@ LooperPanel::update_controls()
 		_loop_control->get_value(_index, "sync", val);
 		_sync_check->set_value (val > 0.0);
 	}
+	if (_loop_control->is_updated(_index, "playback_sync")) {
+		_loop_control->get_value(_index, "playback_sync", val);
+		_play_sync_check->set_value (val > 0.0);
+	}
 	if (_loop_control->is_updated(_index, "use_feedback_play")) {
 		_loop_control->get_value(_index, "use_feedback_play", val);
 		_play_feed_check->set_value (val > 0.0);
@@ -1095,6 +1109,11 @@ LooperPanel::control_bind_events(int id)
 		break;
 	case ID_SyncCheck:
 		ctrl = wxT("sync");
+		info.control = ctrl.c_str();
+		info.style = MidiBindInfo::NormalStyle;
+		break;
+	case ID_PlaySyncCheck:
+		ctrl = wxT("playback_sync");
 		info.control = ctrl.c_str();
 		info.style = MidiBindInfo::NormalStyle;
 		break;

@@ -40,50 +40,6 @@
 
 namespace SooperLooper {
 
-#if 0	
-enum ControlPort {
-	TriggerThreshold = 0,
-	DryLevel,
-	WetLevel,
-	Feedback,
-	Rate,
-	ScratchPosition,
-	Multi,
-	TapDelayTrigger,
-	MultiTens,
-	Quantize,
-	Round,
-	RedoTap,
-	Sync,
-	UseRate,
-	FadeSamples,
-};
-
-enum OutputPort {
-	State = 15,
-	LoopLength,
-	LoopPosition,
-	CycleLength,
-	LoopFreeMemory,
-	LoopMemory,
-	Waiting,
-	LASTPORT
-};
-
-enum AudioPort {
-	AudioInputPort=22,
-	AudioOutputPort,
-	SyncInputPort,
-	SyncOutputPort
-};
-
-enum {
-	QUANT_OFF=0,
-	QUANT_CYCLE,
-	QUANT_8TH,
-	QUANT_LOOP
-};
-#endif
 	
 class Looper 
 {

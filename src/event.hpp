@@ -128,6 +128,7 @@ namespace SooperLooper {
 		    FadeSamples,
 		    TempoInput,
 		    PlaybackSync,
+		    EighthPerCycleLoop,
 		    // read only
 		    State,
 		    LoopLength,

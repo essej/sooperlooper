@@ -173,7 +173,7 @@ class Engine
 	double _tempo_frames;
 	double _quarter_note_frames;
 	double _quarter_counter;
-
+	
 	unsigned int _midi_ticks;     // counts ticks as they're coming in
 	unsigned int _midi_loop_tick; // tick number to loop (sync) on
 

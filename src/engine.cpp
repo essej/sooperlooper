@@ -185,7 +185,8 @@ Engine::add_loop (unsigned int chans, float loopsecs)
 
 		instance->set_port (Quantize, quantize_value);
 		instance->set_port (Round, round_value);
-		
+		instance->set_port (EighthPerCycleLoop, _eighth_cycle);
+		instance->set_port (TempoInput, _tempo);
 		
 		_instances.push_back (instance);
 
@@ -691,6 +692,11 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (gs_event->param == "eighth_per_cycle") {
 			if (gs_event->value > 0.0f) {
 				_eighth_cycle = gs_event->value;
+
+				// update all loops
+				for (unsigned int n=0; n < _instances.size(); ++n) {
+					_instances[n]->set_port(EighthPerCycleLoop, _eighth_cycle);
+				}
 			}
 			calculate_midi_tick();
 		}
@@ -846,7 +852,8 @@ void Engine::update_sync_source ()
 	}
 
 	_quarter_counter = 0;
-	
+
+	set_tempo(_tempo);
 }
 
 
@@ -857,10 +864,15 @@ Engine::set_tempo (double tempo)
 	_quarter_counter = 0;
 	_tempo_counter = 0;
 
+	if (_sync_source == NoSync) {
+		// we set tempo to zero as far as the loop is concerned
+		tempo = 0.0;
+	}
+	
 	// update all loops
 	for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i)
 	{
-		(*i)->set_port(TempoInput, _tempo);
+		(*i)->set_port(TempoInput, tempo);
 	}
 }
 
@@ -875,19 +887,24 @@ Engine::calculate_tempo_frames ()
 	
 	if (_sync_source == InternalTempoSync || _sync_source == JackSync)
 	{
-		if (quantize_value == QUANT_8TH) {
-			// calculate number of samples per eighth-note (assuming 2 8ths per beat)
-			// samples / 8th = samplerate * (1 / tempo) * 60/2; 
-			_tempo_frames = _driver->get_samplerate() * (1.0/_tempo) * 30.0;
-		}
-		else if (quantize_value == QUANT_CYCLE) {
-			// calculate number of samples per cycle given the current eighths per cycle
-			// samples / 8th = samplerate * (1 / tempo) * 60/2; 
-			// samples / cycle = samples / 8th  *  eighth_per_cycle
-			_tempo_frames = _driver->get_samplerate() * (1.0/_tempo) * 30.0 * _eighth_cycle;
+		if (_tempo > 0.0) {
+			if (quantize_value == QUANT_8TH) {
+				// calculate number of samples per eighth-note (assuming 2 8ths per beat)
+				// samples / 8th = samplerate * (1 / tempo) * 60/2; 
+				_tempo_frames = _driver->get_samplerate() * (1.0/_tempo) * 30.0;
+			}
+			else if (quantize_value == QUANT_CYCLE) {
+				// calculate number of samples per cycle given the current eighths per cycle
+				// samples / 8th = samplerate * (1 / tempo) * 60/2; 
+				// samples / cycle = samples / 8th  *  eighth_per_cycle
+				_tempo_frames = _driver->get_samplerate() * (1.0/_tempo) * 30.0 * _eighth_cycle;
+			}
+			else {
+				_tempo_frames = 0; // ???
+			}
 		}
 		else {
-			_tempo_frames = 0; // ???
+			_tempo_frames = 0;
 		}
 
 		
@@ -1049,18 +1066,18 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 					ntempo = avg_tempo(ntempo);
 
 					if (ntempo != _tempo) {
-						// cerr << "new tempo is: " << ntempo << "   tcount = " << tcount << "  used: " << usedframes << endl;
+						//cerr << "new tempo is: " << ntempo << "   tcount = " << tcount << "  used: " << usedframes << endl;
 						set_tempo(ntempo);
 						_tempo_changed = true;
 						// wake up mainloop safely
 						pthread_cond_signal (&_event_cond);
 					}
-					
+
 					_quarter_counter = - ((double)usedframes);
 				}
 				
 				if ((_midi_ticks % _midi_loop_tick) == 0) {
-					//cerr << "GOT TICK at " << fragpos << endl;
+					// cerr << "GOT SYNC TICK at " << fragpos << endl;
 
 					// zero sync before this event
 					memset (&(_internal_sync_buf[usedframes]), 0, doframes * sizeof(float));
@@ -1070,7 +1087,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 
 					doframes += 1;
 					
-					_midi_ticks = 0;
+					//_midi_ticks = 0;
 				}
 				
 				usedframes += doframes;

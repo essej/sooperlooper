@@ -373,7 +373,7 @@ Looper::do_event (Event *ev)
 	{
 		// todo: specially handle TriggerThreshold to work across all channels
 
-		if ((int)ev->Control >= (int)Event::TriggerThreshold && (int)ev->Control <= (int) Event::FadeSamples) {
+		if ((int)ev->Control >= (int)Event::TriggerThreshold && (int)ev->Control < (int) Event::State) {
 
 			if (ev->Control == Event::Quantize) {
 				ev->Value = roundf(ev->Value);

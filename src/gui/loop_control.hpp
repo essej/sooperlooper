@@ -25,6 +25,7 @@
 #include <sigc++/sigc++.h>
 #include <map>
 #include <vector>
+#include <string>
 
 #include <lo/lo.h>
 
