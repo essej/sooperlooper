@@ -363,10 +363,13 @@ LoopControl::osc_traffic()
 			
 			continue;
 		}
-		else {
-			if (_traffic_done) {
-				break;
-			}
+
+		if (_traffic_done) {
+			break;
+		}
+		
+		if (nfds > 1 && pfd[1].revents & POLLIN) 
+		{
 			
 			// emit signal
 			//cerr << "got new data" << endl;

@@ -278,7 +278,7 @@ GuiFrame::init()
 	// todo request how many loopers to construct based on connection
 	_loop_control->LooperConnected.connect (slot (*this, &GuiFrame::init_loopers));
 	_loop_control->Disconnected.connect (bind (slot (*this, &GuiFrame::init_loopers), 0));
-	_loop_control->NewDataReady.connect (slot (*this, &GuiFrame::osc_data_ready));
+	_loop_update_connection = _loop_control->NewDataReady.connect (slot (*this, &GuiFrame::osc_data_ready));
 
 
 	wxMenuBar *menuBar = new wxMenuBar();
@@ -422,7 +422,7 @@ void
 GuiFrame::osc_data_ready()
 {
 	// cerr << "osc ready" << endl;
-
+	// this is called from another thread
 	_got_new_data++;
 
 	::wxWakeUpIdle();
@@ -555,6 +555,7 @@ GuiFrame::OnClose(wxCloseEvent &event)
 	save_default_midibindings();
 
 	_loop_control->send_quit();
+	_loop_update_connection.disconnect();
 	
 	Destroy();
 }
@@ -565,6 +566,8 @@ GuiFrame::OnQuit(wxCommandEvent& event)
 	int id = event.GetId();
 
 	save_default_midibindings();
+
+	_loop_update_connection.disconnect();
 	
 	if (id == ID_Quit) {
 		Destroy();

@@ -28,7 +28,7 @@
 
 #include <sigc++/object.h>
 #include <sigc++/signal.h>
-
+#include <sigc++/connection.h>
 
 class wxSpinCtrl;
 
@@ -127,7 +127,8 @@ protected:
 
 	
 	LoopControl * _loop_control;
-
+	SigC::Connection  _loop_update_connection;
+	
 	std::vector<LooperPanel *> _looper_panels;
 	
 	wxTimer * _update_timer;
