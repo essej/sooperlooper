@@ -32,6 +32,7 @@
 using namespace SooperLooper;
 using namespace std;
 using namespace PBD;
+using namespace SigC;
 
 #define MAX_EVENTS 1024
 #define MAX_SYNC_EVENTS 1024
@@ -127,6 +128,14 @@ Engine::cleanup()
 Engine::~Engine ()
 {
 	cleanup ();
+}
+
+void Engine::set_midi_bridge (MidiBridge * bridge)
+{
+	_midi_bridge = bridge;
+	if (_midi_bridge) {
+		_midi_bridge->BindingLearned.connect(slot(*this, &Engine::binding_learned));
+	}
 }
 
 void Engine::quit()
@@ -532,6 +541,17 @@ Engine::push_nonrt_event (EventNonRT * event)
 	return true;
 }
 
+	
+void
+Engine::binding_learned(MidiBindInfo info)
+{
+	_learn_done = true;
+	_learninfo = info;
+	
+	LockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
+	pthread_cond_signal (&_event_cond);
+}
+
 
 void
 Engine::mainloop()
@@ -564,6 +584,15 @@ Engine::mainloop()
 			_tempo_changed = false;
 		}
 
+		// handle learning done from the midi thread
+		if (_learn_done) {
+			_midi_bridge->bindings().add_binding (_learninfo, _learn_event.options == "exclusive");
+
+			_learn_event.bind_str = _learninfo.serialize();
+			_osc->finish_midi_binding_event (_learn_event);
+			
+			_learn_done = false;
+		}
 		
 		// sleep on condition
 		{
@@ -665,6 +694,18 @@ Engine::process_nonrt_event (EventNonRT * event)
 				_midi_bridge->bindings().add_binding (info, exclus);
 			}
 		}
+		else if (mb_event->type == MidiBindingEvent::Learn)
+		{
+			MidiBindInfo info;
+			if (info.unserialize (mb_event->bind_str)) {
+				bool exclus = (mb_event->options.find("exclusive") != string::npos);
+				_learn_done = false;
+				_learninfo = info;
+				_learn_event = *mb_event;
+
+				_midi_bridge->start_learn (info, exclus);
+			}
+		}
 		else if (mb_event->type == MidiBindingEvent::Remove)
 		{
 			MidiBindInfo info;
@@ -675,6 +716,22 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (mb_event->type == MidiBindingEvent::GetAll)
 		{
 			_osc->send_all_midi_bindings (&_midi_bridge->bindings(), mb_event->ret_url, mb_event->ret_path);
+		}
+		else if (mb_event->type == MidiBindingEvent::Clear)
+		{
+			_midi_bridge->bindings().clear_bindings();
+		}
+		else if (mb_event->type == MidiBindingEvent::Load)
+		{
+			_midi_bridge->bindings().load_bindings (mb_event->bind_str, mb_event->options == "add" ? true: false);
+		}
+		else if (mb_event->type == MidiBindingEvent::Save)
+		{
+			_midi_bridge->bindings().save_bindings (mb_event->bind_str);
+		}
+		else if (mb_event->type == MidiBindingEvent::GetNextMidi)
+		{
+			//_midi_bridge->start_learn (mb_event->bind_str);
 		}
 	}
 	else if ((ping_event = dynamic_cast<PingEvent*> (event)) != 0)

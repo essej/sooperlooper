@@ -457,6 +457,12 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 			_barbrush.SetColour(_overbarcolor);
 			Refresh(false);
 		}
+
+		if (ev.MiddleUp() && ev.ControlDown())
+		{
+			// binding click
+			bind_request(); // emit
+		}
 		
 	}
 	else if (ev.ButtonDClick()) {

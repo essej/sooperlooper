@@ -59,8 +59,8 @@ LoopControl::LoopControl (wxString host, int port, bool force_spawn, wxString ex
 	// pingack expects: s:engine_url s:version i:loopcount
 	lo_server_add_method(_osc_server, "/pingack", "ssi", LoopControl::_pingack_handler, this);
 
-	/* add handler for recving midi bindings, s:serialized binding */
-	lo_server_add_method(_osc_server, "/recv_midi_bindings", "s", LoopControl::_midi_binding_handler, this);
+	/* add handler for recving midi bindings, s:status s:serialized binding */
+	lo_server_add_method(_osc_server, "/recv_midi_bindings", "ss", LoopControl::_midi_binding_handler, this);
 	
 	if (host.empty()) {
 		_osc_addr = lo_address_new(NULL, wxString::Format(wxT("%d"), port).c_str());
@@ -298,6 +298,7 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 		lo_send(_osc_addr, "/register_update", "sss", "sync_source", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_update", "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
 
+		cerr << "ask for bindings" << endl;
 		lo_send(_osc_addr, "/get_all_midi_bindings", "ss", _our_url.c_str(), "/recv_midi_bindings");
 		
 		_pingack = true;
@@ -374,13 +375,19 @@ LoopControl::_midi_binding_handler(const char *path, const char *types, lo_arg *
 int
 LoopControl::midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
 {
-	// s:serialized binding
-	string bindstr(&argv[0]->s);
+	// s:status s:serialized binding
+	string status(&argv[0]->s);
+	string bindstr(&argv[1]->s);
 	
 	MidiBindInfo info;
-
-	if (info.unserialize (bindstr)) {
-		_midi_bindings->add_binding(info);
+	
+	if (status == "add") {
+		if (info.unserialize (bindstr)) {
+			_midi_bindings->add_binding(info);
+		}
+	}
+	else if (status == "done") {
+		MidiBindingChanged(info); // emit
 	}
 	
 	return 0;
@@ -447,7 +454,14 @@ LoopControl::request_all_values(int index)
 void
 LoopControl::request_all_midi_bindings()
 {
+	_midi_bindings->clear_bindings();
 	lo_send(_osc_addr, "/get_all_midi_bindings", "ss", _our_url.c_str(), "/recv_midi_bindings");
+}
+
+void
+LoopControl::learn_midi_binding(const MidiBindInfo & info, bool exclusive)
+{
+	lo_send(_osc_addr, "/learn_midi_binding", "ssss", info.serialize().c_str(), exclusive?"exclusive":"",_our_url.c_str(), "/recv_midi_bindings" );
 }
 
 void
@@ -460,6 +474,27 @@ void
 LoopControl::remove_midi_binding(const MidiBindInfo & info)
 {
 	lo_send(_osc_addr, "/remove_midi_binding", "ss", info.serialize().c_str(),"");
+}
+
+void
+LoopControl::clear_midi_bindings()
+{
+	lo_send(_osc_addr, "/clear_midi_bindings", "");
+	request_all_midi_bindings();
+}
+
+void
+LoopControl::load_midi_bindings(string filename, bool append)
+{
+	lo_send(_osc_addr, "/load_midi_bindings", "ss", filename.c_str(), append ? "add": "");
+
+	request_all_midi_bindings();
+}
+
+void
+LoopControl::save_midi_bindings(string filename)
+{
+	lo_send(_osc_addr, "/save_midi_bindings", "ss", filename.c_str(), "");
 }
 
 void

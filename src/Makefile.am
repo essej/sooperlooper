@@ -25,6 +25,7 @@ libslcore_a_SOURCES      = \
 	midi_bind.cpp \
 	audio_driver.cpp \
 	jack_audio_driver.cpp \
+	command_map.cpp \
 	$(SYSDEP_SRCS)
 
 sooperlooper_SOURCES = \

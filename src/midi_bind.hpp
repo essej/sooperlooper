@@ -25,6 +25,8 @@
 #include <map>
 #include <cstdio>
 
+#include <midi++/types.h>
+
 namespace SooperLooper {
 
 class MidiBindInfo
@@ -88,13 +90,15 @@ public:
 	typedef std::vector<MidiBindInfo> BindingList;
 
 	void clear_bindings ();
-	bool load_bindings (std::string filename);
+	bool load_bindings (std::string filename, bool append=false);
+	bool save_bindings (std::string filename);
 
 	void get_bindings (BindingList & blist) const;
 	bool add_binding (const MidiBindInfo & info, bool exclusive=false);
 	bool remove_binding (const MidiBindInfo & info);
 
 	int binding_key (const MidiBindInfo & info) const;
+	bool get_channel_and_type(MIDI::byte chcmd, int & ch, std::string & type) const;
 
 	// the int key here is  (chcmd << 8) | param
 	// or midi byte 1 and 2 in 16 bits
@@ -104,8 +108,6 @@ public:
 	const BindingsMap & bindings_map() { return _bindings; }
 	
 protected:
-
-	std::FILE * search_open_file (std::string filename);
 
 	
 	typedef std::map<std::string, int> TypeMap;

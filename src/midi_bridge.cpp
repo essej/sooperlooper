@@ -32,6 +32,7 @@
 #include <midi++/parser.h>
 #include <midi++/factory.h>
 
+#include "command_map.hpp"
 
 using namespace SooperLooper;
 using namespace std;
@@ -73,6 +74,7 @@ MidiBridge::MidiBridge (string name, string oscurl, PortRequest & req)
 {
 	_port = 0;
 	_done = false;
+	_learning = false;
 	
 	_addr = lo_address_new_from_url (_oscurl.c_str());
 	if (lo_address_errno (_addr) < 0) {
@@ -154,6 +156,50 @@ MidiBridge::poke_midi_thread ()
 	}
 }
 
+void
+MidiBridge::start_learn (MidiBindInfo & info, bool exclus)
+{
+	cerr << "starting learn" << endl;
+	_learninfo = info;
+	_learning = true;
+}
+
+void
+MidiBridge::finish_learn(MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
+{
+	if (_learning) {
+		int chan;
+		string type;
+
+		if (_midi_bindings.get_channel_and_type (chcmd, chan, type)) {
+
+			_learninfo.channel = chan;
+			_learninfo.type = type;
+			_learninfo.param = param;
+
+			// if type is n, then lets force the command to be note as well
+			if (_learninfo.type == "n" && CommandMap::instance().is_command(_learninfo.control)) {
+				_learninfo.command = "note";
+			}
+			
+			//_bindings.add_binding(_learninfo);
+			// notify of new learn
+			cerr << "learned new one: " << _learninfo.serialize() << endl;
+			BindingLearned(_learninfo); // emit
+		}
+		else {
+			cerr << "invalid event to learn: " << (int) chcmd  << endl;
+		}
+		_learning = false;
+	}
+}
+
+void
+MidiBridge::cancel_learn()
+{
+	cerr << "cancel learn" << endl;
+	_learning = false;
+}
 
 
 void
@@ -169,7 +215,12 @@ MidiBridge::incoming_midi (Parser &p, byte *msg, size_t len)
 // 		return;
 // 	}
 
-	queue_midi (b1, b2, b3);
+	if (_learning) {
+		finish_learn(b1, b2, b3);
+	}
+	else {
+		queue_midi (b1, b2, b3);
+	}
 }
 
 
@@ -237,7 +288,7 @@ MidiBridge::send_osc (const MidiBindInfo & info, float val)
 	else {
 		if (cmd == "note") {
 			if (val > 0.0f) {
-				cerr << "val is " << val << endl;
+				//cerr << "val is " << val << endl;
 				cmd = "down";
 			}
 			else {

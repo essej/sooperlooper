@@ -72,6 +72,7 @@ public:
 	void select_loop_action (bool release, int index);
 
 	void set_curr_loop (int index);
+
 	
 protected:
 

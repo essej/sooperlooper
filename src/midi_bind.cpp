@@ -21,6 +21,7 @@
 #include "midi_bind.hpp"
 
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 #include <cmath>
 
@@ -77,6 +78,26 @@ MidiBindings::get_bindings (BindingList & blist) const
 	}
 }
 
+bool
+MidiBindings::get_channel_and_type(byte chcmd, int & ch, string & type) const
+{
+	ch = chcmd & 0x0f;
+	byte cmd = chcmd & 0xf0;
+	bool found = false;
+
+	
+	for (TypeMap::const_iterator titer = _typemap.begin(); titer != _typemap.end(); ++titer)
+	{
+		if ((*titer).second == cmd) {
+			type = titer->first;
+			found = true;
+			break;
+		}
+	}
+
+	return found;
+}
+
 int
 MidiBindings::binding_key (const MidiBindInfo & info) const
 {
@@ -85,7 +106,7 @@ MidiBindings::binding_key (const MidiBindInfo & info) const
 
 	TypeMap::const_iterator titer = _typemap.find(info.type);
 	if (titer == _typemap.end()) {
-		cerr << "invalid midi type str: " << info.type;
+		cerr << "invalid midi type str: " << info.type << endl;
 		return 0;
 	}
 	
@@ -113,7 +134,11 @@ MidiBindings::add_binding (const MidiBindInfo & info, bool exclusive)
 		_bindings.insert (BindingsMap::value_type ( key, BindingList()));
 	}
 
-	// TODO: check for duplicates
+	// check for others, and clear them if exclusive
+	if (exclusive && _bindings[key].size() > 0) {
+		cerr << "cleared existing" << endl;
+		_bindings[key].clear();
+	}
 	
 	_bindings[key].push_back (info);
 	// cerr << "added binding: " << info.type << "  "  << info.control << "  " << info.instance << "  " << info.lbound << "  " << info.ubound << endl;
@@ -160,37 +185,36 @@ MidiBindings::clear_bindings ()
 	_bindings.clear();
 }
 
-FILE *
-MidiBindings::search_open_file (std::string filename)
-{
-	FILE *bindfile = 0;
-	
-	if ((bindfile = fopen(filename.c_str(), "r")) == NULL) {
-		cerr << "error: could not open " << filename << endl;
-	}
-
-	// todo: look for it in systemwide and ~/.sooperlooper/bindings/
-
-	return bindfile;
-}
-
 
 bool
-MidiBindings::load_bindings (std::string filename)
+MidiBindings::load_bindings (string filename, bool append)
 {
-	FILE * bindfile = 0;
+	//FILE * bindfile = 0;
 	char  line[200];
 
+	ifstream bindfile;
 
-	if ((bindfile = search_open_file(filename)) == NULL) {
-		cerr << "error: could not open " << filename << endl;
+	bindfile.open(filename.c_str(), ios::in);
+	
+	if (!bindfile.is_open()) {
+		cerr << "error: could not open for writing: " << filename << endl;
 		return false;
 	}
+	// todo: look for is in systemwide and ~/.sooperlooper/bindings/
 
-	while (fgets (line, sizeof(line), bindfile) != NULL)
+	
+	if (!append) {
+		clear_bindings();
+	}
+
+	while ( ! bindfile.eof())
+		//while (fgets (line, sizeof(line), bindfile) != NULL)
+		
 	{
+		bindfile.getline (line, sizeof(line));
+		
 		// ignore empty lines and # lines
-		if (line[0] == '\n' || line[0] == '#') {
+		if (line[0] == '\n' || line[0] == '#' || line[0] == '\0') {
 			continue;
 		}
 
@@ -203,7 +227,27 @@ MidiBindings::load_bindings (std::string filename)
 		add_binding (info);
 	}
 
-	fclose(bindfile);
+	return true;
+}
+
+bool MidiBindings::save_bindings (string filename)
+{
+	ofstream bindfile (filename.c_str());
+
+	if (!bindfile.is_open()) {
+		cerr << "error: could not open for writing: " << filename << endl;
+		return false;
+	}
+
+	for (BindingsMap::const_iterator biter = _bindings.begin(); biter != _bindings.end(); ++biter) {
+		const BindingList & elist = (*biter).second;
+		
+		for (BindingList::const_iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
+			const MidiBindInfo & info = (*eiter);
+
+			bindfile << info.serialize() << endl;
+		}
+	}
 
 	return true;
 }

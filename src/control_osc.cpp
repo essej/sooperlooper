@@ -32,6 +32,7 @@
 #include "engine.hpp"
 #include "ringbuffer.hpp"
 #include "midi_bind.hpp"
+#include "command_map.hpp"
 #include "version.h"
 
 #include <lo/lo.h>
@@ -101,58 +102,8 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	
 	// lo_server_thread_add_method(_sthread, NULL, NULL, ControlOSC::_dummy_handler, this);
 
-	// initialize string maps
-	_str_cmd_map["record"]  = Event::RECORD;
-	_str_cmd_map["overdub"]  = Event::OVERDUB;
-	_str_cmd_map["multiply"]  = Event::MULTIPLY;
-	_str_cmd_map["insert"]  = Event::INSERT;
-	_str_cmd_map["replace"]  = Event::REPLACE;
-	_str_cmd_map["reverse"]  = Event::REVERSE;
-	_str_cmd_map["mute"]  = Event::MUTE;
-	_str_cmd_map["undo"]  = Event::UNDO;
-	_str_cmd_map["redo"]  = Event::REDO;
-	_str_cmd_map["scratch"]  = Event::SCRATCH;
-	_str_cmd_map["trigger"]  = Event::TRIGGER;
-	_str_cmd_map["oneshot"]  = Event::ONESHOT;
-	
-	for (map<string, Event::command_t>::iterator iter = _str_cmd_map.begin(); iter != _str_cmd_map.end(); ++iter) {
-		_cmd_str_map[(*iter).second] = (*iter).first;
-	}
+	_cmd_map = &CommandMap::instance();
 
-	_str_ctrl_map["rec_thresh"]  = Event::TriggerThreshold;
-	_str_ctrl_map["feedback"]  = Event::Feedback;
-	_str_ctrl_map["use_feedback_play"]  = Event::UseFeedbackPlay;
-	_str_ctrl_map["dry"]  = Event::DryLevel;
-	_str_ctrl_map["wet"]  = Event::WetLevel;
-	_str_ctrl_map["rate"]  = Event::Rate;
-	_str_ctrl_map["scratch_pos"]  = Event::ScratchPosition;
-	_str_ctrl_map["tap_trigger"]  = Event::TapDelayTrigger;
-	_str_ctrl_map["quantize"]  = Event::Quantize;
-	_str_ctrl_map["round"]  = Event::Round;
-	_str_ctrl_map["redo_is_tap"]  = Event::RedoTap;
-	_str_ctrl_map["sync"]  = Event::SyncMode;
-	_str_ctrl_map["use_rate"]  = Event::UseRate;
-	_str_ctrl_map["fade_samples"]  = Event::FadeSamples;
-	_str_ctrl_map["waiting"]  = Event::Waiting;
-	_str_ctrl_map["state"]  = Event::State;
-	_str_ctrl_map["loop_len"]  = Event::LoopLength;
-	_str_ctrl_map["loop_pos"]  = Event::LoopPosition;
-	_str_ctrl_map["cycle_len"]  = Event::CycleLength;
-	_str_ctrl_map["free_time"]  = Event::FreeTime;
-	_str_ctrl_map["total_time"]  = Event::TotalTime;
-	_str_ctrl_map["midi_start"] = Event::MidiStart;
-	_str_ctrl_map["midi_stop"] = Event::MidiStop;
-	_str_ctrl_map["midi_tick"] = Event::MidiTick;
-	
-	// global params
-	_str_ctrl_map["tempo"] = Event::Tempo;
-	_str_ctrl_map["eighth_per_cycle"] = Event::EighthPerCycle;
-	_str_ctrl_map["sync_source"] = Event::SyncTo;
-	_str_ctrl_map["tap_tempo"] = Event::TapTempo;
-
-	for (map<string, Event::control_t>::iterator iter = _str_ctrl_map.begin(); iter != _str_ctrl_map.end(); ++iter) {
-		_ctrl_str_map[(*iter).second] = (*iter).first;
-	}
 
 	if (!init_osc_thread()) {
 		return;
@@ -224,6 +175,27 @@ ControlOSC::register_callbacks()
 		// add a specific midi binding:  s:binding_serialization s:options
 		lo_server_add_method(serv, "/add_midi_binding", "ss", ControlOSC::_midi_binding_handler,
 				     new MidiBindCommand(this, MidiBindCommand::AddBinding));
+
+		// clear all bindings
+		lo_server_add_method(serv, "/clear_midi_bindings", "", ControlOSC::_midi_binding_handler,
+				     new MidiBindCommand(this, MidiBindCommand::ClearAllBindings));
+		
+		// load bindings from file:  s:binding_filename s:options
+		lo_server_add_method(serv, "/load_midi_bindings", "ss", ControlOSC::_midi_binding_handler,
+				     new MidiBindCommand(this, MidiBindCommand::LoadBindings));
+
+		// save bindings to file:  s:binding_filename s:options
+		lo_server_add_method(serv, "/save_midi_bindings", "ss", ControlOSC::_midi_binding_handler,
+				     new MidiBindCommand(this, MidiBindCommand::SaveBindings));
+
+		// learn midi binding:  s:binding_serialization s:options  s:returl s:retpath
+		lo_server_add_method(serv, "/learn_midi_binding", "ssss", ControlOSC::_midi_binding_handler,
+				     new MidiBindCommand(this, MidiBindCommand::LearnBinding));
+
+		// return next midi event in a binding serialization:  s:returl  s:retpath
+		lo_server_add_method(serv, "/get_next_midi_event", "ss", ControlOSC::_midi_binding_handler,
+				     new MidiBindCommand(this, MidiBindCommand::GetNextMidi));
+		
 		
 		// MIDI clock
 		lo_server_add_method(serv, "/sl/midi_start", NULL, ControlOSC::_midi_start_handler, this);
@@ -664,7 +636,7 @@ int ControlOSC::global_set_handler(const char *path, const char *types, lo_arg *
 	_engine->push_nonrt_event ( new GlobalSetEvent (param, val));
 
 	// send out updates to registered in main event loop
-	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Send, -2, to_control_t(param), "", "", val));
+	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Send, -2, _cmd_map->to_control_t(param), "", "", val));
 	
 	return 0;
 }
@@ -679,7 +651,7 @@ ControlOSC::global_register_update_handler(const char *path, const char *types, 
 
 	// push this onto a queue for the main event loop to process
 	// -2 means global
-	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Register, -2, to_control_t(ctrl), returl, retpath));
+	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Register, -2, _cmd_map->to_control_t(ctrl), returl, retpath));
 
 	return 0;
 }
@@ -694,7 +666,7 @@ ControlOSC::global_unregister_update_handler(const char *path, const char *types
 
 	// push this onto a queue for the main event loop to process
 	// -2 means global
-	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Unregister, -2, to_control_t(ctrl), returl, retpath));
+	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Unregister, -2, _cmd_map->to_control_t(ctrl), returl, retpath));
 
 	return 0;
 }
@@ -726,6 +698,46 @@ ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **a
 		string options (&argv[1]->s);
 	
 		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::Add, bindstr, options));
+	}
+	else if (info->command == MidiBindCommand::LearnBinding)
+	{
+		// add a specific midi binding:  s:binding_serialization s:options
+		string bindstr (&argv[0]->s);
+		string options (&argv[1]->s);
+		string returl (&argv[2]->s);
+		string retpath (&argv[3]->s);
+		cerr << "got learn" << endl;
+		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::Learn, bindstr, options, returl, retpath));
+	}
+	else if (info->command == MidiBindCommand::GetNextMidi)
+	{
+		// add a specific midi binding:  s:returl s:retpath
+		string returl (&argv[0]->s);
+		string retpath (&argv[1]->s);
+	
+		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::GetNextMidi, "", "", returl, retpath));
+	}
+	else if (info->command == MidiBindCommand::LoadBindings)
+	{
+		// load from file:  s:binding_filename s:options
+		string bindstr (&argv[0]->s);
+		string options (&argv[1]->s);
+	
+		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::Load, bindstr, options));
+	}
+	else if (info->command == MidiBindCommand::SaveBindings)
+	{
+		// save to file:  s:binding_filename s:options
+		string bindstr (&argv[0]->s);
+		string options (&argv[1]->s);
+	
+		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::Save, bindstr, options));
+	}
+	else if (info->command == MidiBindCommand::ClearAllBindings)
+	{
+		// load from file:  s:binding_filename s:options
+	
+		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::Clear, "", ""));
 	}
 
 	return 0;
@@ -762,7 +774,7 @@ int ControlOSC::updown_handler(const char *path, const char *types, lo_arg **arg
 	
 	string cmd(&argv[0]->s);
 
-	_engine->push_command_event(info->type, to_command_t(cmd), info->instance);
+	_engine->push_command_event(info->type, _cmd_map->to_command_t(cmd), info->instance);
 	
 	return 0;
 }
@@ -776,11 +788,11 @@ int ControlOSC::set_handler(const char *path, const char *types, lo_arg **argv, 
 	string ctrl(&argv[0]->s);
 	float val  = argv[1]->f;
 
-	_engine->push_control_event(info->type, to_control_t(ctrl), val, info->instance);
+	_engine->push_control_event(info->type, _cmd_map->to_control_t(ctrl), val, info->instance);
 
 
 	// send out updates to registered in main event loop
-	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Send, info->instance, to_control_t(ctrl), "", "", val));
+	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Send, info->instance, _cmd_map->to_control_t(ctrl), "", "", val));
 	
 	return 0;
 
@@ -864,6 +876,8 @@ lo_address
 ControlOSC::find_or_cache_addr(string returl)
 {
 	lo_address addr = 0;
+
+	if (returl.empty()) return 0;
 	
 	if (_retaddr_map.find(returl) == _retaddr_map.end()) {
 		addr = lo_address_new_from_url (returl.c_str());
@@ -889,7 +903,7 @@ int ControlOSC::get_handler(const char *path, const char *types, lo_arg **argv, 
 	string retpath (&argv[2]->s);
 
 	// push this onto a queue for the main event loop to process
-	_engine->push_nonrt_event ( new GetParamEvent (info->instance, to_control_t(ctrl), returl, retpath));
+	_engine->push_nonrt_event ( new GetParamEvent (info->instance, _cmd_map->to_control_t(ctrl), returl, retpath));
 	
 	return 0;
 }
@@ -902,7 +916,7 @@ int ControlOSC::register_update_handler(const char *path, const char *types, lo_
 	string retpath (&argv[2]->s);
 
 	// push this onto a queue for the main event loop to process
-	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Register, info->instance, to_control_t(ctrl), returl, retpath));
+	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Register, info->instance, _cmd_map->to_control_t(ctrl), returl, retpath));
 	
 	return 0;
 }
@@ -916,7 +930,7 @@ int ControlOSC::unregister_update_handler(const char *path, const char *types, l
 	string retpath (&argv[2]->s);
 
 	// push this onto a queue for the main event loop to process
-	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Unregister, info->instance, to_control_t(ctrl), returl, retpath));
+	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Unregister, info->instance, _cmd_map->to_control_t(ctrl), returl, retpath));
 	
 	return 0;
 }
@@ -949,7 +963,7 @@ void
 ControlOSC::finish_get_event (GetParamEvent & event)
 {
 	// called from the main event loop (not osc thread)
-	string ctrl (to_control_str(event.control));
+	string ctrl (_cmd_map->to_control_str(event.control));
 	string returl (event.ret_url);
 	string retpath (event.ret_path);
 	lo_address addr;
@@ -997,7 +1011,7 @@ void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 	lo_address addr;
 	string retpath = event.ret_path;
 	string returl  = event.ret_url;
-	string ctrl    = to_control_str (event.control);
+	string ctrl    = _cmd_map->to_control_str (event.control);
 	
 	if (event.type == ConfigUpdateEvent::Send)
 	{
@@ -1082,6 +1096,24 @@ void ControlOSC::finish_loop_config_event (ConfigLoopEvent &event)
 				++citer;
 			}
 		}
+	}
+}
+
+void ControlOSC::finish_midi_binding_event (MidiBindingEvent & event)
+{
+	if (event.type == MidiBindingEvent::Learn)
+	{
+		lo_address addr = find_or_cache_addr (event.ret_url);
+		if (!addr) {
+			return;
+		}
+
+		// send back the event, then done
+		if (lo_send(addr, event.ret_path.c_str(), "ss", "add", event.bind_str.c_str()) == -1) {
+			fprintf(stderr, "OSC error sending binding %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
+			return;
+		}
+		lo_send(addr, event.ret_path.c_str(), "ss", "done", "");
 	}
 }
 
@@ -1173,61 +1205,13 @@ void ControlOSC::send_all_midi_bindings (MidiBindings * bindings, string returl,
 	for (MidiBindings::BindingList::iterator biter = blist.begin(); biter != blist.end(); ++biter) {
 		MidiBindInfo & info = (*biter);
 
-		if (lo_send(addr, retpath.c_str(), "s", info.serialize().c_str()) == -1) {
+		if (lo_send(addr, retpath.c_str(), "ss", "add", info.serialize().c_str()) == -1) {
 			fprintf(stderr, "OSC error sending binding %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
 			break;
 		}
 	}
+
+	lo_send(addr, retpath.c_str(), "ss", "done", "");
+			
 }
-
-
-Event::command_t  ControlOSC::to_command_t (std::string cmd)
-{
-	map<string,Event::command_t>::iterator result = _str_cmd_map.find(cmd);
-
-	if (result == _str_cmd_map.end()) {
-		return Event::UNKNOWN;
-	}
-
-	return (*result).second;
-}
-
-std::string  ControlOSC::to_command_str (Event::command_t cmd)
-{
-	map<Event::command_t, string>::iterator result = _cmd_str_map.find(cmd);
-
-	if (result == _cmd_str_map.end()) {
-		return "unknown";
-	}
-
-	return (*result).second;
-}
-
-
-Event::control_t
-ControlOSC::to_control_t (std::string cmd)
-{
-	map<string, Event::control_t>::iterator result = _str_ctrl_map.find(cmd);
-
-	if (result == _str_ctrl_map.end()) {
-		return Event::Unknown;
-	}
-
-	return (*result).second;
-
-	
-}
-
-std::string
-ControlOSC::to_control_str (Event::control_t cmd)
-{
-	map<Event::control_t,string>::iterator result = _ctrl_str_map.find(cmd);
-
-	if (result == _ctrl_str_map.end()) {
-		return "unknown";
-	}
-
-	return (*result).second;
-}
-
 

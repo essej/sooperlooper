@@ -29,6 +29,8 @@
 #include <vector>
 #include <map>
 
+#include <sigc++/sigc++.h>
+
 #include <midi++/types.h>
 #include <midi++/port.h>
 #include <midi++/port_request.h>
@@ -48,6 +50,11 @@ class MidiBridge
 	MidiBindings & bindings() { return _midi_bindings; }
 
 	virtual bool is_ok() { return _port != 0; }
+
+	void start_learn (MidiBindInfo & info, bool exclus=false);
+	void cancel_learn();
+
+	SigC::Signal1<void, MidiBindInfo> BindingLearned;
 	
   protected:
 	bool init_thread();
@@ -63,6 +70,7 @@ class MidiBridge
 	void midi_receiver ();
 	void stop_midireceiver ();
 
+	void finish_learn(MIDI::byte chcmd, MIDI::byte param, MIDI::byte val);
 	
 	
 	std::string _name;
@@ -83,7 +91,8 @@ class MidiBridge
 	pthread_t          _midi_thread;
 
 	bool _done;
-	
+	bool _learning;
+	MidiBindInfo _learninfo;
 	
 };
 

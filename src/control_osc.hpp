@@ -36,6 +36,7 @@ namespace SooperLooper {
 
 class Engine;
 class MidiBindings;
+class CommandMap;
 	
 class ControlOSC
 	: public SigC::Object
@@ -62,6 +63,7 @@ class ControlOSC
 	void finish_register_event (RegisterConfigEvent &event);
 	void finish_loop_config_event (ConfigLoopEvent &event);
 	void finish_global_get_event (GlobalGetEvent & event);
+	void finish_midi_binding_event (MidiBindingEvent & event);
 	
 	
   private:
@@ -81,7 +83,12 @@ class ControlOSC
 		enum Command {
 			GetAllBinding = 1,
 			RemoveBinding,
-			AddBinding
+			AddBinding,
+			ClearAllBindings,
+			LoadBindings,
+			SaveBindings,
+			LearnBinding,
+			GetNextMidi
 		};
 		MidiBindCommand(ControlOSC * os, Command cmd)
 			: osc(os), command(cmd) {}
@@ -179,12 +186,8 @@ class ControlOSC
 
 	std::map<std::string, lo_address> _retaddr_map;
 
-	std::map<std::string, Event::command_t> _str_cmd_map;
-	std::map<Event::command_t, std::string> _cmd_str_map;
-
-	std::map<std::string, Event::control_t> _str_ctrl_map;
-	std::map<Event::control_t, std::string> _ctrl_str_map;
-
+	CommandMap * _cmd_map;
+	
 	typedef std::pair<int, std::string> InstancePair;
 	typedef std::pair<lo_address, std::string> UrlPair;
 	typedef std::list<UrlPair> UrlList;

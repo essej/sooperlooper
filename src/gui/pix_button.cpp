@@ -167,10 +167,12 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 	}
 	else if (ev.ButtonDown())
 	{
-		_bstate = Selected;
-		pressed (); // emit
-		CaptureMouse();
-		Refresh(false);
+		if (!(ev.MiddleDown() && ev.ControlDown())) {
+			_bstate = Selected;
+			pressed (); // emit
+			CaptureMouse();
+			Refresh(false);
+		}
 	}
 	else if (ev.ButtonUp())
 	{
@@ -185,6 +187,10 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 
 		if (bounds.Inside(pt)) {
 			clicked(); // emit
+
+			if (ev.MiddleUp() && ev.ControlDown()) {
+				bind_request(); // emit
+			}
 		}
 		
 		Refresh(false);

@@ -99,6 +99,7 @@ class SliderBar
 	
 	
 	SigC::Signal1<void, float> value_changed;
+	SigC::Signal0<void> bind_request;
 	
   protected:
 

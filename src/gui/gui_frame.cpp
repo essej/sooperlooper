@@ -697,7 +697,7 @@ void GuiFrame::on_view_menu (wxCommandEvent &ev)
 	else if (ev.GetId() == ID_MidiBindingsMenu) {
 		if (!_midi_bind_dialog) {
 			_midi_bind_dialog = new MidiBindDialog(this, -1, wxT("SooperLooper MIDI Bindings"));
-			_midi_bind_dialog->SetSize (380,410);
+			_midi_bind_dialog->SetSize (380,500);
 		}
 		else if (!_midi_bind_dialog->IsShown()) {
 			_midi_bind_dialog->refresh_state();

@@ -34,6 +34,9 @@
 #include "choice_box.hpp"
 #include "check_box.hpp"
 
+#include <midi_bind.hpp>
+
+using namespace SooperLooper;
 using namespace SooperLooperGui;
 using namespace std;
 
@@ -152,6 +155,7 @@ LooperPanel::init()
 	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::slider_bind_events), (int) slider->GetId()));
 	colsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 5);
 
 	_feedback_control = slider = new SliderBar(this, ID_FeedbackControl, 0.0f, 100.0f, 0.0f);
@@ -159,6 +163,7 @@ LooperPanel::init()
 	slider->set_label(wxT("feedback"));
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::slider_bind_events), (int) slider->GetId()));
 	colsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 5);
 
 	//colsizer->Add (20, 5, 0, wxEXPAND);
@@ -204,6 +209,7 @@ LooperPanel::init()
 	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::slider_bind_events), (int) slider->GetId()));
 	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 4);
 
 	_wet_control = slider = new SliderBar(this, ID_WetControl, 0.0f, 1.0f, 1.0f);
@@ -212,6 +218,7 @@ LooperPanel::init()
 	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::slider_bind_events), (int) slider->GetId()));
 	colsizer->Add (slider, 0, wxEXPAND|wxTOP|wxLEFT, 4);
 	
 	
@@ -386,46 +393,61 @@ LooperPanel::bind_events()
 {
 	_undo_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("undo")));
 	_undo_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("undo")));
+	_undo_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("undo")));
 
 	_redo_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("redo")));
 	_redo_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("redo")));
+	_redo_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("redo")));
 
 	_record_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("record")));
 	_record_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("record")));
+	_record_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("record")));
 
 	_overdub_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("overdub")));
 	_overdub_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("overdub")));
+	_overdub_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("overdub")));
 
 	_multiply_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("multiply")));
 	_multiply_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("multiply")));
+	_multiply_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("multiply")));
 
 	_replace_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("replace")));
 	_replace_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("replace")));
+	_replace_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("replace")));
 
 	_insert_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("insert")));
 	_insert_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("insert")));
+	_insert_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("insert")));
 
 	_once_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("oneshot")));
 	_once_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("oneshot")));
+	_once_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("oneshot")));
 
 	_trig_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("trigger")));
 	_trig_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("trigger")));
-	
+	_trig_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("trigger")));
+
 	_tap_button->pressed.connect (slot (*this, &LooperPanel::tap_button_event));
 
 	_reverse_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("reverse")));
 	_reverse_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("reverse")));
+	_reverse_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("reverse")));
 
 	_mute_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("mute")));
 	_mute_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("mute")));
+	_mute_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("mute")));
 
 	_rate_button->pressed.connect (slot (*this, &LooperPanel::rate_button_event));
 
 	_scratch_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("scratch")));
 	_scratch_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("scratch")));
+	_scratch_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("scratch")));
 
 	_save_button->clicked.connect (bind (slot (*this, &LooperPanel::clicked_events), wxString("save")));
 	_load_button->clicked.connect (bind (slot (*this, &LooperPanel::clicked_events), wxString("load")));
+
+
+	//_loop_control.MidiBindingChanged.connect (slot (*this, &LooperPanel::got_binding_changed));
 	
 }
 
@@ -636,6 +658,20 @@ LooperPanel::released_events (wxString cmd)
 }
 
 void
+LooperPanel::button_bind_events (wxString cmd)
+{
+	MidiBindInfo info;
+
+	info.control = cmd.c_str();
+	info.command = "down"; // should this be something else?
+	info.instance = _index;
+	info.lbound = 0.0;
+	info.ubound = 1.0;
+	_loop_control->learn_midi_binding(info, true);
+}
+
+
+void
 LooperPanel::tap_button_event ()
 {
 	_tap_val *= -1.0f;
@@ -696,13 +732,13 @@ LooperPanel::clicked_events (wxString cmd)
 		if (_loop_control->is_engine_local()) {
 			
 			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
-
 			wxString filename = wxFileSelector(wxT("Choose file to open"), wxT(""), wxT(""), wxT(""), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
+			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
+
 			if ( !filename.empty() )
 			{
 				_loop_control->post_load_loop (_index, filename);
 			}
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
 		}
 		else {
 			// popup basic filename text entry
@@ -710,14 +746,15 @@ LooperPanel::clicked_events (wxString cmd)
 
 			wxString filename = ::wxGetTextFromUser(wxString::Format("Choose file to load on remote host '%s'",
 										 _loop_control->get_engine_host().c_str())
-								, wxT("Save Loop"));
+								, wxT("Open Loop"));
+
+			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
 
 			if (!filename.empty()) {
 				// todo: specify format
 				_loop_control->post_load_loop (_index, filename);
 			}
 
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
 			
 		}
 	}
@@ -763,6 +800,65 @@ LooperPanel::slider_events(float val, int id)
 		post_control_event (ctrl, val);
 	}
 }
+
+void
+LooperPanel::slider_bind_events(int id)
+{
+	wxString ctrl;
+	MidiBindInfo info;
+	bool donothing = false;
+
+	info.command = "set";
+	info.instance = _index;
+	info.lbound = 0.0;
+	info.ubound = 1.0;
+
+	
+	switch(id)
+	{
+	case ID_ThreshControl:
+		ctrl = wxT("rec_thresh");
+		info.control = ctrl.c_str();
+		info.style = MidiBindInfo::GainStyle;
+		break;
+	case ID_FeedbackControl:
+		ctrl = wxT("feedback");
+		info.control = ctrl.c_str();
+		info.style = MidiBindInfo::NormalStyle;
+		break;
+	case ID_DryControl:
+		ctrl = wxT("dry");
+		info.control = ctrl.c_str();
+		info.style = MidiBindInfo::GainStyle;
+		break;
+	case ID_WetControl:
+		ctrl = wxT("wet");
+		info.control = ctrl.c_str();
+		info.command = "set";
+		info.style = MidiBindInfo::GainStyle;
+		break;
+	case ID_ScratchControl:
+		ctrl = wxT("scratch_pos");
+		info.control = ctrl.c_str();
+		info.style = MidiBindInfo::NormalStyle;
+		break;
+	case ID_RateControl:
+		ctrl = wxT("rate");
+		info.control = ctrl.c_str();
+		info.style = MidiBindInfo::NormalStyle;
+		info.lbound = 0.25;
+		info.ubound = 4.0;
+		break;
+	default:
+		donothing = true;
+		break;
+	}
+
+	if (!donothing) {
+		_loop_control->learn_midi_binding(info, true);
+	}
+}
+
 
 void
 LooperPanel::check_events(bool val, wxString which)

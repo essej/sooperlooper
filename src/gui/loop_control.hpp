@@ -87,8 +87,12 @@ class LoopControl
 	void request_global_values ();
 
 	void add_midi_binding(const SooperLooper::MidiBindInfo & info, bool exclusive=false);
+	void learn_midi_binding(const SooperLooper::MidiBindInfo & info, bool exclusive=false);
 	void remove_midi_binding(const SooperLooper::MidiBindInfo & info);
+	void clear_midi_bindings();
 	void request_all_midi_bindings();
+	void load_midi_bindings(std::string filename, bool append=false);
+	void save_midi_bindings(std::string filename);
 
 	// for read only
 	const SooperLooper::MidiBindings & midi_bindings() { return *_midi_bindings; }
@@ -111,6 +115,7 @@ class LoopControl
 
 	SigC::Signal1<void,int> LooperConnected;
 	SigC::Signal0<void> NewDataReady;
+	SigC::Signal1<void, SooperLooper::MidiBindInfo&> MidiBindingChanged;
 	
   protected:
 	

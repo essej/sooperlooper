@@ -64,6 +64,8 @@ class PixButton
 	SigC::Signal0<void> clicked;
 	SigC::Signal0<void> enter;
 	SigC::Signal0<void> leave;
+
+	SigC::Signal0<void> bind_request;
 	
   protected:
 

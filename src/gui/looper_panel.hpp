@@ -28,6 +28,10 @@
 
 #include "loop_control.hpp"
 
+namespace SooperLooper {
+	class MidiBindInfo;
+};
+
 
 namespace SooperLooperGui {
 
@@ -63,6 +67,8 @@ class LooperPanel
 	wxString get_pixmap_path (const wxString & namebase);
 
 	void slider_events(float val, int id);
+	void slider_bind_events(int id);
+
 	void check_events(bool val, wxString  which); 
 	
 	void post_control_event (wxString ctrl, float val);
@@ -73,11 +79,14 @@ class LooperPanel
 	void pressed_events (wxString cmd);
 	void released_events (wxString cmd);
 	void clicked_events (wxString cmd);
+	void button_bind_events (wxString cmd);
 	void tap_button_event ();
 	void rate_button_event();
 
 	void on_quantize_change (int index, wxString strval);
 
+	void got_binding_changed(SooperLooper::MidiBindInfo & info);
+	
 	wxPanel   * _selbar;
 	wxColour   _bgcolor;
 	wxColour   _selbgcolor;

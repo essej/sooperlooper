@@ -30,6 +30,7 @@
 #include "event.hpp"
 #include "event_nonrt.hpp"
 #include "audio_driver.hpp"
+#include "midi_bind.hpp"
 
 namespace SooperLooper {
 
@@ -38,6 +39,7 @@ class ControlOSC;
 class MidiBridge;
 	
 class Engine
+	: public SigC::Object
 {
   public:
 	
@@ -52,7 +54,7 @@ class Engine
 	void set_default_loop_secs (float secs) { _def_loop_secs = secs; }
 	void set_default_channels (int chan) { _def_channel_cnt = chan; }
 	
-	void set_midi_bridge (MidiBridge * bridge) { _midi_bridge = bridge; }
+	void set_midi_bridge (MidiBridge * bridge);
 	
 	bool is_ok() const { return _ok; }
 
@@ -89,6 +91,7 @@ class Engine
 	
 	bool push_nonrt_event (EventNonRT * event);
 	
+	void binding_learned(MidiBindInfo info);
 	
   protected:	
 
@@ -116,6 +119,10 @@ class Engine
 
 	volatile bool _ok;
 
+	volatile bool _learn_done;
+	MidiBindInfo  _learninfo;
+	MidiBindingEvent _learn_event;
+	
 	// RT event queue
 	RingBuffer<Event> * _event_queue;
 	RingBuffer<Event> * _sync_queue;
