@@ -14,6 +14,7 @@ SUBDIRS =  libs src
 MACDISTDIR = macdist/SooperLooper-@SOOP_VERSION@
 
 mac: all
+	-rm -rf macdist
 	-mkdir -p macdist
 	-mkdir -p $(MACDISTDIR)
 	-mkdir -p $(MACDISTDIR)/SooperLooper.app
@@ -32,5 +33,6 @@ mac: all
 	cp -f src/*.slb  $(MACDISTDIR)/Presets/
 	cp -f README  $(MACDISTDIR)/README.txt
 	cp -f COPYING  $(MACDISTDIR)/COPYING.txt
+	cp -f OSC  $(MACDISTDIR)/OSC.txt
 	rm -f SooperLooper-@SOOP_VERSION@.dmg
 	hdiutil create -fs HFS+ -volname SooperLooper-@SOOP_VERSION@  -srcfolder macdist  SooperLooper-@SOOP_VERSION@.dmg

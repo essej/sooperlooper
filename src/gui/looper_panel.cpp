@@ -454,7 +454,7 @@ LooperPanel::post_init()
 	if (_loop_control->get_value(_index, wxT("has_discrete_io"), val) && val != 0.0f)
 	{
 		_has_discrete_io = true;
-		_use_main_in_check = new CheckBox(this, ID_UseMainInCheck, wxT("comn in"), true, wxDefaultPosition, wxSize(65, 18));
+		_use_main_in_check = new CheckBox(this, ID_UseMainInCheck, wxT("main in"), true, wxDefaultPosition, wxSize(65, 18));
 		_use_main_in_check->SetFont(sliderFont);
 		_use_main_in_check->SetToolTip(wxT("mix input from Main inputs"));
 		_use_main_in_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("use_common_ins")));

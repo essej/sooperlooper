@@ -151,7 +151,7 @@ GuiFrame::GuiFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 #endif
 
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
-	_update_timer->Start(3000);
+	_update_timer->Start(9000, true);
 
 	_taptempo_button_timer = new wxTimer(this, ID_TapTempoTimer);
 
@@ -276,7 +276,7 @@ GuiFrame::init()
 
 	_common_dry_bar = new SliderBar(_top_panel, ID_DryControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(200,20));
 	_common_dry_bar->set_units(wxT("dB"));
-	_common_dry_bar->set_label(wxT("common dry"));
+	_common_dry_bar->set_label(wxT("main dry"));
 	_common_dry_bar->set_scale_mode(SliderBar::ZeroGainMode);
 	_common_dry_bar->set_show_indicator_bar(true);
 	_common_dry_bar->SetFont(sliderFont);
@@ -286,7 +286,7 @@ GuiFrame::init()
 
 	_common_wet_bar = new SliderBar(_top_panel, ID_WetControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(200,20));
 	_common_wet_bar->set_units(wxT("dB"));
-	_common_wet_bar->set_label(wxT("common out"));
+	_common_wet_bar->set_label(wxT("main out"));
 	_common_wet_bar->set_scale_mode(SliderBar::ZeroGainMode);
 	_common_wet_bar->set_show_indicator_bar(true);
 	_common_wet_bar->SetFont(sliderFont);
@@ -534,8 +534,8 @@ GuiFrame::OnUpdateTimer(wxTimerEvent &ev)
 		_engine_alive = false;
 		_loop_control->send_alive_ping();
 	}
-	
-	ev.Skip();
+
+	_update_timer->Start(9000, true);
 }
 
 void

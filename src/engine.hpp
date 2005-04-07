@@ -80,12 +80,10 @@ class Engine
 	
 	EventGenerator & get_event_generator() { return *_event_generator;}
 
-	bool push_command_event (Event::type_t type, Event::command_t cmd, int8_t instance)
-		{ return do_push_command_event (_event_queue, type, cmd, instance); }
+	bool push_command_event (Event::type_t type, Event::command_t cmd, int8_t instance);
 	void push_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance, int src=0);
 
-	void push_midi_command_event (Event::type_t type, Event::command_t cmd, int8_t instance)
-		{ do_push_command_event (_midi_event_queue, type, cmd, instance); }
+	void push_midi_command_event (Event::type_t type, Event::command_t cmd, int8_t instance);
 	void push_midi_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance);
 	
 	void push_sync_event (Event::control_t ctrl);

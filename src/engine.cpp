@@ -690,6 +690,37 @@ bool Engine::push_loop_manage_to_main (LoopManageEvent & lme)
 	return true;
 }
 
+bool
+Engine::push_command_event (Event::type_t type, Event::command_t cmd, int8_t instance)
+{
+	bool ret = do_push_command_event (_event_queue, type, cmd, instance);
+
+	
+	// this is a known race condition, if the osc thread is changing controls
+	// simultaneously.  it's just an update :)
+//	do_push_command_event (_nonrt_update_event_queue, type, cmd,instance);
+
+	// wakeup nonrt loop... this lock should really not block... but still
+//	TentativeLockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
+//	pthread_cond_signal (&_event_cond);
+
+	return ret;
+}
+
+void
+Engine::push_midi_command_event (Event::type_t type, Event::command_t cmd, int8_t instance)
+{
+	do_push_command_event (_midi_event_queue, type, cmd, instance);
+
+	// this is a known race condition, if the osc thread is changing controls
+	// simultaneously.  it's just an update :)
+//	do_push_command_event (_nonrt_update_event_queue, type, cmd,instance);
+
+	// wakeup nonrt loop... this lock should really not block... but still
+//	TentativeLockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
+//	pthread_cond_signal (&_event_cond);
+}
+
 
 bool
 Engine::do_push_command_event (RingBuffer<Event> * evqueue, Event::type_t type, Event::command_t cmd, int8_t instance)
@@ -929,6 +960,13 @@ Engine::mainloop()
 			}
 			else if (evt->Type == Event::type_control_change) {
 				ConfigUpdateEvent cuev (ConfigUpdateEvent::Send, evt->Instance, evt->Control, "", "", evt->Value);
+				cuev.source = evt->source;
+				_osc->finish_update_event (cuev);
+			}
+			else if (evt->Type == Event::type_cmd_down || evt->Type == Event::type_cmd_hit) {
+				//cerr << "got command: " << evt->Command << endl;
+				     
+				ConfigUpdateEvent cuev (ConfigUpdateEvent::SendCmd, evt->Instance, evt->Command, "", "");
 				cuev.source = evt->source;
 				_osc->finish_update_event (cuev);
 			}

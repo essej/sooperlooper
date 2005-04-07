@@ -689,7 +689,11 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 	}
 	else if (ev.GetId() == ID_ClearAllButton)
 	{
-		_parent->get_loop_control().clear_midi_bindings();
+		// are you sure?
+		wxMessageDialog dial(this, wxT("Are you sure you want to clear all midi bindings?"), wxT("Clear MIDI Bindings"), wxYES_NO);
+		if (dial.ShowModal() == wxID_YES) {
+			_parent->get_loop_control().clear_midi_bindings();
+		}
 	}
 	else if (ev.GetId() == ID_LoadButton)
 	{
@@ -730,6 +734,10 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 
 			if ( !filename.empty() )
 			{
+				// add .slb if there isn't one already
+				if (filename.size() > 4 && filename.substr(filename.size() - 4, 4) != wxT(".slb")) {
+					filename += wxT(".slb");
+				}
 				_parent->get_loop_control().save_midi_bindings(filename);
 			}
 		}
