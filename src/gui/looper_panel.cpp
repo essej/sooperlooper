@@ -551,8 +551,11 @@ LooperPanel::bind_events()
 	_mute_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("mute")));
 
 	_halfx_button->pressed.connect (bind (slot (*this, &LooperPanel::rate_button_event), 0.5f));
+	_halfx_button->bind_request.connect (bind (slot (*this, &LooperPanel::rate_bind_events), 0.5f));
 	_1x_button->pressed.connect (bind (slot (*this, &LooperPanel::rate_button_event), 1.0f));
+	_1x_button->bind_request.connect (bind (slot (*this, &LooperPanel::rate_bind_events), 1.0f));
 	_2x_button->pressed.connect (bind (slot (*this, &LooperPanel::rate_button_event), 2.0f));
+	_2x_button->bind_request.connect (bind (slot (*this, &LooperPanel::rate_bind_events), 2.0f));
 
 	_scratch_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("scratch")));
 	_scratch_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("scratch")));
@@ -590,9 +593,9 @@ void LooperPanel::create_buttons()
  	_once_button = new PixButton(this, ID_OnceButton);
  	_mute_button = new PixButton(this, ID_MuteButton);
  	_scratch_button = new PixButton(this, ID_ScratchButton);
- 	_halfx_button = new PixButton(this, ID_HalfXButton, false);
- 	_1x_button = new PixButton(this, ID_OneXButton, false);
-	_2x_button = new PixButton(this, ID_DoubleXButton, false);
+ 	_halfx_button = new PixButton(this, ID_HalfXButton, true);
+ 	_1x_button = new PixButton(this, ID_OneXButton, true);
+	_2x_button = new PixButton(this, ID_DoubleXButton, true);
 
 	
 	// load them all up manually
@@ -942,6 +945,9 @@ LooperPanel::update_state()
 	case LooperStateMuted:
 		_mute_button->set_active(false);
 		break;
+	case LooperStateOneShot:
+		_once_button->set_active(false);
+		break;
 	default:
 		break;
 	}
@@ -988,6 +994,10 @@ LooperPanel::update_state()
 		_mute_button->set_active(true);
 		_flashing_button = _mute_button;
 		break;
+	case LooperStateOneShot:
+		_once_button->set_active(true);
+		_flashing_button = _once_button;
+		break;
 	default:
 		break;
 	}
@@ -1019,9 +1029,10 @@ LooperPanel::update_state()
 			case LooperStateInserting:
 				_flashing_button = _insert_button;
 				break;
-			case LooperStateMuted:
-				_flashing_button = _mute_button;
+			case LooperStateOneShot:
+				_flashing_button = _once_button;
 				break;
+			case LooperStateMuted:
 			case LooperStatePlaying:
 				if (state == LooperStatePlaying || state == LooperStateMuted) {
 					_flashing_button = _reverse_button;
@@ -1043,8 +1054,9 @@ LooperPanel::update_state()
 		}
 	}
 	else {
-		_flashing_button = 0;
 
+		_flashing_button = 0;
+		
 		if (_flash_timer->IsRunning()) {
 			_flash_timer->Stop();
 
@@ -1056,6 +1068,7 @@ LooperPanel::update_state()
 				_reverse_button->set_active(false);
 			}
 		}
+
 	}
 	
 	_last_state = state;
@@ -1157,6 +1170,23 @@ LooperPanel::button_bind_events (wxString cmd)
 	start_learning (info);
 }
 
+void
+LooperPanel::rate_bind_events (float val)
+{
+	MidiBindInfo info;
+	
+	info.channel = 0;
+	info.type = "n";
+	info.control = "rate";
+
+	info.command = "set";
+	info.instance = _index;
+	info.lbound = val;
+	info.ubound = val;
+
+	start_learning (info);
+}
+
 
 void
 LooperPanel::delay_button_press_event (int button)
@@ -1198,7 +1228,7 @@ LooperPanel::clicked_events (int button, wxString cmd)
 
 			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
 
-			wxString filename = ::wxFileSelector(wxT("Choose file to save loop"), wxT(""), wxT(""), wxT(".wav"), wxT("*.*"), wxSAVE|wxCHANGE_DIR);
+			wxString filename = ::wxFileSelector(wxT("Choose file to save loop"), wxT(""), wxT(""), wxT(".wav"), wxT("*.*"), wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
 			if ( !filename.empty() )
 			{
 				// todo: specify format

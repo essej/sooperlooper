@@ -729,7 +729,7 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 		if (_parent->get_loop_control().is_engine_local()) {
 			
 			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
-			wxString filename = wxFileSelector(wxT("Choose midi binding file to save"), wxT(""), wxT(""), wxT(""), wxT("*.slb"), wxSAVE|wxCHANGE_DIR);
+			wxString filename = wxFileSelector(wxT("Choose midi binding file to save"), wxT(""), wxT(""), wxT(""), wxT("*.slb"), wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
 			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
 
 			if ( !filename.empty() )
