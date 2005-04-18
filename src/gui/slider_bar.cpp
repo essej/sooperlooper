@@ -86,6 +86,7 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_upper_bound = ub;
 	_default_val = _value = val;
 	_backing_store = 0;
+	_indbm = 0;
 	_dragging = false;
 	_decimal_digits = 1;
 	_text_ctrl = 0;
@@ -140,6 +141,12 @@ SliderBar::~SliderBar()
 	if (_backing_store) {
 		delete _backing_store;
 	}
+
+	_inddc.SelectObject(wxNullBitmap);
+	if (_indbm) {
+		delete _indbm;
+	}
+
 }
 
 bool
@@ -147,6 +154,7 @@ SliderBar::SetFont(const wxFont & fnt)
 {
 	bool ret = wxWindow::SetFont(fnt);
 	_memdc.SetFont(fnt);
+	do_redraw();
 	return ret;
 }
 
@@ -156,7 +164,7 @@ SliderBar::set_style (BarStyle md)
 {
 	if (md != _bar_style) {
 		_bar_style = md;
-		Refresh(false);
+		do_redraw();
 	}
 }
 
@@ -174,7 +182,7 @@ SliderBar::set_scale_mode (ScaleMode mode)
 	if (mode != _scale_mode) {
 		_scale_mode = mode;
 		update_value_str();
-		Refresh(false);
+		do_redraw();
 	}
 }
 
@@ -189,12 +197,12 @@ SliderBar::set_bounds (float lb, float ub)
 		if (_value < _lower_bound) {
 			_value = _lower_bound;
 			update_value_str();
-			Refresh(false);
+			do_redraw();
 		}
 		else if (_value > _upper_bound) {
 			_value = _upper_bound;
 			update_value_str();
-			Refresh(false);
+			do_redraw();
 		}
 	}
 }
@@ -203,7 +211,7 @@ void
 SliderBar::set_label (const wxString & label)
 {
 	_label_str = label;
-	Refresh(false);	
+	do_redraw();	
 }
 
 void
@@ -211,7 +219,7 @@ SliderBar::set_units (const wxString & units)
 {
 	_units_str = units;
 	update_value_str();
-	Refresh(false);	
+	do_redraw();	
 }
 
 void
@@ -219,11 +227,11 @@ SliderBar::set_decimal_digits (int val)
 {
 	_decimal_digits = val;
 	update_value_str();
-	Refresh(false);	
+	do_redraw();	
 }
 
 void
-SliderBar::set_value (float val)
+SliderBar::set_value (float val, bool refresh)
 {
 	float newval = val;
 	
@@ -243,7 +251,10 @@ SliderBar::set_value (float val)
 	if (newval != _value) {
 		_value = newval;
 		update_value_str();
-		Refresh(false);
+
+		if (refresh) {
+			do_redraw();
+		}
 	}
 }
 
@@ -342,41 +353,41 @@ void SliderBar::set_bg_color (const wxColour & col)
 	_bgcolor = col;
 	_bgbrush.SetColour (col);
 	SetBackgroundColour (col);
-	Refresh(false);
+	do_redraw();
 }
 
 void SliderBar::set_text_color (const wxColour & col)
 {
 	_textcolor = col;
-	Refresh(false);
+	do_redraw();
 }
 
 void SliderBar::set_border_color (const wxColour & col)
 {
 	_bordercolor = col;
 	_borderbrush.SetColour (col);
-	Refresh(false);
+	do_redraw();
 }
 
 void SliderBar::set_indicator_bar_color (const wxColour & col)
 {
 	_indcolor = col;
 	_indbrush.SetColour (col);
-	Refresh(false);
+	do_redraw();
 }
 
 void SliderBar::set_indicator_max_bar_color (const wxColour & col)
 {
 	_indmaxcolor = col;
 	_indmaxbrush.SetColour (col);
-	Refresh(false);
+	do_redraw();
 }
 
 void SliderBar::set_bar_color (const wxColour & col)
 {
 	_barcolor = col;
 	_barbrush.SetColour (col);
-	Refresh(false);
+	do_redraw();
 }
 
 void
@@ -395,6 +406,15 @@ SliderBar::update_size()
 		
 		_memdc.SelectObject(*_backing_store);
 		_memdc.SetFont(GetFont());
+
+		_inddc.SelectObject (wxNullBitmap);
+		if (_indbm) {
+			delete _indbm;
+		}
+		_indbm = new wxBitmap(_width, _height);
+		
+		_inddc.SelectObject(*_indbm);
+
 	}
 }
 
@@ -402,20 +422,39 @@ void
 SliderBar::OnSize(wxSizeEvent & event)
 {
 	update_size();
+	do_redraw();
 	event.Skip();
+}
+
+void SliderBar::do_redraw ()
+{
+	if (!_backing_store) {
+		return;
+	}
+
+	draw_area(_memdc);
+	Refresh(false);
 }
 
 void SliderBar::OnPaint(wxPaintEvent & event)
 {
  	wxPaintDC pdc(this);
 
-	if (!_backing_store) {
-		return;
-	}
-	
- 	draw_area(_memdc);
+ 	//draw_area(_memdc);
 
- 	pdc.Blit(0, 0, _width, _height, &_memdc, 0, 0);
+	if (_show_ind_bar) {
+		// first blit memdc into the inddc
+		_inddc.Blit(0, 0, _width, _height, &_memdc, 0, 0);
+
+		// draw the indicator 
+		draw_ind (_inddc);
+		
+		// final blit
+		pdc.Blit(0, 0, _width, _height, &_inddc, 0, 0);
+	}
+	else {
+		pdc.Blit(0, 0, _width, _height, &_memdc, 0, 0);
+	}
 }
 
 
@@ -429,11 +468,11 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 
 	if (ev.Entering() && !_dragging) {
 		_barbrush.SetColour(_overbarcolor);
-		Refresh(false);
+		do_redraw();
 	}
 	else if (ev.Leaving() && !_dragging) {
 		_barbrush.SetColour(_barcolor);
-		Refresh(false);
+		do_redraw();
 	}
 	
 
@@ -466,7 +505,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 			value_changed (get_value()); // emit
 
 			update_value_str();
-			Refresh(false);
+			do_redraw();
 			//cerr << "new val is: " << _value << endl;
 		}
 
@@ -502,7 +541,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		value_changed (get_value()); // emit
 		
 		update_value_str();
-		Refresh(false);
+		do_redraw();
 	}
 	else if (ev.RightDown()) {
 		this->PopupMenu ( _popup_menu, ev.GetX(), ev.GetY());
@@ -530,7 +569,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 			value_changed (get_value()); // emit
 
 			update_value_str();
-			Refresh(false);
+			do_redraw();
 		}
 		else if (ev.LeftDown() && ev.ShiftDown()) {
 			// set to default
@@ -538,7 +577,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 
 			value_changed(get_value());
 			update_value_str();
-			Refresh(false);
+			do_redraw();
 		}
 	}
 	else if (ev.ButtonUp())
@@ -549,11 +588,11 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		if (ev.GetX() >= _width || ev.GetX() < 0
 		    || ev.GetY() < 0 || ev.GetY() > _height) {
 			_barbrush.SetColour(_barcolor);
-			Refresh(false);
+			do_redraw();
 		}
 		else {
 			_barbrush.SetColour(_overbarcolor);
-			Refresh(false);
+			do_redraw();
 		}
 
 		if (ev.MiddleUp() && ev.ControlDown())
@@ -587,7 +626,7 @@ void SliderBar::on_menu_events (wxCommandEvent &ev)
 		
 		value_changed(get_value());
 		update_value_str();
-		Refresh(false);
+		do_redraw();
 	}
 }
 
@@ -613,57 +652,20 @@ void SliderBar::draw_area(wxDC & dc)
 		pixw = (int) ((_value - _lower_bound) / _val_scale);
 		dc.DrawRectangle (1, 1, pixw-1, _height-2);
 
-		if (_show_ind_bar) {
-			pixw = (int) ((_ind_value - _lower_bound) / _val_scale);
-			if (pixw > 0) {
-				if (_ind_value >= _upper_bound) {
-					dc.SetBrush(_indmaxbrush);
-				}
-				else {
-					dc.SetBrush(_indbrush);
-				}
-				dc.DrawRectangle (1, 1, pixw-1, 1);
-				dc.DrawRectangle (1, _height - 2, pixw-1, 1);
-			}
-		}
 	}
 	else if (_bar_style == FromRightStyle)
 	{
 		pixw = (int) ((_upper_bound - _value) / _val_scale);
 		dc.DrawRectangle (pixw, 1, _width - pixw - 1, _height-2);
 
-		if (_show_ind_bar) {
-			pixw = (int) ((_upper_bound - _ind_value) / _val_scale);
-			if (pixw < _width) {
-				if (_ind_value >= _upper_bound) {
-					dc.SetBrush(_indmaxbrush);
-				}
-				else {
-					dc.SetBrush(_indbrush);
-				}
-				dc.DrawRectangle (pixw, 1, _width - pixw -1, 2);
-				dc.DrawRectangle (pixw, _height - 2, _width - pixw - 1, 1);
-			}
-		}
 	}
 
-	if (_show_ind_bar) {
-		pixw = (int) ((_ind_value - _lower_bound) / _val_scale);
-		if (pixw > 0) {
-			if (_ind_value >= _upper_bound) {
-				dc.SetBrush(_indmaxbrush);
-			}
-			else {
-				dc.SetBrush(_indbrush);
-			}
-			dc.DrawRectangle (pixw - 2, 1, 2, _height-2);
-		}
+	if (_bar_style != HiddenStyle)
+	{
+		dc.SetBrush(_linebrush);
+		pixw = (int) ((_value - _lower_bound) / _val_scale);
+		dc.DrawRectangle (pixw - 1, 1, 2, _height-2);
 	}
-	
-	dc.SetBrush(_linebrush);
-	pixw = (int) ((_value - _lower_bound) / _val_scale);
-	dc.DrawRectangle (pixw - 1, 1, 2, _height-2);
-	
 	
 	
 	dc.SetTextForeground(_textcolor);
@@ -678,6 +680,53 @@ void SliderBar::draw_area(wxDC & dc)
 
 }
 
+void SliderBar::draw_ind(wxDC & dc)
+{
+	int pixw;
+
+	dc.SetPen(*wxTRANSPARENT_PEN);
+	
+	if (_bar_style == FromLeftStyle)
+	{
+		pixw = (int) ((_ind_value - _lower_bound) / _val_scale);
+		if (pixw > 0) {
+			if (_ind_value >= _upper_bound) {
+				dc.SetBrush(_indmaxbrush);
+			}
+			else {
+				dc.SetBrush(_indbrush);
+			}
+			dc.DrawRectangle (1, 1, pixw-1, 1);
+			dc.DrawRectangle (1, _height - 2, pixw-1, 1);
+		}
+		
+	}
+	else if (_bar_style == FromRightStyle)
+	{
+		pixw = (int) ((_upper_bound - _ind_value) / _val_scale);
+		if (pixw < _width) {
+			if (_ind_value >= _upper_bound) {
+				dc.SetBrush(_indmaxbrush);
+			}
+			else {
+				dc.SetBrush(_indbrush);
+			}
+			dc.DrawRectangle (pixw, 1, _width - pixw -1, 2);
+			dc.DrawRectangle (pixw, _height - 2, _width - pixw - 1, 1);
+		}
+	}
+	
+	pixw = (int) ((_ind_value - _lower_bound) / _val_scale);
+	if (pixw > 0) {
+		if (_ind_value >= _upper_bound) {
+			dc.SetBrush(_indmaxbrush);
+		}
+		else {
+			dc.SetBrush(_indbrush);
+		}
+		dc.DrawRectangle (pixw - 2, 1, 2, _height-2);
+	}
+}
 
 void SliderBar::show_text_ctrl ()
 {

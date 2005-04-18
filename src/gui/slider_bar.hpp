@@ -43,7 +43,8 @@ class SliderBar
 	enum BarStyle {
 		FromLeftStyle=0,
 		CenterStyle,
-		FromRightStyle
+		FromRightStyle,
+		HiddenStyle
 	};
 
 	enum ScaleMode {
@@ -65,7 +66,7 @@ class SliderBar
 	void set_bounds (float lb, float ub);
 	void get_bounds (float &lb, float &ub) { lb = _lower_bound; ub = _upper_bound; }
 
-	void set_value (float val);
+	void set_value (float val, bool refresh=true);
 	float get_value ();
 
 	void set_show_indicator_bar (bool flag) { _show_ind_bar = flag; }
@@ -130,7 +131,10 @@ class SliderBar
 	void OnSize (wxSizeEvent &ev);
 	void OnMouseEvents (wxMouseEvent &ev);
 
+	void do_redraw ();
+	
 	void draw_area (wxDC & dc);
+	void draw_ind (wxDC & dc);
 	void update_size();
 	
 	void show_text_ctrl ();
@@ -145,6 +149,9 @@ class SliderBar
 	int _width, _height;
 	wxBitmap * _backing_store;
 	wxMemoryDC _memdc;
+
+	wxMemoryDC _inddc;
+	wxBitmap * _indbm;
 
 	wxMenu * _popup_menu;
 	

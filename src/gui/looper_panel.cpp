@@ -356,9 +356,10 @@ LooperPanel::init()
 	_scratch_control = slider = new SliderBar(this, ID_ScratchControl, 0.0f, 1.0f, 0.0f);
 	slider->set_units(wxT(""));
 	slider->set_label(wxT("pos"));
-	slider->set_style (SliderBar::CenterStyle);
+	slider->set_style (SliderBar::HiddenStyle);
 	slider->set_decimal_digits (3);
 	slider->set_show_value(false);
+	slider->set_show_indicator_bar (true);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
@@ -836,6 +837,7 @@ LooperPanel::update_controls()
 	if (_loop_control->is_updated(_index, wxT("scratch_pos"))) {
 		_loop_control->get_value(_index, wxT("scratch_pos"), val);
 		_scratch_control->set_value (val);
+		_scratch_control->set_indicator_value (val);
 	}
 // 	if (_loop_control->is_updated(_index, "quantize")) {
 // 		_loop_control->get_value(_index, "quantize", val);
@@ -891,11 +893,11 @@ LooperPanel::update_controls()
 		update_state();
 	}
 
-	if (pos_updated && _last_state != LooperStateScratching) {
+	if (pos_updated /*&& _last_state != LooperStateScratching */) {
 		float looplen;
 		_loop_control->get_value(_index, wxT("loop_len"), looplen);
 		_loop_control->get_value(_index, wxT("loop_pos"), val);
-		_scratch_control->set_value (val / looplen);
+		_scratch_control->set_indicator_value (val / looplen);
 	}
 }
 
@@ -988,6 +990,7 @@ LooperPanel::update_state()
 		break;
 	case LooperStateScratching:
 		_scratch_button->set_active(true);
+		_scratch_control->set_style(SliderBar::CenterStyle);
 		//_rate_button->Enable(true);
 		break;
 	case LooperStateMuted:
@@ -1002,6 +1005,10 @@ LooperPanel::update_state()
 		break;
 	}
 
+	if (state != LooperStateScratching) {
+		_scratch_control->set_style(SliderBar::HiddenStyle);
+	}
+	
 	if (_waiting) {
 		if (nextstate != LooperStateUnknown) {
 			// reset flashing button to use
