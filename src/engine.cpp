@@ -274,12 +274,12 @@ Engine::fill_common_outs(nframes_t nframes)
 			currdry += dry_delta;
 			currwet += wet_delta;
 
-			inpeak = f_max (inpeak, fabs(inbuf[n]));
+			inpeak = f_max (inpeak, fabsf(inbuf[n]));
 
 			outbuf[n] = flush_to_zero ((outbuf[n] * currwet) + (inbuf[n] * currdry));
 
 			// outpeak is taken post dry/wet mix for true output metering
-			outpeak = f_max (outpeak, fabs(outbuf[n]));
+			outpeak = f_max (outpeak, fabsf(outbuf[n]));
 			
 		}
 	}
@@ -936,7 +936,7 @@ Engine::mainloop()
 		}
 		
 		// pull off all events from nonrt ringbuffer
-		while (is_ok() && _nonrt_event_queue->read(&event, 1) == 1)
+		while (is_ok() && _nonrt_event_queue->read_space() > 0 && _nonrt_event_queue->read(&event, 1) == 1)
 		{
 			process_nonrt_event (event);
 			delete event;

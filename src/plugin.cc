@@ -685,7 +685,7 @@ static void fillLoops(SooperLooperI *pLS, LoopChunk *mloop, unsigned long lCurrP
       {
 	      if (!srcloop->valid) {
 		      // if src is not valid, fill with silence
-		      pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask] = 0.0;
+		      pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask] = 0.0f;
 		      //DBG(fprintf(stderr, "srcloop invalid\n"));
 	      }
 	      else {
@@ -716,7 +716,7 @@ static void fillLoops(SooperLooperI *pLS, LoopChunk *mloop, unsigned long lCurrP
 
 	      if (!srcloop->valid) {
 		      // if src is not valid, fill with silence
-		      pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask] = 0.0;
+		      pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask] = 0.0f;
 		      //DBG(fprintf(stderr, "srcloop invalid\n"));
 	      }
 	      else {
@@ -1498,7 +1498,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	   switch(pLS->state) {
 	      case STATE_RECORD:
 		      
-		      if (fSyncMode == 0.0f && (fTrigThresh==0.0)) {
+		      if (fSyncMode == 0.0f && (fTrigThresh==0.0f)) {
 			      // skip trig stop
 			      pLS->state = STATE_PLAY;
 			      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
@@ -2314,8 +2314,8 @@ runSooperLooper(LADSPA_Handle Instance,
 	      fScratchPos += scratchDelta;
 	      
 	      fInputSample = pfInput[lSampleIndex];
-	      if ((fSyncMode == 0.0f && ((fInputSample > fTrigThresh) || (fTrigThresh==0.0)))
-		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0))
+	      if ((fSyncMode == 0.0f && ((fInputSample > fTrigThresh) || (fTrigThresh==0.0f)))
+		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0f))
 	      {
 		 
 		 loop = pushNewLoopChunk(pLS, 0, NULL);
@@ -2453,7 +2453,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
 	      // exit immediately if syncmode is off, or we have a sync
 	      if ((fSyncMode == 0.0f)
- 		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0))
+ 		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0f))
 	      {
 		      DBG(fprintf(stderr,"Entering %d state at %u\n", pLS->nextState, lCurrPos));
 		 //pLS->state = pLS->nextState;
@@ -2588,7 +2588,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 loop->dCurrPos = loop->dCurrPos + fRate;
 
 		 //if (fSyncMode != 0.0 && pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
-		 if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
+		 if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0f) {
 		       // commit the new rate at boundary (quantized)
 		       pLS->fCurrRate = pLS->fNextCurrRate;
 		       pLS->fNextCurrRate = 0.0f;
