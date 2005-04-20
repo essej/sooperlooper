@@ -54,14 +54,20 @@ class TimePanel
 	void init();
 	
 	void format_time(wxString & timestr, float val);
-	void draw_area(wxDC & dc);
-
+	void draw_area();
+	void do_redraw();
+	
 	void update_cyc();
 
 	void normalize_font_size(wxFont & fnt, int width, int height, wxString fitstr);
 
 	void update_size();
 	void calc_text_extents();
+
+	void draw_other();
+	void draw_pos();
+	void draw_state();
+	void draw_cycle();
 	
 	LoopControl * _loop_control;
 
@@ -113,6 +119,8 @@ class TimePanel
 	wxMemoryDC _cycdc;
 
 	wxCoord _sw, _sh, _tw, _th, _pw, _ph, _mh, _mw, _ww, _wh;
+
+	int _curr_ccnt, _curr_currc;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

@@ -174,6 +174,8 @@ typedef struct {
 
 	int nextState;
 
+	bool wasMuted;
+	
 	int waitingForSync;
 	
 	long lLastMultiCtrl;

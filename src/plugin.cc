@@ -456,6 +456,7 @@ instantiateSooperLooper(const LADSPA_Descriptor * Descriptor,
    //pLS->lCurrPos = 0;
 
    pLS->state = STATE_PLAY;
+   pLS->wasMuted = false;
 
    DBG(fprintf(stderr,"instantiated with buffersize: %lu\n", pLS->lBufferSize));
 
@@ -527,7 +528,9 @@ activateSooperLooper(LADSPA_Handle Instance) {
   //pLS->fLoopXfadeSamples = 0.002 * pLS->fSampleRate;
   
   pLS->state = STATE_PLAY;
-
+  pLS->nextState = -1;
+  pLS->wasMuted = false;
+  
   clearLoopChunks(pLS);
 
 
@@ -1205,11 +1208,13 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
 	      pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
 	      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 	      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+	      pLS->wasMuted = false;
 	      break;
       case STATE_MUTE:
 	      pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
 	      pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 	      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+	      pLS->wasMuted = true;
 	      break;
 
       case STATE_OVERDUB:
@@ -1244,6 +1249,7 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
 	      if (loop) {
 		      pLS->state = STATE_PLAY;
 		      nextstate = STATE_PLAY;
+		      pLS->wasMuted = false;
 		      if (pLS->fCurrRate > 0)
 			      loop->dCurrPos = 0.0;
 		      else
@@ -1273,6 +1279,7 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
    else {
       DBG(fprintf(stderr,"Next state is -1?? Why?\n"));
       pLS->state = STATE_PLAY;
+      pLS->wasMuted = false;
    }
    
    return newloop;
@@ -1501,6 +1508,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		      if (fSyncMode == 0.0f && (fTrigThresh==0.0f)) {
 			      // skip trig stop
 			      pLS->state = STATE_PLAY;
+			      pLS->wasMuted = false;
 			      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 			      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 		      }
@@ -1526,6 +1534,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 			      
 		    pLS->state = STATE_PLAY;
+		    pLS->wasMuted = false;
 		    DBG(fprintf(stderr,"Entering PLAY state after Multiply NEW loop\n"));
 
 		 }
@@ -1551,6 +1560,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 		    
 		    pLS->state = STATE_PLAY;
+		    pLS->wasMuted = false;
 		    DBG(fprintf(stderr,"Entering PLAY state after Multiply NEW loop\n"));
 
 		 }
@@ -1579,6 +1589,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_OVERDUB:
 		      // don't sync overdub ops
 		      pLS->state = STATE_PLAY;
+		      pLS->wasMuted = false;
 		      DBG(fprintf(stderr,"Entering PLAY state\n"));
 		      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
@@ -1772,6 +1783,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_REPLACE:
 		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
 			      pLS->state = STATE_PLAY;
+			      pLS->wasMuted = false;
 			      DBG(fprintf(stderr,"Entering PLAY state\n"));
 			      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 			      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
@@ -1838,6 +1850,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_SUBSTITUTE:
 		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
 			      pLS->state = STATE_PLAY;
+			      pLS->wasMuted = false;
 			      DBG(fprintf(stderr,"Entering PLAY state\n"));
 			      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 			      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
@@ -1900,6 +1913,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	       case STATE_ONESHOT:
 		 // this enters play mode but from the continuous position
 		 pLS->state = STATE_PLAY;
+		 pLS->wasMuted = false;
 		 DBG(fprintf(stderr,"Entering PLAY state continuous\n"));
 		 pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 
@@ -1936,6 +1950,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
 		 pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		 pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+		 pLS->wasMuted = true;
 
 	   }
 
@@ -2013,6 +2028,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	   switch(pLS->state) {
 	      case STATE_SCRATCH:
 		 pLS->state = STATE_PLAY;
+		 pLS->wasMuted = false;
 		 DBG(fprintf(stderr,"Entering PLAY state\n"));
 		 break;
 
@@ -2020,6 +2036,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_ONESHOT:		 
 		 // this restarts the loop from beginnine
 		 pLS->state = STATE_PLAY;
+		 pLS->wasMuted = false;
 		 if (loop) {
 		    loop->dCurrPos = 0.0f;
 		 }
@@ -2082,25 +2099,48 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_REPLACE:
 	      case STATE_SUBSTITUTE:
 	      case STATE_DELAY:
-		 // POP the head off and start the previous
-		 // one at the same position if possible
-		 if (loop) {
-		    undoLoop(pLS);
-		 }
-		 
-		 // cancel whatever mode, back to play mode
-		 pLS->state = STATE_PLAY;
-		 pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
-		 pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
-		 pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
-		 DBG(fprintf(stderr,"Undoing and reentering PLAY state from UNDO\n"));
-		 break;
-
-
+		      // POP the head off and start the previous
+		      // one at the same position if possible
+		      
+		      if (pLS->waitingForSync) {
+			      // don't undo loop
+			      // just return to play (or mute)
+			      pLS->waitingForSync = 0;
+			      pLS->nextState = -1;
+		      }
+		      else if (pLS->fNextCurrRate != 0.0f) {
+			      // undo pending reverse
+			      pLS->fNextCurrRate = 0.0f;
+		      }
+		      else if (loop) {
+			      undoLoop(pLS);
+		      }
+		      
+		      // cancel whatever mode, back to play mode
+		      pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
+		      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+		      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+		      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+		      DBG(fprintf(stderr,"Undoing and reentering PLAY state from UNDO\n"));
+		      break;
+		      
+		      
 	      case STATE_MUTE:
 		 // undo ALL)
-		 clearLoopChunks(pLS);
-		 DBG(fprintf(stderr,"UNDO all loops\n"));
+		      if (pLS->waitingForSync) {
+			      // don't undo loop
+			      // just return to play (or mute)
+			      pLS->waitingForSync = 0;
+			      pLS->nextState = -1;
+		      }
+		      else if (pLS->fNextCurrRate != 0.0f) {
+			      // undo pending reverse
+			      pLS->fNextCurrRate = 0.0f;
+		      }
+		      else {
+			      clearLoopChunks(pLS);
+			      DBG(fprintf(stderr,"UNDO all loops\n"));
+		      }
 		 break;
 		 
 	   }
@@ -2127,7 +2167,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		 pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 		 
-		 pLS->state = STATE_PLAY;
+		 pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
 		 DBG(fprintf(stderr,"Entering PLAY state from REDO\n"));
 		 break;
 	   }
@@ -2144,6 +2184,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // and starts playing in reverse
 		 fRate = pLS->fCurrRate *= -1.0f;
 		 pLS->state = STATE_PLAY;
+		 pLS->wasMuted = false;
 		 DBG(fprintf(stderr,"Entering PLAY state by reversing\n"));
 		 break;
 	       case STATE_MULTIPLY:
@@ -2346,6 +2387,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 else {
 		    DBG(fprintf(stderr, "out of memory! back to PLAY mode\n"));
 		    pLS->state = STATE_PLAY;
+		    pLS->wasMuted = false;
 		 }
 
 		 break;
@@ -2365,6 +2407,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		   DBG(fprintf(stderr, "Entering PLAY state -- END of memory asdhsd! %08x\n",
 			       (unsigned) (pLS->pSampleBuf + pLS->lBufferSize) ));
 		   pLS->state = STATE_PLAY;
+		   pLS->wasMuted = false;
 		   goto passthrough;
    	   }
 		
@@ -2660,6 +2703,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		      else {
 			      pLS->rounding = false;
 			      pLS->state = STATE_PLAY;
+			      pLS->wasMuted = false;
 			      undoLoop(pLS);
 			      goto passthrough;
 		      }
@@ -2805,6 +2849,7 @@ runSooperLooper(LADSPA_Handle Instance,
 				 // out of space! give up for now!
 				 // undo!
 				 pLS->state = STATE_PLAY;
+				 pLS->wasMuted = false;
 				 undoLoop(pLS);
 				 DBG(fprintf(stderr,"dfMultiply Undone! Out of memory!\n"));
 				 break;
@@ -2941,6 +2986,7 @@ runSooperLooper(LADSPA_Handle Instance,
 				 // out of space! give up for now!
 				 pLS->rounding = false;
 				 pLS->state = STATE_PLAY;
+				 pLS->wasMuted = false;
 				 //undoLoop(pLS);
 				 DBG(fprintf(stderr,"Insert finish early! Out of memory!\n"));
 				 break;

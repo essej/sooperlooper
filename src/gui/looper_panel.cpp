@@ -915,6 +915,13 @@ LooperPanel::update_state()
 	_waiting = (val > 0.0f) ? true : false;
 	
 
+	if (!_waiting && _flashing_button) {
+		// clear flashing
+		_flashing_button->set_active(false);
+		_flashing_button = 0;
+	}
+		
+	
 	//_rate_button->Enable(false);
 	
 	// set not active for all state buttons
@@ -1062,8 +1069,6 @@ LooperPanel::update_state()
 	}
 	else {
 
-		_flashing_button = 0;
-		
 		if (_flash_timer->IsRunning()) {
 			_flash_timer->Stop();
 

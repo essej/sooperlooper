@@ -41,6 +41,7 @@ TimePanel::TimePanel(LoopControl * control, wxWindow * parent, wxWindowID id, co
 	_backing_store = 0;
 	update_size();
 	init();
+	draw_area();
 }
 
 TimePanel::~TimePanel()
@@ -62,6 +63,9 @@ TimePanel::init()
 {
 	SetThemeEnabled(false);
 
+	_curr_ccnt = -1;
+	_curr_currc = -1;
+	
 	_transbrush.SetStyle(wxTRANSPARENT);
 
 	_bgcolor.Set(34, 49, 71);
@@ -76,7 +80,7 @@ TimePanel::init()
 	_pos_font.SetPointSize(10);
 	normalize_font_size(_pos_font, 110, 40, wxT("00:00.00"));
 
-       	_pos_bm = new wxBitmap(110,40); 
+       	_pos_bm = new wxBitmap(110,30); 
 	_posdc.SelectObject(*_pos_bm);
 	_posdc.SetFont(_pos_font);
  	_posdc.SetTextForeground(_pos_color);
@@ -187,12 +191,26 @@ TimePanel::update_cyc()
 		int currc = (int) ceilf (lpos / (clen));
 		if (currc > cntc) currc = cntc;
 
-		_cyc_cnt_str.Printf(wxT("%2d"), cntc);
-		_cyc_curr_str.Printf(wxT("%2d"), currc);
+		if (cntc != _curr_ccnt || currc != _curr_currc) {
+			_curr_ccnt = cntc;
+			_curr_currc = currc;
+			
+			_cyc_cnt_str.Printf(wxT("%2d"), cntc);
+			_cyc_curr_str.Printf(wxT("%2d"), currc);
+
+			draw_cycle();
+		}
 	}
 	else {
 		_cyc_curr_str.Printf(wxT("-"));
 		_cyc_cnt_str.Printf(wxT("-"));
+
+		if (_curr_currc != 0 || _curr_ccnt != 0) {
+			_curr_currc = 0;
+			_curr_ccnt = 0;
+			draw_cycle();
+		}
+
 	}
 }
 
@@ -202,18 +220,23 @@ TimePanel::update_time()
 	float val;
 	bool ret = false;
 	bool up_cyc = false;
-
+	bool up_other = false;
+	bool up_pos = false;
+	bool up_state = false;
+	
 	if (_loop_control->is_updated(_index, wxT("loop_pos"))) {
 		_loop_control->get_value(_index, wxT("loop_pos"), val);
 		format_time (_pos_str, val);
 		ret = true;
 		up_cyc = true;
+		up_pos = true;
 	}
 
 	if (_loop_control->is_updated(_index, wxT("loop_len"))) {
 		_loop_control->get_value(_index, wxT("loop_len"), val);
 		format_time (_tot_str, val);
 		up_cyc = true;
+		up_other = true;
 		ret = true;
 	}
 
@@ -234,12 +257,14 @@ TimePanel::update_time()
 		_loop_control->get_value(_index, wxT("total_time"), val);
 		format_time (_mem_str, val);
 		ret = true;
+		up_other = true;
 	}
 
 	if (_loop_control->is_updated(_index, wxT("waiting"))) {
 		_loop_control->get_value(_index, wxT("waiting"), val);
 		_waiting = (val > 0.0f) ? true : false;
 		ret = true;
+		up_state = true;
 	}
 	
 	if (_loop_control->is_updated(_index, wxT("state"))) {
@@ -247,10 +272,23 @@ TimePanel::update_time()
 		_loop_control->get_state(_index, tmpstate, _state_str);
 		calc_text_extents();
 		ret = true;
+		up_state = true;
 	}
 
 	if (up_cyc) {
 		update_cyc();
+	}
+
+	if (up_other) {
+		draw_other();
+	}
+
+	if (up_state) {
+		draw_state();
+	}
+
+	if (up_pos) {
+		draw_pos();
 	}
 	
 	return ret;
@@ -280,15 +318,27 @@ TimePanel::OnSize (wxSizeEvent &ev)
 }
 
 void
+TimePanel::do_redraw ()
+{
+	if (!_backing_store) {
+		return;
+	}
+
+	draw_area();
+	Refresh(false);
+}
+
+
+void
 TimePanel::OnPaint(wxPaintEvent &ev)
 {
  	wxPaintDC pdc(this);
 
-	if (!_backing_store) {
-		return;
-	}
+// 	if (!_backing_store) {
+// 		return;
+// 	}
 	
- 	draw_area(_memdc);
+//  	draw_area(_memdc);
 
  	pdc.Blit(0, 0, _width, _height, &_memdc, 0, 0);
 }
@@ -305,93 +355,104 @@ TimePanel::calc_text_extents()
 }
 
 void
-TimePanel::draw_area(wxDC & dc)
+TimePanel::draw_other()
 {
-	//wxCoord sw=0, sh=0, tw=0, th=0, w=0, h=0;
-	// wxCoord cw=0, ch=0, rw=0, rh=0;
+	// other times
+ 	_otherdc.SetTextForeground(_time_color);
+	_otherdc.Clear();
+	
+ 	_otherdc.DrawText (_tot_str, _other_bm->GetWidth() - _tw, 0);
+	
+	
+ 	_otherdc.DrawText (_cyc_str, _other_bm->GetWidth() - _tw, 2 + _th);
 
-	dc.SetBackground(_bgbrush);
-	dc.Clear();
+// 	// rem time
+ 	//_otherdc.DrawText (_rem_str, _other_bm->GetWidth() - tw, 10 + th + th);
+	_otherdc.DrawText (_mem_str, _other_bm->GetWidth() - _tw, 10 + _th + _th);
+	
+	// legends
+ 	_otherdc.SetTextForeground(_legend_color);
 
-	// main pos
+ 	_otherdc.DrawText (wxT("tot"), _other_bm->GetWidth() - _tw - _mw + 6, 0);
+	
+	
+ 	_otherdc.DrawText (wxT("cyc"), _other_bm->GetWidth() - _tw - _mw + 6, 2 + _th);
 
-// 	dc.SetFont(_pos_font);
-// 	dc.SetTextForeground(_pos_color);
-// 	dc.DrawText (_pos_str, 5, 3);
+ 	_otherdc.DrawText (wxT("mem"), _other_bm->GetWidth() - _tw - _mw - 5, 10 + _th + _th);
+
+	_memdc.Blit (120, 5, _other_bm->GetWidth(), _other_bm->GetHeight(), &_otherdc, 0, 0);
+
+
+	// sadly we have to draw cycle too, because it can overlap
+	draw_cycle();
+}
+
+
+void
+TimePanel::draw_pos()
+{
 	_posdc.Clear();
  	_posdc.DrawText (_pos_str, 0, 0);
 
-	dc.Blit (5,3, _pos_bm->GetWidth(), _pos_bm->GetHeight(), &_posdc, 0, 0);
+	_memdc.Blit (5,3, _pos_bm->GetWidth(), _pos_bm->GetHeight(), &_posdc, 0, 0);
+}
 
-	// state
-// 	dc.SetFont(_state_font);
-// 	dc.SetTextForeground(_state_color);
-// 	dc.GetTextExtent(_state_str, &sw, &sh);
-// 	dc.DrawText (_state_str, 5, _height - sh - 5);
+void
+TimePanel::draw_state()
+{
+	if (!_waiting) {
+		_waitdc.Clear();
+		_memdc.Blit (5, _ph , _ww, _wh, &_waitdc, 0, 0);
+	}
+
 	_statedc.Clear();
  	_statedc.DrawText (_state_str, 0, 0);
-	dc.Blit (5, _height - _sh - 5, _state_bm->GetWidth(), _state_bm->GetHeight(), &_statedc, 0, 0);
+	_memdc.Blit (5, _height - _sh - 5, _state_bm->GetWidth(), _state_bm->GetHeight(), &_statedc, 0, 0);
 
-	
 	// waiting string
 	if (_waiting) {
 		_waitdc.Clear();
 		//dc.SetFont(_legend_font);
 		//dc.DrawText (wxT("waiting for sync"), 5, _height - sh - 17);
 		_waitdc.DrawText (wxT("waiting for sync"), 0, 0);
-		dc.Blit (5, _ph , _ww, _wh, &_waitdc, 0, 0);
+		_memdc.Blit (5, _ph , _ww, _wh, &_waitdc, 0, 0);
 	}
-	
-	// other times
-// 	dc.SetFont(_time_font);
-// 	dc.SetTextForeground(_time_color);
- 	_otherdc.SetTextForeground(_time_color);
-	_otherdc.Clear();
-	
-// 	dc.GetTextExtent(_tot_str, &tw, &th);
-// 	dc.DrawText (_tot_str, _width - tw - 5, 5);
+}
 
- 	_otherdc.DrawText (_tot_str, _other_bm->GetWidth() - _tw, 0);
-	
-	
-// 	dc.GetTextExtent(_cyc_str, &cw, &ch);
-// 	dc.DrawText (_cyc_str, _width - cw - 5, 5 + th);
- 	_otherdc.DrawText (_cyc_str, _other_bm->GetWidth() - _tw, 2 + _th);
-
-// 	// rem time
-// 	dc.GetTextExtent(_rem_str, &rw, &rh);
-// 	dc.DrawText (_rem_str, _width - rw - 5, _height - rh - 5);
- 	//_otherdc.DrawText (_rem_str, _other_bm->GetWidth() - tw, 10 + th + th);
-	_otherdc.DrawText (_mem_str, _other_bm->GetWidth() - _tw, 10 + _th + _th);
-	
-	// legends
-// 	dc.SetFont(_legend_font);
-// 	dc.SetTextForeground(_legend_color);
- 	_otherdc.SetTextForeground(_legend_color);
-
-// 	dc.GetTextExtent(wxT("tot"), &w, &h);
-// 	dc.DrawText (wxT("tot"), _width - tw - w - 10, 5);
- 	_otherdc.DrawText (wxT("tot"), _other_bm->GetWidth() - _tw - _mw + 6, 0);
-	
-	
-// 	dc.GetTextExtent(wxT("cyc"), &w, &h);
-// 	dc.DrawText (wxT("cyc"), _width - cw - w - 10, 5 + th);
- 	_otherdc.DrawText (wxT("cyc"), _other_bm->GetWidth() - _tw - _mw + 6, 2 + _th);
-
-// 	dc.GetTextExtent(wxT("rem"), &w, &h);
-// 	dc.DrawText (wxT("rem"), _width - rw - w - 10, _height - rh - 5);
- 	_otherdc.DrawText (wxT("mem"), _other_bm->GetWidth() - _tw - _mw - 5, 10 + _th + _th);
-
-	dc.Blit (120, 5, _other_bm->GetWidth(), _other_bm->GetHeight(), &_otherdc, 0, 0);
-
-
+void
+TimePanel::draw_cycle()
+{
+	// draw it
 	_cycdc.Clear();
  	_cycdc.DrawText (_cyc_curr_str, 0, 0);
  	_cycdc.DrawText (_cyc_cnt_str,  0, 18);
 
 	_cycdc.DrawLine (5, 17, 13, 17);
 
-	dc.Blit (_pos_bm->GetWidth() + 3, 2, _cyc_bm->GetWidth(), _cyc_bm->GetHeight(),  &_cycdc, 0, 0);
+	_memdc.Blit (_pos_bm->GetWidth() + 3, 2, _cyc_bm->GetWidth(), _cyc_bm->GetHeight(),  &_cycdc, 0, 0);
+}
+
+void
+TimePanel::draw_area()
+{
+	//wxCoord sw=0, sh=0, tw=0, th=0, w=0, h=0;
+	// wxCoord cw=0, ch=0, rw=0, rh=0;
+
+	_memdc.SetBackground(_bgbrush);
+	_memdc.Clear();
+
+	// main pos
+
+	draw_pos();
 	
+	// state
+
+	draw_state();
+	
+	// other times
+
+	draw_other();
+
+	draw_cycle();
 	
 }
