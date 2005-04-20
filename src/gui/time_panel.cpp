@@ -80,7 +80,7 @@ TimePanel::init()
 	_pos_font.SetPointSize(10);
 	normalize_font_size(_pos_font, 110, 40, wxT("00:00.00"));
 
-       	_pos_bm = new wxBitmap(110,30); 
+       	_pos_bm = new wxBitmap(110,25); 
 	_posdc.SelectObject(*_pos_bm);
 	_posdc.SetFont(_pos_font);
  	_posdc.SetTextForeground(_pos_color);
@@ -314,6 +314,7 @@ void
 TimePanel::OnSize (wxSizeEvent &ev)
 {
 	update_size();
+	do_redraw();
 	ev.Skip();
 }
 
