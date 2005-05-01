@@ -661,7 +661,7 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
 
 
 
-static void fillLoops(SooperLooperI *pLS, LoopChunk *mloop, unsigned long lCurrPos)
+static inline void fillLoops(SooperLooperI *pLS, LoopChunk *mloop, unsigned long lCurrPos)
 {
    LoopChunk *loop=NULL, *nloop, *srcloop;
 

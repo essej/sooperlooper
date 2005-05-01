@@ -61,7 +61,7 @@ Transmitter  error (Transmitter::Error);
 #define DEFAULT_LOOP_TIME 40.0f
 
 
-char *optstring = "c:l:j:p:m:t:U:S:D:qVh";
+char *optstring = "c:l:j:p:m:t:U:S:D:L:qVh";
 
 struct option long_options[] = {
 	{ "help", 0, 0, 'h' },
@@ -69,6 +69,7 @@ struct option long_options[] = {
 	{ "channels", 1, 0, 'c' },
 	{ "loopcount", 1, 0, 'l' },
 	{ "looptime", 1, 0, 't' },
+	{ "load-session", 1, 0, 'L' },
 	{ "discrete-io", 1, 0, 'D' },
 	{ "osc-port", 1, 0, 'p' },
 	{ "jack-name", 1, 0, 'j' },
@@ -100,6 +101,7 @@ struct OptionInfo
 	int show_usage;
 	int show_version;
 	string pingurl;
+	string loadsession;
 };
 
 
@@ -114,6 +116,7 @@ static void usage(char *argv0)
 	fprintf(stderr, "  -l <num> , --loopcount=<num> number of loopers to create (default is 1)\n");
 	fprintf(stderr, "  -c <num> , --channels=<num>  channel count for each looper (default is 2)\n");
 	fprintf(stderr, "  -t <numsecs> , --looptime=<num>  number of seconds of loop memory per channel (default is %g), at least\n", DEFAULT_LOOP_TIME);
+	fprintf(stderr, "  -L <pathname> , --load-session=<pathname> load initial session from pathname\n");
 	fprintf(stderr, "  -D <yes/no>, --discrete-io=[yes]  initial loops should have discrete input and output ports (default yes)\n");
 	fprintf(stderr, "  -p <num> , --osc-port=<num>  udp port number for OSC server (default is %d)\n", DEFAULT_OSC_PORT);
 	fprintf(stderr, "  -j <str> , --jack-name=<str> jack client name, default is sooperlooper_1\n");
@@ -175,6 +178,9 @@ static void parse_options (int argc, char **argv, OptionInfo & option_info)
 			break;
 		case 'U':
 			option_info.pingurl = optarg;
+			break;
+		case 'L':
+			option_info.loadsession = optarg;
 			break;
 		default:
 			fprintf (stderr, "argument error: %d\n", c);
@@ -325,11 +331,17 @@ int main(int argc, char** argv)
 		//cerr << "OSC server URI (local unix socket) is: " << engine->get_osc_url(false) << endl;
 	}
 	
-
- 	for (int i=0; i < option_info.loop_count; ++i)
-	{
-		engine->add_loop ((unsigned int) option_info.channels, option_info.loopsecs, option_info.discrete_io);
+	if (option_info.loadsession.empty()) {
+		for (int i=0; i < option_info.loop_count; ++i)
+		{
+			engine->add_loop ((unsigned int) option_info.channels, option_info.loopsecs, option_info.discrete_io);
+		}
 	}
+	else {
+		// load session instead
+		engine->load_session (option_info.loadsession);
+	}
+
 	// set default sync source
 	if (option_info.loop_count > 0) {
 		engine->push_nonrt_event ( new GlobalSetEvent ("sync_source", 1.0f));
@@ -363,6 +375,7 @@ int main(int argc, char** argv)
 		engine->set_midi_bridge(midibridge);
 	}
 
+	engine->save_session("SLsession.xml");
 	
 	// go into engine's non-rt event loop
 	// this returns when we quit or signal handler causes it to

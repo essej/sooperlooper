@@ -93,6 +93,9 @@ class LoopControl
 
 	bool post_save_loop(int index, wxString fname, wxString format=wxT("float"), wxString endian=wxT("little"));
 	bool post_load_loop(int index, wxString fname);
+
+	bool post_save_session(wxString fname);
+	bool post_load_session(wxString fname);
 	
 	bool is_engine_local();
 	wxString get_engine_host() { return _host; }

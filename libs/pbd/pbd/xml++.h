@@ -101,7 +101,7 @@ public:
   XMLProperty *add_property(const string &, const string & = string());
   void remove_property(const string &);
 
-  XMLNode * find_named_node (const string & name);
+  XMLNode * find_named_node (const string & name) const;
 
   /** Remove all nodes with the name passed to remove_nodes */
   void remove_nodes(const string &);

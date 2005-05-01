@@ -69,6 +69,8 @@ enum {
 	ID_ConnectionMenu,
 	ID_KeybindingsMenu,
 	ID_MidiBindingsMenu,
+	ID_LoadSession,
+	ID_SaveSession,
 	ID_Quit,
 	ID_QuitStop,
 	ID_AddLoop,
@@ -117,6 +119,10 @@ BEGIN_EVENT_TABLE(GuiFrame, wxFrame)
 	EVT_MENU(ID_KeybindingsMenu, GuiFrame::on_view_menu)
 	EVT_MENU(ID_MidiBindingsMenu, GuiFrame::on_view_menu)
 	EVT_MENU(ID_ConnectionMenu, GuiFrame::on_view_menu)
+
+	EVT_MENU(ID_LoadSession, GuiFrame::on_load_session)
+	EVT_MENU(ID_SaveSession, GuiFrame::on_save_session)
+
 	
 END_EVENT_TABLE()
 
@@ -328,6 +334,11 @@ GuiFrame::init()
 
 	wxMenu *menuFile = new wxMenu(wxT(""));
 
+	menuFile->Append(ID_LoadSession, wxT("Load Session\tCtrl-L"), wxT("Load session"));
+	menuFile->Append(ID_SaveSession, wxT("Save Session\tCtrl-P"), wxT("Save session"));
+
+	menuFile->AppendSeparator();
+	
 	//menuFile->Append(ID_AddLoop, wxT("Add Default Loop"), wxT("Add one default loop"));
 	menuFile->Append(ID_AddMonoLoop, wxT("Add Mono Loop\tCtrl-1"), wxT("Add one default mono loop"));
 	menuFile->Append(ID_AddStereoLoop, wxT("Add Stereo Loop\tCtrl-2"), wxT("Add one default stereo loop"));
@@ -344,7 +355,7 @@ GuiFrame::init()
 	menuFile->Append(ID_Quit, wxT("Quit but Leave Engine Running\tCtrl-Shift-Q"), wxT("Exit from GUI and leave engine running"));
 	menuFile->Append(ID_QuitStop, wxT("Quit and Stop Engine\tCtrl-Q"), wxT("Exit from GUI and stop engine"));
 	
-	menuBar->Append(menuFile, wxT("&Control"));
+	menuBar->Append(menuFile, wxT("&Session"));
 	
 
 	wxMenu *menuHelp = new wxMenu(wxT(""));
@@ -1147,31 +1158,18 @@ void GuiFrame::misc_action (bool release, wxString cmd)
 			index = 0;
 		}
 
-		::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
+
+		wxString filename = get_keyboard().do_file_selector (wxT("Choose file to save loop"), wxT("wav"), wxT("*.*"),  wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
 		
-		// popup local file dialog if we are local
-		if (_loop_control->is_engine_local()) {
-
-			wxString filename = ::wxFileSelector(wxT("Choose file to save loop"), wxT(""), wxT(""), wxT(".wav"), wxT("*.*"), wxSAVE|wxCHANGE_DIR);
-			if ( !filename.empty() )
-			{
-				// todo: specify format
-				_loop_control->post_save_loop (index, filename);
+		if ( !filename.empty() )
+		{
+			// add .wav if there isn't one already
+			if (filename.size() <= 4 || (filename.size() > 4 && filename.substr(filename.size() - 4, 4) != wxT(".wav"))) {
+				filename += wxT(".wav");
 			}
+			// todo: specify format
+			_loop_control->post_save_loop (index, filename);
 		}
-		else {
-			// popup basic filename text entry
-			wxString filename = ::wxGetTextFromUser(wxString::Format(wxT("Choose file to save on remote host '%s'"),
-										 _loop_control->get_engine_host().c_str())
-								, wxT("Save Loop"));
-
-			if (!filename.empty()) {
-				// todo: specify format
-				_loop_control->post_save_loop (index, filename);
-			}
-		}
-
-		::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
 		
 	}
 	else if (cmd == wxT("load"))
@@ -1180,28 +1178,12 @@ void GuiFrame::misc_action (bool release, wxString cmd)
 			index = 0;
 		}
 
-		::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
+		wxString filename = get_keyboard().do_file_selector (wxT("Choose file to open"), wxT(""), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
 		
-		if (_loop_control->is_engine_local()) {
-
-			wxString filename = wxFileSelector(wxT("Choose file to open"), wxT(""), wxT(""), wxT(""), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
-			if ( !filename.empty() )
-			{
-				_loop_control->post_load_loop (index, filename);
-			}
+		if ( !filename.empty() )
+		{
+			_loop_control->post_load_loop (index, filename);
 		}
-		else {
-			// popup basic filename text entry
-			wxString filename = ::wxGetTextFromUser(wxString::Format("Choose file to load on remote host '%s'",
-										 _loop_control->get_engine_host().c_str())
-								, wxT("Save Loop"));
-
-			if (!filename.empty()) {
-				// todo: specify format
-				_loop_control->post_load_loop (index, filename);
-			}
-		}
-		::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
 
 	}
 }
@@ -1305,6 +1287,33 @@ void GuiFrame::set_curr_loop (int index)
 		}
 	}
 }
+
+void GuiFrame::on_load_session (wxCommandEvent &ev)
+{
+	wxString filename = get_keyboard().do_file_selector (wxT("Choose session to load"), wxT("*.slsess"), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
+	
+	if ( !filename.empty() )
+	{
+		_loop_control->post_load_session (filename);
+	}
+
+}
+
+void GuiFrame::on_save_session (wxCommandEvent &ev)
+{
+	wxString filename = get_keyboard().do_file_selector (wxT("Choose file to save session"), wxT("slsess"), wxT("*.*"), wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
+	
+	if ( !filename.empty() )
+	{
+		// add .slsession if there isn't one already
+		if (filename.size() <= 7 || (filename.size() > 7 && filename.substr(filename.size() - 7, 7) != wxT(".slsess"))) {
+			filename += wxT(".slsess");
+		}
+		_loop_control->post_save_session (filename);
+	}
+
+}
+
 
 
 // @@@@@@@@@@@@@@@@@@@2

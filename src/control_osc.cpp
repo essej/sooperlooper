@@ -61,6 +61,7 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 	_osc_server = 0;
 	_osc_unix_server = 0;
 	_osc_thread = 0;
+	_max_instance = 0;
 	
 	for (int j=0; j < 20; ++j) {
 		snprintf(tmpstr, sizeof(tmpstr), "%d", _port);
@@ -148,6 +149,12 @@ ControlOSC::register_callbacks()
 		lo_server_add_method(serv, "/loop_add", "if", ControlOSC::_loop_add_handler, this);
 		lo_server_add_method(serv, "/loop_add", "ifi", ControlOSC::_loop_add_handler, this);
 
+		// load session:  s:filename  s:returl  s:retpath
+		lo_server_add_method(serv, "/load_session", "sss", ControlOSC::_load_session_handler, this);
+
+		// save session:  s:filename  s:returl  s:retpath
+		lo_server_add_method(serv, "/save_session", "sss", ControlOSC::_save_session_handler, this);
+		
 		// add loop del handler:  i:index 
 		lo_server_add_method(serv, "/loop_del", "i", ControlOSC::_loop_del_handler, this);
 
@@ -268,7 +275,7 @@ ControlOSC::poke_osc_thread ()
 
 
 void
-ControlOSC::on_loop_added (int instance)
+ControlOSC::on_loop_added (int instance, bool sendupdate)
 {
 	// will be called from main event loop
 
@@ -279,6 +286,14 @@ ControlOSC::on_loop_added (int instance)
 	lo_server srvs[2];
 	lo_server serv;
 
+	if (instance < _max_instance) {
+		// already added this method
+		if (sendupdate) {
+			send_all_config();
+		}
+		return;
+	}
+	
 	srvs[0] = _osc_server;
 	srvs[1] = _osc_unix_server;
 	
@@ -329,8 +344,12 @@ ControlOSC::on_loop_added (int instance)
 		lo_server_add_method(serv, tmpstr, "sss", ControlOSC::_unregister_auto_update_handler, new CommandInfo(this, instance, Event::type_control_request));
 
 	}
+
+	_max_instance = instance + 1;
 	
-	send_all_config();
+	if (sendupdate) {
+		send_all_config();
+	}
 }
 
 void
@@ -572,6 +591,17 @@ int ControlOSC::_loop_del_handler(const char *path, const char *types, lo_arg **
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->loop_del_handler (path, types, argv, argc, data);
+}
+
+int ControlOSC::_load_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
+{
+	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
+	return osc->load_session_handler (path, types, argv, argc, data);
+}
+int ControlOSC::_save_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
+{
+	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
+	return osc->save_session_handler (path, types, argv, argc, data);
 }
 
 int ControlOSC::_register_config_handler(const char *path, const char *types, lo_arg **argv, int argc,
@@ -942,6 +972,36 @@ int ControlOSC::loop_del_handler(const char *path, const char *types, lo_arg **a
 	return 0;
 }
 
+
+int ControlOSC::load_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+{
+
+	// first arg is fname, 2nd is return URL string 3rd is retpath
+	string fname (&argv[0]->s);
+	string returl (&argv[1]->s);
+	string retpath (&argv[2]->s);
+
+	// push this onto a queue for the main event loop to process
+	_engine->push_nonrt_event ( new SessionEvent (SessionEvent::Load, fname, returl, retpath));
+	
+	return 0;
+}
+
+int ControlOSC::save_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+{
+
+	// first arg is fname, 2nd is return URL string 3rd is retpath
+	string fname (&argv[0]->s);
+	string returl (&argv[1]->s);
+	string retpath (&argv[2]->s);
+
+	// push this onto a queue for the main event loop to process
+	_engine->push_nonrt_event ( new SessionEvent (SessionEvent::Save, fname, returl, retpath));
+	
+	return 0;
+}
+
+
 int ControlOSC::loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
 {
 
@@ -1307,7 +1367,7 @@ ControlOSC::send_registered_updates(string ctrl, float val, int instance, int so
 	InstancePair ipair(instance, ctrl);
 	ControlRegistrationMap::iterator iter = _registration_map.find (ipair);
 	LastValueMap::iterator lastval;
-	
+
 	if (iter != _registration_map.end())
 	{
 		if ( ! send_registered_updates (iter, ctrl, val, instance, source)) {

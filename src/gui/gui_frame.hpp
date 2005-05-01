@@ -117,6 +117,9 @@ protected:
 
 	void on_about (wxCommandEvent &ev);
 	void on_help (wxCommandEvent &ev);
+
+	void on_load_session (wxCommandEvent &ev);
+	void on_save_session (wxCommandEvent &ev);
 	
 	void on_taptempo_press (int button);
 	void on_taptempo_release (int button);
@@ -130,7 +133,7 @@ protected:
 	void on_connection_lost (const std::string & msg);
 	void on_engine_alive ();
 	void on_error_received (const std::string & msg);
-	
+
 	LoopControl * _loop_control;
 	SigC::Connection  _loop_update_connection;
 	

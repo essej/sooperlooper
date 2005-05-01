@@ -41,6 +41,7 @@
 #include "engine.hpp"
 #include "utils.hpp"
 #include "panner.hpp"
+#include "command_map.hpp"
 
 using namespace std;
 using namespace SooperLooper;
@@ -58,10 +59,33 @@ static const int SrcAudioQuality = SRC_LINEAR;
 #endif
 
 Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_count, float loopsecs, bool discrete)
-	: _driver (driver), _index(index), _chan_count(chan_count)
+	: _driver (driver), _index(index), _chan_count(chan_count), _loopsecs(loopsecs)
+{
+	initialize (index, chan_count, loopsecs, discrete);
+}
+
+Looper::Looper (AudioDriver * driver, XMLNode & node)
+	: _driver (driver)
+{
+	_index = 0; // set from state
+	_chan_count = 1; // set from state
+	_loopsecs = 40.0f;
+	_have_discrete_io = false;
+	
+	if (set_state (node) < 0) {
+		cerr << "Set state errored" << endl;
+		initialize (_index, _chan_count); // default backup
+	}
+}
+
+bool
+Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs, bool discrete)
 {
 	char tmpstr[100];
 	int dummyerror;
+
+	_index = index;
+	_chan_count = chan_count;
 	
 	_ok = false;
 	requested_cmd = 0;
@@ -84,7 +108,8 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	_target_dry = 1.0f;
 	_input_peak = 0.0f;
 	_output_peak = 0.0f;
-
+	_panner = 0;
+	
 	if (!descriptor) {
 		descriptor = ladspa_descriptor (0);
 	}
@@ -152,7 +177,7 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	{
 
 		if ((_instances[i] = descriptor->instantiate (descriptor, srate)) == 0) {
-			return;
+			return false;
 		}
 
 		if (_have_discrete_io) 
@@ -226,9 +251,19 @@ Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_coun
 	}
 	
 	_ok = true;
+
+	return _ok;
 }
 
+
 Looper::~Looper ()
+{
+	destroy();
+}
+
+
+void
+Looper::destroy()
 {
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
@@ -297,6 +332,7 @@ Looper::~Looper ()
 	if (_outsync_src_state)
 		src_delete (_outsync_src_state);
 #endif
+
 }
 
 
@@ -1232,4 +1268,160 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 #endif
 
 	return ret;
+}
+
+
+XMLNode&
+Looper::get_state () const
+{
+	CommandMap & cmap = CommandMap::instance();
+	LocaleGuard lg ("POSIX");
+		
+	XMLNode *node = new XMLNode ("Looper");
+	char buf[120];
+
+	snprintf(buf, sizeof(buf), "%d", _index);
+	node->add_property ("index", buf);
+
+	snprintf(buf, sizeof(buf), "%d", _chan_count);
+	node->add_property ("channels", buf);
+
+	snprintf(buf, sizeof(buf), "%.10g", _loopsecs);
+	node->add_property ("loop_secs", buf);
+	
+	snprintf(buf, sizeof(buf), "%s", _have_discrete_io ? "yes": "no");
+	node->add_property ("discrete_io", buf);
+
+	snprintf(buf, sizeof(buf), "%s", _use_common_ins ? "yes": "no");
+	node->add_property ("use_common_ins", buf);
+
+	snprintf(buf, sizeof(buf), "%s", _use_common_outs ? "yes": "no");
+	node->add_property ("use_common_outs", buf);
+
+	// panner
+	node->add_child_nocopy (_panner->state (true));
+
+	
+	XMLNode *controls = new XMLNode ("Controls");
+	
+	for (int n=0; n < LASTCONTROLPORT; ++n)
+	{
+
+		XMLNode *child;
+		string ctrlstr = cmap.to_control_str((Event::control_t)n);
+
+		if (ctrlstr == "unknown")
+			continue;
+		
+		snprintf(buf, sizeof(buf), "%s", ctrlstr.c_str());
+		child = new XMLNode ("Control");
+		child->add_property ("name", buf);
+
+		float val = ports[n];
+		if (n == DryLevel) {
+			val = _curr_dry;
+		}
+		
+		snprintf(buf, sizeof(buf), "%.20g", val);
+		child->add_property ("value", buf);
+
+		controls->add_child_nocopy (*child);
+	}
+	
+	node->add_child_nocopy (*controls);
+	
+	return *node;
+}
+
+int
+Looper::set_state (const XMLNode& node)
+{
+	// assumes everything has already been cleaned up
+	
+	LocaleGuard lg ("POSIX");
+	const XMLProperty* prop;
+	XMLNodeConstIterator iter;
+	XMLNodeList control_kids;
+	CommandMap & cmap = CommandMap::instance();
+
+	if (node.name() != "Looper") {
+		cerr << "incorrect XML node passed to IO object: " << node.name() << endl;
+		return -1;
+	}
+
+	if ((prop = node.property ("index")) != 0) {
+		sscanf (prop->value().c_str(), "%u", &_index);
+	}
+
+	if ((prop = node.property ("channels")) != 0) {
+		sscanf (prop->value().c_str(), "%u", &_chan_count);
+	}
+	
+	if ((prop = node.property ("loop_secs")) != 0) {
+		sscanf (prop->value().c_str(), "%g", &_loopsecs);
+	}
+	
+	if ((prop = node.property ("discrete_io")) != 0) {
+		_have_discrete_io = (prop->value() == "yes");
+	}
+
+	// initialize self
+	initialize (_index, _chan_count, _loopsecs, _have_discrete_io);
+
+
+	if ((prop = node.property ("use_common_ins")) != 0) {
+		_use_common_ins = (prop->value() == "yes");
+	}
+
+	if ((prop = node.property ("use_common_outs")) != 0) {
+		_use_common_outs = (prop->value() == "yes");
+	}
+
+	
+
+	for (iter = node.children().begin(); iter != node.children().end(); ++iter) {
+		if ((*iter)->name() == "Panner") {
+			_panner->set_state (**iter);
+		}
+	}
+
+	
+	XMLNode * controls_node = node.find_named_node ("Controls");
+	if (!controls_node) {
+		cerr << "no controls found" << endl;
+		return -1;
+	}
+
+	
+	control_kids = controls_node->children ("Control");
+
+	
+	for (XMLNodeConstIterator niter = control_kids.begin(); niter != control_kids.end(); ++niter)
+	{
+		XMLNode *child;
+		child = (*niter);
+		string ctrlstr;
+		
+		Event::control_t ctrl = Event::Unknown;
+		float val = 0.0f;
+		
+		if ((prop = child->property ("name")) != 0) {
+			ctrl = cmap.to_control_t(prop->value());
+		}
+		
+		if ((prop = child->property ("value")) != 0) {
+			sscanf (prop->value().c_str(), "%g", &val);
+		}
+
+		if (ctrl == Event::DryLevel) {
+			_curr_dry = _target_dry = val;
+		}
+		else if (ctrl != Event::Unknown) {
+			//cerr << "set " << ctrl << " to " << val << endl;
+			ports[ctrl] = val;
+		}
+		
+	}
+
+	return 0;
 }

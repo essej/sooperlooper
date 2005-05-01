@@ -45,7 +45,8 @@ enum ControlPort {
 	FadeSamples,
 	TempoInput,
 	PlaybackSync,
-	EighthPerCycleLoop
+	EighthPerCycleLoop,
+	LASTCONTROLPORT
 };
 
 enum OutputPort {

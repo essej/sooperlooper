@@ -26,6 +26,9 @@
 
 #include <vector>
 
+#include <pbd/xml++.h>
+
+#include "version.h"
 #include "engine.hpp"
 #include "looper.hpp"
 #include "control_osc.hpp"
@@ -69,6 +72,7 @@ Engine::Engine ()
 	_curr_common_wet = 1.0f;
 	_common_input_peak = 0.0f;
 	_common_output_peak = 0.0f;
+	_loading = false;
 	
 	_running_frames = 0;
 	_last_tempo_frame = 0;
@@ -334,14 +338,20 @@ Engine::add_loop (unsigned int chans, float loopsecs, bool discrete)
 	instance->set_port (EighthPerCycleLoop, _eighth_cycle);
 	instance->set_port (TempoInput, _tempo);
 	
+	return add_loop (instance);
+}
+
+bool
+Engine::add_loop (Looper * instance)
+{
 	_instances.push_back (instance);
 	
 	update_sync_source();
-	
-	LoopAdded (n); // emit
+
+	LoopAdded (instance->get_index(), !_loading); // emit
 
 	// now we push the added loop to the RT thread
-	LoopManageEvent lmev(LoopManageEvent::AddLoop, _instances.back());
+	LoopManageEvent lmev(LoopManageEvent::AddLoop, instance);
 	push_loop_manage_to_rt (lmev);
 	
 	return true;
@@ -358,14 +368,16 @@ Engine::remove_loop (Looper * looper)
 	else {
 		// less efficient
 		Instances::iterator iter = find (_instances.begin(), _instances.end(), looper);
-		if (iter == _instances.end()) {
-			return false;
+		if (iter != _instances.end()) {
+			_instances.erase(iter);
 		}
-		_instances.erase(iter);
 	}
 	
 	delete looper;
-	LoopRemoved(); // emit
+
+	if (!_loading) {
+		LoopRemoved(); // emit
+	}
 	
 	update_sync_source();
 	
@@ -1021,8 +1033,10 @@ Engine::mainloop()
 
 			// wake up every 100 ms for servicing auto-update parameters
 			// TODO: make it more flexible
+			const long up_interval = 100000; // 100 ms
+
 			timeout.tv_sec = now.tv_sec;
-			timeout.tv_nsec = (now.tv_usec + 100000) * 1000;
+			timeout.tv_nsec = (now.tv_usec + up_interval) * 1000;
 			if (timeout.tv_nsec > 1000000000) {
 				timeout.tv_sec += 1;
 				timeout.tv_nsec = (timeout.tv_nsec % 1000000000);
@@ -1052,6 +1066,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 	GlobalGetEvent     * gg_event;
 	GlobalSetEvent     * gs_event;
 	MidiBindingEvent   * mb_event;
+	SessionEvent       * sess_event;
 	
 	if ((gp_event = dynamic_cast<GetParamEvent*> (event)) != 0)
 	{
@@ -1237,6 +1252,19 @@ Engine::process_nonrt_event (EventNonRT * event)
 						_osc->send_error(lf_event->ret_url, lf_event->ret_path, "Loop Save Failed");
 					}
 				}
+			}
+		}
+	}
+	else if ((sess_event = dynamic_cast<SessionEvent*> (event)) != 0)
+	{
+		if (sess_event->type == SessionEvent::Load) {
+			if (!load_session (sess_event->filename)) {
+				_osc->send_error(sess_event->ret_url, sess_event->ret_path, "Session Load Failed");
+			}
+		}
+		else {
+			if (!save_session (sess_event->filename)) {
+				_osc->send_error(sess_event->ret_url, sess_event->ret_path, "Session Save Failed");
 			}
 		}
 	}
@@ -1649,4 +1677,134 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 	}
 	
 	return hit_at;
+}
+
+
+bool
+Engine::load_session (std::string fname)
+{
+	LocaleGuard lg ("POSIX");
+	XMLTree sessiondoc (fname);
+	XMLNodeList looper_kids;
+	const XMLProperty* prop;
+	
+	if (!sessiondoc.initialized()) {
+		fprintf (stderr, "Error loading session at %s!\n", fname.c_str()); 
+		return false;
+	}
+
+	XMLNode * root_node = sessiondoc.root();
+	if (!root_node || root_node->name() != "SLSession") {
+		fprintf (stderr, "Preset root node not found in %s!\n", fname.c_str()); 
+		return false;
+	}
+
+	XMLNode * globals_node = root_node->find_named_node("Globals");
+	if (globals_node)
+	{
+		if ((prop = globals_node->property ("tempo")) != 0) {
+			sscanf (prop->value().c_str(), "%lg", &_tempo);
+		}
+		if ((prop = globals_node->property ("eighth_per_cycle")) != 0) {
+			sscanf (prop->value().c_str(), "%g", &_eighth_cycle);
+		}
+		if ((prop = globals_node->property ("common_dry")) != 0) {
+			sscanf (prop->value().c_str(), "%g", &_curr_common_dry);
+			_target_common_dry = _curr_common_dry;
+		}
+		if ((prop = globals_node->property ("common_wet")) != 0) {
+			sscanf (prop->value().c_str(), "%g", &_curr_common_wet);
+			_target_common_wet = _curr_common_wet;
+		}
+		if ((prop = globals_node->property ("sync_source")) != 0) {
+			sscanf (prop->value().c_str(), "%d", (int *) (&_sync_source));
+		}
+
+	}
+	
+	
+	// just remove everything for now
+	while (_instances.size() > 0) {
+		LoopManageEvent lmev (LoopManageEvent::RemoveLoop, _instances.back());
+		// remove it now so indexes for new ones work out
+		_instances.pop_back();
+		// will be deleted later by us when the RT thread finishes with it
+		push_loop_manage_to_rt (lmev);
+	}
+
+	XMLNode * loopers_node = root_node->find_named_node ("Loopers");
+	if (!loopers_node) {
+		return false;
+	}
+	
+	looper_kids = loopers_node->children ("Looper");
+
+	_loading = true;
+	
+	for (XMLNodeConstIterator niter = looper_kids.begin(); niter != looper_kids.end(); ++niter)
+	{
+		XMLNode *child;
+		child = (*niter);
+
+		Looper * instance = new Looper (_driver, *child);
+		add_loop (instance);
+	}
+
+	_loading = false;
+
+	_osc->send_all_config();
+	
+	return true;
+}
+
+bool
+Engine::save_session (std::string fname)
+{
+	// make xmltree
+	LocaleGuard lg ("POSIX");
+	XMLTree sessiondoc;
+	char buf[120];
+
+	
+	XMLNode * root_node = new XMLNode("SLSession");
+	root_node->add_property("version", sooperlooper_version);
+	sessiondoc.set_root (root_node);
+
+	XMLNode * globals_node = root_node->add_child ("Globals");
+	
+	snprintf(buf, sizeof(buf), "%.10g", _tempo);
+	globals_node->add_property ("tempo", buf);
+
+	snprintf(buf, sizeof(buf), "%.10g", _eighth_cycle);
+	globals_node->add_property ("eighth_per_cycle", buf);
+
+	snprintf(buf, sizeof(buf), "%.10g", _curr_common_dry);
+	globals_node->add_property ("common_dry", buf);
+	
+	snprintf(buf, sizeof(buf), "%.10g", _curr_common_wet);
+	globals_node->add_property ("common_wet", buf);
+
+	snprintf(buf, sizeof(buf), "%d", (int)_sync_source);
+	globals_node->add_property ("sync_source", buf);
+	
+	
+	XMLNode * loopers_node = root_node->add_child ("Loopers");
+
+	for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i)
+	{
+		loopers_node->add_child_nocopy ((*i)->get_state());
+	}
+	
+	// write doc to file
+	
+	if (sessiondoc.write (fname))
+	{	    
+		fprintf (stderr, "Stored session as %s\n", fname.c_str());
+		return true;
+	}
+	else {
+		fprintf (stderr, "Failed to store session as %s\n", fname.c_str());
+		return false;
+	}
+
 }

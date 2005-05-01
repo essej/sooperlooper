@@ -39,6 +39,9 @@
 #include "event_nonrt.hpp"
 #include "utils.hpp"
 
+#include <pbd/xml++.h>
+
+
 namespace SooperLooper {
 
 class OnePoleFilter;	
@@ -48,7 +51,11 @@ class Looper
 {
   public:
 	Looper (AudioDriver * driver, unsigned int index, unsigned int channel_count=1, float loopsecs=40.0, bool discrete=true);
+	Looper (AudioDriver * driver, XMLNode & node);
 	~Looper ();
+
+	bool initialize (unsigned int index, unsigned int channel_count=1, float loopsecs=40.0, bool discrete=true);
+	void destroy();
 	
 	bool operator() () const { return _ok; }
 	void run (nframes_t offset, nframes_t nframes);
@@ -69,6 +76,8 @@ class Looper
 
 	void use_sync_buf(float * buf);
 
+	unsigned int get_index() { return _index; }
+	
 	void set_use_common_ins (bool val);
 	bool get_use_common_ins () { return _use_common_ins; }
 	void set_use_common_outs (bool val);
@@ -76,6 +85,10 @@ class Looper
 
 	bool get_have_discrete_io () { return _have_discrete_io; }
 
+	XMLNode& get_state () const;
+	int set_state (const XMLNode&);
+
+	
   protected:
 
 	void run_loops (nframes_t offset, nframes_t nframes);
@@ -102,7 +115,8 @@ class Looper
 	unsigned int _index;
 	unsigned int _chan_count;
 	LADSPA_Handle *      _instances;
-
+	float _loopsecs;
+	
 	static const LADSPA_Descriptor* descriptor;
 
 	LADSPA_Data        ports[LASTPORT];

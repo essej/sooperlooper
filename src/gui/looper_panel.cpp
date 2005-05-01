@@ -862,7 +862,7 @@ LooperPanel::update_controls()
 	}
 
 	for (int i=0; i < _chan_count; ++i) {
-		wxString panstr = wxString::Format(wxT("wpan_%d"), i+1);
+		wxString panstr = wxString::Format(wxT("pan_%d"), i+1);
 		if (_loop_control->is_updated(_index, panstr)) {
 			_loop_control->get_value(_index, panstr, val);
 			_panners[i]->set_value (val);
@@ -1235,69 +1235,26 @@ LooperPanel::clicked_events (int button, wxString cmd)
 {
 	if (cmd == wxT("save"))
 	{
-		// popup local file dialog if we are local
-		if (_loop_control->is_engine_local()) {
-
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
-
-			wxString filename = ::wxFileSelector(wxT("Choose file to save loop"), wxT(""), wxT(""), wxT(".wav"), wxT("*.*"), wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
-			if ( !filename.empty() )
-			{
-				// todo: specify format
-				_loop_control->post_save_loop (_index, filename);
-			}
-
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
-			
-		}
-		else {
-			// popup basic filename text entry
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
-
-			wxString filename = ::wxGetTextFromUser(wxString::Format(wxT("Choose file to save on remote host '%s'"),
-										 _loop_control->get_engine_host().c_str())
-								, wxT("Save Loop"));
-
-			if (!filename.empty()) {
-				// todo: specify format
-				_loop_control->post_save_loop (_index, filename);
-			}
-
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
-		}
-
+		wxString filename = ::wxGetApp().getFrame()->get_keyboard().do_file_selector (wxT("Choose file to save loop"),
+											      wxT("wav"), wxT("*.*"),  wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
 		
-		
+		if ( !filename.empty() )
+		{
+			// add .wav if there isn't one already
+			if (filename.size() <= 4 || (filename.size() > 4 && filename.substr(filename.size() - 4, 4) != wxT(".wav"))) {
+				filename += wxT(".wav");
+			}
+			// todo: specify format
+			_loop_control->post_save_loop (_index, filename);
+		}
 	}
 	else if (cmd == wxT("load"))
 	{
-		if (_loop_control->is_engine_local()) {
-			
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
-			wxString filename = wxFileSelector(wxT("Choose file to open"), wxT(""), wxT(""), wxT(""), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
-
-			if ( !filename.empty() )
-			{
-				_loop_control->post_load_loop (_index, filename);
-			}
-		}
-		else {
-			// popup basic filename text entry
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
-
-			wxString filename = ::wxGetTextFromUser(wxString::Format(wxT("Choose file to load on remote host '%s'"),
-										 _loop_control->get_engine_host().c_str())
-								, wxT("Open Loop"));
-
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
-
-			if (!filename.empty()) {
-				// todo: specify format
-				_loop_control->post_load_loop (_index, filename);
-			}
-
-			
+		wxString filename = ::wxGetApp().getFrame()->get_keyboard().do_file_selector(wxT("Choose file to open"), wxT(""), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
+		
+		if ( !filename.empty() )
+		{
+			_loop_control->post_load_loop (_index, filename);
 		}
 	}
 }

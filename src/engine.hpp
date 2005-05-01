@@ -65,6 +65,7 @@ class Engine
 	void quit();
 
 	bool add_loop (unsigned int chans, float loopsecs=40.0f, bool discrete = true);
+	bool add_loop (Looper * instance);
 	bool remove_loop (Looper * loop);
 	
 	size_t loop_count() { return _instances.size(); }
@@ -93,7 +94,7 @@ class Engine
 
 	float get_control_value (Event::control_t, int8_t instance);
 	
-	SigC::Signal1<void, int> LoopAdded;
+	SigC::Signal2<void, int, bool> LoopAdded;
 	SigC::Signal0<void> LoopRemoved;
 
 	// the main non-rt event processing loop
@@ -103,6 +104,10 @@ class Engine
 	
 	void binding_learned(MidiBindInfo info);
 	void next_midi_received(MidiBindInfo info);
+
+	// session state
+	bool load_session (std::string fname);
+	bool save_session (std::string fname);
 	
   protected:	
 
@@ -239,6 +244,8 @@ class Engine
 	double _tempo_averages[TEMPO_WINDOW_SIZE];
 	double _running_tempo_sum;
 	unsigned int    _avgindex;
+
+	bool _loading;
 };
 
 inline double Engine::avg_tempo(double tempo)

@@ -57,6 +57,25 @@ namespace SooperLooper {
 		int discrete;
 	};
 
+	class SessionEvent : public EventNonRT
+	{
+	public:
+		enum Type {
+			Load,
+			Save
+		} type;
+
+		SessionEvent(Type tp, std::string fname, std::string returl, std::string retpath) 
+			: type(tp), filename(fname), ret_url(returl), ret_path(retpath) {}
+
+		virtual ~SessionEvent() {}
+
+		std::string      filename;
+		std::string      ret_url;
+		std::string      ret_path;
+	};
+
+	
 	class LoopFileEvent : public EventNonRT
 	{
 	public:

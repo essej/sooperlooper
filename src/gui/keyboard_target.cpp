@@ -17,7 +17,16 @@
 
     $Id$
 */
+
+
+
 #include "keyboard_target.hpp"
+
+#include <wx/wx.h>
+
+#include "gui_app.hpp"
+#include "gui_frame.hpp"
+#include "loop_control.hpp"
 
 #include <iostream>
 #include <algorithm>
@@ -664,4 +673,26 @@ wxString KeyboardTarget::name_from_keycode (int key)
 
 	return text;
 
+}
+
+
+wxString KeyboardTarget::do_file_selector(const wxString & message, const wxString & ext, const wxString & wc, int style)
+{
+	wxString filename;
+
+	set_enabled(false);
+	
+	if (::wxGetApp().getFrame()->get_loop_control().is_engine_local()) {
+		filename = ::wxFileSelector(message, wxT(""), wxT(""), ext, wc, style);
+	}
+	else {
+		// popup basic filename text entry
+		filename = ::wxGetTextFromUser(wxString::Format(wxT("%s on remote host '%s'"), message.c_str(),
+								::wxGetApp().getFrame()->get_loop_control().get_engine_host().c_str())
+					       , message);
+	}
+
+	set_enabled(true);
+
+	return filename;
 }

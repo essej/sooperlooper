@@ -28,6 +28,7 @@
 #include <sigc++/sigc++.h>
 
 #include "audio_driver.hpp"
+#include <pbd/xml++.h>
 
 using std::istream;
 using std::ostream;
@@ -68,6 +69,8 @@ class StreamPanner : public SigC::Object
 	SigC::Signal0<void> Changed;      /* for position */
 	SigC::Signal0<void> StateChanged; /* for mute */
 
+	virtual XMLNode& get_state (void) = 0;
+	virtual int      set_state (const XMLNode&);
 
 	Panner & get_parent() { return parent; }
 	
@@ -88,6 +91,9 @@ class StreamPanner : public SigC::Object
 	float effective_z;
 
 	bool             _muted;
+
+	void add_state (XMLNode&);
+	
 
 	virtual void update () = 0;
 };
@@ -127,6 +133,8 @@ class EqualPowerStereoPanner : public BaseStereoPanner
 	static StreamPanner* factory (Panner&);
 	static std::string name;
 
+	XMLNode& get_state (void); 
+	int      set_state (const XMLNode&);
 
   private:
 	void update ();
@@ -144,6 +152,8 @@ class Multi2dPanner : public StreamPanner
 	static StreamPanner* factory (Panner&);
 	static std::string name;
 
+	XMLNode& get_state (void);
+	int set_state (const XMLNode&);
 
   private:
 	void update ();
@@ -177,7 +187,11 @@ class Panner : public std::vector<StreamPanner*>, public SigC::Object
 	void clear ();
 	void reset (uint32_t noutputs, uint32_t npans);
 
+	XMLNode& get_state (void);
+	XMLNode& state (bool full);
+	int      set_state (const XMLNode&);
 
+	
 	SigC::Signal0<void> Changed;
 	
 	static bool equivalent (pan_t a, pan_t b) {
@@ -209,7 +223,7 @@ class Panner : public std::vector<StreamPanner*>, public SigC::Object
 	void set_position (float x, StreamPanner& orig);
 	void set_position (float x, float y, StreamPanner& orig);
 	void set_position (float x, float y, float z, StreamPanner& orig);
-	
+
   private:
 
 	uint32_t     current_outs;

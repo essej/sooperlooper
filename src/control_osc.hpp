@@ -102,7 +102,7 @@ class ControlOSC
 		Command command;
 	};
 
-	void on_loop_added(int instance);
+	void on_loop_added(int instance, bool sendupdate=true);
 	void on_loop_removed();
 
 	void register_callbacks();
@@ -124,6 +124,8 @@ class ControlOSC
 	static int _ping_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _load_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _save_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _register_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
@@ -153,6 +155,8 @@ class ControlOSC
 	int global_set_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data);
 	int loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	int loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int load_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int save_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	int register_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	int unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	int global_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
@@ -194,7 +198,8 @@ class ControlOSC
 	int _port;
 	bool _ok;
 	bool _shutdown;
-
+	int _max_instance;
+	
 	std::map<std::string, lo_address> _retaddr_map;
 
 	CommandMap * _cmd_map;

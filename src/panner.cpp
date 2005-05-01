@@ -33,6 +33,7 @@
 #include <pbd/basename.h>
 
 #include "panner.hpp"
+#include "utils.hpp"
 //#include <ardour/utils.h>
 
 using namespace std;
@@ -113,6 +114,27 @@ StreamPanner::set_position (float xpos, float ypos, float zpos, bool link_call)
 		update ();
 		Changed ();
 	}
+}
+
+
+int
+StreamPanner::set_state (const XMLNode& node)
+{
+	const XMLProperty* prop;
+	XMLNodeConstIterator iter;
+
+	if ((prop = node.property ("muted"))) {
+		set_muted (prop->value() == "yes");
+	}
+
+	return 0;
+}
+
+void
+StreamPanner::add_state (XMLNode& node)
+{
+	node.add_property ("muted", (muted() ? "yes" : "no"));
+
 }
 
 
@@ -298,6 +320,39 @@ EqualPowerStereoPanner::factory (Panner& parent)
 }
 
 
+XMLNode&
+EqualPowerStereoPanner::get_state (void)
+{
+	XMLNode* root = new XMLNode ("StreamPanner");
+	char buf[64];
+	LocaleGuard lg ("POSIX");
+
+	snprintf (buf, sizeof (buf), "%f", x); 
+	root->add_property ("x", buf);
+	root->add_property ("type", EqualPowerStereoPanner::name);
+
+	StreamPanner::add_state (*root);
+
+	return *root;
+}
+
+int
+EqualPowerStereoPanner::set_state (const XMLNode& node)
+{
+	const XMLProperty* prop;
+	float pos;
+	LocaleGuard lg ("POSIX");
+
+	if ((prop = node.property ("x"))) {
+		pos = atof (prop->value().c_str());
+		set_position (pos, true);
+	} 
+
+	StreamPanner::set_state (node);
+	
+	return 0;
+}
+
 
 /*----------------------------------------------------------------------*/
 
@@ -419,6 +474,49 @@ Multi2dPanner::factory (Panner& p)
 }
 
 
+XMLNode&
+Multi2dPanner::get_state (void)
+{
+	XMLNode* root = new XMLNode ("StreamPanner");
+	char buf[64];
+	LocaleGuard lg ("POSIX");
+
+	snprintf (buf, sizeof (buf), "%f", x); 
+	root->add_property ("x", buf);
+	snprintf (buf, sizeof (buf), "%f", y); 
+	root->add_property ("y", buf);
+	root->add_property ("type", Multi2dPanner::name);
+
+	return *root;
+}
+
+int
+Multi2dPanner::set_state (const XMLNode& node)
+{
+	const XMLProperty* prop;
+	float newx,newy;
+	LocaleGuard lg ("POSIX");
+
+	newx = -1;
+	newy = -1;
+
+	if ((prop = node.property ("x"))) {
+		newx = atof (prop->value().c_str());
+	}
+       
+	if ((prop = node.property ("y"))) {
+		newy = atof (prop->value().c_str());
+	}
+	
+	if (x < 0 || y < 0) {
+		cerr << "badly-formed positional data for Multi2dPanner - ignored"
+		     << endl;
+		return -1;
+	} 
+	
+	set_position (newx, newy);
+	return 0;
+}
 
 /*---------------------------------------------------------------------- */
 
@@ -762,4 +860,137 @@ Panner::set_position (float xpos, float ypos, float zpos, StreamPanner& orig)
 			}
 		}
 	}
+}
+
+struct PanPlugins {
+    string name;
+    uint32_t nouts;
+    StreamPanner* (*factory)(Panner&);
+};
+
+PanPlugins pan_plugins[] = {
+	{ EqualPowerStereoPanner::name, 2, EqualPowerStereoPanner::factory },
+	{ Multi2dPanner::name, 3, Multi2dPanner::factory },
+	{ string (""), 0 }
+};
+
+XMLNode&
+Panner::get_state (void)
+{
+	return state (true);
+}
+
+XMLNode&
+Panner::state (bool full)
+{
+	XMLNode* root = new XMLNode ("Panner");
+	char buf[32];
+
+	for (iterator p = begin(); p != end(); ++p) {
+		root->add_child_nocopy ((*p)->get_state ());
+	}
+
+	root->add_property ("linked", (_linked ? "yes" : "no"));
+	snprintf (buf, sizeof (buf), "%d", _link_direction);
+	root->add_property ("link_direction", buf);
+	root->add_property ("bypassed", (bypassed() ? "yes" : "no"));
+
+	/* add each output */
+
+	for (vector<Panner::Output>::iterator o = outputs.begin(); o != outputs.end(); ++o) {
+		XMLNode* onode = new XMLNode ("Output");
+		snprintf (buf, sizeof (buf), "%f", (*o).x);
+		onode->add_property ("x", buf);
+		snprintf (buf, sizeof (buf), "%f", (*o).y);
+		onode->add_property ("y", buf);
+		root->add_child_nocopy (*onode);
+	}
+
+	return *root;
+}
+
+int
+Panner::set_state (const XMLNode& node)
+{
+	XMLNodeList nlist;
+	XMLNodeConstIterator niter;
+	const XMLProperty *prop;
+	uint32_t i;
+	StreamPanner* sp;
+	LocaleGuard lg ("POSIX");
+
+	clear ();
+	outputs.clear ();
+
+	if ((prop = node.property ("linked")) != 0) {
+		set_linked (prop->value() == "yes");
+	}
+
+
+	if ((prop = node.property ("bypassed")) != 0) {
+		set_bypassed (prop->value() == "yes");
+	}
+
+	if ((prop = node.property ("link_direction")) != 0) {
+		sscanf (prop->value().c_str(), "%d", &i);
+		set_link_direction ((LinkDirection) (i));
+	}
+
+	nlist = node.children();
+
+	for (niter = nlist.begin(); niter != nlist.end(); ++niter) {
+		if ((*niter)->name() == "Output") {
+			
+			float x, y;
+			
+			prop = (*niter)->property ("x");
+			sscanf (prop->value().c_str(), "%f", &x);
+			
+			prop = (*niter)->property ("y");
+			sscanf (prop->value().c_str(), "%f", &y);
+			
+			outputs.push_back (Output (x, y));
+		}
+	}
+
+	for (niter = nlist.begin(); niter != nlist.end(); ++niter) {
+
+		if ((*niter)->name() == "StreamPanner") {
+			if ((prop = (*niter)->property ("type"))) {
+				
+				for (i = 0; pan_plugins[i].factory; ++i) {
+					if (prop->value() == pan_plugins[i].name) {
+						
+						
+						/* note that we assume that all the stream panners
+						   are of the same type. pretty good
+						   assumption, but its still an assumption.
+						*/
+						
+						sp = pan_plugins[i].factory (*this);
+						
+						if (sp->set_state (**niter) == 0) {
+							push_back (sp);
+						}
+						
+						break;
+					}
+				}
+				
+				
+				if (!pan_plugins[i].factory) {
+					cerr << "Unknown panner plugin found in pan state - ignored"
+					      << endl;
+				}
+
+			} else {
+				cerr << "panner plugin node has no type information!"
+				     << endl;
+				return -1;
+			}
+
+		} 	
+	}
+
+	return 0;
 }

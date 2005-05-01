@@ -84,6 +84,9 @@ class KeyboardTarget
 	static int remove_action (string);
 	static void show_all_actions();
 	static void get_action_names (ActionNameList & nlist);
+
+	wxString do_file_selector(const wxString & message, const wxString & ext, const wxString & wc, int style);
+	
 	
 	wxWindow * window() const { return _window; }
 

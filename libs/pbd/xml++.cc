@@ -306,7 +306,7 @@ XMLNode::remove_nodes(const string & n)
 }
 
 XMLNode *
-XMLNode::find_named_node (const string & name)
+XMLNode::find_named_node (const string & name) const
 {
         XMLNodeList nlist;
         XMLNodeConstIterator niter;
