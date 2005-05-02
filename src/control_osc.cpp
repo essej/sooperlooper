@@ -286,7 +286,7 @@ ControlOSC::on_loop_added (int instance, bool sendupdate)
 	lo_server srvs[2];
 	lo_server serv;
 
-	if (instance < _max_instance) {
+	if (instance >= 0 && instance < _max_instance) {
 		// already added this method
 		if (sendupdate) {
 			send_all_config();
