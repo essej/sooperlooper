@@ -80,6 +80,8 @@ class ConfigPanel
 	wxCheckBox * _def_force_spawn;
 	wxTextCtrl * _def_midi_bind_text;
 	wxButton   * _midi_browse_button;
+	wxTextCtrl * _def_session_text;
+	wxButton   * _session_browse_button;
 	wxTextCtrl * _def_jack_name_text;
 	
 	wxSpinCtrl * _num_loops_spin;

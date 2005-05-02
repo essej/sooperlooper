@@ -195,12 +195,12 @@ if test "\$target_cpu" = "powerpc"; then
     AC_DEFINE(HAVE_ALTIVEC_LINUX, 1, "Is there Altivec Support ?")
     if test "\$gcc_major_version" = "3"; then
 dnl -mcpu=7450 does not reliably work with gcc 3.*
-      OPT_FLAGS="-D_REENTRANT -O2 -mcpu=7400 -maltivec -mabi=altivec"
+      OPT_FLAGS="-D_REENTRANT -O3 -mcpu=7400 -maltivec -mabi=altivec"
     else
-      OPT_FLAGS="-D_REENTRANT -O2 -mcpu=7400"
+      OPT_FLAGS="-D_REENTRANT -O3 -mcpu=7400"
     fi
   else
-    OPT_FLAGS="-D_REENTRANT -O2 -mcpu=750 -mmultiple"
+    OPT_FLAGS="-D_REENTRANT -O3 -mcpu=750 -mmultiple"
   fi
   OPT_FLAGS="\$OPT_FLAGS -mhard-float -mpowerpc-gfxopt"
 elif echo \$target_cpu | grep "i*86" >/dev/null; then

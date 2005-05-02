@@ -346,10 +346,13 @@ void undoLoop(SooperLooperI *pLS)
    LoopChunk *prevloop;
    
    prevloop = loop->prev;
-   if (prevloop && prevloop == loop->srcloop) {
+
+   //if (prevloop && prevloop == loop->srcloop) {
       // if the previous was the source of the one we're undoing
       // pass the dCurrPos along, otherwise leave it be.
-      prevloop->dCurrPos = fmod(loop->dCurrPos+loop->lStartAdj, prevloop->lLoopLength);
+   // nevermind, ALWAYS pass it along, what the hell
+   if (prevloop) {
+	   prevloop->dCurrPos = fmod(loop->dCurrPos+loop->lStartAdj, prevloop->lLoopLength);
    }
    
    popHeadLoop(pLS);
@@ -375,16 +378,18 @@ void redoLoop(SooperLooperI *pLS)
 
    if (nextloop) {
       
-      if (loop && loop == nextloop->srcloop) {
-	 // if the next is using us as a source
-	 // pass the dCurrPos along, otherwise leave it be.
-	 nextloop->dCurrPos = fmod(loop->dCurrPos+loop->lStartAdj, nextloop->lLoopLength);
-      }
-
-      pLS->headLoopChunk = nextloop;
-      
-      DBG(fprintf(stderr, "Redoing last loop %08x: new head is %08x\n", (unsigned)loop,
-		  (unsigned)pLS->headLoopChunk);)
+	   //if (loop && loop == nextloop->srcloop) {
+	   // if the next is using us as a source
+	   // pass the dCurrPos along, otherwise leave it be.
+	   // nevermind, ALWAYS pass it along
+	   if (loop) {
+		   nextloop->dCurrPos = fmod(loop->dCurrPos+loop->lStartAdj, nextloop->lLoopLength);
+	   }
+	   
+	   pLS->headLoopChunk = nextloop;
+	   
+	   DBG(fprintf(stderr, "Redoing last loop %08x: new head is %08x\n", (unsigned)loop,
+		       (unsigned)pLS->headLoopChunk);)
 
    }
 }

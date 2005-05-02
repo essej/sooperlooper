@@ -374,8 +374,6 @@ int main(int argc, char** argv)
 		}
 		engine->set_midi_bridge(midibridge);
 	}
-
-	engine->save_session("SLsession.xml");
 	
 	// go into engine's non-rt event loop
 	// this returns when we quit or signal handler causes it to

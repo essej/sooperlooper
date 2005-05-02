@@ -43,7 +43,8 @@ enum {
 	ID_MidiBrowseButton,
 	ID_DefaultButton,
 	ID_CommitButton,
-	ID_RevertButton
+	ID_RevertButton,
+	ID_SessionBrowseButton
 };
 
 BEGIN_EVENT_TABLE(SooperLooperGui::ConfigPanel, wxPanel)
@@ -55,6 +56,7 @@ BEGIN_EVENT_TABLE(SooperLooperGui::ConfigPanel, wxPanel)
 	EVT_BUTTON (ID_CommitButton, SooperLooperGui::ConfigPanel::on_button)
 	EVT_BUTTON (ID_RevertButton, SooperLooperGui::ConfigPanel::on_button)
 	EVT_BUTTON (ID_MidiBrowseButton, SooperLooperGui::ConfigPanel::on_button)
+	EVT_BUTTON (ID_SessionBrowseButton, SooperLooperGui::ConfigPanel::on_button)
 
 END_EVENT_TABLE()
 
@@ -198,6 +200,17 @@ void ConfigPanel::init()
 	
 	colsizer->Add (setsizer, 0, wxEXPAND|wxALL, 3);
 
+
+	rowsizer = new wxBoxSizer(wxHORIZONTAL);
+	statText = new wxStaticText(this, -1, wxT("Default loaded session:"));
+	rowsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL|wxALL, 2);
+	_def_session_text = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("KeyAware"));
+	_def_session_text->SetValue (config.session_path);
+	rowsizer->Add (_def_session_text, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
+	_session_browse_button = new wxButton(this, ID_SessionBrowseButton, wxT("Browse..."));
+	rowsizer->Add (_session_browse_button, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
+
+	colsizer->Add (rowsizer, 0, wxEXPAND|wxALL, 3);
 	
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	statText = new wxStaticText(this, -1, wxT("Default MIDI bindings:"));
@@ -269,6 +282,7 @@ void ConfigPanel::refresh_defaults()
 	_secs_per_channel_spin->SetValue( (int) def_config.mem_secs);
 	_def_jack_name_text->SetValue (def_config.jack_name);
 	_def_midi_bind_text->SetValue (def_config.midi_bind_path);
+	_def_session_text->SetValue (def_config.session_path);
 }
 
 void ConfigPanel::looper_connected(int num)
@@ -291,6 +305,7 @@ void ConfigPanel::commit_changes()
 	config.mem_secs = (double) _secs_per_channel_spin->GetValue();
 	config.jack_name = _def_jack_name_text->GetValue();
 	config.midi_bind_path = _def_midi_bind_text->GetValue();
+	config.session_path = _def_session_text->GetValue();
 	config.force_spawn = _def_force_spawn->GetValue();
 
 	_parent->save_rc();
@@ -333,6 +348,7 @@ void ConfigPanel::on_button (wxCommandEvent &ev)
 		config.mem_secs = (double) _secs_per_channel_spin->GetValue();
 		config.jack_name = _def_jack_name_text->GetValue();
 		config.midi_bind_path = _def_midi_bind_text->GetValue();
+		config.session_path = _def_session_text->GetValue();
 		config.force_spawn = false;
 		config.never_spawn = !_force_spawn->GetValue();
 
@@ -358,6 +374,17 @@ void ConfigPanel::on_button (wxCommandEvent &ev)
 		if ( !filename.empty() )
 		{
 			_def_midi_bind_text->SetValue(filename);
+		}
+	}
+	else if (ev.GetId() == ID_SessionBrowseButton) {
+		
+		_parent->get_keyboard().set_enabled(false);
+		wxString filename = wxFileSelector(wxT("Choose session file to use"), wxT(""), wxT(""), wxT(""), wxT("*.slsess"), wxOPEN|wxCHANGE_DIR);
+		_parent->get_keyboard().set_enabled(true);
+		
+		if ( !filename.empty() )
+		{
+			_def_session_text->SetValue(filename);
 		}
 	}
 	else {

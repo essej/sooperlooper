@@ -63,6 +63,7 @@ XMLNode& LoopControl::SpawnConfig::get_state () const
 	node->add_property ("jack_name", jack_name.ToAscii());
 	node->add_property ("jack_serv_name", jack_serv_name.ToAscii());
 	node->add_property ("midi_bind_path", midi_bind_path.ToAscii());
+	node->add_property ("session_path", session_path.ToAscii());
 
 	node->add_property ("force_spawn", force_spawn ? "yes": "no");
 	
@@ -124,6 +125,9 @@ int LoopControl::SpawnConfig::set_state (const XMLNode& node)
 			}
 			if ((prop = child_node->property ("midi_bind_path")) != 0) {
 			        midi_bind_path.Printf(wxT("%s"), prop->value().c_str());
+			}
+			if ((prop = child_node->property ("session_path")) != 0) {
+			        session_path.Printf(wxT("%s"), prop->value().c_str());
 			}
 			if ((prop = child_node->property ("force_spawn")) != 0) {
 				if (prop->value() == "yes") {
@@ -532,6 +536,9 @@ bool LoopControl::spawn_looper()
 		cmdstr += wxString::Format(wxT(" -D \"no\""));
 	}
 	
+	if (!_spawn_config.session_path.empty()) {
+		cmdstr += wxString::Format(wxT(" -L \"%s\""), _spawn_config.session_path.c_str());
+	}
 
 
 #ifdef DEBUG
