@@ -1622,23 +1622,34 @@ runSooperLooper(LADSPA_Handle Instance,
 		    loop = pLS->headLoopChunk;
 		 }
 		 // continue through to default
-		 
-	      default:
-		      // lets not sync overdub ops
-		      
-//		      if (fSyncMode == 0.0f) {
-			      if (loop) {
-				      loop = beginOverdub(pLS, loop);
-				      if (loop)
-					      srcloop = loop->srcloop;
-				      else
-					      srcloop = NULL;
-			      }
-// 		      } else {
-// 			      DBG(fprintf(stderr, "starting syncwait for overdub:  %f\n", fSyncMode));
-// 			      pLS->nextState = STATE_OVERDUB;
-// 			      pLS->waitingForSync = 1;
-// 		      }
+
+	   case STATE_RECORD:
+	   case STATE_TRIG_STOP:
+		   // lets sync on ending record with overdub
+		   if (fSyncMode == 0.0f) {
+			   if (loop) {
+				   loop = beginOverdub(pLS, loop);
+				   if (loop)
+					   srcloop = loop->srcloop;
+				   else
+					   srcloop = NULL;
+			   }
+		   } else {
+			   DBG(fprintf(stderr, "starting syncwait for overdub:  %f\n", fSyncMode));
+			   pLS->state = STATE_TRIG_STOP;
+			   pLS->nextState = STATE_OVERDUB;
+			   pLS->waitingForSync = 1;
+		   }
+		   
+		   break;
+	   default:
+		   if (loop) {
+			   loop = beginOverdub(pLS, loop);
+			   if (loop)
+				   srcloop = loop->srcloop;
+			   else
+				   srcloop = NULL;
+		   }
 	   }
 	} break;
 
@@ -1773,6 +1784,10 @@ runSooperLooper(LADSPA_Handle Instance,
 				      else srcloop = NULL;
 			      }
 		      } else {
+			      if (pLS->state == STATE_RECORD) {
+				      pLS->state = STATE_TRIG_STOP;
+			      }
+
 			      DBG(fprintf(stderr, "starting syncwait for insert\n"));
 			      pLS->nextState = STATE_INSERT;
 			      pLS->waitingForSync = 1;
@@ -1840,6 +1855,9 @@ runSooperLooper(LADSPA_Handle Instance,
 			      }
 		      }
 		      else {
+			      if (pLS->state == STATE_RECORD) {
+				      pLS->state = STATE_TRIG_STOP;
+			      }
 			      DBG(fprintf(stderr, "starting syncwait for replace\n"));
 			      pLS->nextState = STATE_REPLACE;
 			      pLS->waitingForSync = 1;
@@ -1901,6 +1919,9 @@ runSooperLooper(LADSPA_Handle Instance,
 			      }
 		      }
 		      else {
+			      if (pLS->state == STATE_RECORD) {
+				      pLS->state = STATE_TRIG_STOP;
+			      }
 			      DBG(fprintf(stderr, "starting syncwait for substitute\n"));
 			      pLS->nextState = STATE_SUBSTITUTE;
 			      pLS->waitingForSync = 1;
@@ -2252,6 +2273,9 @@ runSooperLooper(LADSPA_Handle Instance,
 			      pfSyncOutput[0] = 1.0f;
 
 		      }	else {
+			      if (pLS->state == STATE_RECORD) {
+				      pLS->state = STATE_TRIG_STOP;
+			      }
 			      DBG(fprintf(stderr, "starting syncwait for ONESHOT\n"));
 			      pLS->nextState = STATE_ONESHOT;
 			      pLS->waitingForSync = 1;
@@ -2285,6 +2309,9 @@ runSooperLooper(LADSPA_Handle Instance,
 			      pfSyncOutput[0] = 1.0f;
 
 		      }	else {
+			      if (pLS->state == STATE_RECORD) {
+				      pLS->state = STATE_TRIG_STOP;
+			      }
 			      DBG(fprintf(stderr, "starting syncwait for trigger\n"));
 			      pLS->nextState = STATE_TRIGGER_PLAY;
 			      pLS->waitingForSync = 1;
