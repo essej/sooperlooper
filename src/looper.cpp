@@ -777,7 +777,7 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 				outbuf[pos] += currdry * real_inbuf[pos];
 			}
 
-			_curr_dry = currdry;
+			_curr_dry = flush_to_zero (currdry);
 		}
 
 		// calculate output peak post mixing with dry
