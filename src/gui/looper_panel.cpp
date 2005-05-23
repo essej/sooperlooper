@@ -230,14 +230,15 @@ LooperPanel::init()
 	//colsizer->Add (20, -1, 1);
 	_toppansizer = new wxBoxSizer(wxHORIZONTAL);
 
-	_dry_control = slider = new SliderBar(this, ID_DryControl, 0.0f, 1.0f, 1.0f);
-	slider->set_units(wxT("dB"));
-	slider->set_label(wxT("dry"));
-	slider->set_scale_mode(SliderBar::ZeroGainMode);
-	slider->SetFont(sliderFont);
-	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
-	_toppansizer->Add (slider, 1, wxEXPAND, 0);
+	// dry is added later
+// 	_dry_control = slider = new SliderBar(this, ID_DryControl, 0.0f, 1.0f, 1.0f);
+// 	slider->set_units(wxT("dB"));
+// 	slider->set_label(wxT("dry"));
+// 	slider->set_scale_mode(SliderBar::ZeroGainMode);
+// 	slider->SetFont(sliderFont);
+// 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+// 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+// 	_toppansizer->Add (slider, 1, wxEXPAND, 0);
 
 	// panners are added later
 	
@@ -418,6 +419,40 @@ LooperPanel::post_init()
 	
 	_panners = new SliderBar*[_chan_count];
 	int barwidth = _chan_count <= 4 ? 50 : 30;
+
+	// without discrete i/o mains are the only option
+	float val;
+	if (_loop_control->get_value(_index, wxT("has_discrete_io"), val) && val != 0.0f)
+	{
+		_has_discrete_io = true;
+
+		// dry is only meaningful with discrete io
+		_dry_control = slider = new SliderBar(this, ID_DryControl, 0.0f, 1.0f, 1.0f);
+		slider->set_units(wxT("dB"));
+		slider->set_label(wxT("dry"));
+		slider->set_scale_mode(SliderBar::ZeroGainMode);
+		slider->SetFont(sliderFont);
+		slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+		slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+		_toppansizer->Add (slider, 1, wxEXPAND, 0);
+
+		_use_main_in_check = new CheckBox(this, ID_UseMainInCheck, wxT("main in"), true, wxDefaultPosition, wxSize(65, 18));
+		_use_main_in_check->SetFont(sliderFont);
+		_use_main_in_check->SetToolTip(wxT("mix input from Main inputs"));
+		_use_main_in_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("use_common_ins")));
+		_use_main_in_check->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) _use_main_in_check->GetId()));
+		_maininsizer->Add (_use_main_in_check, 0, wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL ,0);
+		_maininsizer->Layout();
+
+	}
+	else {
+		// no discrete io, thus the inputs will be common inputs
+		// and we can unregister for input peaks
+		_loop_control->register_auto_update (_index, wxT("in_peak_meter"), true);
+		_has_discrete_io = false;
+		_dry_control = 0;
+	}
+	
 	
 	for (int i=0; i < _chan_count; ++i)
 	{
@@ -441,7 +476,10 @@ LooperPanel::post_init()
 		slider->value_changed.connect (bind (slot (*this, &LooperPanel::pan_events), (int) i));
 		slider->bind_request.connect (bind (slot (*this, &LooperPanel::pan_bind_events), (int) i));
 
-		if (_chan_count <= 2 || i < (int) ceil(_chan_count*0.5)) {
+		if (!_has_discrete_io) {
+			_toppansizer->Add (slider, 1, (i==0) ? wxEXPAND : wxEXPAND|wxLEFT, 2);
+		}
+		else if (_chan_count <= 2 || i < (int) ceil(_chan_count*0.5)) {
 			_toppansizer->Add (slider, 0, wxEXPAND|wxLEFT, 2);
 		}
 		else {
@@ -450,26 +488,6 @@ LooperPanel::post_init()
 
 	}
 
-	// without discrete i/o mains are the only option
-	float val;
-	if (_loop_control->get_value(_index, wxT("has_discrete_io"), val) && val != 0.0f)
-	{
-		_has_discrete_io = true;
-		_use_main_in_check = new CheckBox(this, ID_UseMainInCheck, wxT("main in"), true, wxDefaultPosition, wxSize(65, 18));
-		_use_main_in_check->SetFont(sliderFont);
-		_use_main_in_check->SetToolTip(wxT("mix input from Main inputs"));
-		_use_main_in_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("use_common_ins")));
-		_use_main_in_check->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) _use_main_in_check->GetId()));
-		_maininsizer->Add (_use_main_in_check, 0, wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL ,0);
-		_maininsizer->Layout();
-	}
-	else {
-		// no discrete io, thus the inputs will be common inputs
-		// and we can unregister for input peaks
-		_loop_control->register_auto_update (_index, wxT("in_peak_meter"), true);
-		_has_discrete_io = false;
-	}
-	
 	_toppansizer->Layout();
 	_botpansizer->Layout();
 	Refresh(false);
@@ -800,6 +818,11 @@ LooperPanel::update_controls()
 			_loop_control->get_value(_index, wxT("in_peak_meter"), val);
 			_thresh_control->set_indicator_value (val);
 		}
+
+		if (_loop_control->is_updated(_index, wxT("dry"))) {
+			_loop_control->get_value(_index, wxT("dry"), val);
+			_dry_control->set_value (val);
+		}
 	}
 	else {
 		// use global in if we don't have discrete
@@ -807,10 +830,6 @@ LooperPanel::update_controls()
 		_thresh_control->set_indicator_value (val);
 	}
 
-	if (_loop_control->is_updated(_index, wxT("dry"))) {
-		_loop_control->get_value(_index, wxT("dry"), val);
-		_dry_control->set_value (val);
-	}
 	if (_loop_control->is_updated(_index, wxT("out_peak_meter"))) {
 		_loop_control->get_value(_index, wxT("out_peak_meter"), val);
 		_wet_control->set_indicator_value (val);
