@@ -662,7 +662,11 @@ Looper::run (nframes_t offset, nframes_t nframes)
 	if (_use_sync_buf == _our_syncin_buf || _use_sync_buf == _our_syncout_buf) {
 		ports[Sync] = 0.0f;
 	}
-
+	else {
+		// TEMP
+		if (ports[Sync] > 0.0f) ports[Sync] = 2.0f;
+	}
+	
 	// do fixed peak meter falloff
 	_input_peak = flush_to_zero (f_clamp (DB_CO (CO_DB(_input_peak) - nframes * _falloff_per_sample), 0.0f, 20.0f));
 	_output_peak = flush_to_zero (f_clamp (DB_CO (CO_DB(_output_peak) - nframes * _falloff_per_sample), 0.0f, 20.0f));

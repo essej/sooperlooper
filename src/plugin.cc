@@ -245,7 +245,8 @@ static LoopChunk * ensureLoopSpace(SooperLooperI* pLS, LoopChunk *loop, unsigned
 		loop->backfill = 0;
 		loop->valid = 1;
 		loop->mult_out = 0;
-			
+		loop->lSyncOffset = 0;
+		
 		loop->next = NULL;
 		loop->prev = pLS->headLoopChunk;
 		if (loop->prev) {
@@ -438,20 +439,21 @@ instantiateSooperLooper(const LADSPA_Descriptor * Descriptor,
    
    // not using calloc to force touching all memory ahead of time 
    // this could be bad if you try to allocate too much for your system
-   pLS->pSampleBuf = (LADSPA_Data *) malloc(pLS->lBufferSize * sizeof(LADSPA_Data));
+   // well, we are using calloc again... so sad
+   pLS->pSampleBuf = (LADSPA_Data *) calloc(pLS->lBufferSize,  sizeof(LADSPA_Data));
    if (pLS->pSampleBuf == NULL) {
 	   goto cleanup;
    }
-   memset (pLS->pSampleBuf, 0, pLS->lBufferSize * sizeof(LADSPA_Data));
+   //memset (pLS->pSampleBuf, 0, pLS->lBufferSize * sizeof(LADSPA_Data));
 
    pLS->lLoopChunkCount = MAX_LOOPS;
 
-   // not using calloc to force touching all memory ahead of time 
-   pLS->pLoopChunks = (LoopChunk *) malloc(pLS->lLoopChunkCount * sizeof(LoopChunk));
+   // not using calloc to force touching all memory ahead of time -- PSYCHE!
+   pLS->pLoopChunks = (LoopChunk *) calloc(pLS->lLoopChunkCount,  sizeof(LoopChunk));
    if (pLS->pLoopChunks == NULL) {
 	   goto cleanup;
    }
-   memset (pLS->pLoopChunks, 0, pLS->lLoopChunkCount * sizeof(LoopChunk));
+   //memset (pLS->pLoopChunks, 0, pLS->lLoopChunkCount * sizeof(LoopChunk));
 
    pLS->lastLoopChunk = pLS->pLoopChunks + pLS->lLoopChunkCount - 1;
    
@@ -535,6 +537,8 @@ activateSooperLooper(LADSPA_Handle Instance) {
   pLS->state = STATE_PLAY;
   pLS->nextState = -1;
   pLS->wasMuted = false;
+
+  pLS->lSamplesSinceSync = 0;
   
   clearLoopChunks(pLS);
 
@@ -2388,6 +2392,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      
 	      fInputSample = pfInput[lSampleIndex];
 	      if ((fSyncMode == 0.0f && ((fInputSample > fTrigThresh) || (fTrigThresh==0.0f)))
+		  || (fSyncMode == 2.0f) // relative sync offset mode 
 		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0f))
 	      {
 		 
@@ -2411,6 +2416,12 @@ runSooperLooper(LADSPA_Handle Instance,
 		    pLS->nextState = -1;
 		    loop->dOrigFeedback = fFeedback;
 
+		    if (fSyncMode == 2.0f) {
+			    // use sync offset
+			    loop->lSyncOffset = pLS->lSamplesSinceSync;
+			    cerr << "sync offset is: " << loop->lSyncOffset << endl;
+		    }
+		    
 		    // cause input-to-loop fade in
 		    pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
 		    //pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
@@ -2461,7 +2472,15 @@ runSooperLooper(LADSPA_Handle Instance,
 // 		      pLS->waitingForSync = 0;
 // 		      break;
 // 	      }
-		   
+
+	      if (fSyncMode == 2.0f && pfSyncInput[lSampleIndex] != 0.0f) {
+		      pLS->lSamplesSinceSync = 0;
+		      cerr << "reseting sync" << endl;
+	      }
+	      else {
+		      pLS->lSamplesSinceSync++;
+	      }
+	      
 	      // wrap at the proper loop end
 	      lCurrPos = (unsigned int)loop->dCurrPos;
 	      pLoopSample = & pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask];
@@ -2526,9 +2545,11 @@ runSooperLooper(LADSPA_Handle Instance,
 // 	      if ((fSyncMode == 0.0f && ((fInputSample > fTrigThresh) || (fTrigThresh==0.0)))
 // 		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0))
 
+	      
 	      // exit immediately if syncmode is off, or we have a sync
 	      if ((fSyncMode == 0.0f)
- 		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0f))
+ 		  || (fSyncMode == 1.0f && pfSyncInput[lSampleIndex] != 0.0f)
+		  || (fSyncMode == 2.0f && pLS->lSamplesSinceSync == loop->lSyncOffset))
 	      {
 		      DBG(fprintf(stderr,"Entering %d state at %u\n", pLS->nextState, lCurrPos));
 		 //pLS->state = pLS->nextState;
@@ -2536,11 +2557,26 @@ runSooperLooper(LADSPA_Handle Instance,
 		 //pLS->lRampSamples = xfadeSamples;
 		 //loop->dCurrPos = 0.0f;
 
-		 loop = transitionToNext (pLS, loop, pLS->nextState);
-		 pLS->waitingForSync = 0;
-		 break;
+		      if (fSyncMode == 2.0f) {
+			      pfSyncOutput[lSampleIndex] = 1.0f;
+			      cerr << "ending recstop sync2d" << endl;
+		      }
+		      else {
+			      cerr << "ending recstop sync1" << endl;
+		      }
+		      
+		      loop = transitionToNext (pLS, loop, pLS->nextState);
+		      pLS->waitingForSync = 0;
+		      break;
 	      }
 
+	      if (fSyncMode == 2.0f && pfSyncInput[lSampleIndex] != 0.0f) {
+		      pLS->lSamplesSinceSync = 0;
+	      }
+	      else {
+		      pLS->lSamplesSinceSync++;
+	      }
+	      	      
 	      
 	      *(pLoopSample) = pLS->fLoopFadeAtten * fInputSample;
 	      
@@ -3075,7 +3111,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		       fRate = *pLS->pfRate;
 		    }
 		    else {
-		       fRate = 0.0;
+		       fRate = 0.0f;
 		    }
 		    
 		    pLS->lScratchSamples = 0;
@@ -3129,6 +3165,20 @@ runSooperLooper(LADSPA_Handle Instance,
 
 		 if (fSyncMode != 0.0f) {
 			 pfSyncOutput[lSampleIndex] = pfSyncInput[lSampleIndex];
+
+			 if (fSyncMode == 2.0f) {
+				 pLS->lSamplesSinceSync++;
+
+				 if (pfSyncInput[lSampleIndex] != 0.0f) {
+					 cerr << "sync reset" << endl;
+					 pLS->lSamplesSinceSync = 0;
+				 }
+				 else if (lCurrPos == 0) {
+					 // we just synced, need to noitfy slave... this could be problem
+					 pfSyncOutput[lSampleIndex] = 1.0f;
+					 cerr << "notified" << endl;
+				 }
+			 }
 		 }
 		 else if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (lCurrPos % loop->lCycleLength) == 0)
 			  || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0)) || (fQuantizeMode == QUANT_8TH && (lCurrPos % eighthSamples) == 0)) {
@@ -3137,7 +3187,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 
 
- 		 if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0 && fTempo > 0.0f) {
+ 		 if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0f && fTempo > 0.0f) {
  		       // commit the new rate at boundary (quantized)
  		       pLS->fCurrRate = pLS->fNextCurrRate;
  		       pLS->fNextCurrRate = 0.0f;
@@ -3235,7 +3285,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 pfOutput[lSampleIndex] = fOutputSample;
 		 
 
- 		 if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0 && fTempo > 0.0f) {
+ 		 if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0f && fTempo > 0.0f) {
  		       // commit the new rate at boundary (quantized)
  		       pLS->fCurrRate = pLS->fNextCurrRate;
  		       pLS->fNextCurrRate = 0.0f;
@@ -3253,7 +3303,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		       //fWet = 0.0;
 		    }
 
-		    if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
+		    if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0f) {
 			    // commit the new rate at boundary (quantized)
 			    pLS->fCurrRate = pLS->fNextCurrRate;
 			    pLS->fNextCurrRate = 0.0f;
@@ -3276,7 +3326,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		       //pLS->lRampSamples = xfadeSamples;
 		    }
 
-		    if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0) {
+		    if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0f) {
 		       // commit the new rate at boundary (quantized)
 		       pLS->fCurrRate = pLS->fNextCurrRate;
 		       pLS->fNextCurrRate = 0.0f;
@@ -3415,6 +3465,13 @@ runSooperLooper(LADSPA_Handle Instance,
 	     
 	pfOutput[lSampleIndex] = fDry * pfInput[lSampleIndex];
 
+	if (fSyncMode == 2.0f) {
+		pLS->lSamplesSinceSync++;
+		if (pfSyncInput[lSampleIndex] != 0.0f) {
+			pLS->lSamplesSinceSync = 0;
+		}
+	}
+	
      }
      
   }

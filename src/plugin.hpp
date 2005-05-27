@@ -125,6 +125,8 @@ typedef struct _LoopChunk {
 	unsigned long lMarkH;    
 	unsigned long lMarkEndL;
 	unsigned long lMarkEndH;        
+
+	unsigned long lSyncOffset;
 	
 	int firsttime;
 	int frontfill;
@@ -245,6 +247,8 @@ typedef struct {
 	
 	LADSPA_Data fLoopXfadeTime;
 
+	unsigned int lSamplesSinceSync;
+	
 	
 	/* Ports:
 	   ------ */

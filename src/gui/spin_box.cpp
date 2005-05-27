@@ -30,8 +30,8 @@ using namespace SooperLooperGui;
 using namespace std;
 
 // Convert a value in dB's to a coefficent
-#define DB_CO(g) ((g) > -144.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
-#define CO_DB(v) (20.0f * log10f(v))
+#define DB_CO(g) ((g) > -144.0f ? pow(10.0f, (g) * 0.05f) : 0.0f)
+#define CO_DB(v) (20.0f * log10(v))
 
 static inline double 
 gain_to_slider_position (double g)
