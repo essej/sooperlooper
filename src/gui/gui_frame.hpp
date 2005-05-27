@@ -110,6 +110,7 @@ protected:
 	void on_dry_change (float value);
 	void on_wet_change (float value);
 	void on_round_check (bool val);
+	void on_relsync_check (bool val);
 
 	void on_bind_request (wxString val);
 	
@@ -155,6 +156,7 @@ protected:
 	SliderBar * _common_wet_bar;
 	SpinBox * _xfade_bar;
 	CheckBox * _round_check;
+	CheckBox * _relsync_check;
 	PixButton * _taptempo_button;
 	float _tapdelay_val;
 

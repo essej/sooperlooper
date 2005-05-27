@@ -76,6 +76,7 @@ CommandMap::CommandMap()
 	_input_controls["playback_sync"]  = Event::PlaybackSync;
 	_input_controls["use_rate"]  = Event::UseRate;
 	_input_controls["fade_samples"]  = Event::FadeSamples;
+	_input_controls["relative_sync"]  = Event::RelativeSync;
 	//_input_controls["eighth_per_cycle_loop"] = Event::EighthPerCycleLoop;
 	//_input_controls["tempo_input"] = Event::TempoInput;
 	_input_controls["use_common_ins"]  = Event::UseCommonIns;

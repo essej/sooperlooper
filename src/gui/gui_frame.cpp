@@ -82,6 +82,7 @@ enum {
 	ID_EighthSlider,
 	ID_QuantizeChoice,
 	ID_RoundCheck,
+	ID_RelSyncCheck,
 	ID_TapTempoButton,
 	ID_TapTempoTimer,
 	ID_AddCustomLoop,
@@ -258,7 +259,6 @@ GuiFrame::init()
 	_quantize_choice->append_choice (wxT("loop"), 3);
 	rowsizer->Add (_quantize_choice, 0, wxALL|wxEXPAND, 2);
 
-	
 	rowsizer->Add (1, 1, 1);
 
 	wxStaticBitmap * logobit = new wxStaticBitmap(_top_panel, -1, wxBitmap(sl_logo_xpm));
@@ -302,12 +302,18 @@ GuiFrame::init()
 	
 
 	
-	_round_check = new CheckBox (_top_panel, ID_RoundCheck, wxT("round"), true, wxDefaultPosition, wxSize(80, 20));
+	_round_check = new CheckBox (_top_panel, ID_RoundCheck, wxT("round"), true, wxDefaultPosition, wxSize(60, 20));
 	_round_check->SetFont (sliderFont);
 	_round_check->value_changed.connect (slot (*this, &GuiFrame::on_round_check));
 	_round_check->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("round")));
 	rowsizer->Add (_round_check, 0, wxALL|wxEXPAND, 2);
 
+	_relsync_check = new CheckBox (_top_panel, ID_RelSyncCheck, wxT("rel sync"), true, wxDefaultPosition, wxSize(75, 20));
+	_relsync_check->SetFont (sliderFont);
+	_relsync_check->value_changed.connect (slot (*this, &GuiFrame::on_relsync_check));
+	_relsync_check->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("relative_sync")));
+	rowsizer->Add (_relsync_check, 0, wxALL|wxEXPAND, 2);
+	
 	rowsizer->Add (1, 1, 1);
 
 	topcolsizer->Add (rowsizer, 0, wxEXPAND|wxBOTTOM, 3);
@@ -618,6 +624,11 @@ GuiFrame::update_controls()
  	if (_loop_control->is_updated(0, wxT("round"))) {
 		_loop_control->get_value(0, wxT("round"), val);
  		_round_check->set_value (val > 0.0);
+	}
+
+ 	if (_loop_control->is_updated(0, wxT("relative_sync"))) {
+		_loop_control->get_value(0, wxT("relative_sync"), val);
+ 		_relsync_check->set_value (val > 0.0);
 	}
 	
 	if (_loop_control->is_updated(0, wxT("fade_samples"))) {
@@ -944,6 +955,13 @@ GuiFrame::on_round_check (bool val)
 {
 	// send for all loops
 	_loop_control->post_ctrl_change (-1, wxT("round"), val ? 1.0f: 0.0f);
+}
+
+void
+GuiFrame::on_relsync_check (bool val)
+{
+	// send for all loops
+	_loop_control->post_ctrl_change (-1, wxT("relative_sync"), val ? 1.0f: 0.0f);
 }
 
 void

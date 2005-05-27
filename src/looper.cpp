@@ -109,6 +109,7 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_input_peak = 0.0f;
 	_output_peak = 0.0f;
 	_panner = 0;
+	_relative_sync = false;
 	
 	if (!descriptor) {
 		descriptor = ladspa_descriptor (0);
@@ -425,6 +426,9 @@ Looper::get_control_value (Event::control_t ctrl)
 	{
 		return _input_peak;
 	}
+	else if (ctrl == Event::RelativeSync) {
+		return _relative_sync;
+	}
 	else if (ctrl == Event::UseCommonOuts) {
 		return _use_common_outs;
 	}
@@ -472,6 +476,9 @@ void Looper::set_port (ControlPort n, float val)
 	{
 	case DryLevel:
 		_target_dry = val;
+		break;
+	case RelativeSync:
+		_relative_sync = val;
 		break;
 	default:
 		ports[n] = val;
@@ -548,7 +555,6 @@ Looper::do_event (Event *ev)
 			case Event::DryLevel:
 				_target_dry = ev->Value;
 				break;
-
 			case  Event::Quantize:
 				ev->Value = roundf(ev->Value);
 				// passthru is intentional
@@ -576,6 +582,10 @@ Looper::do_event (Event *ev)
 				}
 			}
 #endif
+		}
+		else if (ev->Control == Event::RelativeSync)
+		{
+			_relative_sync = ev->Value > 0.0f;
 		}
 		else if (ev->Control == Event::UseCommonIns) 
 		{
@@ -662,9 +672,9 @@ Looper::run (nframes_t offset, nframes_t nframes)
 	if (_use_sync_buf == _our_syncin_buf || _use_sync_buf == _our_syncout_buf) {
 		ports[Sync] = 0.0f;
 	}
-	else {
-		// TEMP
-		if (ports[Sync] > 0.0f) ports[Sync] = 2.0f;
+	else if (_relative_sync && ports[Sync] > 0.0f) {
+		// used for recSync relative mode
+		ports[Sync] = 2.0f;
 	}
 	
 	// do fixed peak meter falloff

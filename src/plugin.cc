@@ -464,7 +464,8 @@ instantiateSooperLooper(const LADSPA_Descriptor * Descriptor,
 
    pLS->state = STATE_PLAY;
    pLS->wasMuted = false;
-
+   pLS->recSyncEnded = false;
+   
    DBG(fprintf(stderr,"instantiated with buffersize: %lu\n", pLS->lBufferSize));
 
    
@@ -537,6 +538,7 @@ activateSooperLooper(LADSPA_Handle Instance) {
   pLS->state = STATE_PLAY;
   pLS->nextState = -1;
   pLS->wasMuted = false;
+  pLS->recSyncEnded = false;
 
   pLS->lSamplesSinceSync = 0;
   
@@ -2212,10 +2214,10 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_TRIG_STOP:
 		 // ends the record operation NOW
 		 // and starts playing in reverse
-		 fRate = pLS->fCurrRate *= -1.0f;
-		 pLS->state = STATE_PLAY;
-		 pLS->wasMuted = false;
-		 DBG(fprintf(stderr,"Entering PLAY state by reversing\n"));
+		      fRate = pLS->fCurrRate *= -1.0f;
+		      pLS->state = STATE_PLAY;
+		      pLS->wasMuted = false;
+		      DBG(fprintf(stderr,"Entering PLAY state by reversing\n"));
 		 break;
 	       case STATE_MULTIPLY:
 	       case STATE_INSERT:
@@ -2419,7 +2421,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    if (fSyncMode == 2.0f) {
 			    // use sync offset
 			    loop->lSyncOffset = pLS->lSamplesSinceSync;
-			    cerr << "sync offset is: " << loop->lSyncOffset << endl;
+			    //cerr << "sync offset is: " << loop->lSyncOffset << endl;
 		    }
 		    
 		    // cause input-to-loop fade in
@@ -2473,12 +2475,13 @@ runSooperLooper(LADSPA_Handle Instance,
 // 		      break;
 // 	      }
 
-	      if (fSyncMode == 2.0f && pfSyncInput[lSampleIndex] != 0.0f) {
-		      pLS->lSamplesSinceSync = 0;
-		      cerr << "reseting sync" << endl;
-	      }
-	      else {
+	      if (fSyncMode == 2.0f) {
 		      pLS->lSamplesSinceSync++;
+
+		      if (pfSyncInput[lSampleIndex] != 0.0f) {
+			      pLS->lSamplesSinceSync = 0;
+			      //cerr << "rec reseting sync" << endl;
+		      }
 	      }
 	      
 	      // wrap at the proper loop end
@@ -2558,11 +2561,11 @@ runSooperLooper(LADSPA_Handle Instance,
 		 //loop->dCurrPos = 0.0f;
 
 		      if (fSyncMode == 2.0f) {
-			      pfSyncOutput[lSampleIndex] = 1.0f;
-			      cerr << "ending recstop sync2d" << endl;
+			      //cerr << "ending recstop sync2d: " << lCurrPos << endl;
+			      pLS->recSyncEnded = true;
 		      }
 		      else {
-			      cerr << "ending recstop sync1" << endl;
+			      //cerr << "ending recstop sync1: " << lCurrPos << endl;
 		      }
 		      
 		      loop = transitionToNext (pLS, loop, pLS->nextState);
@@ -2570,13 +2573,15 @@ runSooperLooper(LADSPA_Handle Instance,
 		      break;
 	      }
 
-	      if (fSyncMode == 2.0f && pfSyncInput[lSampleIndex] != 0.0f) {
-		      pLS->lSamplesSinceSync = 0;
-	      }
-	      else {
+	      if (fSyncMode == 2.0f) {
 		      pLS->lSamplesSinceSync++;
+
+		      if (pfSyncInput[lSampleIndex] != 0.0f) {
+			      pLS->lSamplesSinceSync = 0;
+			      //cerr << "ts reseting sync" << endl;
+		      }
 	      }
-	      	      
+	      
 	      
 	      *(pLoopSample) = pLS->fLoopFadeAtten * fInputSample;
 	      
@@ -2638,6 +2643,22 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 if (fSyncMode != 0) {
 			 pfSyncOutput[lSampleIndex] = pfSyncInput[lSampleIndex];
+
+			 if (fSyncMode == 2.0f) {
+				 pLS->lSamplesSinceSync++;
+				 
+				 if (pfSyncInput[lSampleIndex] != 0.0f) {
+					 // cerr << "od sync reset" << endl;
+					 pLS->lSamplesSinceSync = 0;
+				 }
+				 else if (pLS->recSyncEnded) {
+					 // we just synced, need to noitfy slave... this could be problem
+					 pfSyncOutput[lSampleIndex] = 1.0f;
+					 //cerr << "od notified" << endl;
+					 pLS->recSyncEnded = false;
+				 }
+			 }
+			 
 		 }
 		 else {
 			 if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (lCurrPos % loop->lCycleLength) == 0)
@@ -2812,6 +2833,22 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 if (fSyncMode != 0) {
 			 pfSyncOutput[lSampleIndex] = pfSyncInput[lSampleIndex];
+
+			 if (fSyncMode == 2.0f) {
+				 pLS->lSamplesSinceSync++;
+				 
+				 if (pfSyncInput[lSampleIndex] != 0.0f) {
+					 // cerr << "mt sync reset" << endl;
+					 pLS->lSamplesSinceSync = 0;
+				 }
+				 else if (pLS->recSyncEnded) {
+					 // we just synced, need to noitfy slave... this could be problem
+					 pfSyncOutput[lSampleIndex] = 1.0f;
+					 //cerr << "mt notified: " <<  endl;
+					 pLS->recSyncEnded = false;
+				 }
+			 }
+			 
 		 }
 		 else {
 			 if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (slCurrPos % loop->lCycleLength) == 0))
@@ -3005,6 +3042,21 @@ runSooperLooper(LADSPA_Handle Instance,
 
 		 if (fSyncMode != 0) {
 			 pfSyncOutput[lSampleIndex] = pfSyncInput[lSampleIndex];
+
+			 if (fSyncMode == 2.0f) {
+				 pLS->lSamplesSinceSync++;
+				 
+				 if (pfSyncInput[lSampleIndex] != 0.0f) {
+					 //cerr << "ins sync reset" << endl;
+					 pLS->lSamplesSinceSync = 0;
+				 }
+				 else if (pLS->recSyncEnded) {
+					 // we just synced, need to noitfy slave... this could be problem
+					 pfSyncOutput[lSampleIndex] = 1.0f;
+					 //cerr << "ins notified" << endl;
+					 pLS->recSyncEnded = false;
+				 }
+			 }
 		 }
 		 else if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (lCurrPos % loop->lCycleLength) == 0)
 			  || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0)) || (fQuantizeMode == QUANT_8TH && (lCurrPos % eighthSamples) == 0)) {
@@ -3168,15 +3220,16 @@ runSooperLooper(LADSPA_Handle Instance,
 
 			 if (fSyncMode == 2.0f) {
 				 pLS->lSamplesSinceSync++;
-
+				 
 				 if (pfSyncInput[lSampleIndex] != 0.0f) {
-					 cerr << "sync reset" << endl;
+					 //cerr << " sync reset: " << pLS << endl;
 					 pLS->lSamplesSinceSync = 0;
 				 }
-				 else if (lCurrPos == 0) {
+				 else if (pLS->recSyncEnded) {
 					 // we just synced, need to noitfy slave... this could be problem
 					 pfSyncOutput[lSampleIndex] = 1.0f;
-					 cerr << "notified" << endl;
+					 //cerr << "notified" << endl;
+					 pLS->recSyncEnded = false;
 				 }
 			 }
 		 }

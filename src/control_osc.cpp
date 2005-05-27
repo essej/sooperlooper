@@ -937,7 +937,6 @@ int ControlOSC::set_handler(const char *path, const char *types, lo_arg **argv, 
 	//cerr << "source is " << srcport << endl;
 
 	_engine->push_control_event(info->type, _cmd_map->to_control_t(ctrl), val, info->instance, srcport);
-
 	
 	return 0;
 
@@ -1366,7 +1365,7 @@ ControlOSC::send_registered_updates(string ctrl, float val, int instance, int so
 {
 	InstancePair ipair(instance, ctrl);
 	ControlRegistrationMap::iterator iter = _registration_map.find (ipair);
-	LastValueMap::iterator lastval;
+	//LastValueMap::iterator lastval;
 
 	if (iter != _registration_map.end())
 	{

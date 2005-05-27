@@ -155,6 +155,7 @@ namespace SooperLooper {
 		    ChannelCount,
 		    InPeakMeter,
 		    OutPeakMeter,
+		    RelativeSync,
 		    // this is ugly, because i want them midi bindable
 		    PanChannel1,
 		    PanChannel2,

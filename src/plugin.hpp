@@ -46,7 +46,8 @@ enum ControlPort {
 	TempoInput,
 	PlaybackSync,
 	EighthPerCycleLoop,
-	LASTCONTROLPORT
+	LASTCONTROLPORT,
+	RelativeSync // not an enum
 };
 
 enum OutputPort {
@@ -180,6 +181,7 @@ typedef struct {
 	bool wasMuted;
 	
 	int waitingForSync;
+	bool recSyncEnded;
 	
 	long lLastMultiCtrl;
 

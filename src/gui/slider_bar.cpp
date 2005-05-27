@@ -33,8 +33,9 @@ using namespace std;
 
 // Convert a value in dB's to a coefficent
 #undef DB_CO
-#define DB_CO(g) ((g) > -144.0f ? pow(10.0f, (g) * 0.05f) : 0.0f)
-#define CO_DB(v) (20.0f * log10(v))
+#define DB_CO(g) ((g) > -144.0 ? pow(10.0, (g) * 0.05) : 0.0)
+#undef CO_DB
+#define CO_DB(v) (20.0 * log10(v))
 
 static inline double 
 gain_to_slider_position (double g)

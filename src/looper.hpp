@@ -124,6 +124,8 @@ class Looper
 	float              _curr_dry;
 	float              _target_dry;
 
+	bool               _relative_sync;
+	
 	// keeps track of down/up commands for SUS purposes
 	nframes_t          _down_stamps[Event::LAST_COMMAND+1];
 	nframes_t          _longpress_frames;

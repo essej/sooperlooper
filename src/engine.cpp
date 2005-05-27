@@ -327,14 +327,17 @@ Engine::add_loop (unsigned int chans, float loopsecs, bool discrete)
 	// set some initial controls
 	float quantize_value = QUANT_OFF;
 	float round_value = 0.0f;
+	float relative_sync = 0.0f;
 	
 	if (!_instances.empty()) {
 		quantize_value = _instances[0]->get_control_value (Event::Quantize);
 		round_value = _instances[0]->get_control_value (Event::Round);
+		relative_sync = _instances[0]->get_control_value (Event::RelativeSync);
 	}
 	
 	instance->set_port (Quantize, quantize_value);
 	instance->set_port (Round, round_value);
+	instance->set_port (RelativeSync, relative_sync);
 	instance->set_port (EighthPerCycleLoop, _eighth_cycle);
 	instance->set_port (TempoInput, _tempo);
 	
