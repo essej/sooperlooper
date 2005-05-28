@@ -444,7 +444,8 @@ instantiateSooperLooper(const LADSPA_Descriptor * Descriptor,
    if (pLS->pSampleBuf == NULL) {
 	   goto cleanup;
    }
-   //memset (pLS->pSampleBuf, 0, pLS->lBufferSize * sizeof(LADSPA_Data));
+   // we'll warm up up to 30 secs worth of the loop mem as a tradeoff to the low-mem mac people
+   memset (pLS->pSampleBuf, 0, min(pLS->lBufferSize, (unsigned long) (SampleRate * 30) ) * sizeof(LADSPA_Data));
 
    pLS->lLoopChunkCount = MAX_LOOPS;
 
@@ -453,7 +454,7 @@ instantiateSooperLooper(const LADSPA_Descriptor * Descriptor,
    if (pLS->pLoopChunks == NULL) {
 	   goto cleanup;
    }
-   //memset (pLS->pLoopChunks, 0, pLS->lLoopChunkCount * sizeof(LoopChunk));
+   memset (pLS->pLoopChunks, 0, pLS->lLoopChunkCount * sizeof(LoopChunk));
 
    pLS->lastLoopChunk = pLS->pLoopChunks + pLS->lLoopChunkCount - 1;
    
