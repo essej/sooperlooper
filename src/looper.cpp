@@ -1312,6 +1312,9 @@ Looper::get_state () const
 	snprintf(buf, sizeof(buf), "%s", _use_common_outs ? "yes": "no");
 	node->add_property ("use_common_outs", buf);
 
+	snprintf(buf, sizeof(buf), "%s", _relative_sync ? "yes": "no");
+	node->add_property ("relative_sync", buf);
+	
 	// panner
 	node->add_child_nocopy (_panner->state (true));
 
@@ -1391,6 +1394,9 @@ Looper::set_state (const XMLNode& node)
 		_use_common_outs = (prop->value() == "yes");
 	}
 
+	if ((prop = node.property ("relative_sync")) != 0) {
+		_relative_sync = (prop->value() == "yes");
+	}
 	
 
 	for (iter = node.children().begin(); iter != node.children().end(); ++iter) {
