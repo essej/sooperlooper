@@ -108,8 +108,8 @@ struct LocaleGuard {
 };
 
 
-#define DB_CO(g) ((g) > -90.0f ? powf(10.0f, (g) * 0.05f) : 0.0f)
-#define CO_DB(v) (20.0f * log10f(v))
+#define DB_CO(g) ((g) > -90.0f ? pow(10.0, (g) * 0.05) : 0.0)
+#define CO_DB(v) (20.0 * log10(v))
 
 
 #endif
