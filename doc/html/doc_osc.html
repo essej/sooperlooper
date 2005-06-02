@@ -110,6 +110,7 @@ SET PARAMETER VALUES
   use_feedback_play   :: 0 = off,  not 0 = on 
   use_common_ins   :: 0 = off,  not 0 = on 
   use_common_outs   :: 0 = off,  not 0 = on 
+  relative_sync   :: 0 = off, not 0 = on
   pan1         	:: range 0 -> 1
   pan2         	:: range 0 -> 1
   pan3         	:: range 0 -> 1
@@ -159,6 +160,12 @@ SAVE/LOAD
 /sl/#/save_loop   s:filename  s:format  s:endian  s:return_url  s:error_path
    saves current loop to given filename, may return error to error_path
    format and endian currently ignored, always uses 32 bit IEEE float WAV
+
+/save_session   s:filename  s:return_url  s:error_path
+   saves current session description to filename.
+
+/load_session   s:filename  s:return_url  s:error_path
+   loads and replaces the current session from filename.
 
 
 GLOBAL PARAMETERS

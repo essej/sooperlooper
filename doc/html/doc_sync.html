@@ -83,6 +83,20 @@
 	valid.  
 	</p>
 
+	<p>
+	  The <b>rel sync</b> parameter specifies a special
+	mode of sync when recording new loops similar to the EDP's unquantized SyncRecord function.
+	  When used in conjunction with a sync 
+source, a quantize setting other than off, and a loop's "sync" 
+option, will allow you to start recording a new loop at any time 
+and it will keep track of the sync and round off the loop so the 
+length is a multiple of the sync interval.  In other words this 
+allows you to be synced to another loop, midi, etc but start 
+recording exactly when you want (instead of it waiting until the 
+next sync point) and still get the right length loop.  
+	</p>
+
+	
 	<div class="flowimage" >
 	  <img src="sync_checks.png">
 	</div>
