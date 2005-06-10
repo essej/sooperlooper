@@ -70,6 +70,8 @@ Engine::Engine ()
 	_curr_common_dry = 1.0f;
 	_target_common_wet = 1.0f;
 	_curr_common_wet = 1.0f;
+	_target_input_gain = 1.0f;
+	_curr_input_gain = 1.0f;
 	_common_input_peak = 0.0f;
 	_common_output_peak = 0.0f;
 	_loading = false;
@@ -290,6 +292,13 @@ Engine::fill_common_outs(nframes_t nframes)
 
 	_curr_common_dry = flush_to_zero (currdry);
 	_curr_common_wet = flush_to_zero (currwet);
+	if (dry_delta <= 0.00003f) {
+		_curr_common_dry = _target_common_dry;
+	}
+	if (wet_delta <= 0.00003f) {
+		_curr_common_wet = _target_common_wet;
+	}
+
 	_common_output_peak = outpeak;
 	_common_input_peak = inpeak;
 }
@@ -297,13 +306,31 @@ Engine::fill_common_outs(nframes_t nframes)
 void 
 Engine::silence_common_outs(nframes_t nframes)
 {
-	sample_t * outbuf;
-
+	sample_t * outbuf, *inbuf;
+	float ing_delta = flush_to_zero(_target_input_gain - _curr_input_gain) / max((nframes_t) 1, (nframes - 1));
+	float curr_ing = _curr_input_gain;
+	
 	for (size_t i=0; i < _common_outputs.size(); ++i) 
 	{
 		outbuf = _driver->get_output_port_buffer (_common_outputs[i], _driver->get_buffersize());
 		memset (outbuf, 0, nframes * sizeof(sample_t));
+
+		// attenuate common inputs
+		inbuf = _driver->get_input_port_buffer (_common_inputs[i], _driver->get_buffersize());
+		curr_ing = _curr_input_gain;
+		
+		for (nframes_t n = 0; n < nframes; ++n) {
+			curr_ing += ing_delta;
+			inbuf[n] *= curr_ing;
+		}
 	}
+
+	_curr_input_gain = flush_to_zero (curr_ing);
+	if (ing_delta <= 0.00003f) {
+		// force to == target
+		_curr_input_gain = _target_input_gain;
+	}
+	
 }
 
 
@@ -681,6 +708,10 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 	{
 		_target_common_wet = ev->Value;
 	}
+	else if (ev->Control == Event::InputGain)
+	{
+		_target_input_gain = ev->Value;
+	}
 }
 
 bool Engine::push_loop_manage_to_rt (LoopManageEvent & lme)
@@ -878,6 +909,9 @@ Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 		}
 		else if (ctrl == Event::WetLevel) {
 			return _curr_common_wet;
+		}
+		else if (ctrl == Event::InputGain) {
+			return _curr_input_gain;
 		}
 	}
 
@@ -1084,6 +1118,9 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (gg_event->param == "wet") {
 			gg_event->ret_value = (float) _curr_common_wet;
 		}
+		else if (gg_event->param == "input_gain") {
+			gg_event->ret_value = (float) _curr_input_gain;
+		}
 		else if (gg_event->param == "sync_source") {
 			gg_event->ret_value = (float) _sync_source;
 		}
@@ -1103,6 +1140,9 @@ Engine::process_nonrt_event (EventNonRT * event)
 		}
 		else if (gs_event->param == "wet") {
 			_target_common_wet = gs_event->value;
+		}
+		else if (gs_event->param == "input_gain") {
+			_target_input_gain = gs_event->value;
 		}
 		else if (gs_event->param == "sync_source") {
 			if ((int) gs_event->value > (int) FIRST_SYNC_SOURCE
@@ -1719,6 +1759,10 @@ Engine::load_session (std::string fname)
 			sscanf (prop->value().c_str(), "%g", &_curr_common_wet);
 			_target_common_wet = _curr_common_wet;
 		}
+		if ((prop = globals_node->property ("input_gain")) != 0) {
+			sscanf (prop->value().c_str(), "%g", &_curr_input_gain);
+			_target_input_gain = _curr_input_gain;
+		}
 		if ((prop = globals_node->property ("sync_source")) != 0) {
 			sscanf (prop->value().c_str(), "%d", (int *) (&_sync_source));
 		}
@@ -1787,6 +1831,9 @@ Engine::save_session (std::string fname)
 	snprintf(buf, sizeof(buf), "%.10g", _curr_common_wet);
 	globals_node->add_property ("common_wet", buf);
 
+	snprintf(buf, sizeof(buf), "%.10g", _curr_input_gain);
+	globals_node->add_property ("input_gain", buf);
+	
 	snprintf(buf, sizeof(buf), "%d", (int)_sync_source);
 	globals_node->add_property ("sync_source", buf);
 	

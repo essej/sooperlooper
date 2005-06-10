@@ -81,6 +81,7 @@ CommandMap::CommandMap()
 	_input_controls["relative_sync"]  = Event::RelativeSync;
 	//_input_controls["eighth_per_cycle_loop"] = Event::EighthPerCycleLoop;
 	//_input_controls["tempo_input"] = Event::TempoInput;
+	_input_controls["input_gain"]  = Event::InputGain;
 	_input_controls["use_common_ins"]  = Event::UseCommonIns;
 	_input_controls["use_common_outs"]  = Event::UseCommonOuts;
 	_input_controls["pan_1"]  = Event::PanChannel1;

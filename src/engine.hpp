@@ -222,6 +222,9 @@ class Engine
 	float              _curr_common_wet;
 	float              _target_common_wet;
 
+	float              _curr_input_gain;
+	float              _target_input_gain;
+	
 	float              _common_input_peak;
 	float              _common_output_peak;
 	float              _falloff_per_sample;

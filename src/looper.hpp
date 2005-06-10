@@ -124,6 +124,9 @@ class Looper
 	float              _curr_dry;
 	float              _target_dry;
 
+	float              _curr_input_gain;
+	float              _targ_input_gain;
+	
 	bool               _relative_sync;
 	
 	// keeps track of down/up commands for SUS purposes

@@ -158,6 +158,7 @@ namespace SooperLooper {
 		    InPeakMeter,
 		    OutPeakMeter,
 		    RelativeSync,
+		    InputGain,
 		    // this is ugly, because i want them midi bindable
 		    PanChannel1,
 		    PanChannel2,

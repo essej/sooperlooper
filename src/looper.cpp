@@ -106,10 +106,13 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_have_discrete_io = discrete;
 	_curr_dry = 1.0f;
 	_target_dry = 1.0f;
+	_curr_input_gain = 1.0f;
+	_targ_input_gain = 1.0f;
 	_input_peak = 0.0f;
 	_output_peak = 0.0f;
 	_panner = 0;
 	_relative_sync = false;
+
 	
 	if (!descriptor) {
 		descriptor = ladspa_descriptor (0);
@@ -426,6 +429,9 @@ Looper::get_control_value (Event::control_t ctrl)
 	{
 		return _input_peak;
 	}
+	else if (ctrl == Event::InputGain) {
+		return _curr_input_gain;
+	}
 	else if (ctrl == Event::RelativeSync) {
 		return _relative_sync;
 	}
@@ -592,6 +598,10 @@ Looper::do_event (Event *ev)
 			}
 #endif
 		}
+		else if (ev->Control == Event::InputGain)
+		{
+			_targ_input_gain = ev->Value;
+		}
 		else if (ev->Control == Event::RelativeSync)
 		{
 			_relative_sync = ev->Value > 0.0f;
@@ -649,7 +659,7 @@ Looper::run (nframes_t offset, nframes_t nframes)
 				float * outbuf = _driver->get_output_port_buffer (_output_ports[i], _buffersize);
 				if (inbuf && outbuf) {
 					for (nframes_t n=0; n < nframes; ++n) {
-						outbuf[n] = flush_to_zero (inbuf[n] * _curr_dry);
+						outbuf[n] = flush_to_zero (inbuf[n] * _curr_dry * _curr_input_gain);
 					}
 				}
 			}
@@ -710,7 +720,11 @@ void
 Looper::run_loops (nframes_t offset, nframes_t nframes)
 {
 	LADSPA_Data * inbuf, *outbuf, *real_inbuf;
-
+	float currdry = _curr_dry;
+	float curr_ing = _curr_input_gain;
+	float ing_delta = flush_to_zero (_targ_input_gain - _curr_input_gain) / max((nframes_t) 1, (nframes - 1));
+	float dry_delta = flush_to_zero (_target_dry - _curr_dry) / max((nframes_t) 1, (nframes - 1));
+	
 	// get common outputs
 	size_t comnouts = _driver->get_engine()->get_common_output_count();
 	sample_t* com_obufs[comnouts];
@@ -731,7 +745,7 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		if (_have_discrete_io) {
 			real_inbuf = (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], _buffersize) + offset;
 			inbuf = real_inbuf;
-
+			
 			outbuf = (LADSPA_Data*) _driver->get_output_port_buffer (_output_ports[i], _buffersize) + offset;
 		}
 		else {
@@ -761,6 +775,17 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 
 		if (inbuf == 0) continue;
 
+		// attenuate input
+		if (_targ_input_gain != 1.0f || _curr_input_gain != _targ_input_gain) {
+			curr_ing = _curr_input_gain;
+			
+			for (nframes_t pos=0; pos < nframes; ++pos) {
+				curr_ing += ing_delta;
+				
+				inbuf[pos] *= curr_ing;
+			}
+		}
+		
 		// calculate input peak
 		compute_peak (inbuf, nframes, _input_peak);
 
@@ -791,16 +816,13 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 
 		if (_have_discrete_io) {
 			// just mix the dry into the outputs
-			float dry_delta = flush_to_zero (_target_dry - _curr_dry) / max((nframes_t) 1, (nframes - 1));
-			float currdry = _curr_dry;
-			
+			currdry = _curr_dry;
+
 			for (nframes_t pos=0; pos < nframes; ++pos) {
 				currdry += dry_delta;
 				
 				outbuf[pos] += currdry * real_inbuf[pos];
 			}
-
-			_curr_dry = flush_to_zero (currdry);
 		}
 
 		// calculate output peak post mixing with dry
@@ -810,6 +832,18 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 	}
 
 
+	_curr_dry = flush_to_zero (currdry);
+	if (dry_delta <= 0.00003f) {
+		_curr_dry = _target_dry;
+	}
+	
+	_curr_input_gain = flush_to_zero (curr_ing);
+	if (ing_delta <= 0.00003f) {
+		// force to == target
+		_curr_input_gain = _targ_input_gain;
+	}
+	
+
 }
 
 void
@@ -818,6 +852,10 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 #ifdef HAVE_SAMPLERATE
 	nframes_t alt_frames;
 	LADSPA_Data * inbuf, *outbuf, *real_inbuf;
+	float currdry = _curr_dry;
+	float curr_ing = _curr_input_gain;
+	float ing_delta = flush_to_zero (_targ_input_gain - _curr_input_gain) / max((nframes_t) 1, (nframes - 1));
+	float dry_delta = flush_to_zero (_target_dry - _curr_dry) / max((nframes_t) 1, (nframes - 1));
 	
 	_src_data.end_of_input = 0;
 	
@@ -885,6 +923,17 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 
 		if (inbuf == 0) continue;
 
+		// attenuate input
+		if (_targ_input_gain != 1.0f || _curr_input_gain != _targ_input_gain) {
+			curr_ing = _curr_input_gain;
+			
+			for (nframes_t pos=0; pos < nframes; ++pos) {
+				curr_ing += ing_delta;
+				
+				inbuf[pos] *= curr_ing;
+			}
+		}
+		
 		// calculate input peak
 		compute_peak (inbuf, nframes, _input_peak);
 
@@ -982,15 +1031,13 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 		
 		if (_have_discrete_io) {
 			// just mix the dry into the outputs
-			float dry_delta = flush_to_zero (_target_dry - _curr_dry) / max((nframes_t) 1, (nframes - 1));
-			float currdry = _curr_dry;
+			currdry = _curr_dry;
 			
 			for (nframes_t pos=0; pos < nframes; ++pos) {
 				currdry += dry_delta;
 				
 				outbuf[pos] += currdry * real_inbuf[pos];
 			}
-			_curr_dry = currdry;
 		}
 
 		// calculate output peak post mixing with dry
@@ -1008,7 +1055,18 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 	src_process (_outsync_src_state, &_src_data);
 
 	// 
+	_curr_dry = flush_to_zero (currdry);
+	if (dry_delta <= 0.00003f) {
+		_curr_dry = _target_dry;
+	}
+	
+	_curr_input_gain = flush_to_zero (curr_ing);
+	if (ing_delta <= 0.00003f) {
+		// force to == target
+		_curr_input_gain = _targ_input_gain;
+	}
 
+	
 #endif	
 }
 
