@@ -119,6 +119,8 @@ using namespace SooperLooper;
 #define MULTI_ONESHOT    14
 #define MULTI_TRIGGER    15
 #define MULTI_SUBSTITUTE 16
+#define MULTI_UNDO_ALL   17
+#define MULTI_REDO_ALL   18
 
 
 /*****************************************************************************/
@@ -1345,7 +1347,8 @@ runSooperLooper(LADSPA_Handle Instance,
   
   SooperLooperI * pLS;
   LoopChunk *loop, *srcloop;
-
+  LoopChunk *lastloop;
+  
   LADSPA_Data fSyncMode = 0.0f;
   LADSPA_Data fQuantizeMode = 0.0f;
   LADSPA_Data fPlaybackSyncMode = 0.0f;
@@ -1491,19 +1494,6 @@ runSooperLooper(LADSPA_Handle Instance,
      //lMultiCtrl = lMultiCtrl;
 
      // change the value if necessary
-     if (pLS->state == STATE_MUTE) {
-	switch (lMultiCtrl) {
-	   case MULTI_REDO:
-	      lMultiCtrl = MULTI_REDO_TOG;
-	      break;
-	   case MULTI_REPLACE:
-		   //lMultiCtrl = MULTI_QUANT_TOG;
-	      break;
-	   case MULTI_REVERSE:
-		   //lMultiCtrl = MULTI_ROUND_TOG;
-	      break;
-	}
-     }
 
      if (lMultiCtrl==MULTI_REDO && useDelay) {
 	lMultiCtrl = MULTI_DELAY;
@@ -2132,6 +2122,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_REPLACE:
 	      case STATE_SUBSTITUTE:
 	      case STATE_DELAY:
+   	      case STATE_MUTE:
 		      // POP the head off and start the previous
 		      // one at the same position if possible
 		      
@@ -2149,37 +2140,64 @@ runSooperLooper(LADSPA_Handle Instance,
 			      undoLoop(pLS);
 		      }
 		      
-		      // cancel whatever mode, back to play mode
+		      // cancel whatever mode, back to play mode (or mute)
 		      pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
-		      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 		      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+
+		      if (pLS->state == STATE_PLAY) {
+			      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+		      }
+		      else {
+			      pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
+		      }
+
 		      DBG(fprintf(stderr,"Undoing and reentering PLAY state from UNDO\n"));
 		      break;
 		      
-		      
-	      case STATE_MUTE:
-		 // undo ALL)
-		      if (pLS->waitingForSync) {
-			      // don't undo loop
-			      // just return to play (or mute)
-			      pLS->waitingForSync = 0;
-			      pLS->nextState = -1;
-		      }
-		      else if (pLS->fNextCurrRate != 0.0f) {
-			      // undo pending reverse
-			      pLS->fNextCurrRate = 0.0f;
-		      }
-		      else {
-			      clearLoopChunks(pLS);
-			      DBG(fprintf(stderr,"UNDO all loops\n"));
-		      }
-		 break;
-		 
+/* removed undo all from here		      
+*/		 
 	   }
 	   
-	}break;
+	} break;
 
+        case MULTI_UNDO_ALL:
+	{
+		// undo ALL)
+		clearLoopChunks(pLS);
+		DBG(fprintf(stderr,"UNDO all loops\n"));
+		pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
+
+		pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+		pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+
+	} break;
+
+        case MULTI_REDO_ALL:
+	{
+		// redo ALL)
+		lastloop = pLS->headLoopChunk;
+		redoLoop(pLS);
+
+		while (pLS->headLoopChunk != lastloop) {
+			lastloop = pLS->headLoopChunk;
+			redoLoop(pLS);
+		}
+
+		pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
+		pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+		pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+		
+		if (pLS->state == STATE_PLAY) {
+			pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+		}
+		else {
+			pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
+		}
+		DBG(fprintf(stderr,"REDO all loops\n"));
+
+	} break;
+	
 	case MULTI_REDO:
 	{
 	   switch (pLS->state) {
@@ -2192,16 +2210,23 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_INSERT:
 	      case STATE_REPLACE:
 	      case STATE_SUBSTITUTE:
-
+	      case STATE_MUTE:
 		 // immediately redo last if possible
 		 redoLoop(pLS);
 
-		 pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 		 pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		 pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
-		 
+
 		 pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
 		 DBG(fprintf(stderr,"Entering PLAY state from REDO\n"));
+
+		 if (pLS->state == STATE_PLAY) {
+			 pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+		 }
+		 else {
+			 pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
+		 }
+
 		 break;
 	   }
 

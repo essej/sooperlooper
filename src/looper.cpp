@@ -512,7 +512,8 @@ Looper::do_event (Event *ev)
 		if ((int) cmd >= 0 && (int) cmd < (int) Event::LAST_COMMAND)
 		{
 			
-			if (ports[State] != LooperStatePlaying || cmd == Event::REVERSE || cmd == Event::DELAY)
+			if (ports[State] != LooperStatePlaying
+			    || cmd == Event::REVERSE || cmd == Event::DELAY || cmd == Event::UNDO || cmd == Event::REDO)
 			{
 				
 				if (ev->Type == Event::type_cmd_upforce) {
@@ -538,6 +539,14 @@ Looper::do_event (Event *ev)
 					//cerr << "long up" << endl;
 					requested_cmd = cmd;
 					request_pending = true;
+
+					// long press undo and redo become their -all versions
+					if (cmd == Event::UNDO) {
+						requested_cmd = Event::UNDO_ALL;
+					}
+					else if (cmd == Event::REDO) {
+						requested_cmd = Event::REDO_ALL;
+					}
 				}
 			}
 			

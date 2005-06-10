@@ -105,6 +105,8 @@ namespace SooperLooper {
 		    ONESHOT,
 		    TRIGGER,
 		    SUBSTITUTE,
+		    UNDO_ALL,
+		    REDO_ALL,
 		    LAST_COMMAND
 	    } Command;
 

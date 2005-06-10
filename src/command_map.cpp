@@ -55,6 +55,8 @@ CommandMap::CommandMap()
 	_str_cmd_map["trigger"]  = Event::TRIGGER;
 	_str_cmd_map["oneshot"]  = Event::ONESHOT;
 	_str_cmd_map["substitute"]  = Event::SUBSTITUTE;
+	_str_cmd_map["undo_all"]  = Event::UNDO_ALL;
+	_str_cmd_map["redo_all"]  = Event::REDO_ALL;
 	
 	for (StringCommandMap::iterator iter = _str_cmd_map.begin(); iter != _str_cmd_map.end(); ++iter) {
 		_cmd_str_map[(*iter).second] = (*iter).first;
