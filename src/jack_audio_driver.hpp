@@ -67,6 +67,9 @@ class JackAudioDriver
 	static int _xrun_callback (void*);
 	static void _shutdown_callback (void*);
 
+	int buffersize_callback (jack_nframes_t);
+	static int _buffersize_callback (jack_nframes_t, void*);
+
 	jack_client_t *_jack;
 
 	std::vector<jack_port_t *> _input_ports;

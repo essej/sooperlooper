@@ -129,6 +129,7 @@ class LooperPanel
 
 	SliderBar * _thresh_control;
 	SliderBar * _feedback_control;
+	SliderBar * _in_gain_control;
 	SliderBar * _dry_control;
 	SliderBar * _wet_control;
 	SliderBar * _scratch_control;

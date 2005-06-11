@@ -108,6 +108,7 @@ protected:
 
 	void on_quantize_change (int index, wxString val);
 	void on_dry_change (float value);
+	void on_ingain_change (float value);
 	void on_wet_change (float value);
 	void on_round_check (bool val);
 	void on_relsync_check (bool val);
@@ -152,6 +153,7 @@ protected:
 	ChoiceBox * _sync_choice;
 	SpinBox * _eighth_cycle_bar;
 	ChoiceBox * _quantize_choice;
+	SliderBar * _common_ingain_bar;
 	SliderBar * _common_dry_bar;
 	SliderBar * _common_wet_bar;
 	SpinBox * _xfade_bar;

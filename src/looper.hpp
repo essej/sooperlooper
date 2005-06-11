@@ -71,10 +71,10 @@ class Looper
 
 	void set_buffer_size (nframes_t bufsize);
 
-	float * get_sync_in_buf() { return _our_syncin_buf; }
-	float * get_sync_out_buf() { return _our_syncout_buf; }
+	sample_t * get_sync_in_buf() { return _our_syncin_buf; }
+	sample_t * get_sync_out_buf() { return _our_syncout_buf; }
 
-	void use_sync_buf(float * buf);
+	void use_sync_buf(sample_t * buf);
 
 	unsigned int get_index() { return _index; }
 	

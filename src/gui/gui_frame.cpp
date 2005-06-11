@@ -88,7 +88,8 @@ enum {
 	ID_AddCustomLoop,
 	ID_XfadeSlider,
 	ID_DryControl,
-	ID_WetControl
+	ID_WetControl,
+	ID_InGainControl
 };
 
 
@@ -280,7 +281,17 @@ GuiFrame::init()
 	_xfade_bar->bind_request.connect (bind (slot (*this,  &GuiFrame::on_bind_request), wxT("fade_samples")));
 	rowsizer->Add (_xfade_bar, 0, wxALL|wxEXPAND, 2);
 
-	_common_dry_bar = new SliderBar(_top_panel, ID_DryControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(200,20));
+	_common_ingain_bar = new SliderBar(_top_panel, ID_InGainControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(132,20));
+	_common_ingain_bar->set_units(wxT("dB"));
+	_common_ingain_bar->set_label(wxT("input gain"));
+	_common_ingain_bar->set_scale_mode(SliderBar::ZeroGainMode);
+	_common_ingain_bar->set_show_indicator_bar(true);
+	_common_ingain_bar->SetFont(sliderFont);
+	_common_ingain_bar->value_changed.connect (slot (*this, &GuiFrame::on_ingain_change));
+	_common_ingain_bar->bind_request.connect (bind (slot (*this, &GuiFrame::on_bind_request), wxT("input_gain")));
+	rowsizer->Add (_common_ingain_bar, 0, wxALL|wxEXPAND, 2);
+	
+	_common_dry_bar = new SliderBar(_top_panel, ID_DryControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(132,20));
 	_common_dry_bar->set_units(wxT("dB"));
 	_common_dry_bar->set_label(wxT("main dry"));
 	_common_dry_bar->set_scale_mode(SliderBar::ZeroGainMode);
@@ -290,7 +301,7 @@ GuiFrame::init()
 	_common_dry_bar->bind_request.connect (bind (slot (*this, &GuiFrame::on_bind_request), wxT("dry")));
 	rowsizer->Add (_common_dry_bar, 0, wxALL|wxEXPAND, 2);
 
-	_common_wet_bar = new SliderBar(_top_panel, ID_WetControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(200,20));
+	_common_wet_bar = new SliderBar(_top_panel, ID_WetControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(132,20));
 	_common_wet_bar->set_units(wxT("dB"));
 	_common_wet_bar->set_label(wxT("main out"));
 	_common_wet_bar->set_scale_mode(SliderBar::ZeroGainMode);
@@ -641,6 +652,11 @@ GuiFrame::update_controls()
 		_common_dry_bar->set_value (val);
 	}
 
+	if (_loop_control->is_global_updated(wxT("input_gain"))) {
+		_loop_control->get_global_value(wxT("input_gain"), val);
+		_common_ingain_bar->set_value (val);
+	}
+	
 	// don't check, others might be using it
 	_loop_control->get_global_value(wxT("in_peak_meter"), val);
 	_common_dry_bar->set_indicator_value (val);
@@ -868,6 +884,10 @@ GuiFrame::on_bind_request (wxString val)
 		info.control = "wet";
 		info.style = MidiBindInfo::GainStyle;
 	}
+	else if (val == wxT("input_gain")) {
+		info.control = "input_gain";
+		info.style = MidiBindInfo::GainStyle;
+	}
 	else if (val == wxT("round")) {
 		info.instance = -1;
 		info.control = "round";
@@ -922,6 +942,12 @@ void
 GuiFrame::on_wet_change (float value)
 {
 	_loop_control->post_global_ctrl_change (wxT("wet"), value);
+}
+
+void
+GuiFrame::on_ingain_change (float value)
+{
+	_loop_control->post_global_ctrl_change (wxT("input_gain"), value);
 }
 
 void

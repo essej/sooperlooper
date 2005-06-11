@@ -353,7 +353,7 @@ Looper::set_use_common_outs (bool val)
 }
 
 void
-Looper::use_sync_buf(float * buf)
+Looper::use_sync_buf(sample_t * buf)
 {
 	if (buf) {
 		_use_sync_buf = buf;
@@ -655,8 +655,8 @@ Looper::run (nframes_t offset, nframes_t nframes)
 		if (_have_discrete_io) {
 			for (unsigned int i=0; i < _chan_count; ++i)
 			{
-				float * inbuf = _driver->get_input_port_buffer (_input_ports[i], _buffersize);
-				float * outbuf = _driver->get_output_port_buffer (_output_ports[i], _buffersize);
+				sample_t * inbuf = _driver->get_input_port_buffer (_input_ports[i], _buffersize);
+				sample_t * outbuf = _driver->get_output_port_buffer (_output_ports[i], _buffersize);
 				if (inbuf && outbuf) {
 					for (nframes_t n=0; n < nframes; ++n) {
 						outbuf[n] = flush_to_zero (inbuf[n] * _curr_dry * _curr_input_gain);
@@ -756,35 +756,45 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 
 		if (_use_common_ins || !_have_discrete_io) {
 			// mix common input into this buffer
-			port_id_t cominport;
-			if (_driver->get_engine()->get_common_input(i, cominport)) {
-				sample_t * comin = _driver->get_input_port_buffer (cominport, _buffersize) + offset;
+			sample_t * comin = _driver->get_engine()->get_common_input_buffer(i);			
+			if (comin)
+			{
+				comin += offset;
 				
+				curr_ing = _curr_input_gain;
+
 				if (_have_discrete_io) {
 					for (nframes_t pos=0; pos < nframes; ++pos) {
-						_tmp_io_buf[pos] = real_inbuf[pos] + comin[pos];
+						curr_ing += ing_delta;
+						_tmp_io_buf[pos] = curr_ing * (real_inbuf[pos] + comin[pos]);
 					}
 					inbuf = _tmp_io_buf;
 				}
 				else {
-					inbuf = comin;
+					for (nframes_t pos=0; pos < nframes; ++pos) {
+						curr_ing += ing_delta;
+						
+						_tmp_io_buf[pos] = curr_ing * (comin[pos]);
+					}
+					inbuf = _tmp_io_buf;
 				}
 
 			}
 		}
-
-		if (inbuf == 0) continue;
-
-		// attenuate input
-		if (_targ_input_gain != 1.0f || _curr_input_gain != _targ_input_gain) {
+		else {
+			// we have discrete and not using common
 			curr_ing = _curr_input_gain;
-			
 			for (nframes_t pos=0; pos < nframes; ++pos) {
 				curr_ing += ing_delta;
-				
-				inbuf[pos] *= curr_ing;
+
+				_tmp_io_buf[pos] = curr_ing * (real_inbuf[pos]);
 			}
+			inbuf = _tmp_io_buf;
 		}
+		
+		// no longer needed
+		if (inbuf == 0) continue;
+
 		
 		// calculate input peak
 		compute_peak (inbuf, nframes, _input_peak);
@@ -904,9 +914,10 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 
 		if (_use_common_ins || !_have_discrete_io) {
 			// mix common input into this buffer
-			port_id_t cominport;
-			if (_driver->get_engine()->get_common_input(i, cominport)) {
-				sample_t * comin = _driver->get_input_port_buffer (cominport, _buffersize) + offset;
+			sample_t * comin = _driver->get_engine()->get_common_input_buffer(i);			
+			if (comin)
+			{
+				comin += offset;
 				
 				if (_have_discrete_io) {
 					for (nframes_t pos=0; pos < nframes; ++pos) {
@@ -941,7 +952,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 		_src_data.src_ratio = _src_in_ratio;
 		_src_data.input_frames = nframes;
 		_src_data.output_frames = (long) ceil (nframes * _src_in_ratio);
-		_src_data.data_in = (float *) inbuf;
+		_src_data.data_in = (sample_t *) inbuf;
 		_src_data.data_out = _src_in_buffer;
 		src_process (_in_src_states[i], &_src_data);
 
@@ -992,7 +1003,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 			_src_data.output_frames = nframes ;
 		}
 		_src_data.data_in = _src_in_buffer;
-		_src_data.data_out = (float *) outbuf;
+		_src_data.data_out = (sample_t *) outbuf;
 		src_process (_out_src_states[i], &_src_data);
 
 //  		if (i==0 && _src_data.input_frames != _src_data.input_frames_used) {
@@ -1106,12 +1117,12 @@ Looper::load_loop (string fname)
 
 	// make some temporary input buffers
 	nframes_t bufsize = 65536;
-	float ** inbufs = new float*[_chan_count];
+	sample_t ** inbufs = new float*[_chan_count];
 	for (unsigned int i=0; i < _chan_count; ++i) {
 		inbufs[i] = new float[bufsize];
 	}
 
-	float * dummyout = new float[bufsize];
+	sample_t * dummyout = new float[bufsize];
 	
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
@@ -1147,8 +1158,8 @@ Looper::load_loop (string fname)
 	nframes_t frames_left = sinfo.frames;
 	nframes_t filechans = sinfo.channels;
 	nframes_t bpos;
-	float * databuf;
-	float * bigbuf  = new float[bufsize * filechans];
+	sample_t * databuf;
+	sample_t * bigbuf  = new float[bufsize * filechans];
 	
 	while (frames_left > 0)
 	{
@@ -1280,19 +1291,19 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 
 	// make some temporary buffers
 	nframes_t bufsize = 65536;
-	float ** outbufs = new float*[_chan_count];
+	sample_t ** outbufs = new float*[_chan_count];
 	for (unsigned int i=0; i < _chan_count; ++i) {
 		outbufs[i] = new float[bufsize];
 	}
 
-	float * bigbuf   = new float[bufsize * _chan_count];
+	sample_t * bigbuf   = new float[bufsize * _chan_count];
 
 	// now start recording and run for loop length total
 	nframes_t nframes = bufsize;
 	nframes_t frames_left = (nframes_t) lrintf(ports[LoopLength] * _driver->get_samplerate());
 
 	nframes_t bpos;
-	float * databuf;
+	sample_t * databuf;
 	nframes_t looppos = 0;
 
 	

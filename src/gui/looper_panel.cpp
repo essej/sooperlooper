@@ -73,7 +73,8 @@ enum {
 	ID_WetControl,
 	ID_ScratchControl,
 	ID_RateControl,
-
+	ID_InputGainControl,
+	
 	ID_QuantizeCheck,
 	ID_QuantizeChoice,
 	ID_RoundCheck,
@@ -175,21 +176,29 @@ LooperPanel::init()
 	wxFont sliderFont = *wxSMALL_FONT;
 	//cerr << "looper frame small: " << sliderFont.GetPointSize() << endl;
 	
+	wxBoxSizer * inthresh_sizer = new wxBoxSizer(wxHORIZONTAL);
 
+	_in_gain_control = slider = new SliderBar(this, ID_InputGainControl, 0.0f, 1.0f, 0.0f);
+	slider->set_units(wxT(""));
+	slider->set_label(wxT("in gain"));
+	slider->set_show_indicator_bar (false);
+	slider->set_scale_mode(SliderBar::ZeroGainMode);
+	slider->SetFont(sliderFont);
+	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+	inthresh_sizer->Add (slider, 1, wxALL|wxEXPAND, 0);
+	
 	_thresh_control = slider = new SliderBar(this, ID_ThreshControl, 0.0f, 1.0f, 0.0f);
-	slider->set_units(wxT("dB"));
+	slider->set_units(wxT(""));
 	slider->set_label(wxT("thresh"));
 	slider->set_show_indicator_bar (true);
 	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
-	_maininsizer->Add (slider, 1, wxALL|wxEXPAND, 0);
-
-	// mainin check added later
-	_use_main_in_check = 0;
+	inthresh_sizer->Add (slider, 1, wxLEFT|wxEXPAND, 3);
 	
-	colsizer->Add (_maininsizer, 1, wxEXPAND|wxTOP|wxLEFT, 5);
+	colsizer->Add (inthresh_sizer, 1, wxEXPAND|wxTOP|wxLEFT, 5);
 
 	_feedback_control = slider = new SliderBar(this, ID_FeedbackControl, 0.0f, 100.0f, 100.0f);
 	slider->set_units(wxT("%"));
@@ -197,8 +206,16 @@ LooperPanel::init()
 	slider->SetFont(sliderFont);
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
-	colsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 5);
 
+	_maininsizer->Add (slider, 1, wxALL|wxEXPAND, 0);
+
+	// mainin check added later
+	_use_main_in_check = 0;
+	
+	colsizer->Add (_maininsizer, 1, wxEXPAND|wxTOP|wxLEFT, 5);
+
+
+	
 	//colsizer->Add (20, 5, 0, wxEXPAND);
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
  	rowsizer->Add (_replace_button, 0, wxTOP|wxLEFT, 5);
@@ -444,11 +461,10 @@ LooperPanel::post_init()
 		_maininsizer->Add (_use_main_in_check, 0, wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL ,0);
 		_maininsizer->Layout();
 
+		_feedback_control->set_label(wxT("feedb"));
+
 	}
 	else {
-		// no discrete io, thus the inputs will be common inputs
-		// and we can unregister for input peaks
-		_loop_control->register_auto_update (_index, wxT("in_peak_meter"), true);
 		_has_discrete_io = false;
 		_dry_control = 0;
 	}
@@ -808,6 +824,10 @@ LooperPanel::update_controls()
 		_loop_control->get_value(_index, wxT("feedback"), val);
 		_feedback_control->set_value ((val * 100.0f));
 	}
+	if (_loop_control->is_updated(_index, wxT("input_gain"))) {
+		_loop_control->get_value(_index, wxT("input_gain"), val);
+		_in_gain_control->set_value (val);
+	}
 	if (_loop_control->is_updated(_index, wxT("rec_thresh"))) {
 		_loop_control->get_value(_index, wxT("rec_thresh"), val);
 		_thresh_control->set_value (val);
@@ -825,9 +845,10 @@ LooperPanel::update_controls()
 		}
 	}
 	else {
-		// use global in if we don't have discrete
-		_loop_control->get_global_value (wxT("in_peak_meter"), val);
-		_thresh_control->set_indicator_value (val);
+		if (_loop_control->is_updated(_index, wxT("in_peak_meter"))) {
+			_loop_control->get_value(_index, wxT("in_peak_meter"), val);
+			_thresh_control->set_indicator_value (val);
+		}
 	}
 
 	if (_loop_control->is_updated(_index, wxT("out_peak_meter"))) {
@@ -1294,6 +1315,10 @@ LooperPanel::slider_events(float val, int id)
 		ctrl = wxT("feedback");
 		val = _feedback_control->get_value() / 100.0f;
 		break;
+	case ID_InputGainControl:
+		ctrl = wxT("input_gain");
+		val = _in_gain_control->get_value();
+		break;
 	case ID_DryControl:
 		ctrl = wxT("dry");
 		val = _dry_control->get_value();
@@ -1346,6 +1371,10 @@ LooperPanel::control_bind_events(int id)
 		break;
 	case ID_DryControl:
 		info.control = "dry";
+		info.style = MidiBindInfo::GainStyle;
+		break;
+	case ID_InputGainControl:
+		info.control = "input_gain";
 		info.style = MidiBindInfo::GainStyle;
 		break;
 	case ID_WetControl:

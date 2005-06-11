@@ -64,6 +64,10 @@ JackAudioDriver::initialize(string client_name)
 		return false;
 	}
 
+	if (jack_set_buffer_size_callback (_jack, _buffersize_callback, this) != 0) {
+		cerr << "cannot set buffersize callback" << endl;
+	}
+	
 	return true;
 }
 
@@ -187,6 +191,23 @@ JackAudioDriver::_shutdown_callback (void* arg)
 {
 	cerr << "jack shut us down" << endl;
 	return;
+}
+
+int
+JackAudioDriver::_buffersize_callback (jack_nframes_t nframes, void* arg)
+{
+	return static_cast<JackAudioDriver*> (arg)->buffersize_callback (nframes);
+}
+
+int
+JackAudioDriver::buffersize_callback (jack_nframes_t nframes)
+{
+	if (_engine) {
+		_buffersize = nframes;
+		
+		_engine->buffersize_changed (nframes);
+	}
+	return 0;
 }
 
 

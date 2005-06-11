@@ -75,6 +75,7 @@ Engine::Engine ()
 	_common_input_peak = 0.0f;
 	_common_output_peak = 0.0f;
 	_loading = false;
+	_use_temp_input = true; // all the time for now
 	
 	_running_frames = 0;
 	_last_tempo_frame = 0;
@@ -102,6 +103,8 @@ bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 		cerr << "cannot connect to audio driver" << endl;
 		return false;
 	}
+
+	_buffersize = _driver->get_buffersize();
 	
 	// create common io ports
 	for (int i=0; i < 2; ++i) 
@@ -111,6 +114,13 @@ bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 			_common_inputs.push_back (tmpport);
 		}
 
+		// create temp input buffer
+		sample_t * inbuf = new float[driver->get_buffersize()];
+		memset(inbuf, 0, sizeof(float) * driver->get_buffersize());
+		_temp_input_buffers.push_back(inbuf);
+
+		_common_input_buffers.push_back(0); // fill to correct size
+		
 		snprintf(tmpstr, sizeof(tmpstr), "common_out_%d", i+1);
 		if (_driver->create_output_port (tmpstr, tmpport)) {
 			_common_outputs.push_back (tmpport);
@@ -199,6 +209,15 @@ Engine::cleanup()
 	if (_loop_manage_to_main_queue) {
 		delete _loop_manage_to_main_queue;
 	}
+
+	// delete temp common input buffers
+	for (int i=0; i < 2; ++i) 
+	{
+		sample_t * inbuf = _temp_input_buffers[i];
+		delete [] inbuf;
+	}
+	_temp_input_buffers.clear();
+	
 	
 	_ok = false;
 	
@@ -253,6 +272,63 @@ Engine::get_common_output (unsigned int chan, port_id_t & port)
 	return false;
 }
 
+sample_t *
+Engine::get_common_input_buffer (unsigned int chan)
+{
+	if (chan < _common_inputs.size()) {
+		if (_use_temp_input) {
+			return _temp_input_buffers[chan];
+		}
+		else {
+			// assumed this is in process cycle and already cached
+			return _common_input_buffers[chan];
+		}
+	}
+	return 0;
+}
+
+sample_t *
+Engine::get_common_output_buffer (unsigned int chan)
+{
+	if (chan < _common_outputs.size()) {
+		return _driver->get_output_port_buffer (_common_outputs[chan], _buffersize);
+	}
+	return 0;
+}
+
+
+void
+Engine::buffersize_changed (nframes_t nframes)
+{
+	if (_buffersize != nframes)
+	{
+		
+		// called from the audio thread callback
+		size_t m = 0;
+		for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i, ++m)
+		{
+			(*i)->set_buffer_size(nframes);
+		}
+
+		// resize temp inbuf and sync buf
+		for (int n=0; n < 2; ++n) 
+		{
+			delete [] _temp_input_buffers[n];
+			// create temp input buffer
+			sample_t * inbuf = new float[nframes];
+			memset(inbuf, 0, sizeof(float) * nframes);
+			_temp_input_buffers[n] = inbuf;
+		}
+
+		delete [] _internal_sync_buf;
+		_internal_sync_buf = new float[nframes];
+		memset(_internal_sync_buf, 0, sizeof(float) * nframes);
+
+		_buffersize = nframes;
+	}
+}
+
+
 void 
 Engine::fill_common_outs(nframes_t nframes)
 {
@@ -273,7 +349,7 @@ Engine::fill_common_outs(nframes_t nframes)
 	{
 		currdry = _curr_common_dry;
 		currwet = _curr_common_wet;
-		inbuf = _driver->get_input_port_buffer (_common_inputs[i], _driver->get_buffersize());
+		inbuf = _common_input_buffers[i]; // use true common input (not gain attenuated)
 		outbuf = _driver->get_output_port_buffer (_common_outputs[i], _driver->get_buffersize());
 
 		for (nframes_t n = 0; n < nframes; ++n) {
@@ -304,7 +380,7 @@ Engine::fill_common_outs(nframes_t nframes)
 }
 
 void 
-Engine::silence_common_outs(nframes_t nframes)
+Engine::prepare_buffers(nframes_t nframes)
 {
 	sample_t * outbuf, *inbuf;
 	float ing_delta = flush_to_zero(_target_input_gain - _curr_input_gain) / max((nframes_t) 1, (nframes - 1));
@@ -316,12 +392,14 @@ Engine::silence_common_outs(nframes_t nframes)
 		memset (outbuf, 0, nframes * sizeof(sample_t));
 
 		// attenuate common inputs
-		inbuf = _driver->get_input_port_buffer (_common_inputs[i], _driver->get_buffersize());
+		sample_t * real_inbuf = _driver->get_input_port_buffer (_common_inputs[i], _driver->get_buffersize());
+		_common_input_buffers[i] = real_inbuf; // for use later in the process cycle
+		inbuf = _temp_input_buffers[i];
 		curr_ing = _curr_input_gain;
 		
 		for (nframes_t n = 0; n < nframes; ++n) {
 			curr_ing += ing_delta;
-			inbuf[n] *= curr_ing;
+			inbuf[n] = real_inbuf[n] * curr_ing;
 		}
 	}
 
@@ -555,7 +633,7 @@ Engine::process (nframes_t nframes)
 	generate_sync (0, nframes);
 	
 	// clear common output buffers
-	silence_common_outs(nframes);
+	prepare_buffers (nframes);
 
 	nframes_t usedframes = 0;
 	nframes_t doframes;
@@ -1318,7 +1396,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 
 void Engine::update_sync_source ()
 {
-	float * sync_buf = _internal_sync_buf;
+	sample_t * sync_buf = _internal_sync_buf;
 
 	// if sync_source > 0, then get the source from instance
 	if (_sync_source == JackSync) {

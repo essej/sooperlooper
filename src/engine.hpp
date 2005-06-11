@@ -72,10 +72,15 @@ class Engine
 
 	int process (nframes_t);
 
+	void buffersize_changed (nframes_t);
+	
 	//RingBuffer<Event> & get_event_queue() { return *_event_queue; }
 
 	bool get_common_input (unsigned int chan, port_id_t & port);
 	bool get_common_output (unsigned int chan, port_id_t & port);
+	sample_t * get_common_input_buffer (unsigned int chan);
+	sample_t * get_common_output_buffer (unsigned int chan);
+
 	size_t  get_common_output_count () { return _common_outputs.size(); }
 	size_t  get_common_input_count () { return _common_outputs.size(); }
 	
@@ -151,7 +156,7 @@ class Engine
 	inline void reset_avg_tempo(double tempo=0.0);
 
 	void fill_common_outs(nframes_t nframes);
-	void silence_common_outs(nframes_t nframes);
+	void prepare_buffers(nframes_t nframes);
 	
 	AudioDriver * _driver;
 	
@@ -195,7 +200,8 @@ class Engine
 
 	int _def_channel_cnt;
 	float _def_loop_secs;
-
+	nframes_t _buffersize;
+	
 	// global parameters
 	enum SyncSourceType {
 		FIRST_SYNC_SOURCE=-5, // must be first
@@ -215,6 +221,10 @@ class Engine
 
 	std::vector<port_id_t>  _common_inputs;
 	std::vector<port_id_t>  _common_outputs;
+
+	std::vector<sample_t *>    _common_input_buffers;              
+	std::vector<sample_t *>    _temp_input_buffers;              
+	bool                    _use_temp_input;
 	
 	float              _curr_common_dry;
 	float              _target_common_dry;

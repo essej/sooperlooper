@@ -218,7 +218,10 @@ SliderBar::set_label (const wxString & label)
 void
 SliderBar::set_units (const wxString & units)
 {
-	_units_str = units;
+	_units_str = units.Strip(wxString::both);
+	if (!_units_str.empty()) {
+		_units_str = " " + _units_str;
+	}
 	update_value_str();
 	do_redraw();	
 }
@@ -308,14 +311,14 @@ SliderBar::update_value_str()
 	if (_scale_mode == ZeroGainMode) {
 		float gain = slider_position_to_gain(_value);
 		if (gain == 0) {
-			_value_str.Printf(wxT("-inf %s"), _units_str.c_str());
+			_value_str.Printf(wxT("-inf%s"), _units_str.c_str());
 		}
 		else {
-			_value_str.Printf(wxT("%.*f %s"), _decimal_digits, CO_DB(gain),  _units_str.c_str());
+			_value_str.Printf(wxT("%.*f%s"), _decimal_digits, CO_DB(gain),  _units_str.c_str());
 		}
 	}
 	else {
-		_value_str.Printf(wxT("%.*f %s"), _decimal_digits, _value, _units_str.c_str());
+		_value_str.Printf(wxT("%.*f%s"), _decimal_digits, _value, _units_str.c_str());
 	}
 }
 
