@@ -99,6 +99,7 @@ SET PARAMETER VALUES
   feedback    	:: range 0 -> 1
   dry         	:: range 0 -> 1
   wet         	:: range 0 -> 1
+  input_gain    :: range 0 -> 1
   rate        	:: range 0.25 -> 4.0
   scratch_pos  	 :: 0 -> 1 
   delay_trigger  :: any changes
@@ -180,6 +181,7 @@ GLOBAL PARAMETERS
   eigth_per_cycle
   dry         	:: range 0 -> 1 affects common input passthru
   wet         	:: range 0 -> 1  affects common output level
+  input_gain    :: range 0 -> 1  affects common input gain
   sync_source  :: -3 = internal,  -2 = midi, -1 = jack, 0 = none, # > 0 = loop number (1 indexed) 
   tap_tempo :: any changes
   save_loop :: any change triggers quick save, be careful
