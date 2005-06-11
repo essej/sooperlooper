@@ -178,6 +178,9 @@ class SliderBar
 	float _ind_value;
 	float _lower_bound, _upper_bound;
 
+	bool _use_pending;
+	float _pending_val;
+	
 	wxString _value_str;
 	wxString _label_str;
 	wxString _units_str;

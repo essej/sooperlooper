@@ -96,6 +96,8 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_showval_flag = true;
 	_show_ind_bar = false;
 	_ind_value = 0.0f;
+	_use_pending = false;
+	_pending_val = 0.0f;
 	
 	_bgcolor.Set(30,30,30);
 	_bgbrush.SetColour (_bgcolor);
@@ -238,7 +240,7 @@ void
 SliderBar::set_value (float val, bool refresh)
 {
 	float newval = val;
-	
+
 	if (_scale_mode == ZeroGainMode) {
 		newval = gain_to_slider_position (val);
 	}
@@ -251,7 +253,14 @@ SliderBar::set_value (float val, bool refresh)
 		newval = min (newval, _upper_bound);
 		newval = max (newval, _lower_bound);
 	}
-	
+
+	if (_dragging) {
+		// don't update current value if mid drag
+		_use_pending = true;
+		_pending_val = newval;
+		return;
+	}
+		
 	if (newval != _value) {
 		_value = newval;
 		update_value_str();
@@ -495,7 +504,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 
 		float newval = _value + fdelta;
 
-		//cerr << "dragging: " << delta << "  " << fdelta << "  "  << newval << endl;
+		//cerr << "dragging: " << ev.GetX() << "  " << delta << "  " << fdelta << "  "  << newval << endl;
 
 		if (_snap_mode == IntegerSnap) {
 			newval = nearbyintf (newval);
@@ -589,6 +598,16 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		_dragging = false;
 		ReleaseMouse();
 
+		if (_use_pending) {
+			// This didn't really work
+			//if (_pending_val != _value) {
+			//	_value = _pending_val;
+			//	update_value_str();
+			//}
+			_use_pending = false;
+		}
+		
+		
 		if (ev.GetX() >= _width || ev.GetX() < 0
 		    || ev.GetY() < 0 || ev.GetY() > _height) {
 			_barbrush.SetColour(_barcolor);
