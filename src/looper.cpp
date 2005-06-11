@@ -794,7 +794,6 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		
 		// no longer needed
 		if (inbuf == 0) continue;
-
 		
 		// calculate input peak
 		compute_peak (inbuf, nframes, _input_peak);
@@ -918,32 +917,39 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 			if (comin)
 			{
 				comin += offset;
+				curr_ing = _curr_input_gain;
 				
 				if (_have_discrete_io) {
 					for (nframes_t pos=0; pos < nframes; ++pos) {
-						_tmp_io_buf[pos] = real_inbuf[pos] + comin[pos];
+						curr_ing += ing_delta;
+						_tmp_io_buf[pos] = curr_ing * (real_inbuf[pos] + comin[pos]);
 					}
 					inbuf = _tmp_io_buf;
 				}
 				else {
-					inbuf = comin;
+					for (nframes_t pos=0; pos < nframes; ++pos) {
+						curr_ing += ing_delta;
+						
+						_tmp_io_buf[pos] = curr_ing * (comin[pos]);
+					}
+					inbuf = _tmp_io_buf;
 				}
 
 			}
 		}
-
-		if (inbuf == 0) continue;
-
-		// attenuate input
-		if (_targ_input_gain != 1.0f || _curr_input_gain != _targ_input_gain) {
+		else {
+			// we have discrete and not using common
 			curr_ing = _curr_input_gain;
-			
 			for (nframes_t pos=0; pos < nframes; ++pos) {
 				curr_ing += ing_delta;
-				
-				inbuf[pos] *= curr_ing;
+
+				_tmp_io_buf[pos] = curr_ing * (real_inbuf[pos]);
 			}
+			inbuf = _tmp_io_buf;
 		}
+
+		// no longer needed
+		if (inbuf == 0) continue;
 		
 		// calculate input peak
 		compute_peak (inbuf, nframes, _input_peak);
