@@ -854,9 +854,12 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
       if (srcloop->lCycles > 1) {
 	      // we effectively remove the first cycles from our new one
 	      if (*pLS->pfQuantMode == QUANT_CYCLE) {
-		      loop->lStartAdj = ((int)floor(fabs((srcloop->dCurrPos-1) / srcloop->lCycleLength))
-					 + 1) * srcloop->lCycleLength; 
+		      //loop->lStartAdj = ((int)floor(fabs((srcloop->dCurrPos-1) / srcloop->lCycleLength))
+		      //		 + 1) * srcloop->lCycleLength; 
+		      loop->lStartAdj = ((int)floorf(fabs((srcloop->dCurrPos) / srcloop->lCycleLength))) * srcloop->lCycleLength; 
+
 		      loop->frontfill = 0; // no need.
+		      DBG(fprintf(stderr, "start adj = %lu\n", loop->lStartAdj));
 	      }
 	      else {
 		      // whatever cycle we are in will become the first
@@ -3294,7 +3297,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 if (pLS->waitingForSync && ((fSyncMode == 0.0f && pfSyncOutput[lSampleIndex] != 0.0f) || pfSyncInput[lSampleIndex] != 0.0f))
 		 {
-			 DBG(fprintf(stderr, "transition to next at: %lu:  %g\n", lSampleIndex, loop->dCurrPos));
+			 loop->dCurrPos = lCurrPos + modf(loop->dCurrPos, &dDummy);
+				 
+			 DBG(fprintf(stderr, "transition to next at: %lu: %lu  %g  : %lu\n", lSampleIndex, lCurrPos, loop->dCurrPos, loop->lLoopLength));
 			 loop = transitionToNext (pLS, loop, pLS->nextState);
 			 if (loop)  srcloop = loop->srcloop;
 			 else srcloop = NULL;
