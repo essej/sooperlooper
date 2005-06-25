@@ -70,6 +70,9 @@ using namespace SooperLooper;
 // another thing that shouldn't be hardcoded
 #define MAX_LOOPS 512
 
+
+#define SAFETY_FEEDBACK 0.96f
+
 /*****************************************************************************/
 
 
@@ -388,6 +391,10 @@ void redoLoop(SooperLooperI *pLS)
 	   if (loop) {
 		   nextloop->dCurrPos = fmod(loop->dCurrPos+loop->lStartAdj, nextloop->lLoopLength);
 	   }
+	   else {
+		   // start at loop beginning
+		   nextloop->dCurrPos = 0.0;
+	   }
 	   
 	   pLS->headLoopChunk = nextloop;
 	   
@@ -521,6 +528,7 @@ activateSooperLooper(LADSPA_Handle Instance) {
   pLS->waitingForSync = 0;
   pLS->donePlaySync = false;
   pLS->rounding = false;
+  pLS->safetyFeedback = true;
   
   pLS->fWetCurr = pLS->fWetTarget = *pLS->pfWet;
   pLS->fDryCurr = pLS->fDryTarget = *pLS->pfDry;
@@ -625,6 +633,9 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
 	 break;
       case RedoTap:
 	 pLS->pfRedoTapMode = DataLocation;
+	 break;
+      case UseSafetyFeedback:
+	 pLS->pfUseSafetyFeedback = DataLocation;
 	 break;
 
 	 
@@ -820,11 +831,11 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 
       pLS->state = STATE_MULTIPLY;
 
-      if (*pLS->pfQuantMode == 0.0f) {
+//      if (*pLS->pfQuantMode == 0.0f) {
 	      // we'll do this later if we are quantizing
 	      pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
 	      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
-      }
+//      }
 
       //pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 
@@ -1358,6 +1369,7 @@ runSooperLooper(LADSPA_Handle Instance,
   
   unsigned long lSampleIndex;
 
+  LADSPA_Data fSafetyFeedback;
   
   pLS = (SooperLooperI *)Instance;
 
@@ -1388,6 +1400,8 @@ runSooperLooper(LADSPA_Handle Instance,
 
   
   eighthPerCycle = (unsigned int) *pLS->pfEighthPerCycle;
+
+  fSafetyFeedback = (*pLS->pfUseSafetyFeedback != 0.0f) ? SAFETY_FEEDBACK : 1.0f;
   
   fTempo = *pLS->pfTempo;
   if (fTempo > 0.0f) {
@@ -2290,31 +2304,33 @@ runSooperLooper(LADSPA_Handle Instance,
 			
 		default:
 			// play the loop one_shot mode
-		      if (fSyncMode == 0.0f) {
-			      if (loop) {
-				      DBG(fprintf(stderr,"Starting ONESHOT state\n"));
-				      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
-				      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
-				      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
-
+			if (loop) {
+				if (fSyncMode == 0.0f) {
+					DBG(fprintf(stderr,"Starting ONESHOT state\n"));
+					pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+					pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+					pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+					
 				      pLS->state = STATE_ONESHOT;
 				      if (pLS->fCurrRate > 0)
 					      loop->dCurrPos = 0.0;
 				      else
 					      loop->dCurrPos = loop->lLoopLength - 1;		       
-			      }
-
-			      // then send out a sync here for any slaves
-			      pfSyncOutput[0] = 1.0f;
-
-		      }	else {
-			      if (pLS->state == STATE_RECORD) {
-				      pLS->state = STATE_TRIG_STOP;
-			      }
-			      DBG(fprintf(stderr, "starting syncwait for ONESHOT\n"));
-			      pLS->nextState = STATE_ONESHOT;
-			      pLS->waitingForSync = 1;
-		      }
+				
+				      
+				      // then send out a sync here for any slaves
+				      pfSyncOutput[0] = 1.0f;
+				      
+				}
+				else {
+					if (pLS->state == STATE_RECORD) {
+						pLS->state = STATE_TRIG_STOP;
+					}
+					DBG(fprintf(stderr, "starting syncwait for ONESHOT\n"));
+					pLS->nextState = STATE_ONESHOT;
+					pLS->waitingForSync = 1;
+				}
+			}
 		      break;
 		}
 	} break;
@@ -2336,21 +2352,23 @@ runSooperLooper(LADSPA_Handle Instance,
 			
 		default:
 			// play the loop from the start
-		      if (fSyncMode == 0.0f) {
-
-			      transitionToNext (pLS, loop, STATE_TRIGGER_PLAY);
-
-			      // then send out a sync here for any slaves
-			      pfSyncOutput[0] = 1.0f;
-
-		      }	else {
-			      if (pLS->state == STATE_RECORD) {
-				      pLS->state = STATE_TRIG_STOP;
-			      }
-			      DBG(fprintf(stderr, "starting syncwait for trigger\n"));
-			      pLS->nextState = STATE_TRIGGER_PLAY;
-			      pLS->waitingForSync = 1;
-		      }
+			if (loop) {
+				if (fSyncMode == 0.0f) {
+					
+					transitionToNext (pLS, loop, STATE_TRIGGER_PLAY);
+					
+					// then send out a sync here for any slaves
+					pfSyncOutput[0] = 1.0f;
+					
+				}	else {
+					if (pLS->state == STATE_RECORD) {
+						pLS->state = STATE_TRIG_STOP;
+					}
+					DBG(fprintf(stderr, "starting syncwait for trigger\n"));
+					pLS->nextState = STATE_TRIGGER_PLAY;
+					pLS->waitingForSync = 1;
+				}
+			}
 		      break;
 		}
 	} break;
@@ -2720,7 +2738,7 @@ runSooperLooper(LADSPA_Handle Instance,
 				 + fDry * fInputSample;
 			 
 			 *(pLoopSample) =  
-				 ((pLS->fLoopFadeAtten * fInputSample) + (0.96f * pLS->fFeedFadeAtten * fFeedback *  *(pLoopSample)));
+				 ((pLS->fLoopFadeAtten * fInputSample) + (fSafetyFeedback * pLS->fFeedFadeAtten * fFeedback *  *(pLoopSample)));
 			 break;
 		 case STATE_REPLACE:
 			 // state REPLACE use only the new input
@@ -2935,7 +2953,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			 pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 	      
 			 *(pLoopSample)
-				 = ( (pLS->fLoopFadeAtten * fInputSample) + (pLS->fFeedFadeAtten * 0.96f *  fFeedback * (*spLoopSample)));
+				 = ( (pLS->fLoopFadeAtten * fInputSample) + (pLS->fFeedFadeAtten * fSafetyFeedback *  fFeedback * (*spLoopSample)));
 		 }
 		 
 		 pfOutput[lSampleIndex] = fOutputSample;

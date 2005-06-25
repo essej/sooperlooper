@@ -153,7 +153,7 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 
 	memset(_down_stamps, 0, sizeof(nframes_t) * (Event::LAST_COMMAND+1));
 
-	_longpress_frames = (nframes_t) lrint (srate * 2.0); // more than 2 secs is SUS
+	_longpress_frames = (nframes_t) lrint (srate * 1.0); // more than 2 secs is SUS
 
 	_falloff_per_sample = 30.0f / srate; // 30db per second falloff
 	
@@ -168,6 +168,7 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	ports[UseRate] = 0.0f;
 	ports[FadeSamples] = 64.0f;
 	ports[PlaybackSync] = 0.0f;
+	ports[UseSafetyFeedback] = 1.0f;
 	
 	_slave_sync_port = 1.0f;
 

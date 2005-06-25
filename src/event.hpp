@@ -131,6 +131,7 @@ namespace SooperLooper {
 		    TempoInput,
 		    PlaybackSync,
 		    EighthPerCycleLoop,
+		    UseSafetyFeedback,
 		    // read only
 		    State,
 		    LoopLength,

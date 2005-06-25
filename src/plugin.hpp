@@ -46,12 +46,13 @@ enum ControlPort {
 	TempoInput,
 	PlaybackSync,
 	EighthPerCycleLoop,
+	UseSafetyFeedback,
 	LASTCONTROLPORT,
 	RelativeSync // not an enum
 };
 
 enum OutputPort {
-	State = 18,
+	State = 19,
 	LoopLength,
 	LoopPosition,
 	CycleLength,
@@ -64,7 +65,7 @@ enum OutputPort {
 };
 
 enum AudioPort {
-	AudioInputPort=27,
+	AudioInputPort=28,
 	AudioOutputPort,
 	SyncInputPort,
 	SyncOutputPort,
@@ -179,6 +180,8 @@ typedef struct {
 	int nextState;
 
 	bool wasMuted;
+
+	bool safetyFeedback;
 	
 	int waitingForSync;
 	bool recSyncEnded;
@@ -307,6 +310,8 @@ typedef struct {
 
 	LADSPA_Data *pfTempo;
 	LADSPA_Data *pfEighthPerCycle;
+	LADSPA_Data *pfUseSafetyFeedback;
+
 	
 	/* if non zero, the redo command is treated like a tap trigger */
 	LADSPA_Data *pfRedoTapMode;

@@ -74,6 +74,7 @@ SET PARAMETER VALUES
   use_common_ins   :: 0 = off,  not 0 = on 
   use_common_outs   :: 0 = off,  not 0 = on 
   relative_sync   :: 0 = off, not 0 = on
+  use_safety_feedback   :: 0 = off, not 0 = on
   pan1         	:: range 0 -> 1
   pan2         	:: range 0 -> 1
   pan3         	:: range 0 -> 1
