@@ -93,7 +93,7 @@ void ConfigPanel::init()
 	wxStaticText * statText = new wxStaticText(this, -1, wxT("Host:"));
 	rowsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL|wxALL, 2);
 	_host_text = new wxTextCtrl(this, -1,  wxT(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("KeyAware"));
-	_host_text->SetValue (config.host);
+	_host_text->SetValue (wxString::FromAscii(config.host.c_str()));
 	_host_text->SetToolTip(wxT("hostname of engine to attempt connection to --  leave empty for local machine"));
 	rowsizer->Add (_host_text, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
@@ -148,7 +148,7 @@ void ConfigPanel::init()
 	statText = new wxStaticText(this, -1, wxT("Host:"));
 	rowsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL|wxALL, 2);
 	_def_host_text = new wxTextCtrl(this, -1,  wxT(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("KeyAware"));
-	_def_host_text->SetValue (config.host);
+	_def_host_text->SetValue (wxString::FromAscii(config.host.c_str()));
 	_def_host_text->SetToolTip(wxT("hostname of engine to attempt connection to --  leave empty for local machine"));
 	rowsizer->Add (_def_host_text, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
@@ -169,7 +169,7 @@ void ConfigPanel::init()
 
 	statText = new wxStaticText(this, -1, wxT("# Loops:"));
 	setsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL);
-	_num_loops_spin = new wxSpinCtrl(this, -1, "1", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 16, config.num_loops, wxT("KeyAware"));
+	_num_loops_spin = new wxSpinCtrl(this, -1, wxT("1"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 1, 16, config.num_loops, wxT("KeyAware"));
 	_num_loops_spin->SetValue (config.num_loops);
 	setsizer->Add (_num_loops_spin, 0);
 
@@ -194,7 +194,7 @@ void ConfigPanel::init()
 	setsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL);
 	_def_jack_name_text = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxSize(100, -1), 0, wxDefaultValidator, wxT("KeyAware"));
 	_def_jack_name_text->SetToolTip(wxT("JACK client base name -- leave blank for default"));
-	_def_jack_name_text->SetValue (config.jack_name);
+	_def_jack_name_text->SetValue (wxString::FromAscii(config.jack_name.c_str()));
 	setsizer->Add (_def_jack_name_text, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL);
 
 	
@@ -205,7 +205,7 @@ void ConfigPanel::init()
 	statText = new wxStaticText(this, -1, wxT("Default loaded session:"));
 	rowsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL|wxALL, 2);
 	_def_session_text = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("KeyAware"));
-	_def_session_text->SetValue (config.session_path);
+	_def_session_text->SetValue (wxString::FromAscii(config.session_path.c_str()));
 	rowsizer->Add (_def_session_text, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 	_session_browse_button = new wxButton(this, ID_SessionBrowseButton, wxT("Browse..."));
 	rowsizer->Add (_session_browse_button, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
@@ -216,7 +216,7 @@ void ConfigPanel::init()
 	statText = new wxStaticText(this, -1, wxT("Default MIDI bindings:"));
 	rowsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL|wxALL, 2);
 	_def_midi_bind_text = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("KeyAware"));
-	_def_midi_bind_text->SetValue (config.midi_bind_path);
+	_def_midi_bind_text->SetValue (wxString::FromAscii(config.midi_bind_path.c_str()));
 	rowsizer->Add (_def_midi_bind_text, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 	_midi_browse_button = new wxButton(this, ID_MidiBrowseButton, wxT("Browse..."));
 	rowsizer->Add (_midi_browse_button, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
@@ -259,10 +259,10 @@ void ConfigPanel::refresh_state()
 	_port_text->SetValue (wxString::Format(wxT("%d"), loopctrl.get_engine_port()));
 
 	if (loopctrl.connected()) {
-		_status_text->SetValue("Connected");
+		_status_text->SetValue(wxT("Connected"));
 	}
 	else {
-		_status_text->SetValue("Not Connected");
+		_status_text->SetValue(wxT("Not Connected"));
 	}
 
 }
@@ -273,16 +273,16 @@ void ConfigPanel::refresh_defaults()
 	LoopControl::SpawnConfig & def_config = loopctrl.get_default_spawn_config();
 
 	// refresh defaults
-	_def_host_text->SetValue (def_config.host);
+	_def_host_text->SetValue (wxString::FromAscii(def_config.host.c_str()));
 	_def_port_text->SetValue (wxString::Format(wxT("%ld"), def_config.port));
 	_def_force_spawn->SetValue (def_config.force_spawn);
 	_num_loops_spin->SetValue( (int) def_config.num_loops);
 	_num_channels_spin->SetValue( (int) def_config.num_channels);
 	_discrete_io_check->SetValue (def_config.discrete_io);
 	_secs_per_channel_spin->SetValue( (int) def_config.mem_secs);
-	_def_jack_name_text->SetValue (def_config.jack_name);
-	_def_midi_bind_text->SetValue (def_config.midi_bind_path);
-	_def_session_text->SetValue (def_config.session_path);
+	_def_jack_name_text->SetValue (wxString::FromAscii(def_config.jack_name.c_str()));
+	_def_midi_bind_text->SetValue (wxString::FromAscii(def_config.midi_bind_path.c_str()));
+	_def_session_text->SetValue (wxString::FromAscii(def_config.session_path.c_str()));
 }
 
 void ConfigPanel::looper_connected(int num)
@@ -297,15 +297,17 @@ void ConfigPanel::commit_changes()
 	LoopControl & loopctrl = _parent->get_loop_control();
 	LoopControl::SpawnConfig & config = loopctrl.get_default_spawn_config();
 
-	config.host = _def_host_text->GetValue();
+	config.host = _def_host_text->GetValue().ToAscii();
 	_def_port_text->GetValue().ToLong(&config.port);
 	config.num_loops = (long) _num_loops_spin->GetValue();
 	config.num_channels = (long) _num_channels_spin->GetValue();
 	config.discrete_io = (bool) _discrete_io_check->GetValue();
 	config.mem_secs = (double) _secs_per_channel_spin->GetValue();
-	config.jack_name = _def_jack_name_text->GetValue();
-	config.midi_bind_path = _def_midi_bind_text->GetValue();
-	config.session_path = _def_session_text->GetValue();
+
+	config.jack_name = _def_jack_name_text->GetValue().ToAscii();
+	config.midi_bind_path = _def_midi_bind_text->GetValue().ToAscii();
+	config.session_path = _def_session_text->GetValue().ToAscii();
+
 	config.force_spawn = _def_force_spawn->GetValue();
 
 	_parent->save_rc();
@@ -340,15 +342,15 @@ void ConfigPanel::on_button (wxCommandEvent &ev)
 		
 		loopctrl.disconnect(); // first
 		
-		loopctrl.get_spawn_config().host = _host_text->GetValue();
+		loopctrl.get_spawn_config().host = _host_text->GetValue().ToAscii();
 
 		
 		config.num_loops = (long) _num_loops_spin->GetValue();
 		config.num_channels = (long) _num_channels_spin->GetValue();
 		config.mem_secs = (double) _secs_per_channel_spin->GetValue();
-		config.jack_name = _def_jack_name_text->GetValue();
-		config.midi_bind_path = _def_midi_bind_text->GetValue();
-		config.session_path = _def_session_text->GetValue();
+		config.jack_name = _def_jack_name_text->GetValue().ToAscii();
+		config.midi_bind_path = _def_midi_bind_text->GetValue().ToAscii();
+		config.session_path = _def_session_text->GetValue().ToAscii();
 		config.force_spawn = false;
 		config.never_spawn = !_force_spawn->GetValue();
 

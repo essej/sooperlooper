@@ -82,9 +82,9 @@ BEGIN_EVENT_TABLE(SooperLooperGui::MidiBindPanel, wxPanel)
 	
 END_EVENT_TABLE()
 
-static const wxString CcString("CC");
-static const wxString NoteString("Note");
-static const wxString PcString("PC");
+static const wxString CcString(wxT("CC"));
+static const wxString NoteString(wxT("Note"));
+static const wxString PcString(wxT("PC"));
 	
 static int wxCALLBACK list_sort_callback (long item1, long item2, long sortData)
 {
@@ -339,13 +339,13 @@ void MidiBindPanel::populate_controls()
 	for (list<string>::iterator iter = _cmdlist.begin(); iter != _cmdlist.end(); ++iter)
 	{
 		if (cmap.is_command(*iter)) {
-			_control_combo->Append (wxString::Format("[cmd]  %s", iter->c_str()), (void *) (iter->c_str()));
+			_control_combo->Append (wxString::Format(wxT("[cmd]  %s"), wxString::FromAscii(iter->c_str()).c_str()), (void *) (iter->c_str()));
 		}
 		else if (cmap.is_input_control(*iter)) {
-			_control_combo->Append (wxString::Format("[ctrl]  %s", iter->c_str()), (void *) (iter->c_str()));
+			_control_combo->Append (wxString::Format(wxT("[ctrl]  %s"), wxString::FromAscii(iter->c_str()).c_str()), (void *) (iter->c_str()));
 		}
 		else if (cmap.is_global_control(*iter)) {
-			_control_combo->Append (wxString::Format("[g. ctrl]  %s", iter->c_str()), (void *) (iter->c_str()));
+			_control_combo->Append (wxString::Format(wxT("[g. ctrl]  %s"), wxString::FromAscii(iter->c_str()).c_str()), (void *) (iter->c_str()));
 		}
 	}
 	
@@ -433,7 +433,7 @@ void MidiBindPanel::refresh_state()
 
 		// midi event
 		item.SetColumn(2);
-		item.SetText (wxString::Format(wxT("ch%d - %s - %d"), info.channel+1, info.type.c_str(), info.param));
+		item.SetText (wxString::Format(wxT("ch%d - %s - %d"), info.channel+1, wxString::FromAscii(info.type.c_str()).c_str(), info.param));
 		_listctrl->SetItem (item);
 
 		// range
@@ -534,8 +534,8 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 	_param_spin->SetValue(info->param);
 
 
-	_lbound_ctrl->SetValue (wxString::Format("%g", info->lbound));
-	_ubound_ctrl->SetValue (wxString::Format("%g", info->ubound));
+	_lbound_ctrl->SetValue (wxString::Format(wxT("%g"), info->lbound));
+	_ubound_ctrl->SetValue (wxString::Format(wxT("%g"), info->ubound));
 
 	if (info->style == MidiBindInfo::NormalStyle) {
 		_style_combo->SetSelection(0);
@@ -712,8 +712,8 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 			// popup basic filename text entry
 			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
 
-			wxString filename = ::wxGetTextFromUser(wxString::Format("Specify midi binding file to load on remote host '%s'",
-										 _parent->get_loop_control().get_engine_host().c_str())
+			wxString filename = ::wxGetTextFromUser(wxString::Format(wxT("Specify midi binding file to load on remote host '%s'"),
+										 (const char *)_parent->get_loop_control().get_engine_host().ToAscii())
 								, wxT("Load Midi Binding"));
 
 			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
@@ -745,8 +745,8 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 			// popup basic filename text entry
 			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
 
-			wxString filename = ::wxGetTextFromUser(wxString::Format("Specify midi binding file to save on remote host '%s'",
-										 _parent->get_loop_control().get_engine_host().c_str())
+			wxString filename = ::wxGetTextFromUser(wxString::Format(wxT("Specify midi binding file to save on remote host '%s'"),
+										 (const char *) _parent->get_loop_control().get_engine_host().ToAscii())
 								, wxT("Save Midi Binding"));
 
 			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);

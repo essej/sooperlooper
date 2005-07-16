@@ -8,9 +8,9 @@ AC_VALIDATE_CACHED_SYSTEM_TUPLE()
 
 SOOP_MAJOR_VERSION=1
 SOOP_MINOR_VERSION=0
-SOOP_MICRO_VERSION=7
+SOOP_MICRO_VERSION=8
 
-BETA=
+BETA=dev
 
 AC_SUBST(SOOP_MAJOR_VERSION)
 AC_SUBST(SOOP_MINOR_VERSION)
@@ -123,8 +123,23 @@ AC_SUBST(SAMPLERATE_LIBS)
 
 
 dnl wxwindows
-AC_PATH_PROG(WX_CONFIG1, wxgtk2-2.5-config, no, $PATH:/usr/local/bin )
-if [[ "$WX_CONFIG1" = "no" ]] ; then
+
+AC_ARG_WITH(wxconfig-path,
+            [  --with-wxconfig-path=PATH    full path to wx-config to use])
+
+if test "x$with_wxconfig_path" != "x"  ; then
+        WX_CONFIG=$with_wxconfig_path
+else
+        WX_CONFIG=""
+fi
+
+echo WXCONFIG IS \"$WX_CONFIG\"
+
+
+if [[ "$WX_CONFIG" = "" ]] ; then
+
+  AC_PATH_PROG(WX_CONFIG1, wxgtk2-2.5-config, no, $PATH:/usr/local/bin )
+  if [[ "$WX_CONFIG1" = "no" ]] ; then
 
 	AC_PATH_PROG(WX_CONFIG2, wxgtk2-2.4-config, no, $PATH:/usr/local/bin )
 	if [[ "$WX_CONFIG2" = "no" ]] ; then
@@ -144,8 +159,9 @@ if [[ "$WX_CONFIG1" = "no" ]] ; then
 	else
 		WX_CONFIG=$WX_CONFIG2
 	fi
-else	
-   WX_CONFIG=$WX_CONFIG1
+  else	
+     WX_CONFIG=$WX_CONFIG1
+  fi
 fi
 
 WX_LIBS="`$WX_CONFIG --libs`"

@@ -225,8 +225,8 @@ KeyboardTarget::commit_learn ()
 	
 	for (KeyState::iterator i = _state.begin(); i != _state.end(); ++i) {
 		wxString key = name_from_keycode(*i);
-		if (key == "Shift" || key == "Control" || key == "Alt") {
-			keys = key + "-" + keys;
+		if (key == wxT("Shift") || key == wxT("Control") || key == wxT("Alt")) {
+			keys = key + wxT("-") + keys;
 		}
 		else {
 			keys = keys + key;
@@ -234,7 +234,7 @@ KeyboardTarget::commit_learn ()
 	}
 	// clear all for this command first, this is debatable
 	clear_binding (_learn_action);
-	add_binding (string (keys.c_str()), _learn_action);
+	add_binding (string ((const char *)keys.ToAscii()), _learn_action);
 
 }
 
@@ -475,7 +475,7 @@ KeyboardTarget::translate_key_name (const string& name)
 // 			result.push_back (WXK_SHIFT);
 // 		}
 		
-		if ((keycode = keycode_from_name (wxString(keyname.c_str()))) == 0) {
+		if ((keycode = keycode_from_name (wxString::FromAscii(keyname.c_str()))) == 0) {
 			cerr << "KeyboardTarget: keyname " <<  keyname << "  is unknown" << endl;
 			result.clear();
 			return result;

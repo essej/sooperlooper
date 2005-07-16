@@ -39,31 +39,41 @@ using namespace SooperLooper;
 #define DEFAULT_OSC_PORT 9951
 
 LoopControl::SpawnConfig::SpawnConfig(const wxString & nm)
-	: name(nm), host(wxT("")), port(DEFAULT_OSC_PORT), num_loops(1), num_channels(2),
-	  mem_secs(40.0f), discrete_io(true), exec_name(wxT("sooperlooper")), midi_bind_path(wxT("")), force_spawn(false), never_spawn(false),
-	  jack_name(wxT(""))
+	: name(nm), host(""), port(DEFAULT_OSC_PORT), num_loops(1), num_channels(2),
+	  mem_secs(40.0f), discrete_io(true), exec_name("sooperlooper"), midi_bind_path(""), force_spawn(false), never_spawn(false),
+	  jack_name("")
 {
 }
 
 
 XMLNode& LoopControl::SpawnConfig::get_state () const
 {
+	char buf[40];
 	XMLNode *node = new XMLNode ("context");
 
-	node->add_property ("name", name.ToAscii());
+	node->add_property ("name", (const char *) name.ToAscii());
 
-	node->add_property ("host", host.ToAscii());
-	node->add_property ("port", wxString::Format(wxT("%ld"), port).ToAscii());
-	node->add_property ("num_loops", wxString::Format(wxT("%ld"), num_loops).ToAscii());
-	node->add_property ("num_channels", wxString::Format(wxT("%ld"), num_channels).ToAscii());
-	node->add_property ("mem_secs", wxString::Format(wxT("%f"), mem_secs).ToAscii());
+	node->add_property ("host", host);
+
+	snprintf(buf, sizeof(buf), "%ld", port);
+	node->add_property ("port", buf);
+
+	snprintf(buf, sizeof(buf), "%ld", num_loops);
+	node->add_property ("num_loops", buf);
+
+	snprintf(buf, sizeof(buf), "%ld", num_channels);
+	node->add_property ("num_channels", buf);
+
+	snprintf(buf, sizeof(buf), "%f", mem_secs);
+	node->add_property ("mem_secs", buf);
+
 	node->add_property ("discrete_io", discrete_io ? "yes": "no");
 
-	node->add_property ("exec_name", exec_name.ToAscii());
-	node->add_property ("jack_name", jack_name.ToAscii());
-	node->add_property ("jack_serv_name", jack_serv_name.ToAscii());
-	node->add_property ("midi_bind_path", midi_bind_path.ToAscii());
-	node->add_property ("session_path", session_path.ToAscii());
+	node->add_property ("exec_name", exec_name);
+	node->add_property ("jack_name", jack_name);
+	node->add_property ("jack_serv_name", jack_serv_name);
+	node->add_property ("midi_bind_path", midi_bind_path);
+	node->add_property ("session_path", session_path);
 
 	node->add_property ("force_spawn", force_spawn ? "yes": "no");
 	
@@ -85,26 +95,22 @@ int LoopControl::SpawnConfig::set_state (const XMLNode& node)
 			XMLProperty *prop;
 			
 			if ((prop = child_node->property ("name")) != 0) {
-				name.Printf(wxT("%s"), prop->value().c_str());
+				name =  wxString::FromAscii(prop->value().c_str());
 			}
 			if ((prop = child_node->property ("host")) != 0) {
-				host.Printf(wxT("%s"), prop->value().c_str());
+				host = prop->value();
 			}
 			if ((prop = child_node->property ("port")) != 0) {
-				tmpstr.Printf(wxT("%s"), prop->value().c_str());
-				tmpstr.ToLong(&port);
+				port = atol (prop->value().c_str());
 			}
 			if ((prop = child_node->property ("num_loops")) != 0) {
-				tmpstr.Printf(wxT("%s"), prop->value().c_str());
-				tmpstr.ToLong(&num_loops);
+				num_loops = atol (prop->value().c_str());
 			}
 			if ((prop = child_node->property ("num_channels")) != 0) {
-				tmpstr.Printf(wxT("%s"), prop->value().c_str());
-				tmpstr.ToLong(&num_channels);
+				num_channels = atol (prop->value().c_str());
 			}
 			if ((prop = child_node->property ("mem_secs")) != 0) {
-				tmpstr.Printf(wxT("%s"), prop->value().c_str());
-				tmpstr.ToDouble(&mem_secs);
+				mem_secs = atof (prop->value().c_str());
 			}
 			if ((prop = child_node->property ("discrete_io")) != 0) {
 				if (prop->value() == "yes") {
@@ -115,19 +121,19 @@ int LoopControl::SpawnConfig::set_state (const XMLNode& node)
 				}
 			}
 			if ((prop = child_node->property ("exec_name")) != 0) {
-				exec_name.Printf(wxT("%s"), prop->value().c_str());
+				exec_name = prop->value();
 			}
 			if ((prop = child_node->property ("jack_name")) != 0) {
-				jack_name.Printf(wxT("%s"), prop->value().c_str());
+				jack_name = prop->value();
 			}
 			if ((prop = child_node->property ("jack_serv_name")) != 0) {
-				jack_serv_name.Printf(wxT("%s"), prop->value().c_str());
+				jack_serv_name =  prop->value();
 			}
 			if ((prop = child_node->property ("midi_bind_path")) != 0) {
-			        midi_bind_path.Printf(wxT("%s"), prop->value().c_str());
+			        midi_bind_path = prop->value();
 			}
 			if ((prop = child_node->property ("session_path")) != 0) {
-			        session_path.Printf(wxT("%s"), prop->value().c_str());
+			        session_path = prop->value();
 			}
 			if ((prop = child_node->property ("force_spawn")) != 0) {
 				if (prop->value() == "yes") {
@@ -257,20 +263,20 @@ LoopControl::terminate_traffic_thread ()
 void
 LoopControl::setup_param_map()
 {
-	state_map[LooperStateOff] = "off";
-	state_map[LooperStateWaitStart] = "waiting start";
-	state_map[LooperStateRecording] = "recording";
-	state_map[LooperStateWaitStop] = "waiting stop";
-	state_map[LooperStatePlaying] = "playing";
-	state_map[LooperStateOverdubbing] = "overdubbing";
-	state_map[LooperStateMultiplying] = "multiplying";
-	state_map[LooperStateInserting] = "inserting";
-	state_map[LooperStateReplacing] = "replacing";
-	state_map[LooperStateDelay] = "delay";
-	state_map[LooperStateMuted] = "muted";
-	state_map[LooperStateScratching] = "scratching";
-	state_map[LooperStateOneShot] = "one shot";
-	state_map[LooperStateSubstitute] = "substituting";
+	state_map[LooperStateOff] = wxT("off");
+	state_map[LooperStateWaitStart] = wxT("waiting start");
+	state_map[LooperStateRecording] = wxT("recording");
+	state_map[LooperStateWaitStop] = wxT("waiting stop");
+	state_map[LooperStatePlaying] = wxT("playing");
+	state_map[LooperStateOverdubbing] = wxT("overdubbing");
+	state_map[LooperStateMultiplying] = wxT("multiplying");
+	state_map[LooperStateInserting] = wxT("inserting");
+	state_map[LooperStateReplacing] = wxT("replacing");
+	state_map[LooperStateDelay] = wxT("delay");
+	state_map[LooperStateMuted] = wxT("muted");
+	state_map[LooperStateScratching] = wxT("scratching");
+	state_map[LooperStateOneShot] = wxT("one shot");
+	state_map[LooperStateSubstitute] = wxT("substituting");
 }
 
 
@@ -283,10 +289,10 @@ LoopControl::connect()
 	}
 
 	if (_spawn_config.host.empty()) {
-		_osc_addr = lo_address_new(NULL, wxString::Format(wxT("%ld"), _spawn_config.port).c_str());
+		_osc_addr = lo_address_new(NULL, (const char *) wxString::Format(wxT("%ld"), _spawn_config.port).ToAscii());
 	}
 	else {
-		_osc_addr = lo_address_new(_spawn_config.host.c_str(), wxString::Format(wxT("%ld"), _spawn_config.port).c_str());
+		_osc_addr = lo_address_new((const char *)_spawn_config.host.c_str(), (const char *) wxString::Format(wxT("%ld"), _spawn_config.port).ToAscii());
 	}
 	//cerr << "osc errstr: " << lo_address_errstr(_osc_addr) << endl;
 
@@ -336,7 +342,7 @@ LoopControl::disconnect (bool killit)
 		lo_address_free (_osc_addr);
 		_osc_addr = 0;
 	}
-	_osc_url = wxT("");
+	_osc_url = "";
 
 	Disconnected(); // emit
 	
@@ -454,10 +460,12 @@ LoopControl::pingtimer_expired()
 			}
 			else {
 				// last ditch effort with 127.0.0.1 all around
-				_osc_addr = lo_address_new("127.0.0.1", wxString::Format(wxT("%ld"), _spawn_config.port).c_str());
+				_osc_addr = lo_address_new("127.0.0.1", (const char *) wxString::Format(wxT("%ld"), _spawn_config.port).ToAscii());
 
+				char tmpbuf[100];
 				int sport = lo_server_get_port (_osc_server);
-				_our_url = wxString::Format(wxT("osc.udp://127.0.0.1:%d/"), sport); 
+				snprintf (tmpbuf, sizeof(tmpbuf), "osc.udp://127.0.0.1:%d/", sport);
+				_our_url = tmpbuf;
 
 				//cerr << "last chance effort: with oururl " << _our_url << endl;
 				
@@ -502,50 +510,67 @@ LoopControl::pingtimer_expired()
 bool LoopControl::spawn_looper()
 {
 	// use wxExecute
-	wxString cmdstr = _spawn_config.exec_name;
-
-	if (cmdstr.empty()) {
-		cmdstr = wxT("sooperlooper"); // always force something
-	}
+	char tmpbuf[300];
+	string cmdstr = _spawn_config.exec_name;
 	
-	cmdstr += wxString::Format(wxT(" -q -U %s -p %ld -l %ld -c %ld -t %d"),
-				   _our_url.c_str(),
-				   _spawn_config.port,
-				   _spawn_config.num_loops,
-				   _spawn_config.num_channels,
-				   (int) _spawn_config.mem_secs
-				   );
+	if (cmdstr.empty()) {
+		cmdstr = "sooperlooper"; // always force something
+	}
 
+	snprintf(tmpbuf, sizeof(tmpbuf), " -q -U %s -p %ld -l %ld -c %ld -t %d",
+		 _our_url.c_str(),
+		 _spawn_config.port,
+		 _spawn_config.num_loops,
+		 _spawn_config.num_channels,
+		 (int) _spawn_config.mem_secs
+		);
+	
+	cmdstr += tmpbuf;
+	
 	if (!_spawn_config.midi_bind_path.empty()) {
-		cmdstr += wxString::Format(wxT(" -m \"%s\""), _spawn_config.midi_bind_path.c_str());
+		snprintf(tmpbuf, sizeof(tmpbuf), " -m \"%s\"", _spawn_config.midi_bind_path.c_str());	
+		cmdstr += tmpbuf;
 	}
 	else {
 		// try default
-		wxString defpath = (_rcdir + wxFileName::GetPathSeparator() + wxT("default_midi.slb"));
-		cmdstr += wxString::Format(wxT(" -m \"%s\""), defpath.c_str());
+		//wxString defpath = (_rcdir + wxFileName::GetPathSeparator() + wxT("default_midi.slb"));
+		//cmdstr += wxString::Format(wxT(" -m \"%s\""), defpath.c_str());
+
+		string defpath = string(_rcdir.fn_str()) + "/" + "default_midi.slb";
+		snprintf(tmpbuf, sizeof(tmpbuf), " -m \"%s\"", defpath.c_str());	
+		cmdstr += tmpbuf;
 	}
 	
 	if (!_spawn_config.jack_name.empty()) {
-		cmdstr += wxString::Format(wxT(" -j \"%s\""), _spawn_config.jack_name.c_str());
+		//cmdstr += wxString::Format(wxT(" -j \"%s\""), _spawn_config.jack_name.c_str());
+		snprintf(tmpbuf, sizeof(tmpbuf), " -j \"%s\"", _spawn_config.jack_name.c_str());	
+		cmdstr += tmpbuf;
 	}
 
 	if (!_spawn_config.jack_serv_name.empty()) {
-		cmdstr += wxString::Format(wxT(" -S \"%s\""), _spawn_config.jack_serv_name.c_str());
+		//cmdstr += wxString::Format(wxT(" -S \"%s\""), _spawn_config.jack_serv_name.c_str());
+		snprintf(tmpbuf, sizeof(tmpbuf), " -S \"%s\"", _spawn_config.jack_serv_name.c_str());	
+		cmdstr += tmpbuf;
 	}
 
 	if (!_spawn_config.discrete_io) {
-		cmdstr += wxString::Format(wxT(" -D \"no\""));
+		//cmdstr += wxString::Format(wxT(" -D \"no\""));
+		snprintf(tmpbuf, sizeof(tmpbuf), " -D no");	
+		cmdstr += tmpbuf;
 	}
 	
 	if (!_spawn_config.session_path.empty()) {
-		cmdstr += wxString::Format(wxT(" -L \"%s\""), _spawn_config.session_path.c_str());
+		//cmdstr += wxString::Format(wxT(" -L \"%s\""), _spawn_config.session_path.c_str());
+		snprintf(tmpbuf, sizeof(tmpbuf), " -L \"%s\"", _spawn_config.session_path.c_str());	
+		cmdstr += tmpbuf;
 	}
 
 
-#ifdef DEBUG
-	cerr << "execing: '" << cmdstr << "'" << endl;
-#endif
-	_engine_pid = wxExecute(cmdstr, wxEXEC_ASYNC|wxEXEC_MAKE_GROUP_LEADER);
+//#ifdef DEBUG
+	cerr << "execing: '" << cmdstr.c_str() << "'" << endl << endl;
+//#endif
+	
+	_engine_pid = wxExecute(wxString::FromAscii(cmdstr.c_str()), wxEXEC_ASYNC|wxEXEC_MAKE_GROUP_LEADER);
 
 #ifdef DEBUG
 	cerr << "pid is " << _engine_pid << endl;
@@ -566,32 +591,34 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 {
 	// s:hosturl  s:version  i:loopcount
 
-	wxString hosturl(&argv[0]->s);
-	wxString version(&argv[1]->s);
+	string hosturl(&argv[0]->s);
+	string version(&argv[1]->s);
 	int loopcount = argv[2]->i;
-
+	char tmpbuf[100];
+	
 	cerr << "slgui: remote looper is at " << hosturl << " version=" << version << "   loopcount=" << loopcount << endl;
 
 	char * remport = lo_url_get_port(hosturl.c_str());
-	wxString tmpstr(remport);
+	wxString tmpstr = wxString::FromAscii(remport);
 	tmpstr.ToLong(&_spawn_config.port);
 	free(remport);
 	
 	if (_lastchance) {
 		// force a 127.0.0.1 hostname if this was on our last chance
 		//cerr << "forced a 127" << endl;
-		_osc_url = wxString::Format(wxT("osc.udp://127.0.0.1:%ld/"), _spawn_config.port);
+		snprintf(tmpbuf, sizeof(tmpbuf), "osc.udp://127.0.0.1:%ld/", _spawn_config.port);
+		_osc_url = tmpbuf;
 	}
 	else {
 		_osc_url = hosturl;
 	}
 	
 	char * remhost = lo_url_get_hostname(_osc_url.c_str());
-	_host = remhost;
+	_host = wxString::FromAscii(remhost);
+	_spawn_config.host = remhost;
 	free(remhost);
 
 
-	_spawn_config.host = _host;
 
 	_port = (int) _spawn_config.port;
 
@@ -680,7 +707,7 @@ LoopControl::control_handler(const char *path, const char *types, lo_arg **argv,
 	// loop instance is 1st arg, 2nd is ctrl string, 3rd is float value
 
 	int  index = argv[0]->i;
-	wxString ctrl(&argv[1]->s);
+	wxString ctrl = wxString::FromAscii(&argv[1]->s);
 	float val  = argv[2]->f;
 
 	
@@ -873,6 +900,7 @@ LoopControl::add_midi_binding(const MidiBindInfo & info, bool exclusive)
 {
 	if (!_osc_addr) return;
 
+	cerr << "adding binding: " << info.serialize() << endl;
 	lo_send(_osc_addr, "/add_midi_binding", "ss", info.serialize().c_str(), exclusive?"exclusive":"");
 }
 
@@ -912,7 +940,7 @@ LoopControl::cancel_midi_learn()
 void
 LoopControl::load_midi_bindings(const wxString & filename, bool append)
 {
-	lo_send(_osc_addr, "/load_midi_bindings", "ss", filename.c_str(), append ? "add": "");
+	lo_send(_osc_addr, "/load_midi_bindings", "ss", (const char *) filename.ToAscii(), append ? "add": "");
 
 	request_all_midi_bindings();
 }
@@ -922,7 +950,7 @@ LoopControl::save_midi_bindings(const wxString & filename)
 {
 	if (!_osc_addr) return;
 
-	lo_send(_osc_addr, "/save_midi_bindings", "ss", filename.c_str(), "");
+	lo_send(_osc_addr, "/save_midi_bindings", "ss", (const char *) filename.ToAscii(), "");
 }
 
 void
@@ -1029,7 +1057,7 @@ LoopControl::register_control (int index, wxString ctrl, bool unreg)
 	}
 	
 	// send request for updates
-	lo_send(_osc_addr, buf, "sss", ctrl.c_str(), _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", (const char *) ctrl.ToAscii(), _our_url.c_str(), "/ctrl");
 
 }
 
@@ -1043,12 +1071,12 @@ LoopControl::register_auto_update(int index, wxString ctrl, bool unreg)
 	if (unreg) {
 		snprintf(buf, sizeof(buf), "/sl/%d/unregister_auto_update", index);
 
-		lo_send(_osc_addr, buf, "sss", ctrl.c_str(), _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "sss", (const char *) ctrl.ToAscii(), _our_url.c_str(), "/ctrl");
 
 	} else {
 		snprintf(buf, sizeof(buf), "/sl/%d/register_auto_update", index);
 
-		lo_send(_osc_addr, buf, "siss", ctrl.c_str(), 100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "siss", (const char *) ctrl.ToAscii(), 100, _our_url.c_str(), "/ctrl");
 	}
 	
 }
@@ -1062,7 +1090,7 @@ LoopControl::post_down_event(int index, wxString cmd)
 
 	snprintf(buf, sizeof(buf), "/sl/%d/down", index);
 	
-	if (lo_send(_osc_addr, buf, "s", cmd.c_str()) == -1) {
+	if (lo_send(_osc_addr, buf, "s", (const char *)cmd.ToAscii()) == -1) {
 		return false;
 	}
 
@@ -1082,7 +1110,7 @@ LoopControl::post_up_event(int index, wxString cmd, bool force)
 		snprintf(buf, sizeof(buf), "/sl/%d/up", index);
 	}
 	
-	if (lo_send(_osc_addr, buf, "s", cmd.c_str()) == -1) {
+	if (lo_send(_osc_addr, buf, "s", (const char *) cmd.ToAscii()) == -1) {
 		return false;
 	}
 
@@ -1102,7 +1130,7 @@ LoopControl::post_ctrl_change (int index, wxString ctrl, float val)
 	
 	snprintf(buf, sizeof(buf), "/sl/%d/set", index);
 
-	if (lo_send(_osc_addr, buf, "sf", ctrl.c_str(), val) == -1) {
+	if (lo_send(_osc_addr, buf, "sf", (const char *) ctrl.ToAscii(), val) == -1) {
 		return false;
 	}
 
@@ -1117,7 +1145,7 @@ LoopControl::post_global_ctrl_change (wxString ctrl, float val)
 	// go ahead and update our local copy
 	_global_val_map[ctrl] = val;
 	
-	if (lo_send(_osc_addr, "/set", "sf", ctrl.c_str(), val) == -1) {
+	if (lo_send(_osc_addr, "/set", "sf", (const char *) ctrl.ToAscii(), val) == -1) {
 		return false;
 	}
 
@@ -1133,7 +1161,9 @@ LoopControl::post_save_loop(int index, wxString fname, wxString format, wxString
 	snprintf(buf, sizeof(buf), "/sl/%d/save_loop", index);
 
 	// send request for updates
-	if (lo_send(_osc_addr, buf, "sssss", fname.c_str(), format.c_str(), endian.c_str(), _our_url.c_str(), "/error") == -1) {
+	if (lo_send(_osc_addr, buf, "sssss", (const char *) fname.ToAscii(),
+		    (const char *) format.ToAscii(), (const char *) endian.ToAscii(),
+		    (const char *) _our_url.c_str(), "/error") == -1) {
 		return false;
 	}
 
@@ -1149,7 +1179,7 @@ LoopControl::post_load_loop(int index, wxString fname)
 	snprintf(buf, sizeof(buf), "/sl/%d/load_loop", index);
 
 	// send request for updates
-	if (lo_send(_osc_addr, buf, "sss", fname.c_str(), _our_url.c_str(), "/error") == -1) {
+	if (lo_send(_osc_addr, buf, "sss", (const char *) fname.ToAscii(), _our_url.c_str(), "/error") == -1) {
 		return false;
 	}
 
@@ -1165,7 +1195,7 @@ LoopControl::post_load_session(wxString fname)
 	snprintf(buf, sizeof(buf), "/load_session");
 
 	// send request for updates
-	if (lo_send(_osc_addr, buf, "sss", fname.c_str(), _our_url.c_str(), "/error") == -1) {
+	if (lo_send(_osc_addr, buf, "sss", (const char *) fname.ToAscii(), _our_url.c_str(), "/error") == -1) {
 		return false;
 	}
 
@@ -1181,7 +1211,7 @@ LoopControl::post_save_session(wxString fname)
 	snprintf(buf, sizeof(buf), "/save_session");
 
 	// send request for updates
-	if (lo_send(_osc_addr, buf, "sss", fname.c_str(), _our_url.c_str(), "/error") == -1) {
+	if (lo_send(_osc_addr, buf, "sss", (const char *) fname.ToAscii(), _our_url.c_str(), "/error") == -1) {
 		return false;
 	}
 
@@ -1290,13 +1320,13 @@ LoopControl::get_state (int index, LooperState & state, wxString & statestr)
 
 	if (index >= 0 && index < (int) _params_val_map.size())
 	{
-		ControlValMap::iterator iter = _params_val_map[index].find ("state");
+		ControlValMap::iterator iter = _params_val_map[index].find (wxT("state"));
 
 		if (iter != _params_val_map[index].end()) {
 			state = (LooperState) (*iter).second;
 			statestr = state_map[state];
 			// set updated to false
-			_updated[index]["state"] = false;
+			_updated[index][wxT("state")] = false;
 			ret = true;
 		}
 	}
@@ -1311,13 +1341,13 @@ LoopControl::get_next_state (int index, LooperState & state, wxString & statestr
 
 	if (index >= 0 && index < (int) _params_val_map.size())
 	{
-		ControlValMap::iterator iter = _params_val_map[index].find ("next_state");
+		ControlValMap::iterator iter = _params_val_map[index].find (wxT("next_state"));
 
 		if (iter != _params_val_map[index].end()) {
 			state = (LooperState) (*iter).second;
 			statestr = state_map[state];
 			// set updated to false
-			_updated[index]["next_state"] = false;
+			_updated[index][wxT("next_state")] = false;
 			ret = true;
 		}
 	}

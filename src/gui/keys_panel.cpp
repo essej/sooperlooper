@@ -197,7 +197,7 @@ void KeysPanel::on_button (wxCommandEvent &ev)
 				_learn_button->SetForegroundColour (*wxRED);
 				
 				_parent->get_keyboard().set_enabled(true);
-				_parent->get_keyboard().start_learning (string(_listctrl->GetItemText(item).c_str()));
+				_parent->get_keyboard().start_learning (string((const char *)_listctrl->GetItemText(item).ToAscii()));
 				//cerr << "start learning" << endl;
 			}
 		}
@@ -217,7 +217,7 @@ void KeysPanel::item_activated (wxListEvent & ev)
 	_learn_button->SetForegroundColour (*wxRED);
 
 	keyb.set_enabled(true);
-	keyb.start_learning (ev.GetText().c_str());
+	keyb.start_learning ((const char *)ev.GetText().ToAscii());
 
 }
 

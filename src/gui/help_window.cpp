@@ -46,18 +46,18 @@ void HelpWindowHtmlWin::OnLinkClicked(const wxHtmlLinkInfo& link)
 	//if (!browseToUrl(link.GetHref())) {
 	// system specific hack workaround
 #ifdef __WXMAC__
-	cmdstr = wxString::Format("open %s", link.GetHref().c_str());
+	cmdstr = wxString::Format(wxT("open %s"), link.GetHref().c_str());
 #else
-	cmdstr = wxString::Format("gnome-moz-remote --newwin '%s' &", link.GetHref().c_str());
+	cmdstr = wxString::Format(wxT("gnome-moz-remote --newwin '%s' &"), link.GetHref().c_str());
 #endif
 	//}
 #else
 	// windows has its own special way
-	cmdstr = wxString::Format("rundll32 url.dll,FileProtocolHandler %s", link.GetHref().c_str());
+	cmdstr = wxString::Format(wxT("rundll32 url.dll,FileProtocolHandler %s"), link.GetHref().c_str());
 	
 #endif
 
-	std::system(cmdstr.c_str());
+	std::system((const char *) cmdstr.ToAscii());
 	
 
 }

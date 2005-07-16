@@ -533,57 +533,57 @@ LooperPanel::set_index(int ind)
 void
 LooperPanel::bind_events()
 {
-	_undo_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("undo")));
-	_undo_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("undo")));
-	_undo_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("undo")));
+	_undo_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("undo"))));
+	_undo_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("undo"))));
+	_undo_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("undo"))));
 
-	_redo_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("redo")));
-	_redo_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("redo")));
-	_redo_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("redo")));
+	_redo_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("redo"))));
+	_redo_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("redo"))));
+	_redo_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("redo"))));
 
-	_record_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("record")));
-	_record_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("record")));
-	_record_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("record")));
+	_record_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("record"))));
+	_record_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("record"))));
+	_record_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("record"))));
 
-	_overdub_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("overdub")));
-	_overdub_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("overdub")));
-	_overdub_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("overdub")));
+	_overdub_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("overdub"))));
+	_overdub_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("overdub"))));
+	_overdub_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("overdub"))));
 
-	_multiply_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("multiply")));
-	_multiply_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("multiply")));
-	_multiply_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("multiply")));
+	_multiply_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("multiply"))));
+	_multiply_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("multiply"))));
+	_multiply_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("multiply"))));
 
-	_replace_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("replace")));
-	_replace_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("replace")));
-	_replace_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("replace")));
+	_replace_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("replace"))));
+	_replace_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("replace"))));
+	_replace_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("replace"))));
 
-	_insert_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("insert")));
-	_insert_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("insert")));
-	_insert_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("insert")));
+	_insert_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("insert"))));
+	_insert_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("insert"))));
+	_insert_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("insert"))));
 
-	_once_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("oneshot")));
-	_once_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("oneshot")));
-	_once_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("oneshot")));
+	_once_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("oneshot"))));
+	_once_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("oneshot"))));
+	_once_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("oneshot"))));
 
-	_trig_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("trigger")));
-	_trig_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("trigger")));
-	_trig_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("trigger")));
+	_trig_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("trigger"))));
+	_trig_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("trigger"))));
+	_trig_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("trigger"))));
 
 	_delay_button->pressed.connect (slot (*this, &LooperPanel::delay_button_press_event));
 	_delay_button->released.connect (slot (*this, &LooperPanel::delay_button_release_event));
-	_delay_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("delay_trigger")));
+	_delay_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("delay_trigger"))));
 
-	_reverse_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("reverse")));
-	_reverse_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("reverse")));
-	_reverse_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("reverse")));
+	_reverse_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("reverse"))));
+	_reverse_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("reverse"))));
+	_reverse_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("reverse"))));
 
-	_substitute_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("substitute")));
-	_substitute_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("substitute")));
-	_substitute_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("substitute")));
+	_substitute_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("substitute"))));
+	_substitute_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("substitute"))));
+	_substitute_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("substitute"))));
 	
-	_mute_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("mute")));
-	_mute_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("mute")));
-	_mute_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("mute")));
+	_mute_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("mute"))));
+	_mute_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("mute"))));
+	_mute_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("mute"))));
 
 	_halfx_button->pressed.connect (bind (slot (*this, &LooperPanel::rate_button_event), 0.5f));
 	_halfx_button->bind_request.connect (bind (slot (*this, &LooperPanel::rate_bind_events), 0.5f));
@@ -592,16 +592,16 @@ LooperPanel::bind_events()
 	_2x_button->pressed.connect (bind (slot (*this, &LooperPanel::rate_button_event), 2.0f));
 	_2x_button->bind_request.connect (bind (slot (*this, &LooperPanel::rate_bind_events), 2.0f));
 
-	_scratch_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString("scratch")));
-	_scratch_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString("scratch")));
-	_scratch_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString("scratch")));
+	_scratch_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("scratch"))));
+	_scratch_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("scratch"))));
+	_scratch_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("scratch"))));
 
-	_save_button->clicked.connect (bind (slot (*this, &LooperPanel::clicked_events), wxString("save")));
-	_load_button->clicked.connect (bind (slot (*this, &LooperPanel::clicked_events), wxString("load")));
+	_save_button->clicked.connect (bind (slot (*this, &LooperPanel::clicked_events), wxString(wxT("save"))));
+	_load_button->clicked.connect (bind (slot (*this, &LooperPanel::clicked_events), wxString(wxT("load"))));
 
 
-	_scratch_control->pressed.connect (bind (slot (*this, &LooperPanel::scratch_events), wxString("scratch_press")));
-	_scratch_control->released.connect (bind (slot (*this, &LooperPanel::scratch_events), wxString("scratch_release")));
+	_scratch_control->pressed.connect (bind (slot (*this, &LooperPanel::scratch_events), wxString(wxT("scratch_press"))));
+	_scratch_control->released.connect (bind (slot (*this, &LooperPanel::scratch_events), wxString(wxT("scratch_release"))));
 
 	
 	_loop_control->MidiBindingChanged.connect (slot (*this, &LooperPanel::got_binding_changed));
@@ -756,7 +756,7 @@ wxString
 LooperPanel::get_pixmap_path (const wxString & namebase)
 {
 	wxString filename;
-	wxString pixmapdir("pixmaps/");
+	wxString pixmapdir(wxT("pixmaps/"));
 	
 #ifdef PIXMAPDIR
 	pixmapdir = PIXMAPDIR;
@@ -1207,7 +1207,7 @@ LooperPanel::button_bind_events (wxString cmd)
 	
 	info.channel = 0;
 	info.type = "n";
-	snprintf(cmdbuf, sizeof(cmdbuf), "%s", cmd.c_str());
+	snprintf(cmdbuf, sizeof(cmdbuf), "%s", (const char *) cmd.ToAscii());
 	info.control = cmdbuf;
 
 	if (cmd == wxT("delay_trigger")) {
@@ -1244,7 +1244,7 @@ void
 LooperPanel::delay_button_press_event (int button)
 {
 	_tap_val *= -1.0f;
-	post_control_event (wxString("delay_trigger"), _tap_val);
+	post_control_event (wxString(wxT("delay_trigger")), _tap_val);
 }
 
 void
@@ -1252,7 +1252,7 @@ LooperPanel::delay_button_release_event (int button)
 {
 	if (button == PixButton::MiddleButton) {
 		_tap_val *= -1.0f;
-		post_control_event (wxString("delay_trigger"), _tap_val);
+		post_control_event (wxString(wxT("delay_trigger")), _tap_val);
 	}
 }
 
@@ -1265,7 +1265,7 @@ LooperPanel::rate_button_event (int button, float rate)
 // 	val = val == 0.0f ? 1.0f : 0.0f;
 // 	post_control_event (wxString("use_rate"), val);
 
-	post_control_event (wxString("rate"), rate);
+	post_control_event (wxString(wxT("rate")), rate);
 	update_rate_buttons (rate);
 	_rate_control->set_value (rate);
 }

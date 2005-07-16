@@ -235,7 +235,7 @@ bool GuiApp::OnInit()
 	// override defaults
 	LoopControl & loopctrl = _frame->get_loop_control();
 	if (!_host.empty()) {
-		loopctrl.get_spawn_config().host = _host;
+		loopctrl.get_spawn_config().host = _host.ToAscii();
 	}
 	if (_port != 0) {
 		loopctrl.get_spawn_config().port = _port;
@@ -247,16 +247,16 @@ bool GuiApp::OnInit()
 		loopctrl.get_spawn_config().never_spawn = _never_spawn;
 	}
 	if (!_client_name.empty()) {
-		loopctrl.get_spawn_config().jack_name = _client_name;
+		loopctrl.get_spawn_config().jack_name = _client_name.ToAscii();
 	}
 	if (!_server_name.empty()) {
-		loopctrl.get_spawn_config().jack_serv_name = _server_name;
+		loopctrl.get_spawn_config().jack_serv_name = _server_name.ToAscii();
 	}
 	if (!_exec_name.empty()) {
-		loopctrl.get_spawn_config().exec_name = _exec_name;
+		loopctrl.get_spawn_config().exec_name = _exec_name.ToAscii();
 	}
 	if (!_midi_bind_file.empty()) {
-		loopctrl.get_spawn_config().midi_bind_path = _midi_bind_file;
+		loopctrl.get_spawn_config().midi_bind_path = _midi_bind_file.ToAscii();
 	}
 	if (_loop_count != 0) {
 		loopctrl.get_spawn_config().num_loops = _loop_count;

@@ -76,7 +76,7 @@ TimePanel::init()
 	_pos_font.SetStyle(wxNORMAL);
 	_pos_font.SetWeight(wxBOLD);
 	_pos_color.Set(244, 255, 158);
-	_pos_str = "00:00.00";
+	_pos_str = wxT("00:00.00");
 	_pos_font.SetPointSize(10);
 	normalize_font_size(_pos_font, 110, 40, wxT("00:00.00"));
 
@@ -106,7 +106,7 @@ TimePanel::init()
 	_state_font.SetWeight(wxBOLD);
 	_state_font.SetStyle(wxNORMAL);
 	_state_color.Set(154, 255, 168);
-	_state_str = "not connected";
+	_state_str = wxT("not connected");
 	_state_font.SetPointSize(10);
 	normalize_font_size(_state_font, 110, 30, wxT("ooooooooooo"));
 
@@ -122,9 +122,9 @@ TimePanel::init()
 	_time_color.Set(244, 255, 178);
 	_time_font.SetPointSize(7);
 	normalize_font_size(_time_font, 45, 20, wxT("00:00.00"));
-	_tot_str = "00:00.00";
-	_cyc_str = "00:00.00";
-	_rem_str = "00:00.00";
+	_tot_str = wxT("00:00.00");
+	_cyc_str = wxT("00:00.00");
+	_rem_str = wxT("00:00.00");
 
 	_sw = _sh = _tw = _th = _pw = _ph = _mh = _mw = _ww = _wh = 0;
 	
@@ -174,7 +174,7 @@ TimePanel::format_time(wxString & timestr, float val)
 	int minutes = (int) (val / 60.0f);
 	float secs = fabs(val - minutes*60.0f);
 	
-	timestr.Printf("%02d:%05.2f", minutes, secs);
+	timestr.Printf(wxT("%02d:%05.2f"), minutes, secs);
 }
 
 void

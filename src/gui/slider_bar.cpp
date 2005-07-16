@@ -222,7 +222,7 @@ SliderBar::set_units (const wxString & units)
 {
 	_units_str = units.Strip(wxString::both);
 	if (!_units_str.empty()) {
-		_units_str = " " + _units_str;
+		_units_str = wxT(" ") + _units_str;
 	}
 	update_value_str();
 	do_redraw();	

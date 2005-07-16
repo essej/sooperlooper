@@ -57,20 +57,20 @@ class LoopControl
 
 		wxString name;
 		
-		wxString   host;
+		std::string   host;
 		long        port;
 		long        num_loops; 
 		long        num_channels;
 		double      mem_secs;
 		bool        discrete_io;
 		
-		wxString   exec_name;
-		wxString   midi_bind_path;
+		std::string   exec_name;
+		std::string   midi_bind_path;
 		bool       force_spawn;
 		bool       never_spawn;
-		wxString   jack_name;
-		wxString   jack_serv_name;
-		wxString   session_path;
+		std::string   jack_name;
+		std::string   jack_serv_name;
+		std::string   session_path;
 	};
 	
 	// ctor(s)
@@ -188,11 +188,11 @@ class LoopControl
 
 	bool spawn_looper();
 	
-	wxString   _osc_url;
+	std::string   _osc_url;
 	lo_address _osc_addr;
 
 	lo_server  _osc_server;
-	wxString  _our_url;
+	std::string  _our_url;
 
 	typedef std::map<wxString, float> ControlValMap;
 	typedef std::vector<ControlValMap> ControlValMapList;
