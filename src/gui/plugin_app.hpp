@@ -17,8 +17,8 @@
 **  
 */
 
-#ifndef __sooperlooper_gui_app__
-#define __sooperlooper_gui_app__
+#ifndef __sooperlooper_plugin_app__
+#define __sooperlooper_plugin_app__
 
 
 #include <wx/wx.h>
@@ -27,23 +27,27 @@
 namespace SooperLooperGui {
 
 
-class AppFrame;
 class MainPanel;
 	
-class GuiApp : public wxApp
+class PluginApp : public wxApp
 {
 	
   public: 
 	// override base class virtuals
 	// ----------------------------
-	GuiApp();
+	PluginApp();
 
-	virtual ~GuiApp();
+	virtual ~PluginApp();
 	
 	// this one is called on application startup and is a good place for the app
 	// initialization (doing it here and not in the ctor allows to have an error
 	// return: if OnInit() returns false, the application terminates)
 	virtual bool OnInit();
+	
+	virtual int OnRun();
+	
+	MainPanel * get_main_panel() {return _mainpanel; }
+	wxFrame * get_main_frame() { return _frame; }
 	
 	wxString get_host() { return _host; }
 	int get_port() { return _port; }
@@ -58,8 +62,8 @@ class GuiApp : public wxApp
 
 	void process_key_event (wxKeyEvent &ev);
 
-	AppFrame * _frame;
-
+	MainPanel * _mainpanel;
+	wxFrame * _frame;
 	
 	wxString _host;
 	int      _port;
@@ -85,7 +89,7 @@ class GuiApp : public wxApp
 
 };
 
-DECLARE_APP(SooperLooperGui::GuiApp);
+DECLARE_APP(SooperLooperGui::PluginApp);
 
 
 #endif

@@ -46,6 +46,7 @@ class MidiBridge
 {
   public:
 
+	MidiBridge (std::string name);
 	MidiBridge (std::string name, MIDI::PortRequest & req);
 	MidiBridge (std::string name, std::string oscurl, MIDI::PortRequest & req);
 	virtual ~MidiBridge();			
@@ -53,7 +54,7 @@ class MidiBridge
 	MidiBindings & bindings() { return _midi_bindings; }
 	PBD::NonBlockingLock & bindings_lock() { return _bindings_lock; }
 	
-	virtual bool is_ok() { return _port != 0; }
+	virtual bool is_ok() { return _ok; }
 
 	void start_learn (MidiBindInfo & info, bool exclus=false);
 	void cancel_learn();
@@ -64,11 +65,15 @@ class MidiBridge
 	SigC::Signal1<void, MidiBindInfo> BindingLearned;
 	SigC::Signal1<void, MidiBindInfo> NextMidiReceived;
 
-	SigC::Signal3<void, Event::type_t, Event::command_t, int8_t> MidiCommandEvent;
-	SigC::Signal4<void, Event::type_t, Event::control_t, float, int8_t> MidiControlEvent;
+	// type, command, loop index, framepos (-1 if not set)
+	SigC::Signal4<void, Event::type_t, Event::command_t, int8_t, long> MidiCommandEvent;
+	SigC::Signal5<void, Event::type_t, Event::control_t, float, int8_t, long> MidiControlEvent;
 
-	SigC::Signal1<void, Event::control_t> MidiSyncEvent;
+	SigC::Signal2<void, Event::control_t, long> MidiSyncEvent;
 	
+
+	void inject_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long framepos=-1);
+
 	
   protected:
 	bool init_thread();
@@ -77,7 +82,7 @@ class MidiBridge
 	
 	void incoming_midi (MIDI::Parser &p, MIDI::byte *msg, size_t len);
 	
-	void queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val);
+	void queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long framepos=-1);
 
 
 	static void * _midi_receiver (void * arg);
@@ -92,7 +97,7 @@ class MidiBridge
 
   private:
 
-	void send_event (const MidiBindInfo & info, float val);
+	void send_event (const MidiBindInfo & info, float val, long framepos=-1);
 	
 
 	MidiBindings _midi_bindings;
@@ -111,7 +116,7 @@ class MidiBridge
 	bool _learning;
 	bool _getnext;
 	MidiBindInfo _learninfo;
-
+	bool _ok;
 	
 };
 

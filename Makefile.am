@@ -22,7 +22,7 @@ mac: all
 	-mkdir -p $(MACDISTDIR)/SooperLooper.app/Contents
 	-mkdir -p $(MACDISTDIR)/SooperLooper.app/Contents/MacOS
 	-mkdir -p $(MACDISTDIR)/SooperLooper.app/Contents/Resources
-	`wx-config --rezflags` src/gui/slgui
+	`@WX_CONFIG@ --rezflags` src/gui/slgui
 	strip src/gui/slgui
 	strip src/sooperlooper
 	cp -f src/gui/slgui $(MACDISTDIR)/SooperLooper.app/Contents/MacOS/

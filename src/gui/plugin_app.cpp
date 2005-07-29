@@ -49,8 +49,7 @@ wxString GetExecutablePath(wxString argv0);
 
 #include "version.h"
 
-#include "gui_app.hpp"
-#include "app_frame.hpp"
+#include "plugin_app.hpp"
 #include "main_panel.hpp"
 #include "loop_control.hpp"
 
@@ -62,12 +61,12 @@ using namespace std;
 // static object for many reasons) and also declares the accessor function
 // wxGetApp() which will return the reference of the right type (i.e. MyApp and
 // not wxApp)
-IMPLEMENT_APP(SooperLooperGui::GuiApp)
+IMPLEMENT_APP_NO_MAIN(SooperLooperGui::PluginApp)
 
 
-BEGIN_EVENT_TABLE(SooperLooperGui::GuiApp, wxApp)
-   EVT_KEY_DOWN (GuiApp::process_key_event)
-   EVT_KEY_UP (GuiApp::process_key_event)
+BEGIN_EVENT_TABLE(SooperLooperGui::PluginApp, wxApp)
+   EVT_KEY_DOWN (PluginApp::process_key_event)
+   EVT_KEY_UP (PluginApp::process_key_event)
 
 END_EVENT_TABLE()
 
@@ -81,7 +80,7 @@ END_EVENT_TABLE()
 // ----------------------------------------------------------------------------
 
 #define DEFAULT_OSC_PORT 9951
-#define DEFAULT_LOOP_TIME 200.0f
+#define DEFAULT_LOOP_TIME 40.0f
 
 
 static const wxCmdLineEntryDesc cmdLineDesc[] =
@@ -104,7 +103,7 @@ static const wxCmdLineEntryDesc cmdLineDesc[] =
 	
 
 bool
-GuiApp::parse_options (int argc, wxChar **argv)
+PluginApp::parse_options (int argc, wxChar **argv)
 {
 	wxCmdLineParser parser(argc, argv);
 	parser.SetDesc(cmdLineDesc);
@@ -178,8 +177,8 @@ GuiApp::parse_options (int argc, wxChar **argv)
 }
 	
 	
-GuiApp::GuiApp()
-	: _frame(0), _host(wxT("")), _port(0)
+PluginApp::PluginApp()
+	: _mainpanel(0), _host(wxT("")), _port(0)
 {
 	_show_usage = 0;
 	_show_version = 0;
@@ -190,13 +189,16 @@ GuiApp::GuiApp()
 	_mem_secs = 0.0f;
 }
 
-GuiApp::~GuiApp()
+PluginApp::~PluginApp()
 {
+	cerr << "DESTURCT" << endl;
 }
 
 
+
+
 // `Main program' equivalent: the program execution "starts" here
-bool GuiApp::OnInit()
+bool PluginApp::OnInit()
 {
 
 	
@@ -205,7 +207,7 @@ bool GuiApp::OnInit()
 	wxString rcdir;
 	wxString jackdir;
 	
-	SetExitOnFrameDelete(TRUE);
+	//SetExitOnFrameDelete(TRUE);
 
 	
 	// use stderr as log
@@ -219,41 +221,36 @@ bool GuiApp::OnInit()
 		return FALSE;
 	}
 
+	cerr << "INITING APP" << endl;
 
 	// Create the main application window
-	_frame = new AppFrame (wxT("SooperLooper"), wxPoint(100, 100), wxDefaultSize);
+	_frame =  new wxFrame(NULL, -1, "blah");
+	wxBoxSizer * sizer = new wxBoxSizer(wxVERTICAL);
+	_mainpanel = new MainPanel(_frame, -1, wxDefaultPosition, wxDefaultSize);
 
-#ifdef __WXMAC__
-	if (_exec_name.empty()) {
-		_exec_name = GetExecutablePath(argv[0]) + "sooperlooper";
-	}
-#endif
-	// escape all spaces with
-	_exec_name.Replace (wxT(" "), wxT("\\ "), true);
+	sizer->Add (_mainpanel, 1, wxEXPAND);
 	
+	_frame->SetSizer(sizer);
+	_frame->SetAutoLayout(true);
+	sizer->Fit(_frame);
+	sizer->SetSizeHints(_frame);
 	
-	// override defaults
-	LoopControl & loopctrl = _frame->get_main_panel()->get_loop_control();
+	_frame->SetSize(800,215);
+	_frame->Show();
+
+	
+
+		// override defaults
+	LoopControl & loopctrl = _mainpanel->get_loop_control();
+	
+	loopctrl.get_spawn_config().never_spawn = true;
+	loopctrl.get_spawn_config().force_spawn = false;
+		
 	if (!_host.empty()) {
 		loopctrl.get_spawn_config().host = _host.ToAscii();
 	}
 	if (_port != 0) {
 		loopctrl.get_spawn_config().port = _port;
-	}
-	if (_force_spawn) {
-		loopctrl.get_spawn_config().force_spawn = _force_spawn;
-	}
-	if (_never_spawn) {
-		loopctrl.get_spawn_config().never_spawn = _never_spawn;
-	}
-	if (!_client_name.empty()) {
-		loopctrl.get_spawn_config().jack_name = _client_name.ToAscii();
-	}
-	if (!_server_name.empty()) {
-		loopctrl.get_spawn_config().jack_serv_name = _server_name.ToAscii();
-	}
-	if (!_exec_name.empty()) {
-		loopctrl.get_spawn_config().exec_name = _exec_name.ToAscii();
 	}
 	if (!_midi_bind_file.empty()) {
 		loopctrl.get_spawn_config().midi_bind_path = _midi_bind_file.ToAscii();
@@ -272,51 +269,25 @@ bool GuiApp::OnInit()
 	// connect
 	loopctrl.connect();
 
-	// Show it and tell the application that it's our main window
-	_frame->SetSizeHints(790, 210);
-	_frame->SetSize(800, 215);
-	_frame->Show(TRUE);
-
-	SetTopWindow(_frame);
-
-	_frame->Raise();
-	
-		
 	// success: wxApp::OnRun() will be called which will enter the main message
 	// loop and the application will run. If we returned FALSE here, the
 	// application would exit immediately.
 	return TRUE;
 }
 
+int PluginApp::OnRun()
+{
+	// normall this calls the mainloop
+	// were not
+	cerr << "Run called" << endl;
+	return 0;
+}
+
 void
-GuiApp::process_key_event (wxKeyEvent &ev)
+PluginApp::process_key_event (wxKeyEvent &ev)
 {
 	// this recieves all key events first
 
-	_frame->get_main_panel()->process_key_event (ev);
+	_mainpanel->process_key_event (ev);
 }
-
-#ifdef __WXMAC__
-wxString
-GetExecutablePath(wxString argv0)
-{
-    wxString path;
-
-    if (wxIsAbsolutePath(argv0))
-        path = argv0;
-    else {
-        wxPathList pathlist;
-        pathlist.AddEnvList(wxT("PATH"));
-        path = pathlist.FindAbsoluteValidPath(argv0);
-    }
-
-    wxFileName filename(path);
-    filename.Normalize();
-
-    path = filename.GetFullPath();
-    path = path.BeforeLast('/') + "/";
-
-    return path;
-}
-#endif // __WXMAC__
 

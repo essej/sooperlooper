@@ -46,7 +46,7 @@ class PrefsDialog
   public:
 	
 	// ctor(s)
-	PrefsDialog(GuiFrame * parent, wxWindowID id, const wxString& title,
+	PrefsDialog(MainPanel * parent, wxWindowID id, const wxString& title,
 		   const wxPoint& pos = wxDefaultPosition,
 		   const wxSize& size = wxSize(400,600),
 		   long style = wxDEFAULT_FRAME_STYLE,
@@ -69,7 +69,7 @@ class PrefsDialog
 	KeysPanel    * _keys_panel;
 	MidiBindPanel * _midi_panel;
 	
-	GuiFrame * _parent;
+	MainPanel * _parent;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

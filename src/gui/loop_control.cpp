@@ -900,7 +900,6 @@ LoopControl::add_midi_binding(const MidiBindInfo & info, bool exclusive)
 {
 	if (!_osc_addr) return;
 
-	cerr << "adding binding: " << info.serialize() << endl;
 	lo_send(_osc_addr, "/add_midi_binding", "ss", info.serialize().c_str(), exclusive?"exclusive":"");
 }
 

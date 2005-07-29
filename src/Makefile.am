@@ -16,7 +16,7 @@ AM_CXXFLAGS =  @JACK_CFLAGS@ @LOSC_CFLAGS@ @SIGCPP_CFLAGS@ @SNDFILE_CFLAGS@ @SAM
 #SYSDEP_SRCS += coremidi_bridge.cpp
 #endif
 
-noinst_LIBRARIES           = libslcore.a
+noinst_LIBRARIES           = libslcore.a libsldrivers.a
 
 libslcore_a_SOURCES      = \
 	engine.cpp \
@@ -27,17 +27,20 @@ libslcore_a_SOURCES      = \
 	midi_bridge.cpp \
 	midi_bind.cpp \
 	audio_driver.cpp \
-	jack_audio_driver.cpp \
 	command_map.cpp \
 	filter.cpp \
 	panner.cpp \
 	utils.cpp \
 	$(SYSDEP_SRCS)
 
+libsldrivers_a_SOURCES      = \
+	jack_audio_driver.cpp
+
+
 sooperlooper_SOURCES = \
 	sooperlooper.cpp
 
-sooperlooper_LDADD =  libslcore.a @JACK_LIBS@ @LOSC_LIBS@ @SIGCPP_LIBS@ @SNDFILE_LIBS@ @SAMPLERATE_LIBS@ @AUDIO_LIBS@ @XML_LIBS@
+sooperlooper_LDADD =  libsldrivers.a libslcore.a @JACK_LIBS@ @LOSC_LIBS@ @SIGCPP_LIBS@ @SNDFILE_LIBS@ @SAMPLERATE_LIBS@ @AUDIO_LIBS@ @XML_LIBS@
 sooperlooper_LDFLAGS = 
 
 slconsole_SOURCES = slconsole.cpp

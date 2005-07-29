@@ -346,7 +346,7 @@ static void clearLoopChunks(SooperLooperI *pLS)
    pLS->headLoopChunk = NULL;
 }
 
-void undoLoop(SooperLooperI *pLS)
+static void undoLoop(SooperLooperI *pLS)
 {
    LoopChunk *loop = pLS->headLoopChunk;
    LoopChunk *prevloop;
@@ -367,7 +367,7 @@ void undoLoop(SooperLooperI *pLS)
 }
 
 
-void redoLoop(SooperLooperI *pLS)
+static void redoLoop(SooperLooperI *pLS)
 {
    LoopChunk *loop = NULL;
    LoopChunk *nextloop = NULL;
@@ -3301,7 +3301,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		     && ((lCurrPos + syncSamples) >= loop->lLoopLength
 			 || (lCurrPos > 0 && lCurrPos < (unsigned int) lrintf(syncSamples) )))
 		 {
-			 //cerr << "PLAYBACK SYNC hit at " << lCurrPos << endl;
+			 cerr << "PLAYBACK SYNC hit at " << lCurrPos << endl;
 			 //pLS->waitingForSync = 1;
 			 pLS->donePlaySync = true;
 			 if (pLS->fCurrRate > 0)

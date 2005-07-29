@@ -76,6 +76,7 @@ Engine::Engine ()
 	_common_output_peak = 0.0f;
 	_loading = false;
 	_use_temp_input = true; // all the time for now
+	_ignore_quit = false;
 	
 	_running_frames = 0;
 	_last_tempo_frame = 0;
@@ -91,7 +92,7 @@ Engine::Engine ()
 	reset_avg_tempo();
 }
 
-bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
+bool Engine::initialize(AudioDriver * driver, int buschans, int port, string pingurl)
 {
 	char tmpstr[100];
 	port_id_t tmpport;
@@ -107,7 +108,7 @@ bool Engine::initialize(AudioDriver * driver, int port, string pingurl)
 	_buffersize = _driver->get_buffersize();
 	
 	// create common io ports
-	for (int i=0; i < 2; ++i) 
+	for (int i=0; i < buschans; ++i) 
 	{
 		snprintf(tmpstr, sizeof(tmpstr), "common_in_%d", i+1);
 		if (_driver->create_input_port (tmpstr, tmpport)) {
@@ -241,8 +242,11 @@ void Engine::set_midi_bridge (MidiBridge * bridge)
 	}
 }
 
-void Engine::quit()
+void Engine::quit(bool force)
 {
+	if (!force && _ignore_quit) {
+		return;
+	}
 	
 	_ok = false;
 
@@ -832,9 +836,9 @@ Engine::push_command_event (Event::type_t type, Event::command_t cmd, int8_t ins
 }
 
 void
-Engine::push_midi_command_event (Event::type_t type, Event::command_t cmd, int8_t instance)
+Engine::push_midi_command_event (Event::type_t type, Event::command_t cmd, int8_t instance, long framepos)
 {
-	do_push_command_event (_midi_event_queue, type, cmd, instance);
+	do_push_command_event (_midi_event_queue, type, cmd, instance, framepos);
 
 	// this is a known race condition, if the osc thread is changing controls
 	// simultaneously.  it's just an update :)
@@ -847,7 +851,7 @@ Engine::push_midi_command_event (Event::type_t type, Event::command_t cmd, int8_
 
 
 bool
-Engine::do_push_command_event (RingBuffer<Event> * evqueue, Event::type_t type, Event::command_t cmd, int8_t instance)
+Engine::do_push_command_event (RingBuffer<Event> * evqueue, Event::type_t type, Event::command_t cmd, int8_t instance, long framepos)
 {
 	// todo support more than one simulataneous pusher safely
 	RingBuffer<Event>::rw_vector vec;
@@ -862,7 +866,7 @@ Engine::do_push_command_event (RingBuffer<Event> * evqueue, Event::type_t type, 
 	}
 	
 	Event * evt = vec.buf[0];
-	*evt = get_event_generator().createEvent();
+	*evt = get_event_generator().createEvent(framepos);
 
 	evt->Type = type;
 	evt->Command = cmd;
@@ -875,7 +879,7 @@ Engine::do_push_command_event (RingBuffer<Event> * evqueue, Event::type_t type, 
 
 
 bool
-Engine::do_push_control_event (RingBuffer<Event> * evqueue, Event::type_t type, Event::control_t ctrl, float val, int8_t instance, int src)
+Engine::do_push_control_event (RingBuffer<Event> * evqueue, Event::type_t type, Event::control_t ctrl, float val, int8_t instance, long framepos, int src)
 {
 	// todo support more than one simulataneous pusher safely
 
@@ -891,7 +895,7 @@ Engine::do_push_control_event (RingBuffer<Event> * evqueue, Event::type_t type, 
 	}
 	
 	Event * evt = vec.buf[0];
-	*evt = get_event_generator().createEvent();
+	*evt = get_event_generator().createEvent(framepos);
 
 	evt->Type = type;
 	evt->Control = ctrl;
@@ -920,9 +924,9 @@ Engine::push_control_event (Event::type_t type, Event::control_t ctrl, float val
 }
 
 void
-Engine::push_midi_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance)
+Engine::push_midi_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance, long framepos)
 {
-	do_push_control_event (_midi_event_queue, type, ctrl, val, instance);
+	do_push_control_event (_midi_event_queue, type, ctrl, val, instance, framepos);
 
 	// this is a known race condition, if the osc thread is changing controls
 	// simultaneously.  it's just an update :)
@@ -934,7 +938,7 @@ Engine::push_midi_control_event (Event::type_t type, Event::control_t ctrl, floa
 }
 
 void
-Engine::push_sync_event (Event::control_t ctrl)
+Engine::push_sync_event (Event::control_t ctrl, long framepos)
 {
 	// todo support more than one simulataneous pusher safely
 
@@ -954,7 +958,7 @@ Engine::push_sync_event (Event::control_t ctrl)
 	}
 	
 	Event * evt = vec.buf[0];
-	*evt = get_event_generator().createEvent();
+	*evt = get_event_generator().createEvent(framepos);
 
 	evt->Type = Event::type_sync;
 	evt->Control = ctrl;
@@ -1802,12 +1806,19 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 
 
 bool
-Engine::load_session (std::string fname)
+Engine::load_session (std::string fname, string * readstr)
 {
 	LocaleGuard lg ("POSIX");
-	XMLTree sessiondoc (fname);
+	XMLTree sessiondoc;
 	XMLNodeList looper_kids;
 	const XMLProperty* prop;
+
+	if (readstr) {
+		sessiondoc.read_buffer(*readstr);
+	}
+	else {
+		sessiondoc.read(fname);
+	}
 	
 	if (!sessiondoc.initialized()) {
 		fprintf (stderr, "Error loading session at %s!\n", fname.c_str()); 
@@ -1883,7 +1894,7 @@ Engine::load_session (std::string fname)
 }
 
 bool
-Engine::save_session (std::string fname)
+Engine::save_session (std::string fname, string * writestr)
 {
 	// make xmltree
 	LocaleGuard lg ("POSIX");
@@ -1922,17 +1933,24 @@ Engine::save_session (std::string fname)
 	{
 		loopers_node->add_child_nocopy ((*i)->get_state());
 	}
+
+
+	if (writestr) {
+		*writestr = sessiondoc.write_buffer();
+	}
 	
 	// write doc to file
-	
-	if (sessiondoc.write (fname))
-	{	    
-		fprintf (stderr, "Stored session as %s\n", fname.c_str());
-		return true;
-	}
-	else {
-		fprintf (stderr, "Failed to store session as %s\n", fname.c_str());
-		return false;
+	if (!fname.empty()) {
+		if (sessiondoc.write (fname))
+		{	    
+			fprintf (stderr, "Stored session as %s\n", fname.c_str());
+			return true;
+		}
+		else {
+			fprintf (stderr, "Failed to store session as %s\n", fname.c_str());
+			return false;
+		}
 	}
 
+	return true;
 }

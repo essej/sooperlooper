@@ -32,7 +32,7 @@ class wxListCtrl;
 
 namespace SooperLooperGui {
 
-class GuiFrame;
+class MainPanel;
 class KeyboardTarget;
 	
 class KeysPanel
@@ -41,7 +41,7 @@ class KeysPanel
   public:
 	
 	// ctor(s)
-	KeysPanel(GuiFrame * guiframe, wxWindow * parent, wxWindowID id,
+	KeysPanel(MainPanel * guiframe, wxWindow * parent, wxWindowID id,
 		   const wxPoint& pos = wxDefaultPosition,
 		   const wxSize& size = wxSize(400,600),
 		   long style = wxDEFAULT_FRAME_STYLE,
@@ -67,7 +67,7 @@ class KeysPanel
 	wxListCtrl * _listctrl;
 	wxButton * _learn_button;
 	
-	GuiFrame * _parent;
+	MainPanel * _parent;
 	bool       _justResized;
 	
   private:

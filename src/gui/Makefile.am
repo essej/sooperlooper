@@ -15,7 +15,8 @@ slgui_LDADD = ../libslcore.a  @LOSC_LIBS@ @WX_LIBS@ @SIGCPP_LIBS@ @XML_LIBS@
 
 slgui_SOURCES = \
 	gui_app.cpp \
-	gui_frame.cpp \
+	main_panel.cpp \
+	app_frame.cpp \
 	pix_button.cpp \
 	looper_panel.cpp \
 	loop_control.cpp \
@@ -38,4 +39,4 @@ noinst_HEADERS = $(wildcard *.hpp *.h)
 EXTRA_DIST = $(wildcard pixmaps/*.xpm)
 
 mac: slgui
-	`wx-config --rezflags` slgui
+	`@WX_CONFIG@ --rezflags` slgui

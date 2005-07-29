@@ -41,7 +41,7 @@ class TimePanel;
 class SliderBar;
 class ChoiceBox;
 class CheckBox;
-
+class MainPanel;
 	
 class LooperPanel
 	: public wxPanel, public SigC::Object
@@ -49,7 +49,7 @@ class LooperPanel
   public:
 	
 	// ctor(s)
-	LooperPanel (LoopControl * control, wxWindow * parent, wxWindowID id=-1,  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+	LooperPanel (MainPanel * mainpan, LoopControl * control, wxWindow * parent, wxWindowID id=-1,  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
 	virtual ~LooperPanel();
 
 	void set_index(int ind);
@@ -154,7 +154,8 @@ class LooperPanel
 	TimePanel * _time_panel;
 	
 	LoopControl * _loop_control;
-
+	MainPanel  * _mainpanel;
+	
 	int _index;
 	int _chan_count;
 	

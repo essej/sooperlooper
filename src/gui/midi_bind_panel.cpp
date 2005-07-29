@@ -26,10 +26,9 @@
 #include <vector>
 #include <list>
 
-#include "gui_frame.hpp"
+#include "main_panel.hpp"
 #include "midi_bind_panel.hpp"
 #include "loop_control.hpp"
-#include "gui_app.hpp"
 #include "keyboard_target.hpp"
 
 #include <midi_bind.hpp>
@@ -97,13 +96,13 @@ static int wxCALLBACK list_sort_callback (long item1, long item2, long sortData)
 
 	
 // ctor(s)
-MidiBindPanel::MidiBindPanel(GuiFrame * guiframe, wxWindow * parent, wxWindowID id,
+MidiBindPanel::MidiBindPanel(MainPanel * mainpan, wxWindow * parent, wxWindowID id,
 		       const wxPoint& pos,
 		       const wxSize& size,
 		       long style ,
 		       const wxString& name)
 
-	: wxPanel ((wxWindow *)parent, id, pos, size, style, name), _parent (guiframe)
+	: wxPanel ((wxWindow *)parent, id, pos, size, style, name), _parent (mainpan)
 {
 	_learning = false;
 	_justResized = false;
@@ -699,9 +698,9 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 	{
 		if (_parent->get_loop_control().is_engine_local()) {
 			
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
+			_parent->get_keyboard().set_enabled(false);
 			wxString filename = wxFileSelector(wxT("Choose midi binding file to open"), wxT(""), wxT(""), wxT(""), wxT("*.slb"), wxOPEN|wxCHANGE_DIR);
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
+			_parent->get_keyboard().set_enabled(true);
 
 			if ( !filename.empty() )
 			{
@@ -710,13 +709,13 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 		}
 		else {
 			// popup basic filename text entry
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
+			_parent->get_keyboard().set_enabled(false);
 
 			wxString filename = ::wxGetTextFromUser(wxString::Format(wxT("Specify midi binding file to load on remote host '%s'"),
 										 (const char *)_parent->get_loop_control().get_engine_host().ToAscii())
 								, wxT("Load Midi Binding"));
 
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
+			_parent->get_keyboard().set_enabled(true);
 
 			if (!filename.empty()) {
 				_parent->get_loop_control().load_midi_bindings(filename, _append_check->GetValue());
@@ -728,9 +727,9 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 	{
 		if (_parent->get_loop_control().is_engine_local()) {
 			
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
+			_parent->get_keyboard().set_enabled(false);
 			wxString filename = wxFileSelector(wxT("Choose midi binding file to save"), wxT(""), wxT(""), wxT(""), wxT("*.slb"), wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
+			_parent->get_keyboard().set_enabled(true);
 
 			if ( !filename.empty() )
 			{
@@ -743,13 +742,13 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 		}
 		else {
 			// popup basic filename text entry
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(false);
+			_parent->get_keyboard().set_enabled(false);
 
 			wxString filename = ::wxGetTextFromUser(wxString::Format(wxT("Specify midi binding file to save on remote host '%s'"),
 										 (const char *) _parent->get_loop_control().get_engine_host().ToAscii())
 								, wxT("Save Midi Binding"));
 
-			::wxGetApp().getFrame()->get_keyboard().set_enabled(true);
+			_parent->get_keyboard().set_enabled(true);
 
 			if (!filename.empty()) {
 				_parent->get_loop_control().save_midi_bindings(filename);

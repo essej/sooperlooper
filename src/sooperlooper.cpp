@@ -320,7 +320,7 @@ int main(int argc, char** argv)
 	engine->set_default_loop_secs (option_info.loopsecs);
 	engine->set_default_channels (option_info.channels);
 	
-	if (!engine->initialize(driver, option_info.oscport, option_info.pingurl)) {
+	if (!engine->initialize(driver, 2, option_info.oscport, option_info.pingurl)) {
 		cerr << "cannot initialize sooperlooper\n";
 		exit (1);
 	}
@@ -336,16 +336,17 @@ int main(int argc, char** argv)
 		{
 			engine->add_loop ((unsigned int) option_info.channels, option_info.loopsecs, option_info.discrete_io);
 		}
+
+		// set default sync source
+		if (option_info.loop_count > 0) {
+			engine->push_nonrt_event ( new GlobalSetEvent ("sync_source", 1.0f));
+		}
 	}
 	else {
 		// load session instead
 		engine->load_session (option_info.loadsession);
 	}
 
-	// set default sync source
-	if (option_info.loop_count > 0) {
-		engine->push_nonrt_event ( new GlobalSetEvent ("sync_source", 1.0f));
-	}
 	
 	if (!driver->activate()) {
 		exit(1);

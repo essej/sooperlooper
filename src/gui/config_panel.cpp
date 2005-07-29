@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#include "gui_frame.hpp"
+#include "main_panel.hpp"
 #include "config_panel.hpp"
 #include "loop_control.hpp"
 #include "keyboard_target.hpp"
@@ -62,13 +62,13 @@ END_EVENT_TABLE()
 
 	
 // ctor(s)
-ConfigPanel::ConfigPanel(GuiFrame * guiframe, wxWindow * parent, wxWindowID id,
+	ConfigPanel::ConfigPanel(MainPanel * mainpan, wxWindow * parent, wxWindowID id,
 		       const wxPoint& pos,
 		       const wxSize& size,
 		       long style ,
 		       const wxString& name)
 
-	: wxPanel ((wxWindow *)parent, id, pos, size, style, name), _parent (guiframe)
+	: wxPanel ((wxWindow *)parent, id, pos, size, style, name), _parent (mainpan)
 {
 	init();
 }

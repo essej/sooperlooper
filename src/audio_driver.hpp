@@ -78,8 +78,8 @@ class AudioDriver
 	virtual bool get_transport_info (TransportInfo &info) { return false; }
 
 	
-	nframes_t get_samplerate() { return _samplerate; }
-	nframes_t get_buffersize() { return _buffersize; }
+	virtual nframes_t get_samplerate() { return _samplerate; }
+	virtual nframes_t get_buffersize() { return _buffersize; }
 
 	
   protected:

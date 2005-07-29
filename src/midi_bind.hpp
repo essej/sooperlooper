@@ -24,8 +24,10 @@
 #include <vector>
 #include <map>
 #include <cstdio>
+#include <iostream>
 
 #include <midi++/types.h>
+
 
 namespace SooperLooper {
 
@@ -90,8 +92,12 @@ public:
 	typedef std::vector<MidiBindInfo> BindingList;
 
 	void clear_bindings ();
+
 	bool load_bindings (std::string filename, bool append=false);
+	bool load_bindings (std::istream & instream, bool append=false);
+
 	bool save_bindings (std::string filename);
+	bool save_bindings (std::ostream & outstream);
 
 	void get_bindings (BindingList & blist) const;
 	bool add_binding (const MidiBindInfo & info, bool exclusive=false);

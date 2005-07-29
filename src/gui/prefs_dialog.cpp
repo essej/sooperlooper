@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 
-#include "gui_frame.hpp"
+#include "main_panel.hpp"
 #include "prefs_dialog.hpp"
 #include "config_panel.hpp"
 #include "keys_panel.hpp"
@@ -58,7 +58,7 @@ END_EVENT_TABLE()
 
 	
 // ctor(s)
-PrefsDialog::PrefsDialog(GuiFrame * parent, wxWindowID id, const wxString& title,
+PrefsDialog::PrefsDialog(MainPanel * parent, wxWindowID id, const wxString& title,
 		       const wxPoint& pos,
 		       const wxSize& size,
 		       long style ,

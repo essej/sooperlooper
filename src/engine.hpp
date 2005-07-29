@@ -49,7 +49,8 @@ class Engine
 	Engine();
 	virtual ~Engine();
 
-	bool initialize(AudioDriver * driver, int port=9951, std::string pingurl="");
+	bool initialize(AudioDriver * driver, int buschans=2, int port=9951, std::string pingurl="");
+	void cleanup();
 
 	AudioDriver * get_audio_driver () { return _driver; }
 	ControlOSC  * get_control_osc () { return _osc; }
@@ -62,7 +63,10 @@ class Engine
 	
 	bool is_ok() const { return _ok; }
 
-	void quit();
+	void set_ignore_quit(bool val) { _ignore_quit = val; }
+	bool get_ignore_quit() { return _ignore_quit; }
+
+	void quit(bool force=false);
 
 	bool add_loop (unsigned int chans, float loopsecs=40.0f, bool discrete = true);
 	bool add_loop (Looper * instance);
@@ -89,10 +93,10 @@ class Engine
 	bool push_command_event (Event::type_t type, Event::command_t cmd, int8_t instance);
 	void push_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance, int src=0);
 
-	void push_midi_command_event (Event::type_t type, Event::command_t cmd, int8_t instance);
-	void push_midi_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance);
+	void push_midi_command_event (Event::type_t type, Event::command_t cmd, int8_t instance, long framepos=-1);
+	void push_midi_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance, long framepos=-1);
 	
-	void push_sync_event (Event::control_t ctrl);
+	void push_sync_event (Event::control_t ctrl, long framepos=-1);
 	
 	std::string get_osc_url (bool udp=true);
 	int get_osc_port ();
@@ -111,8 +115,8 @@ class Engine
 	void next_midi_received(MidiBindInfo info);
 
 	// session state
-	bool load_session (std::string fname);
-	bool save_session (std::string fname);
+	bool load_session (std::string fname, std::string * readstr=0);
+	bool save_session (std::string fname, std::string * writestr=0);
 	
   protected:	
 
@@ -130,7 +134,6 @@ class Engine
 		Looper * looper;
 	};
 	
-	void cleanup();
 
 	bool process_nonrt_event (EventNonRT * event);
 	void process_rt_loop_manage_events ();
@@ -144,8 +147,8 @@ class Engine
 
 	void do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes);
 
-	bool do_push_command_event (RingBuffer<Event> * rb, Event::type_t type, Event::command_t cmd, int8_t instance);
-	bool do_push_control_event (RingBuffer<Event> * rb, Event::type_t type, Event::control_t ctrl, float val, int8_t instance, int src=0);
+	bool do_push_command_event (RingBuffer<Event> * rb, Event::type_t type, Event::command_t cmd, int8_t instance, long framepos=-1);
+	bool do_push_control_event (RingBuffer<Event> * rb, Event::type_t type, Event::control_t ctrl, float val, int8_t instance, long framepos=-1, int src=0);
 
 	bool push_loop_manage_to_rt (LoopManageEvent & lme);
 	bool push_loop_manage_to_main (LoopManageEvent & lme);
@@ -176,6 +179,7 @@ class Engine
 	RingBuffer<LoopManageEvent> * _loop_manage_to_rt_queue;
 	RingBuffer<LoopManageEvent> * _loop_manage_to_main_queue;
 	
+	bool _ignore_quit;
 	volatile bool _ok;
 
 	volatile bool _learn_done;

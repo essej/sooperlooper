@@ -71,11 +71,14 @@ uniform_position_to_gain (double pos)
 MidiBridge::MidiBridge (string name, string oscurl, PortRequest & req)
 	: _name (name), _oscurl(oscurl)
 {
+	// talk directly to the engine via signals AND send osc 
+
 	_port = 0;
 	_done = false;
 	_learning = false;
 	_use_osc = true;
 	_addr = 0;
+	_midi_thread = 0;
 	
 	_addr = lo_address_new_from_url (_oscurl.c_str());
 	if (lo_address_errno (_addr) < 0) {
@@ -94,17 +97,21 @@ MidiBridge::MidiBridge (string name, string oscurl, PortRequest & req)
 	_port->input()->any.connect (slot (*this, &MidiBridge::incoming_midi));
 
 	init_thread();
-	
+
+	_ok = true;
 }
 
 MidiBridge::MidiBridge (string name,  PortRequest & req)
 	: _name (name)
 {
+	// use only midi interface and talk directly to the engine via signals
+	
 	_port = 0;
 	_done = false;
 	_learning = false;
 	_use_osc = false;
 	_addr = 0;
+	_midi_thread = 0;
 
 	PortFactory factory;
 	
@@ -116,8 +123,25 @@ MidiBridge::MidiBridge (string name,  PortRequest & req)
 	_port->input()->any.connect (slot (*this, &MidiBridge::incoming_midi));
 
 	init_thread();
+	_ok = true;
 	
 }
+
+MidiBridge::MidiBridge (string name)
+	: _name (name)
+{
+	// only talk to engine via signals, midi will be injected
+	// by someone else
+	
+	_port = 0;
+	_done = false;
+	_learning = false;
+	_use_osc = false;
+	_addr = 0;
+	_midi_thread = 0;
+	_ok = true;	
+}
+
 
 MidiBridge::~MidiBridge()
 {
@@ -126,8 +150,10 @@ MidiBridge::~MidiBridge()
 	}
 
 	// the port will be freed by the work thread
-	
-	terminate_midi_thread();
+
+	if (_midi_thread) {
+		terminate_midi_thread();
+	}
 }
 
 
@@ -301,9 +327,27 @@ MidiBridge::incoming_midi (Parser &p, byte *msg, size_t len)
 	}
 }
 
+void
+MidiBridge::inject_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long framepos)
+{
+	// convert noteoffs to noteons with val = 0
+	if ((chcmd & 0xF0) == MIDI::off) {
+ 		chcmd = MIDI::on | (chcmd & 0x0F);
+	        val = 0;
+	}
+	
+	
+	if (_learning || _getnext) {
+		finish_learn(chcmd, param, val);
+	}
+	else {
+		queue_midi (chcmd, param, val, framepos);
+	}
+}
+
 
 void
-MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
+MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long framepos)
 {
 	TentativeLockMonitor lm (_bindings_lock, __LINE__, __FILE__);
 	if (!lm.locked()) {
@@ -337,26 +381,26 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 			//cerr << "ctrl: " << info.control << "  cmd: " << info.command << endl;
 
 			
-			send_event (info, scaled_val);
+			send_event (info, scaled_val, framepos);
 		}
 	}
 	else if (chcmd == MIDI::start) {  // MIDI start
 		if (_use_osc) {
 			lo_send(_addr, "/sl/midi_start", "");
 		}
-		MidiSyncEvent (Event::MidiStart); // emit
+		MidiSyncEvent (Event::MidiStart, framepos); // emit
 	}
 	else if (chcmd == MIDI::stop) { // MIDI stop
 		if (_use_osc) {
 			lo_send(_addr, "/sl/midi_stop", "");
 		}
-		MidiSyncEvent (Event::MidiStop); // emit
+		MidiSyncEvent (Event::MidiStop, framepos); // emit
 	}
 	else if (chcmd == MIDI::timing) {  // MIDI clock tick
 		if (_use_osc) {
 			lo_send(_addr, "/sl/midi_tick", "");
 		}
-		MidiSyncEvent (Event::MidiTick); // emit
+		MidiSyncEvent (Event::MidiTick, framepos); // emit
 	}
 	else {
 		//fprintf(stderr, "binding %x not found\n", key);
@@ -364,7 +408,7 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 }
 
 void
-MidiBridge::send_event (const MidiBindInfo & info, float val)
+MidiBridge::send_event (const MidiBindInfo & info, float val, long framepos)
 {
 	static char tmpbuf[100];
 
@@ -385,7 +429,7 @@ MidiBridge::send_event (const MidiBindInfo & info, float val)
 			}
 		}
 
-		MidiControlEvent (optype, ctrltype, val, (int8_t) info.instance); // emit
+		MidiControlEvent (optype, ctrltype, val, (int8_t) info.instance, framepos); // emit
 		
 	}
 	else {
@@ -420,7 +464,7 @@ MidiBridge::send_event (const MidiBindInfo & info, float val)
 			}
 		}
 
-		MidiCommandEvent (optype, cmdtype, (int8_t) info.instance); // emit
+		MidiCommandEvent (optype, cmdtype, (int8_t) info.instance, framepos); // emit
 
 	}
 }

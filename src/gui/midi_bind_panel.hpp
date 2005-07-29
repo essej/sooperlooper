@@ -36,7 +36,7 @@ class wxSpinCtrl;
 
 namespace SooperLooperGui {
 
-class GuiFrame;
+class MainPanel;
 class KeyboardTarget;
 	
 class MidiBindPanel
@@ -45,7 +45,7 @@ class MidiBindPanel
   public:
 	
 	// ctor(s)
-	MidiBindPanel(GuiFrame * guiframe, wxWindow *parent, wxWindowID id,
+	MidiBindPanel(MainPanel * mainpan, wxWindow *parent, wxWindowID id,
 		   const wxPoint& pos = wxDefaultPosition,
 		   const wxSize& size = wxSize(400,600),
 		   long style = wxDEFAULT_FRAME_STYLE,
@@ -95,7 +95,7 @@ class MidiBindPanel
 
 	wxCheckBox * _append_check;
 	
-	GuiFrame * _parent;
+	MainPanel * _parent;
 	bool       _justResized;
 	bool       _learning;
 	

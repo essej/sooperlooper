@@ -64,10 +64,17 @@ namespace SooperLooper {
     /**
      * Create a new event with the current time as time stamp.
      */
-    Event EventGenerator::createEvent() {
-        return Event(this, createTimeStamp());
-    }
+	Event EventGenerator::createEvent(long fragTime)
+	{
+		if (fragTime < 0) {
+			return Event(this, createTimeStamp());
+		}
+		else {
+			return Event(this, (int) fragTime);
+		}
+	}
 
+	
 // 	Event EventGenerator::createEvent()
 //     {
 // 	    time_stamp_t ts = createTimeStamp();
@@ -97,4 +104,9 @@ namespace SooperLooper {
         iFragmentPos    = -1;
     }
 
+    Event::Event(EventGenerator* pGenerator, int fragmentpos) {
+        pEventGenerator = pGenerator;
+        iFragmentPos    = fragmentpos;
+    }
+	
 } // namespace LinuxSampler

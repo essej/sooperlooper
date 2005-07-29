@@ -190,8 +190,6 @@ bool
 MidiBindings::load_bindings (string filename, bool append)
 {
 	//FILE * bindfile = 0;
-	char  line[200];
-
 	ifstream bindfile;
 
 	bindfile.open(filename.c_str(), ios::in);
@@ -202,16 +200,25 @@ MidiBindings::load_bindings (string filename, bool append)
 	}
 	// todo: look for is in systemwide and ~/.sooperlooper/bindings/
 
+
+	return load_bindings (bindfile, append);
+}
+
+bool
+MidiBindings::load_bindings (std::istream & instream, bool append)
+{
+	char  line[200];
+
 	
 	if (!append) {
 		clear_bindings();
 	}
 
-	while ( ! bindfile.eof())
+	while ( ! instream.eof())
 		//while (fgets (line, sizeof(line), bindfile) != NULL)
 		
 	{
-		bindfile.getline (line, sizeof(line));
+	        instream.getline (line, sizeof(line));
 		
 		// ignore empty lines and # lines
 		if (line[0] == '\n' || line[0] == '#' || line[0] == '\0') {
@@ -239,13 +246,19 @@ bool MidiBindings::save_bindings (string filename)
 		return false;
 	}
 
+	return save_bindings(bindfile);
+}
+
+bool MidiBindings::save_bindings (std::ostream & outstream)
+{
+	
 	for (BindingsMap::const_iterator biter = _bindings.begin(); biter != _bindings.end(); ++biter) {
 		const BindingList & elist = (*biter).second;
 		
 		for (BindingList::const_iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
 			const MidiBindInfo & info = (*eiter);
 
-			bindfile << info.serialize() << endl;
+			outstream << info.serialize() << endl;
 		}
 	}
 

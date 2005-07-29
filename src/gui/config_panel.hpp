@@ -33,7 +33,7 @@ class wxSpinCtrl;
 
 namespace SooperLooperGui {
 
-class GuiFrame;
+class MainPanel;
 class KeyboardTarget;
 	
 class ConfigPanel
@@ -42,7 +42,7 @@ class ConfigPanel
   public:
 	
 	// ctor(s)
-	ConfigPanel(GuiFrame * guiframe, wxWindow * parent, wxWindowID id,
+	ConfigPanel(MainPanel * mainpan, wxWindow * parent, wxWindowID id,
 		   const wxPoint& pos = wxDefaultPosition,
 		   const wxSize& size = wxSize(400,600),
 		   long style = wxDEFAULT_FRAME_STYLE,
@@ -91,7 +91,7 @@ class ConfigPanel
 	
 	wxButton   * _commit_button;
 	
-	GuiFrame * _parent;
+	MainPanel * _parent;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

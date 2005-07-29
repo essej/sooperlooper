@@ -37,7 +37,7 @@ namespace SooperLooper {
         public:
 		EventGenerator(uint32_t sampleRate);
 		void updateFragmentTime(uint32_t samplesToProcess);
-		Event createEvent();
+		Event createEvent(long fragTime=-1);
 		
 	protected:
 		typedef double time_stamp_t; 
@@ -181,6 +181,7 @@ namespace SooperLooper {
     protected:
             typedef EventGenerator::time_stamp_t time_stamp_t;
             Event(EventGenerator* pGenerator, EventGenerator::time_stamp_t Time);
+	    Event(EventGenerator* pGenerator, int fragmentpos);
             friend class EventGenerator;
         private:
             EventGenerator* pEventGenerator; ///< Creator of the event.

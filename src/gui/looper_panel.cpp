@@ -25,8 +25,7 @@
 #include <cstring>
 #include <cmath>
 
-#include "gui_app.hpp"
-#include "gui_frame.hpp"
+#include "main_panel.hpp"
 #include "keyboard_target.hpp"
 #include "looper_panel.hpp"
 #include "pix_button.hpp"
@@ -99,9 +98,10 @@ BEGIN_EVENT_TABLE(LooperPanel, wxPanel)
 	
 END_EVENT_TABLE()
 
-LooperPanel::LooperPanel(LoopControl * control, wxWindow * parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+	LooperPanel::LooperPanel(MainPanel * mainpan, LoopControl * control, wxWindow * parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 	: wxPanel(parent, id, pos, size), _loop_control(control), _index(0), _last_state(LooperStateUnknown), _tap_val(1.0f)
 {
+	_mainpanel = mainpan;
 	_learning = false;
 	_scratch_pressed = false;
 	_last_state = LooperStateUnknown;
@@ -1275,7 +1275,7 @@ LooperPanel::clicked_events (int button, wxString cmd)
 {
 	if (cmd == wxT("save"))
 	{
-		wxString filename = ::wxGetApp().getFrame()->get_keyboard().do_file_selector (wxT("Choose file to save loop"),
+		wxString filename = _mainpanel->do_file_selector (wxT("Choose file to save loop"),
 											      wxT("wav"), wxT("*.*"),  wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
 		
 		if ( !filename.empty() )
@@ -1290,7 +1290,7 @@ LooperPanel::clicked_events (int button, wxString cmd)
 	}
 	else if (cmd == wxT("load"))
 	{
-		wxString filename = ::wxGetApp().getFrame()->get_keyboard().do_file_selector(wxT("Choose file to open"), wxT(""), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
+		wxString filename = _mainpanel->do_file_selector(wxT("Choose file to open"), wxT(""), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
 		
 		if ( !filename.empty() )
 		{

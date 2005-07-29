@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 
-#include "gui_frame.hpp"
+#include "main_panel.hpp"
 #include "keys_panel.hpp"
 #include "keyboard_target.hpp"
 
@@ -62,13 +62,13 @@ static int wxCALLBACK list_sort_callback (long item1, long item2, long sortData)
 
 	
 // ctor(s)
-KeysPanel::KeysPanel(GuiFrame * guiframe, wxWindow * parent, wxWindowID id,
+KeysPanel::KeysPanel(MainPanel * mainpan, wxWindow * parent, wxWindowID id,
 		       const wxPoint& pos,
 		       const wxSize& size,
 		       long style ,
 		       const wxString& name)
 
-	: wxPanel (parent, id, pos, size, style, name), _parent (guiframe)
+	: wxPanel (parent, id, pos, size, style, name), _parent (mainpan)
 {
 	_justResized = false;
 	init();
