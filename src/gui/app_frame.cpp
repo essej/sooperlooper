@@ -218,7 +218,15 @@ AppFrame::OnActivate(wxActivateEvent &ev)
 void
 AppFrame::on_preferred_size(int w, int h)
 {
-	SetSize (w, h);
+	int topheight = 0;
+#ifndef __WXMAC__
+	if (GetMenuBar()) {
+		topheight += GetMenuBar()->GetSize().GetHeight();
+	}
+#else
+	topheight += 32;
+#endif
+	SetSize (w, h + topheight);
 }
 
 

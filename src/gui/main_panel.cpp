@@ -404,13 +404,6 @@ MainPanel::init_loopers (int count)
 		// maybe resize
 		if (_looper_panels.size() <= 4) {
 			int topheight = _top_panel->GetSize().GetHeight();
-#ifndef __WXMAC__
-			if (GetMenuBar()) {
-				topheight += GetMenuBar()->GetSize().GetHeight();
-			}
-#else
-			topheight += 32;
-#endif
 
 			//SetSize(GetSize().GetWidth(), bestsz.GetHeight() * _looper_panels.size()  + topheight); 
 			PreferredSizeChange(GetSize().GetWidth(), bestsz.GetHeight() * _looper_panels.size()  + topheight); // emit
