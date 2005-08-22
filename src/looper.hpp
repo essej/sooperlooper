@@ -104,6 +104,7 @@ class Looper
 		peak = p;
 	}	
 	
+		
 	int requested_cmd;
 	int last_requested_cmd;
 	
@@ -117,7 +118,7 @@ class Looper
 	LADSPA_Handle *      _instances;
 	float _loopsecs;
 	
-	static const LADSPA_Descriptor* descriptor;
+	LADSPA_Descriptor* descriptor;
 
 	LADSPA_Data        ports[LASTPORT];
 

@@ -47,8 +47,8 @@
 using namespace SooperLooper;
 using namespace std;
 
-extern void sl_init ();
-extern	void sl_fini ();
+//extern void sl_init ();
+//extern	void sl_fini ();
 
 Engine * engine = 0;
 int do_shutdown = 0;
@@ -308,7 +308,7 @@ int main(int argc, char** argv)
 	}
 
 
-	sl_init ();
+	//sl_init ();
 
 	// create audio driver
 	// todo: a factory
@@ -387,7 +387,7 @@ int main(int argc, char** argv)
 	delete driver;
 	delete engine;
 	
-	sl_fini ();
+	//sl_fini ();
 	
 	return 0;
 }

@@ -84,6 +84,7 @@ void ConfigPanel::init()
 	wxBoxSizer * topsizer = new wxBoxSizer(wxVERTICAL);
 
 	LoopControl::SpawnConfig & config = _parent->get_loop_control().get_default_spawn_config();
+	LoopControl::SpawnConfig & currconfig = _parent->get_loop_control().get_spawn_config();
 	
 	wxStaticBox * shotBox = new wxStaticBox(this, -1, wxT("Current Connection"), wxDefaultPosition, wxDefaultSize);
         wxStaticBoxSizer * colsizer = new wxStaticBoxSizer(shotBox, wxVERTICAL);
@@ -122,6 +123,10 @@ void ConfigPanel::init()
 
 	_force_spawn = new wxCheckBox(this, -1, wxT("start new engine"));
 	rowsizer->Add (_force_spawn, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
+	cerr << "never spawn: " << config.never_spawn << endl;
+	if (currconfig.never_spawn) {
+		_force_spawn->Enable(false);
+	}
 	
 	colsizer->Add (rowsizer, 0 , wxEXPAND|wxALL, 1);
 
@@ -132,6 +137,9 @@ void ConfigPanel::init()
 	rowsizer->Add (_disconnect_button, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 	_shutdown_check = new wxCheckBox(this, -1, wxT("shutdown engine"));
 	rowsizer->Add (_shutdown_check, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
+	if (currconfig.never_spawn) {
+		_shutdown_check->Enable(false);
+	}
 	
 	colsizer->Add (rowsizer, 0 , wxEXPAND|wxALL, 1);
 	

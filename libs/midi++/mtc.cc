@@ -171,7 +171,7 @@ Parser::process_mtc_quarter_frame (byte *msg)
 			   true, just ignore this in terms of it being an error.
 			*/
 
-			if (1) { /* mtc_skipped ()) 
+			if (1) { /* mtc_skipped ()) */
 
 				/* no error, reset next expected frame */
 

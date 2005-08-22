@@ -530,6 +530,7 @@ Panner::Panner (string name)
 
 Panner::~Panner ()
 {
+	clear();
 }
 
 void

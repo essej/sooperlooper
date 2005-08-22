@@ -257,7 +257,7 @@ ControlOSC::terminate_osc_thread ()
 	void* status;
 
 	_shutdown = true;
-
+	
 	poke_osc_thread ();
 
 	pthread_join (_osc_thread, &status);
@@ -439,7 +439,7 @@ ControlOSC::osc_receiver()
 		if ((ret = poll (pfd, nfds, timeout)) < 0) {
 			if (errno == EINTR) {
 				/* gdb at work, perhaps */
-				//cerr << "EINTR hit " << endl;
+				cerr << "EINTR hit " << endl;
 				goto again;
 			}
 			
@@ -464,15 +464,20 @@ ControlOSC::osc_receiver()
 			{
 				// this invokes callbacks
 				//cerr << "invoking recv on " << pfd[i].fd << endl;
-				lo_server_recv (srvs[i]);
+				lo_server_recv(srvs[i]);
 			}
 		}
 
 	}
 
-	cerr << "SL engine shutdown" << endl;
+	//cerr << "SL engine shutdown" << endl;
 	
 	if (_osc_server) {
+		int fd = lo_server_get_socket_fd(_osc_server);
+		if (fd >=0) {
+				// hack around
+			close(fd);
+		}
 		lo_server_free (_osc_server);
 		_osc_server = 0;
 	}
@@ -483,6 +488,8 @@ ControlOSC::osc_receiver()
 		_osc_unix_server = 0;
 	}
 	
+	close(_request_pipe[0]);
+	close(_request_pipe[1]);
 }
 
 

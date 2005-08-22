@@ -483,6 +483,7 @@ instantiateSooperLooper(const LADSPA_Descriptor * Descriptor,
    pLS->pfRoundMode = &pLS->fRoundMode;
    pLS->pfRedoTapMode = &pLS->fRedoTapMode;
    
+   //cerr << "INSTANTIATE: " << pLS << endl;
    
    return pLS;
 
@@ -500,6 +501,31 @@ cleanup:
 
 /*****************************************************************************/
 
+/* Throw away a simple delay line. */
+void 
+cleanupSooperLooper(LADSPA_Handle Instance) {
+	
+	SooperLooperI * pLS;
+	
+	pLS = (SooperLooperI *)Instance;
+	
+	if (pLS->pLoopChunks) {
+		free (pLS->pLoopChunks);
+	}
+	
+	if (pLS->pSampleBuf) {
+		free (pLS->pSampleBuf);
+	}
+	
+	//cerr << "******* cleanup SL instance" << endl;
+	
+	
+	free(pLS);
+}
+
+
+/*****************************************************************************/
+
 /* Initialise and activate a plugin instance. */
 void
 activateSooperLooper(LADSPA_Handle Instance) {
@@ -507,6 +533,7 @@ activateSooperLooper(LADSPA_Handle Instance) {
   SooperLooperI * pLS;
   pLS = (SooperLooperI *)Instance;
 
+  //cerr << "Activate: " << pLS << endl;
 	 
   pLS->lLastMultiCtrl = -1;
 
@@ -574,7 +601,7 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
    
    SooperLooperI * pLS;
 
-   //fprintf(stderr,"connectPortTo\n");  
+   //fprintf(stderr,"connectPortTo %d  %08x\n", Port, DataLocation);  
 
    
    pLS = (SooperLooperI *)Instance;
@@ -3647,19 +3674,6 @@ runSooperLooper(LADSPA_Handle Instance,
   
 }
 
-/*****************************************************************************/
-
-/* Throw away a simple delay line. */
-void 
-cleanupSooperLooper(LADSPA_Handle Instance) {
-
-  SooperLooperI * pLS;
-
-  pLS = (SooperLooperI *)Instance;
-
-  free(pLS->pSampleBuf);
-  free(pLS);
-}
 
 /*****************************************************************************/
 
@@ -3669,34 +3683,35 @@ LADSPA_Descriptor * g_psDescriptor = NULL;
 
 /* sl_init() is called automatically when the plugin library is first
    loaded. */
-void 
-sl_init() {
 
+LADSPA_Descriptor * create_sl_descriptor()
+{
   char ** pcPortNames;
   LADSPA_PortDescriptor * piPortDescriptors;
   LADSPA_PortRangeHint * psPortRangeHints;
-
-  g_psDescriptor
+  LADSPA_Descriptor * psDescriptor;
+    
+  psDescriptor
     = (LADSPA_Descriptor *)malloc(sizeof(LADSPA_Descriptor));
-  if (g_psDescriptor) {
-    g_psDescriptor->UniqueID
+  if (psDescriptor) {
+    psDescriptor->UniqueID
       = 1601;
-    g_psDescriptor->Label
+    psDescriptor->Label
       = strdup("SooperLooper");
-    g_psDescriptor->Properties
+    psDescriptor->Properties
       = LADSPA_PROPERTY_HARD_RT_CAPABLE;
-    g_psDescriptor->Name 
+    psDescriptor->Name 
       = strdup("SooperLooper");
-    g_psDescriptor->Maker
+    psDescriptor->Maker
       = strdup("Jesse Chappell");
-    g_psDescriptor->Copyright
+    psDescriptor->Copyright
       = strdup("2002, Jesse Chappell");
 
-    g_psDescriptor->PortCount 
+    psDescriptor->PortCount 
       = PORT_COUNT;
     piPortDescriptors
       = (LADSPA_PortDescriptor *)calloc(PORT_COUNT, sizeof(LADSPA_PortDescriptor));
-    g_psDescriptor->PortDescriptors 
+    psDescriptor->PortDescriptors 
       = (const LADSPA_PortDescriptor *)piPortDescriptors;
     piPortDescriptors[WetLevel]
       = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
@@ -3771,7 +3786,7 @@ sl_init() {
     
     pcPortNames
       = (char **)calloc(PORT_COUNT, sizeof(char *));
-    g_psDescriptor->PortNames
+    psDescriptor->PortNames
       = (const char **)pcPortNames;
     pcPortNames[DryLevel] 
       = strdup("Dry Level (dB)");
@@ -3846,7 +3861,7 @@ sl_init() {
     
     psPortRangeHints = ((LADSPA_PortRangeHint *)
 			calloc(PORT_COUNT, sizeof(LADSPA_PortRangeHint)));
-    g_psDescriptor->PortRangeHints
+    psDescriptor->PortRangeHints
       = (const LADSPA_PortRangeHint *)psPortRangeHints;
 
     psPortRangeHints[DryLevel].HintDescriptor
@@ -3991,44 +4006,63 @@ sl_init() {
       = 0.0;
     
     
-    g_psDescriptor->instantiate
+    psDescriptor->instantiate
       = instantiateSooperLooper;
-    g_psDescriptor->connect_port 
+    psDescriptor->connect_port 
       = connectPortToSooperLooper;
-    g_psDescriptor->activate
+    psDescriptor->activate
       = activateSooperLooper;
-    g_psDescriptor->run 
+    psDescriptor->run 
       = runSooperLooper;
-    g_psDescriptor->run_adding
+    psDescriptor->run_adding
       = NULL;
-    g_psDescriptor->set_run_adding_gain
+    psDescriptor->set_run_adding_gain
       = NULL;
-    g_psDescriptor->deactivate
+    psDescriptor->deactivate
       = NULL;
-    g_psDescriptor->cleanup
+    psDescriptor->cleanup
       = cleanupSooperLooper;
   }
+  
+  return psDescriptor;
 }
 
 /*****************************************************************************/
 
+
+void cleanup_sl_descriptor(LADSPA_Descriptor * psDescriptor)
+{
+  unsigned long lIndex;
+  if (psDescriptor) {
+    free((char *)psDescriptor->Label);
+    free((char *)psDescriptor->Name);
+    free((char *)psDescriptor->Maker);
+    free((char *)psDescriptor->Copyright);
+    free((LADSPA_PortDescriptor *)psDescriptor->PortDescriptors);
+    for (lIndex = 0; lIndex < psDescriptor->PortCount; lIndex++)
+      free((char *)(psDescriptor->PortNames[lIndex]));
+    free((char **)psDescriptor->PortNames);
+    free((LADSPA_PortRangeHint *)psDescriptor->PortRangeHints);
+    free(psDescriptor);
+	psDescriptor = 0;
+  }
+}
+
+
+void sl_init()
+{
+	if (!g_psDescriptor) {
+		g_psDescriptor = create_sl_descriptor();
+	}
+}
+
 /* _fini() is called automatically when the library is unloaded. */
 void 
 sl_fini() {
-  unsigned long lIndex;
-  if (g_psDescriptor) {
-    free((char *)g_psDescriptor->Label);
-    free((char *)g_psDescriptor->Name);
-    free((char *)g_psDescriptor->Maker);
-    free((char *)g_psDescriptor->Copyright);
-    free((LADSPA_PortDescriptor *)g_psDescriptor->PortDescriptors);
-    for (lIndex = 0; lIndex < g_psDescriptor->PortCount; lIndex++)
-      free((char *)(g_psDescriptor->PortNames[lIndex]));
-    free((char **)g_psDescriptor->PortNames);
-    free((LADSPA_PortRangeHint *)g_psDescriptor->PortRangeHints);
-    free(g_psDescriptor);
-  }
+	
+	cleanup_sl_descriptor(g_psDescriptor);
 }
+
 
 /*****************************************************************************/
 

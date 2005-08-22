@@ -47,10 +47,10 @@ using namespace std;
 using namespace SooperLooper;
 using namespace PBD;
 
-extern	const LADSPA_Descriptor* ladspa_descriptor (unsigned long);
+extern	LADSPA_Descriptor* create_sl_descriptor ();
+extern	void cleanup_sl_descriptor (LADSPA_Descriptor *);
 
 
-const LADSPA_Descriptor* Looper::descriptor = 0;
 
 static const double MinResamplingRate = 0.25f;
 static const double MaxResamplingRate = 4.0f;
@@ -112,10 +112,10 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_output_peak = 0.0f;
 	_panner = 0;
 	_relative_sync = false;
-
+	descriptor = 0;
 	
 	if (!descriptor) {
-		descriptor = ladspa_descriptor (0);
+		descriptor = create_sl_descriptor ();
 	}
 
 
@@ -226,14 +226,17 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 		
 		descriptor->activate (_instances[i]);
 
+		_lp_filter[i] = new OnePoleFilter(srate);
+		
 #ifdef HAVE_SAMPLERATE
 		// SRC stuff
 		_in_src_states[i] = src_new (SrcAudioQuality, 1, &dummyerror);
 		_out_src_states[i] = src_new (SrcAudioQuality, 1, &dummyerror);
+		_lp_filter[i]->set_cutoff (_src_in_ratio * _lp_filter[i]->get_samplerate() * 0.48f);
 #endif		
 
-		_lp_filter[i] = new OnePoleFilter(srate);
-		_lp_filter[i]->set_cutoff (_src_in_ratio * _lp_filter[i]->get_samplerate() * 0.48f);
+		
+		
 	}
 
 	size_t comnouts = _driver->get_engine()->get_common_output_count();
@@ -264,6 +267,11 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 Looper::~Looper ()
 {
 	destroy();
+	
+	if (descriptor) {
+		cleanup_sl_descriptor (descriptor);
+	}
+	
 }
 
 
@@ -336,6 +344,11 @@ Looper::destroy()
 		src_delete (_insync_src_state);
 	if (_outsync_src_state)
 		src_delete (_outsync_src_state);
+	
+	if (_src_sync_buffer) 
+		delete [] _src_sync_buffer;
+	if (_src_in_buffer) 
+		delete [] _src_in_buffer;
 #endif
 
 }
@@ -373,8 +386,9 @@ Looper::set_buffer_size (nframes_t bufsize)
 			_use_sync_buf = 0;
 		}
 
-		if (_our_syncin_buf)
+		if (_our_syncin_buf) {
 			delete [] _our_syncin_buf;
+		}
 		
 		if (_our_syncout_buf)
 			delete [] _our_syncout_buf;
@@ -819,7 +833,7 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		/* do it */
 		descriptor->run (_instances[i], nframes);
 
-		if (_use_common_outs) {
+		if (_panner && _use_common_outs) {
 			// mix this output into common outputs
 			(*_panner)[i]->distribute (outbuf, com_obufs, 1.0f, nframes);
 		} 
@@ -1042,7 +1056,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 			_lp_filter[i]->run_lowpass (_src_data.data_out, nframes);
 		}
 
-		if (_use_common_outs) {
+		if (_panner && _use_common_outs) {
 			// mix this output into common outputs
 			(*_panner)[i]->distribute (outbuf, com_obufs, 1.0f, nframes);
 		} 
@@ -1401,8 +1415,9 @@ Looper::get_state () const
 	node->add_property ("relative_sync", buf);
 	
 	// panner
-	node->add_child_nocopy (_panner->state (true));
-
+	if (_panner) {
+		node->add_child_nocopy (_panner->state (true));
+	}
 	
 	XMLNode *controls = new XMLNode ("Controls");
 	
@@ -1486,7 +1501,9 @@ Looper::set_state (const XMLNode& node)
 
 	for (iter = node.children().begin(); iter != node.children().end(); ++iter) {
 		if ((*iter)->name() == "Panner") {
-			_panner->set_state (**iter);
+			if (_panner) {
+				_panner->set_state (**iter);
+			}
 		}
 	}
 

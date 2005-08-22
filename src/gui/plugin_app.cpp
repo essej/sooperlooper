@@ -207,7 +207,7 @@ bool PluginApp::OnInit()
 	wxString rcdir;
 	wxString jackdir;
 	
-	//SetExitOnFrameDelete(TRUE);
+	SetExitOnFrameDelete(TRUE);
 
 	
 	// use stderr as log
@@ -280,6 +280,13 @@ int PluginApp::OnRun()
 	// normall this calls the mainloop
 	// were not
 	cerr << "Run called" << endl;
+	//while (m_keepGoing)
+    //{
+    //    MacDoOneEvent() ;
+    //}
+	
+	MainLoop();
+	cerr << "Run done" << endl;
 	return 0;
 }
 

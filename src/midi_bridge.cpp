@@ -123,6 +123,7 @@ MidiBridge::MidiBridge (string name,  PortRequest & req)
 	_port->input()->any.connect (slot (*this, &MidiBridge::incoming_midi));
 
 	init_thread();
+
 	_ok = true;
 	
 }

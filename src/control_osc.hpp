@@ -196,8 +196,8 @@ class ControlOSC
 	std::string _osc_unix_socket_path;
 	
 	int _port;
-	bool _ok;
-	bool _shutdown;
+	volatile bool _ok;
+	volatile bool _shutdown;
 	int _max_instance;
 	
 	std::map<std::string, lo_address> _retaddr_map;

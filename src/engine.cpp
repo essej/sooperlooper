@@ -106,6 +106,10 @@ bool Engine::initialize(AudioDriver * driver, int buschans, int port, string pin
 	}
 
 	_buffersize = _driver->get_buffersize();
+
+	_common_input_buffers.clear();
+	_common_outputs.clear();
+	_common_inputs.clear();
 	
 	// create common io ports
 	for (int i=0; i < buschans; ++i) 
@@ -168,6 +172,7 @@ Engine::cleanup()
 {
 	if (_osc) {
 		delete _osc;
+		_osc = 0;
 	}
 
 	if (_event_queue) {
@@ -202,31 +207,45 @@ Engine::cleanup()
 
 	if (_internal_sync_buf) {
 		delete [] _internal_sync_buf;
+		_internal_sync_buf = 0;
 	}
 
 	if (_loop_manage_to_rt_queue) {
 		delete _loop_manage_to_rt_queue;
+		_loop_manage_to_rt_queue = 0;
 	}
 	if (_loop_manage_to_main_queue) {
 		delete _loop_manage_to_main_queue;
+		_loop_manage_to_main_queue = 0;
 	}
 
 	// delete temp common input buffers
-	for (int i=0; i < 2; ++i) 
+	for (vector<sample_t *>::iterator iter = _temp_input_buffers.begin(); iter != _temp_input_buffers.end(); ++iter) 
 	{
-		sample_t * inbuf = _temp_input_buffers[i];
-		delete [] inbuf;
+		sample_t * inbuf = *iter;
+		if (inbuf) {
+			delete [] inbuf;
+		}
 	}
 	_temp_input_buffers.clear();
 	
-	
+	// safe to do this, we assume all RT activity has stopped here
+    for (Instances::iterator iter = _instances.begin(); iter != _instances.end(); ++iter) {
+		delete *iter;
+	}
+	_instances.clear();
+	_rt_instances.clear();
+
+	_driver = 0;
 	_ok = false;
 	
 }
 
 Engine::~Engine ()
 {
-	cleanup ();
+	if (_driver) {
+		cleanup ();
+	}
 }
 
 void Engine::set_midi_bridge (MidiBridge * bridge)

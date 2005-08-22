@@ -30,6 +30,8 @@ mac: all
 	cp -f mac/Info.plist  $(MACDISTDIR)/SooperLooper.app/Contents/
 	cp -f mac/PkgInfo  $(MACDISTDIR)/SooperLooper.app/Contents/
 	cp -f mac/slgui.icns  $(MACDISTDIR)/SooperLooper.app/Contents/Resources/
+	cp -f mac/README_AudioUnit.txt  $(MACDISTDIR)/
+	cp -rf mac/SooperLooperAU/build/SooperLooperAU.component $(MACDISTDIR)/
 	cp -f src/*.slb  $(MACDISTDIR)/Presets/
 	cp -f README  $(MACDISTDIR)/README.txt
 	cp -f COPYING  $(MACDISTDIR)/COPYING.txt
