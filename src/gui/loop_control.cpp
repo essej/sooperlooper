@@ -161,6 +161,7 @@ LoopControl::LoopControl (const wxString & rcdir)
 	_rcdir = rcdir;
 	_sentinel = true;
 	_lastchance = false;
+	_we_spawned = false;
 	
 	setup_param_map();
 	
@@ -343,7 +344,8 @@ LoopControl::disconnect (bool killit)
 		_osc_addr = 0;
 	}
 	_osc_url = "";
-
+	_we_spawned = false;
+	
 	Disconnected(); // emit
 	
 	return true;
@@ -574,7 +576,11 @@ bool LoopControl::spawn_looper()
 
 #ifdef DEBUG
 	cerr << "pid is " << _engine_pid << endl;
-#endif	
+#endif
+	if (_engine_pid > 0) {
+		_we_spawned = true;
+	}
+	
 	return _engine_pid > 0;
 }
 

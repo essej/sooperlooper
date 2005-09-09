@@ -99,9 +99,10 @@ class LoopControl
 	bool post_load_session(wxString fname);
 	
 	bool is_engine_local();
-	wxString get_engine_host() { return _host; }
-	int get_engine_port() { return _port; }
-	bool connected() { return (_osc_addr != 0 && _pingack); }
+	wxString get_engine_host() const { return _host; }
+	int get_engine_port() const { return _port; }
+	bool connected() const { return (_osc_addr != 0 && _pingack); }
+	bool we_spawned() const { return _we_spawned; }
 	
 	void request_values (int index);
 	void request_all_values (int index);
@@ -217,6 +218,7 @@ class LoopControl
 	int  _waiting;
 	bool _failed;
 	bool _lastchance;
+	bool _we_spawned;
 	
 	long _engine_pid;
 

@@ -38,6 +38,7 @@
 #include "keyboard_target.hpp"
 #include "help_window.hpp"
 #include "prefs_dialog.hpp"
+#include "loop_control.hpp"
 
 #include "pixmaps/sl_splash.xpm"
 
@@ -233,9 +234,9 @@ AppFrame::on_preferred_size(int w, int h)
 void
 AppFrame::OnClose(wxCloseEvent &event)
 {
-	// send quit command to looper by default
+	// send quit command to looper if we spawned this engine
 
-	_mainpanel->do_close();
+	_mainpanel->do_close(_mainpanel->get_loop_control().we_spawned());
 
 	Destroy();
 }

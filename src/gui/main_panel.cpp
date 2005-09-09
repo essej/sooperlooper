@@ -504,7 +504,6 @@ MainPanel::do_close(bool quitengine)
 	// send quit command to looper by default
 	save_default_midibindings();
 	_loop_update_connection.disconnect();
-
 	// sleep for a short period before stopping engine
 #if wxCHECK_VERSION(2,5,3)
 	::wxMilliSleep(500);
