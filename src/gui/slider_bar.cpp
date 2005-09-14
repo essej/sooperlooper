@@ -819,4 +819,5 @@ void SliderBar::HidingTextCtrl::on_focus_event (wxFocusEvent & ev)
 	if (ev.GetEventType() == wxEVT_KILL_FOCUS) {
 		Show(false);
 	}
+	ev.Skip();
 }
