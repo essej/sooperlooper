@@ -3328,7 +3328,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		     && ((lCurrPos + syncSamples) >= loop->lLoopLength
 			 || (lCurrPos > 0 && lCurrPos < (unsigned int) lrintf(syncSamples) )))
 		 {
-			 cerr << "PLAYBACK SYNC hit at " << lCurrPos << endl;
+			 //cerr << "PLAYBACK SYNC hit at " << lCurrPos << endl;
 			 //pLS->waitingForSync = 1;
 			 pLS->donePlaySync = true;
 			 if (pLS->fCurrRate > 0)

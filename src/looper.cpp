@@ -734,7 +734,7 @@ Looper::run (nframes_t offset, nframes_t nframes)
 void
 Looper::run_loops (nframes_t offset, nframes_t nframes)
 {
-	LADSPA_Data * inbuf, *outbuf, *real_inbuf;
+	LADSPA_Data * inbuf = 0 , *outbuf = 0, *real_inbuf = 0;
 	float currdry = _curr_dry;
 	float curr_ing = _curr_input_gain;
 	float ing_delta = flush_to_zero (_targ_input_gain - _curr_input_gain) / max((nframes_t) 1, (nframes - 1));
@@ -744,12 +744,10 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 	size_t comnouts = _driver->get_engine()->get_common_output_count();
 	sample_t* com_obufs[comnouts];
 	for (size_t n=0; n < comnouts; ++n) {
-		port_id_t comout_id;
-		if (_driver->get_engine()->get_common_output(n, comout_id)) {
-			com_obufs[n] = _driver->get_output_port_buffer (comout_id, _buffersize) + offset;
-		}
-		else {
-			com_obufs[n] = 0;
+		
+		com_obufs[n] = _driver->get_engine()->get_common_output_buffer (n);
+		if (com_obufs[n]) {
+			com_obufs[n] += offset;
 		}
 	}
 	
@@ -758,10 +756,18 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 	{
 		/* (re)connect audio ports */
 		if (_have_discrete_io) {
-			real_inbuf = (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], _buffersize) + offset;
+			real_inbuf = (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], _buffersize);
+			if (real_inbuf) {
+				real_inbuf += offset;
+			}
 			inbuf = real_inbuf;
 			
-			outbuf = (LADSPA_Data*) _driver->get_output_port_buffer (_output_ports[i], _buffersize) + offset;
+			outbuf = (LADSPA_Data*) _driver->get_output_port_buffer (_output_ports[i], _buffersize);
+			if (outbuf) {
+				outbuf += offset;
+			} else {
+				outbuf = _tmp_io_buf;
+			}
 		}
 		else {
 			inbuf = 0;
@@ -769,7 +775,7 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 			real_inbuf = 0;
 		}
 
-		if (_use_common_ins || !_have_discrete_io) {
+		if (_use_common_ins || !_have_discrete_io || !real_inbuf) {
 			// mix common input into this buffer
 			sample_t * comin = _driver->get_engine()->get_common_input_buffer(i);			
 			if (comin)
@@ -778,7 +784,7 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 				
 				curr_ing = _curr_input_gain;
 
-				if (_have_discrete_io) {
+				if (_have_discrete_io && real_inbuf) {
 					for (nframes_t pos=0; pos < nframes; ++pos) {
 						curr_ing += ing_delta;
 						_tmp_io_buf[pos] = curr_ing * (real_inbuf[pos] + comin[pos]);
@@ -838,7 +844,7 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 			(*_panner)[i]->distribute (outbuf, com_obufs, 1.0f, nframes);
 		} 
 
-		if (_have_discrete_io) {
+		if (_have_discrete_io && real_inbuf) {
 			// just mix the dry into the outputs
 			currdry = _curr_dry;
 
@@ -875,7 +881,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 {
 #ifdef HAVE_SAMPLERATE
 	nframes_t alt_frames;
-	LADSPA_Data * inbuf, *outbuf, *real_inbuf;
+	LADSPA_Data * inbuf=0, *outbuf=0, *real_inbuf=0;
 	float currdry = _curr_dry;
 	float curr_ing = _curr_input_gain;
 	float ing_delta = flush_to_zero (_targ_input_gain - _curr_input_gain) / max((nframes_t) 1, (nframes - 1));
@@ -901,12 +907,10 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 	size_t comnouts = _driver->get_engine()->get_common_output_count();
 	sample_t* com_obufs[comnouts];
 	for (size_t n=0; n < comnouts; ++n) {
-		port_id_t comout_id;
-		if (_driver->get_engine()->get_common_output(n, comout_id)) {
-			com_obufs[n] = _driver->get_output_port_buffer (comout_id, _buffersize) + offset;
-		}
-		else {
-			com_obufs[n] = 0;
+
+		com_obufs[n] = _driver->get_engine()->get_common_output_buffer (n);
+		if (com_obufs[n]) {
+			com_obufs[n] += offset;
 		}
 	}
 	
@@ -915,10 +919,18 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
 		if (_have_discrete_io) {
-			real_inbuf = (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], _buffersize) + offset;
+			real_inbuf = (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], _buffersize);
+			if (real_inbuf) {
+				real_inbuf += offset;
+			}
 			inbuf = real_inbuf;
-
-			outbuf = (LADSPA_Data*) _driver->get_output_port_buffer (_output_ports[i], _buffersize) + offset;
+			
+			outbuf = (LADSPA_Data*) _driver->get_output_port_buffer (_output_ports[i], _buffersize);
+			if (outbuf) {
+				outbuf += offset;
+			} else {
+				outbuf = _tmp_io_buf;
+			}
 		}
 		else {
 			inbuf = 0;
@@ -926,7 +938,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 			real_inbuf = 0;
 		}
 
-		if (_use_common_ins || !_have_discrete_io) {
+		if (_use_common_ins || !_have_discrete_io || !real_inbuf) {
 			// mix common input into this buffer
 			sample_t * comin = _driver->get_engine()->get_common_input_buffer(i);			
 			if (comin)
@@ -934,7 +946,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 				comin += offset;
 				curr_ing = _curr_input_gain;
 				
-				if (_have_discrete_io) {
+				if (_have_discrete_io && real_inbuf) {
 					for (nframes_t pos=0; pos < nframes; ++pos) {
 						curr_ing += ing_delta;
 						_tmp_io_buf[pos] = curr_ing * (real_inbuf[pos] + comin[pos]);
@@ -1061,7 +1073,7 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 			(*_panner)[i]->distribute (outbuf, com_obufs, 1.0f, nframes);
 		} 
 		
-		if (_have_discrete_io) {
+		if (_have_discrete_io && real_inbuf) {
 			// just mix the dry into the outputs
 			currdry = _curr_dry;
 			

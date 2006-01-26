@@ -226,8 +226,10 @@ class Engine
 	std::vector<port_id_t>  _common_inputs;
 	std::vector<port_id_t>  _common_outputs;
 
-	std::vector<sample_t *>    _common_input_buffers;              
+	std::vector<sample_t *>    _common_input_buffers;
+	std::vector<sample_t *>    _common_output_buffers;
 	std::vector<sample_t *>    _temp_input_buffers;              
+	std::vector<sample_t *>    _temp_output_buffers;              
 	bool                    _use_temp_input;
 	
 	float              _curr_common_dry;

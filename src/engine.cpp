@@ -130,6 +130,13 @@ bool Engine::initialize(AudioDriver * driver, int buschans, int port, string pin
 		if (_driver->create_output_port (tmpstr, tmpport)) {
 			_common_outputs.push_back (tmpport);
 		}
+		
+		// create temp output buffer
+		sample_t * outbuf = new float[driver->get_buffersize()];
+		memset(outbuf, 0, sizeof(float) * driver->get_buffersize());
+		_temp_output_buffers.push_back(outbuf);
+		
+		_common_output_buffers.push_back(0); // fill to correct size
 	}
 
 
@@ -229,6 +236,16 @@ Engine::cleanup()
 	}
 	_temp_input_buffers.clear();
 	
+	// delete temp common input buffers
+	for (vector<sample_t *>::iterator iter = _temp_output_buffers.begin(); iter != _temp_output_buffers.end(); ++iter) 
+	{
+		sample_t * inbuf = *iter;
+		if (inbuf) {
+			delete [] inbuf;
+		}
+	}
+	_temp_output_buffers.clear();
+	
 	// safe to do this, we assume all RT activity has stopped here
     for (Instances::iterator iter = _instances.begin(); iter != _instances.end(); ++iter) {
 		delete *iter;
@@ -314,7 +331,14 @@ sample_t *
 Engine::get_common_output_buffer (unsigned int chan)
 {
 	if (chan < _common_outputs.size()) {
-		return _driver->get_output_port_buffer (_common_outputs[chan], _buffersize);
+		if (_use_temp_input) {
+			return _temp_output_buffers[chan];
+		}
+		else {
+			// assumed this is in process cycle and already cached
+			return _common_output_buffers[chan];
+		}
+		//return _driver->get_output_port_buffer (_common_outputs[chan], _buffersize);
 	}
 	return 0;
 }
@@ -337,10 +361,15 @@ Engine::buffersize_changed (nframes_t nframes)
 		for (int n=0; n < 2; ++n) 
 		{
 			delete [] _temp_input_buffers[n];
+			delete [] _temp_output_buffers[n];
 			// create temp input buffer
 			sample_t * inbuf = new float[nframes];
 			memset(inbuf, 0, sizeof(float) * nframes);
 			_temp_input_buffers[n] = inbuf;
+			// temp output
+			sample_t * outbuf = new float[nframes];
+			memset(outbuf, 0, sizeof(float) * nframes);
+			_temp_output_buffers[n] = outbuf;
 		}
 
 		delete [] _internal_sync_buf;
@@ -355,7 +384,7 @@ Engine::buffersize_changed (nframes_t nframes)
 void 
 Engine::fill_common_outs(nframes_t nframes)
 {
-	sample_t * outbuf;
+	sample_t * outbuf, * real_outbuf;
 	sample_t * inbuf;
 	float dry_delta = flush_to_zero(_target_common_dry - _curr_common_dry) / max((nframes_t) 1, (nframes - 1));
 	float wet_delta = flush_to_zero(_target_common_wet - _curr_common_wet) / max((nframes_t) 1, (nframes - 1));
@@ -373,7 +402,14 @@ Engine::fill_common_outs(nframes_t nframes)
 		currdry = _curr_common_dry;
 		currwet = _curr_common_wet;
 		inbuf = _common_input_buffers[i]; // use true common input (not gain attenuated)
-		outbuf = _driver->get_output_port_buffer (_common_outputs[i], _driver->get_buffersize());
+		real_outbuf = _common_output_buffers[i];
+		if (_use_temp_input) {
+			outbuf = _temp_output_buffers[i]; // use temp outputs 
+		}
+		else {
+			outbuf = _common_output_buffers[i];
+		}
+			//_driver->get_output_port_buffer (_common_outputs[i], _driver->get_buffersize());
 
 		for (nframes_t n = 0; n < nframes; ++n) {
 			currdry += dry_delta;
@@ -381,10 +417,10 @@ Engine::fill_common_outs(nframes_t nframes)
 
 			inpeak = f_max (inpeak, fabsf(inbuf[n]));
 
-			outbuf[n] = flush_to_zero ((outbuf[n] * currwet) + (inbuf[n] * currdry));
+			real_outbuf[n] = flush_to_zero ((outbuf[n] * currwet) + (inbuf[n] * currdry));
 
 			// outpeak is taken post dry/wet mix for true output metering
-			outpeak = f_max (outpeak, fabsf(outbuf[n]));
+			outpeak = f_max (outpeak, fabsf(real_outbuf[n]));
 			
 		}
 	}
@@ -411,11 +447,18 @@ Engine::prepare_buffers(nframes_t nframes)
 	
 	for (size_t i=0; i < _common_outputs.size(); ++i) 
 	{
-		outbuf = _driver->get_output_port_buffer (_common_outputs[i], _driver->get_buffersize());
-		memset (outbuf, 0, nframes * sizeof(sample_t));
-
-		// attenuate common inputs
 		sample_t * real_inbuf = _driver->get_input_port_buffer (_common_inputs[i], _driver->get_buffersize());
+		outbuf = _driver->get_output_port_buffer (_common_outputs[i], _driver->get_buffersize());
+		
+		//if (real_inbuf != outbuf) {
+		//	memset (outbuf, 0, nframes * sizeof(sample_t));
+		//}
+
+		memset (_temp_output_buffers[i], 0, nframes * sizeof(sample_t));		
+		
+		// attenuate common inputs
+
+		_common_output_buffers[i] = outbuf;
 		_common_input_buffers[i] = real_inbuf; // for use later in the process cycle
 		inbuf = _temp_input_buffers[i];
 		curr_ing = _curr_input_gain;
@@ -424,6 +467,7 @@ Engine::prepare_buffers(nframes_t nframes)
 			curr_ing += ing_delta;
 			inbuf[n] = real_inbuf[n] * curr_ing;
 		}
+		
 	}
 
 	_curr_input_gain = flush_to_zero (curr_ing);

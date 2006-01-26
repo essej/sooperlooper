@@ -218,14 +218,14 @@ elif echo \$target_cpu | grep "i*86" >/dev/null; then
   fi
   AC_DEFINE(x86, 1, "Nope its intel")
   if test "\$target_cpu" = "i586"; then
-    OPT_FLAGS="-DREENTRANT -O2 -march=i586 -fomit-frame-pointer -ffast-math -fstrength-reduce -fmove-all-movables"
+    OPT_FLAGS="-DREENTRANT -O2 -march=i586 -fomit-frame-pointer -ffast-math -fstrength-reduce"
   elif test "\$target_cpu" = "i686"; then
-    OPT_FLAGS="-D_REENTRANT -O2 -march=i686 -fomit-frame-pointer -ffast-math -fstrength-reduce -fmove-all-movables"
+    OPT_FLAGS="-D_REENTRANT -O2 -march=i686 -fomit-frame-pointer -ffast-math -fstrength-reduce"
     if test "\$gcc_major_version" = "3"; then
       OPT_FLAGS="\$OPT_FLAGS \$mmx \$sse \$dreidnow"
     fi
   else
-    OPT_FLAGS="-D_REENTRANT -O2 -fomit-frame-pointer -ffast-math -fstrength-reduce -fmove-all-movables"
+    OPT_FLAGS="-D_REENTRANT -O2 -fomit-frame-pointer -ffast-math -fstrength-reduce"
   fi
 fi
 

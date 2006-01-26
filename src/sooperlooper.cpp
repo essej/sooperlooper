@@ -383,9 +383,14 @@ int main(int argc, char** argv)
 	if (midibridge) {
 		delete midibridge;
 	}
+
+	driver->deactivate();
+	usleep(200000);
+	driver->set_engine(0);
+	
+	delete engine;
 	
 	delete driver;
-	delete engine;
 	
 	//sl_fini ();
 	
