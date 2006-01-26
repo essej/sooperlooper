@@ -170,7 +170,7 @@ void KeysPanel::refresh_state()
 		
 	}
 
-	_listctrl->SortItems (list_sort_callback, (unsigned) _listctrl);
+	_listctrl->SortItems (list_sort_callback, (long) _listctrl);
 
 	if (selitem >= 0) {
 		_listctrl->EnsureVisible(selitem);
