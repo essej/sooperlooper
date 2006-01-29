@@ -106,7 +106,7 @@ BUILD REQUIREMENTS
   JACK  >= 0.80    -- http://jackit.sf.net/
   wxWidgets        -- wxGTK preferably built against gtk2 (configured using the --enable-gtk2 option) 
                          or wxMac >= 2.5.3
-  liblo >= 0.10    -- http://plugin.org.uk/liblo/   Lightweight OSC library
+  liblo >= 0.18    -- http://plugin.org.uk/liblo/   Lightweight OSC library
   sigc++ >= 1.2    -- http://libsigc.sourceforge.net/   You probably already have it....
   libsndfile       -- http://www.mega-nerd.com/libsndfile/
   libsamplerate    -- http://www.mega-nerd.com/SRC/
