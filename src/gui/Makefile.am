@@ -30,7 +30,8 @@ slgui_SOURCES = \
 	midi_bind_panel.cpp \
 	config_panel.cpp \
 	prefs_dialog.cpp \
-	help_window.cpp
+	help_window.cpp \
+	latency_panel.cpp
 
 
 

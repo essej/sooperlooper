@@ -132,6 +132,9 @@ namespace SooperLooper {
 		    PlaybackSync,
 		    EighthPerCycleLoop,
 		    UseSafetyFeedback,
+		    InputLatency,
+		    OutputLatency,
+		    TriggerLatency,
 		    // read only
 		    State,
 		    LoopLength,
@@ -160,6 +163,7 @@ namespace SooperLooper {
 		    OutPeakMeter,
 		    RelativeSync,
 		    InputGain,
+		    AutosetLatency,
 		    // this is ugly, because i want them midi bindable
 		    PanChannel1,
 		    PanChannel2,

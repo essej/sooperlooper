@@ -82,7 +82,8 @@ Engine::Engine ()
 	_last_tempo_frame = 0;
 	_tempo_changed = false;
 	_beat_occurred = false;
-
+	_conns_changed = false;
+	
 	_loop_manage_to_rt_queue = 0;
 	_loop_manage_to_main_queue = 0;
 	
@@ -168,6 +169,8 @@ bool Engine::initialize(AudioDriver * driver, int buschans, int port, string pin
 		return false;
 	}
 
+	_driver->ConnectionsChanged.connect(slot(*this, &Engine::connections_changed));
+	
 	_ok = true;
 
 	return true;
@@ -380,6 +383,19 @@ Engine::buffersize_changed (nframes_t nframes)
 	}
 }
 
+void
+Engine::connections_changed()
+{
+	// called from the audio thread callback
+	size_t m = 0;
+	for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i, ++m)
+	{
+		(*i)->recompute_latencies ();
+	}
+
+	// cause certain values to be updated
+	_conns_changed = true;
+}
 
 void 
 Engine::fill_common_outs(nframes_t nframes)
@@ -1188,7 +1204,21 @@ Engine::mainloop()
 			
 			_beat_occurred = false;
 		}
-		
+
+		if (_conns_changed)
+		{
+			// send latency updates
+			for (unsigned int n=0; n < _instances.size(); ++n) {
+				ConfigUpdateEvent cu_event(ConfigUpdateEvent::Send, n, Event::OutputLatency,
+							   "", "", (float) _instances[n]->get_control_value(Event::OutputLatency));
+				_osc->finish_update_event (cu_event);
+
+				cu_event.control = Event::InputLatency;
+				cu_event.value   =  _instances[n]->get_control_value(Event::InputLatency);
+				_osc->finish_update_event (cu_event);
+			}
+			_conns_changed = false;
+		}
 		
 		// handle learning done from the midi thread
 		if (_learn_done) {

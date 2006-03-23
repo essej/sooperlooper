@@ -107,6 +107,7 @@ class LoopControl
 	void request_values (int index);
 	void request_all_values (int index);
 	void request_global_values ();
+	void request_control_value (int index, wxString ctrl);
 
 	void add_midi_binding(const SooperLooper::MidiBindInfo & info, bool exclusive=false);
 	void learn_midi_binding(const SooperLooper::MidiBindInfo & info, bool exclusive=false);

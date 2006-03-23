@@ -103,6 +103,7 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_running_frames = 0;
 	_use_common_ins = true;
 	_use_common_outs = true;
+	_auto_latency = false;  // default for now
 	_have_discrete_io = discrete;
 	_curr_dry = 1.0f;
 	_target_dry = 1.0f;
@@ -169,7 +170,8 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	ports[FadeSamples] = 64.0f;
 	ports[PlaybackSync] = 0.0f;
 	ports[UseSafetyFeedback] = 1.0f;
-	
+	ports[TriggerLatency] = 0;
+
 	_slave_sync_port = 1.0f;
 
 	// TODO: fix hack to specify loop length
@@ -257,7 +259,7 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 			// eh, no good defaults
 		}
 	}
-	
+
 	_ok = true;
 
 	return _ok;
@@ -419,10 +421,43 @@ Looper::set_buffer_size (nframes_t bufsize)
 		_src_sync_buffer = new float[_src_buffer_len];
 		_src_in_buffer = new float[_src_buffer_len];
 #endif
-		
+
+		// set automatic latency values if appropriate
+		recompute_latencies();
+
+			
 	}
 }
 
+void
+Looper::recompute_latencies()
+{
+	// auto?
+	if (_auto_latency)
+	{
+		ports[TriggerLatency] = _buffersize; // jitter correction
+
+
+		ports[InputLatency] = _driver->get_input_port_latency(_input_ports[0]);
+		if (_use_common_ins) {
+			port_id_t comnport = 0;
+			if (_driver->get_engine()->get_common_input (0, comnport)) {
+				ports[InputLatency] = _driver->get_input_port_latency(comnport);
+			}
+		}
+	
+		ports[OutputLatency] = _driver->get_output_port_latency(_output_ports[0]);
+		if (_use_common_outs) {
+			port_id_t comnport = 0;
+			if (_driver->get_engine()->get_common_output (0, comnport)) {
+				ports[OutputLatency] = _driver->get_output_port_latency(comnport);
+			}
+		}
+	}
+	
+	//cerr << "input lat: " << ports[InputLatency] << endl;
+	//cerr << "output lat: " << ports[OutputLatency] << endl;
+}
 
 float
 Looper::get_control_value (Event::control_t ctrl)
@@ -458,6 +493,9 @@ Looper::get_control_value (Event::control_t ctrl)
 	}
 	else if (ctrl == Event::HasDiscreteIO) {
 		return _have_discrete_io;
+	}
+	else if (ctrl == Event::AutosetLatency) {
+		return _auto_latency;
 	}
 	// i wish i could do something better for this
 	else if (ctrl == Event::PanChannel1) {
@@ -628,6 +666,11 @@ Looper::do_event (Event *ev)
 		else if (ev->Control == Event::UseCommonOuts) 
 		{
 			_use_common_outs = ev->Value > 0.0f;
+		}
+		else if (ev->Control == Event::AutosetLatency) 
+		{
+			_auto_latency = ev->Value > 0.0f;
+			recompute_latencies();
 		}
 		else if (ev->Control == Event::PanChannel1) {
 			if (_panner && _panner->size() > 0) {

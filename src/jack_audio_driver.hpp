@@ -55,6 +55,9 @@ class JackAudioDriver
 	unsigned int get_input_port_count () { return _input_ports.size(); }
 	unsigned int get_output_port_count () { return _output_ports.size(); }
 
+	nframes_t get_input_port_latency (port_id_t portid);
+	nframes_t get_output_port_latency (port_id_t portid);
+	
 	bool get_transport_info (TransportInfo &info);
 
 	
@@ -70,6 +73,9 @@ class JackAudioDriver
 	int buffersize_callback (jack_nframes_t);
 	static int _buffersize_callback (jack_nframes_t, void*);
 
+	int conn_changed_callback ();
+	static int _conn_changed_callback (void*);
+	
 	jack_client_t *_jack;
 
 	std::vector<jack_port_t *> _input_ports;

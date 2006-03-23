@@ -24,6 +24,8 @@
 #include <vector>
 #include <string>
 
+#include <sigc++/sigc++.h>
+
 #include <inttypes.h>
 
 namespace SooperLooper {
@@ -70,6 +72,9 @@ class AudioDriver
 	virtual unsigned int get_input_port_count () = 0;
 	virtual unsigned int get_output_port_count () = 0;
 
+	virtual nframes_t get_input_port_latency (port_id_t portid) = 0;
+	virtual nframes_t get_output_port_latency (port_id_t portid) = 0;
+	
 	virtual std::string get_name() { return _client_name; }
 
 	virtual void set_engine (Engine * engine) { _engine = engine; }
@@ -81,6 +86,7 @@ class AudioDriver
 	virtual nframes_t get_samplerate() { return _samplerate; }
 	virtual nframes_t get_buffersize() { return _buffersize; }
 
+	SigC::Signal0<void> ConnectionsChanged;
 	
   protected:
 

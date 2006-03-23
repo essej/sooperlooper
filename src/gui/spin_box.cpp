@@ -96,6 +96,7 @@ SpinBox::SpinBox(wxWindow * parent, wxWindowID id,  float lb, float ub, float va
 	_direction = 0.0f;
 	
 	_bgcolor.Set(30,30,30);
+	_disabled_bgcolor.Set(60,60,60);
 	_bgbrush.SetColour (_bgcolor);
 	SetBackgroundColour (_bgcolor);
 	SetThemeEnabled(false);
@@ -216,7 +217,7 @@ void
 SpinBox::set_value (float val)
 {
 	float newval = val;
-	
+
 	if (_scale_mode == ZeroGainMode) {
 		newval = gain_to_slider_position (val);
 	}
@@ -302,6 +303,16 @@ void SpinBox::set_bg_color (const wxColour & col)
 	_bgbrush.SetColour (col);
 	SetBackgroundColour (col);
 	Refresh(false);
+}
+
+void SpinBox::set_disabled_bg_color (const wxColour & col)
+{
+	_disabled_bgcolor = col;
+	if (!IsEnabled()) {
+		_bgbrush.SetColour (col);
+		SetBackgroundColour (col);
+		Refresh(false);
+	}
 }
 
 void SpinBox::set_text_color (const wxColour & col)
@@ -609,7 +620,7 @@ void SpinBox::on_menu_events (wxCommandEvent &ev)
 void SpinBox::draw_area(wxDC & dc)
 {
 	wxCoord w,h;
-	
+
 	dc.SetBackground(_bgbrush);
 	dc.Clear();
 

@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2004 Jesse Chappell <jesse@essej.net>
+** Copyright (C) 2006 Jesse Chappell <jesse@essej.net>
 **  
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
 **  
 */
 
-#ifndef __sooperlooper_prefs_dialog__
-#define __sooperlooper_prefs_dialog__
+#ifndef __sooperlooper_latency_panel__
+#define __sooperlooper_latency_panel__
 
 
 #include <wx/wx.h>
@@ -29,49 +29,53 @@
 #include <sigc++/object.h>
 
 class wxListCtrl;
-class wxSpinCtrl;
-class wxNotebook;
 
 namespace SooperLooperGui {
 
-class GuiFrame;
-class KeyboardTarget;
-class ConfigPanel;
-class KeysPanel;
-class MidiBindPanel;
-class LatencyPanel;
+class MainPanel;
+class SpinBox;
 	
-class PrefsDialog
-	: public wxFrame,  public SigC::Object
+class LatencyPanel
+	: public wxPanel,  public SigC::Object
 {
   public:
 	
 	// ctor(s)
-	PrefsDialog(MainPanel * parent, wxWindowID id, const wxString& title,
+	LatencyPanel(MainPanel * guiframe, wxWindow * parent, wxWindowID id,
 		   const wxPoint& pos = wxDefaultPosition,
 		   const wxSize& size = wxSize(400,600),
 		   long style = wxDEFAULT_FRAME_STYLE,
-		   const wxString& name = wxT("PrefsDialog"));
+		   const wxString& name = wxT("LatencyPanel"));
 
-	virtual ~PrefsDialog();
+	virtual ~LatencyPanel();
 
 	void refresh_state();
-
 	
+
    protected:
 
 	void init();
 
-	void on_close (wxCloseEvent &ev);
+	void on_check (wxCommandEvent &ev);
 
-	wxNotebook * _notebook;
+	void on_spin_change (float value, int id);
 	
-	ConfigPanel * _config_panel;
-	KeysPanel    * _keys_panel;
-	MidiBindPanel * _midi_panel;
-	LatencyPanel  * _latency_panel;
+	//void learning_stopped ();
+	
+	void onSize(wxSizeEvent &ev);
+	void onPaint(wxPaintEvent &ev);
+	void OnUpdateTimer(wxTimerEvent &ev);
+	
+	
+	wxCheckBox  * _auto_check;
+	SpinBox     * _input_spin;
+	SpinBox     * _output_spin;
 	
 	MainPanel * _parent;
+	bool       _justResized;
+
+	wxTimer   * _update_timer;
+	bool        _do_request;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

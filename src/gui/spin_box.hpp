@@ -83,6 +83,9 @@ class SpinBox
  	void set_bg_color (const wxColour & col);
 	wxColour & get_bg_color () { return _bgcolor; }
 
+	void set_disabled_bg_color (const wxColour & col);
+	wxColour & get_disabled_bg_color () { return _disabled_bgcolor; }
+
  	void set_bar_color (const wxColour & col);
 	wxColour & get_bar_color () { return _barcolor; }
 
@@ -134,6 +137,7 @@ class SpinBox
 	wxMenu * _popup_menu;
 	
 	wxColour _bgcolor;
+	wxColour _disabled_bgcolor;
 	wxBrush  _bgbrush;
 
 	wxColour _barcolor;

@@ -34,6 +34,7 @@
 #include "slider_bar.hpp"
 #include "choice_box.hpp"
 #include "check_box.hpp"
+#include "spin_box.hpp"
 
 #include "pixmap_includes.hpp"
 
@@ -73,6 +74,10 @@ enum {
 	ID_ScratchControl,
 	ID_RateControl,
 	ID_InputGainControl,
+
+	ID_InputLatency,
+	ID_OutputLatency,
+	ID_TriggerLatency,
 	
 	ID_QuantizeCheck,
 	ID_QuantizeChoice,
@@ -262,7 +267,7 @@ LooperPanel::init()
 	colsizer->Add (_toppansizer, 1, wxEXPAND|wxTOP|wxLEFT, 4);
 
 	_botpansizer = new wxBoxSizer(wxHORIZONTAL);
-	
+
 	_wet_control = slider = new SliderBar(this, ID_WetControl, 0.0f, 1.0f, 1.0f);
 	slider->set_units(wxT("dB"));
 	slider->set_label(wxT("wet"));
@@ -273,6 +278,26 @@ LooperPanel::init()
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	_botpansizer->Add (slider, 1, wxEXPAND, 0);
 
+	/*
+	_outlatency_spin =  new SpinBox(this, ID_OutputLatency, 0.0f, 32768.0f, 0.0f, true, wxDefaultPosition, wxSize(65, 20));
+	_outlatency_spin->set_units(wxT(""));
+	_outlatency_spin->set_label(wxT("o.lat"));
+	_outlatency_spin->set_snap_mode (SpinBox::IntegerSnap);
+	_outlatency_spin->set_allow_outside_bounds(true);
+	_outlatency_spin->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) _outlatency_spin->GetId()));
+	_outlatency_spin->SetFont(sliderFont);
+	_botpansizer->Add (_outlatency_spin, 0, wxALL, 0);
+
+	_inlatency_spin =  new SpinBox(this, ID_InputLatency, 0.0f, 32768.0f, 0.0f, true, wxDefaultPosition, wxSize(65, 20));
+	_inlatency_spin->set_units(wxT(""));
+	_inlatency_spin->set_label(wxT("i.lat"));
+	_inlatency_spin->set_snap_mode (SpinBox::IntegerSnap);
+	_inlatency_spin->set_allow_outside_bounds(true);
+	_inlatency_spin->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) _inlatency_spin->GetId()));
+	_inlatency_spin->SetFont(sliderFont);
+	_botpansizer->Add (_inlatency_spin, 0, wxALL, 0);
+	*/
+	
 	colsizer->Add (_botpansizer, 1, wxEXPAND|wxTOP|wxLEFT, 4);
 	
 	
@@ -402,6 +427,17 @@ LooperPanel::init()
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
+
+	/*
+	_triglatency_spin =  new SpinBox(this, ID_TriggerLatency, 0.0f, 32768.0f, 0.0f, true, wxDefaultPosition, wxSize(65, 20));
+	_triglatency_spin->set_units(wxT(""));
+	_triglatency_spin->set_label(wxT("t.lat"));
+	_triglatency_spin->set_snap_mode (SpinBox::IntegerSnap);
+	_triglatency_spin->set_allow_outside_bounds(true);
+	_triglatency_spin->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) _triglatency_spin->GetId()));
+	_triglatency_spin->SetFont(sliderFont);
+	rowsizer->Add (_triglatency_spin, 0, wxALL, 0);
+	*/
 	
 	colsizer->Add (rowsizer, 0, wxEXPAND|wxLEFT, 1);
 
@@ -879,6 +915,22 @@ LooperPanel::update_controls()
 		_scratch_control->set_value (val);
 		_scratch_control->set_indicator_value (val);
 	}
+
+	/*
+	if (_loop_control->is_updated(_index, wxT("output_latency"))) {
+		_loop_control->get_value(_index, wxT("output_latency"), val);
+		_outlatency_spin->set_value (val);
+	}
+	if (_loop_control->is_updated(_index, wxT("input_latency"))) {
+		_loop_control->get_value(_index, wxT("input_latency"), val);
+		_inlatency_spin->set_value (val);
+	}
+	if (_loop_control->is_updated(_index, wxT("trigger_latency"))) {
+		_loop_control->get_value(_index, wxT("trigger_latency"), val);
+		_triglatency_spin->set_value (val);
+	}
+	*/
+	
 // 	if (_loop_control->is_updated(_index, "quantize")) {
 // 		_loop_control->get_value(_index, "quantize", val);
 // 		//_quantize_choice->set_index_value ((int)val);
@@ -1335,6 +1387,18 @@ LooperPanel::slider_events(float val, int id)
 		ctrl = wxT("rate");
 		val = _rate_control->get_value();
 		update_rate_buttons (val);
+		break;
+	case ID_OutputLatency:
+		ctrl = wxT("output_latency");
+		cerr << "outlat " << val << endl;
+		break;
+	case ID_InputLatency:
+		ctrl = wxT("input_latency");
+		cerr << "inlat " << val << endl;
+		break;
+	case ID_TriggerLatency:
+		ctrl = wxT("trigger_latency");
+		cerr << "triglat " << val << endl;
 		break;
 	default:
 		break;

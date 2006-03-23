@@ -363,7 +363,7 @@ GuiFrame::init()
 	menuFile->Append(ID_RemoveLoop, wxT("Remove Last Loop\tCtrl-D"), wxT("Remove last loop"));
 
 	menuFile->AppendSeparator();
-	menuFile->Append(ID_PreferencesMenu, wxT("&Preferences...\tCtrl-P"), wxT("Preferences..."));
+	menuFile->Append(ID_PreferencesMenu, wxT("&Preferences...\tCtrl-R"), wxT("Preferences..."));
 
 #ifndef __WXMAC__
 	menuFile->AppendSeparator();

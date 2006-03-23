@@ -793,6 +793,17 @@ LoopControl::midi_binding_handler(const char *path, const char *types, lo_arg **
 }
 
 void
+LoopControl::request_control_value (int index,  wxString ctrl)
+{
+	if (!_osc_addr) return;
+	char buf[20];
+
+	snprintf(buf, sizeof(buf), "/sl/%d/get", index);
+	
+	lo_send(_osc_addr, buf, "sss", (const char *) ctrl.ToAscii(), _our_url.c_str(), "/ctrl");
+}
+
+void
 LoopControl::request_global_values()
 {
 	if (!_osc_addr) return;
@@ -868,6 +879,10 @@ LoopControl::request_all_values(int index)
 	lo_send(_osc_addr, buf, "sss", "use_common_ins", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "has_discrete_io", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "relative_sync", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "input_latency", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "output_latency", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "trigger_latency", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "autoset_latency", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "pan_1", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "pan_2", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "pan_3", _our_url.c_str(), "/ctrl");
@@ -1036,6 +1051,10 @@ LoopControl::register_input_controls(int index, bool unreg)
 	lo_send(_osc_addr, buf, "sss", "use_common_ins", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "use_common_outs", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "relative_sync", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "input_latency", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "output_latency", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "trigger_latency", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "autoset_latency", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "pan_1", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "pan_2", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "pan_3", _our_url.c_str(), "/ctrl");

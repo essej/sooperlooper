@@ -160,6 +160,8 @@ class Engine
 
 	void fill_common_outs(nframes_t nframes);
 	void prepare_buffers(nframes_t nframes);
+
+	void connections_changed();
 	
 	AudioDriver * _driver;
 	
@@ -259,7 +261,8 @@ class Engine
 	nframes_t _last_tempo_frame;
 	volatile bool _tempo_changed;
 	volatile bool _beat_occurred;
-
+	volatile bool _conns_changed;
+	
 	double _tempo_averages[TEMPO_WINDOW_SIZE];
 	double _running_tempo_sum;
 	unsigned int    _avgindex;

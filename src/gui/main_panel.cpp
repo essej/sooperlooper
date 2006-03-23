@@ -130,7 +130,7 @@ END_EVENT_TABLE()
 	init();
 
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
-	_update_timer->Start(9000, true);
+	_update_timer->Start(11000, true);
 
 	_taptempo_button_timer = new wxTimer(this, ID_TapTempoTimer);
 
@@ -495,7 +495,7 @@ MainPanel::OnUpdateTimer(wxTimerEvent &ev)
 		_loop_control->send_alive_ping();
 	}
 
-	_update_timer->Start(9000, true);
+	_update_timer->Start(11000, true);
 }
 
 void

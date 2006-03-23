@@ -80,6 +80,10 @@ CommandMap::CommandMap()
 	_input_controls["fade_samples"]  = Event::FadeSamples;
 	_input_controls["use_safety_feedback"]  = Event::UseSafetyFeedback;
 	_input_controls["relative_sync"]  = Event::RelativeSync;
+	_input_controls["input_latency"]  = Event::InputLatency;
+	_input_controls["output_latency"]  = Event::OutputLatency;
+	_input_controls["trigger_latency"]  = Event::TriggerLatency;
+	_input_controls["autoset_latency"]  = Event::AutosetLatency;
 	//_input_controls["eighth_per_cycle_loop"] = Event::EighthPerCycleLoop;
 	//_input_controls["tempo_input"] = Event::TempoInput;
 	_input_controls["input_gain"]  = Event::InputGain;

@@ -31,6 +31,7 @@
 #include "config_panel.hpp"
 #include "keys_panel.hpp"
 #include "midi_bind_panel.hpp"
+#include "latency_panel.hpp"
 
 #include "loop_control.hpp"
 #include "keyboard_target.hpp"
@@ -91,6 +92,9 @@ void PrefsDialog::init()
 	_midi_panel = new MidiBindPanel(_parent, _notebook, -1);
 	_notebook->AddPage (_midi_panel, wxT("MIDI Bindings"), false);
 
+	_latency_panel = new LatencyPanel(_parent, _notebook, -1);
+	_notebook->AddPage (_latency_panel, wxT("Latency"), false);
+	
 	topsizer->Add (nbs, 1, wxEXPAND|wxALL, 6);
 	
 	
@@ -105,6 +109,7 @@ void PrefsDialog::refresh_state ()
 	_config_panel->refresh_state();
 	_keys_panel->refresh_state();
 	_midi_panel->refresh_state();
+	_latency_panel->refresh_state();
 }
 
 

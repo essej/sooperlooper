@@ -175,6 +175,7 @@ JackAudioDriver::connect_to_jack ()
 	
 	jack_set_xrun_callback (_jack, _xrun_callback, this);
 	jack_on_shutdown (_jack, _shutdown_callback, this);
+	jack_set_graph_order_callback (_jack, _conn_changed_callback, this);
 	
 	return 0;
 }
@@ -227,7 +228,17 @@ JackAudioDriver::process_callback (jack_nframes_t nframes)
 	return 0;
 }
 
+int JackAudioDriver::_conn_changed_callback (void* arg)
+{
+	return static_cast<JackAudioDriver*> (arg)->conn_changed_callback ();
+}
 
+int JackAudioDriver::conn_changed_callback ()
+{
+	ConnectionsChanged(); // emit
+	return 0;
+}
+	
 bool
 JackAudioDriver::create_input_port (std::string name, port_id_t & portid)
 {
@@ -268,6 +279,7 @@ JackAudioDriver::create_output_port (std::string name, port_id_t & portid)
 		//LockMonitor mon(_port_lock, __LINE__, __FILE__);
 		_output_ports.push_back (port);
 		portid = _output_ports.size();
+
 	}
 	
 	return true;
@@ -324,6 +336,21 @@ JackAudioDriver::get_output_port_buffer (port_id_t port, nframes_t nframes)
 	return (sample_t*) jack_port_get_buffer (_output_ports[port-1], nframes);	
 }
 
+nframes_t
+JackAudioDriver::get_input_port_latency (port_id_t port)
+{
+	if (!_jack || port > _input_ports.size() || port == 0) return 0;
+
+	return jack_port_get_total_latency (_jack, _input_ports[port-1]);
+}
+
+nframes_t
+JackAudioDriver::get_output_port_latency (port_id_t port)
+{
+	if (!_jack || port > _output_ports.size() || port == 0) return 0;
+
+	return jack_port_get_total_latency (_jack, _output_ports[port-1]);
+}
 
 bool
 JackAudioDriver::get_transport_info (TransportInfo &info)

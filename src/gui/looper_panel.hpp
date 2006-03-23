@@ -42,6 +42,7 @@ class SliderBar;
 class ChoiceBox;
 class CheckBox;
 class MainPanel;
+class SpinBox;
 	
 class LooperPanel
 	: public wxPanel, public SigC::Object
@@ -144,6 +145,11 @@ class LooperPanel
 	CheckBox * _use_main_in_check;
 
 	ChoiceBox  * _quantize_choice;
+
+	SpinBox * _inlatency_spin;
+	SpinBox * _outlatency_spin;
+	SpinBox * _triglatency_spin;
+
 	
 	wxBoxSizer * _toppansizer;
 	wxBoxSizer * _botpansizer;

@@ -47,12 +47,15 @@ enum ControlPort {
 	PlaybackSync,
 	EighthPerCycleLoop,
 	UseSafetyFeedback,
+	InputLatency,
+	OutputLatency,
+	TriggerLatency,
 	LASTCONTROLPORT,
 	RelativeSync // not an enum
 };
 
 enum OutputPort {
-	State = 19,
+	State = 22,
 	LoopLength,
 	LoopPosition,
 	CycleLength,
@@ -65,7 +68,7 @@ enum OutputPort {
 };
 
 enum AudioPort {
-	AudioInputPort=28,
+	AudioInputPort=31,
 	AudioOutputPort,
 	SyncInputPort,
 	SyncOutputPort,
@@ -166,6 +169,13 @@ typedef struct {
 	/* Buffer size, IS necessarily a power of two. */
 	unsigned long lBufferSize;
 	unsigned long lBufferSizeMask;
+
+	LADSPA_Data * pInputBuf;
+	unsigned long lInputBufSize;
+	unsigned long lInputBufMask;
+	unsigned long lInputBufReadPos;
+	unsigned long lInputBufWritePos;
+	long lFramesUntilInput; // used for input latency compensation
 	
 	// the loopchunk pool
 	LoopChunk * pLoopChunks;
@@ -311,6 +321,10 @@ typedef struct {
 	LADSPA_Data *pfTempo;
 	LADSPA_Data *pfEighthPerCycle;
 	LADSPA_Data *pfUseSafetyFeedback;
+
+	LADSPA_Data *pfInputLatency;
+	LADSPA_Data *pfOutputLatency;
+	LADSPA_Data *pfTriggerLatency;
 
 	
 	/* if non zero, the redo command is treated like a tap trigger */

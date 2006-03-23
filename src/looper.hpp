@@ -85,9 +85,14 @@ class Looper
 
 	bool get_have_discrete_io () { return _have_discrete_io; }
 
+	void set_auto_latency (bool val) { _auto_latency = val; }
+	bool get_auto_latency () { return _auto_latency; }
+
+	
 	XMLNode& get_state () const;
 	int set_state (const XMLNode&);
 
+	void recompute_latencies();
 	
   protected:
 
@@ -155,7 +160,8 @@ class Looper
 	bool                _use_common_ins;
 	bool                _use_common_outs;
 	bool                _have_discrete_io;
-
+	bool                _auto_latency;
+	
 	// SRC stuff
 #ifdef HAVE_SAMPLERATE
 	SRC_STATE**            _in_src_states;
