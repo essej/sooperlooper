@@ -1741,15 +1741,19 @@ runSooperLooper(LADSPA_Handle Instance,
 		   // lets sync on ending record with overdub
 		   if (fSyncMode == 0.0f) {
 			   if (loop) {
-				   // we need to increment loop position by output latency (+ IL ?)
-				   loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
-				   DBG(fprintf(stderr,"from rec Entering overdub state at %g\n", loop->dCurrPos));
 
 				   loop = beginOverdub(pLS, loop);
 				   if (loop)
 					   srcloop = loop->srcloop;
 				   else
 					   srcloop = NULL;
+
+				   // we need to increment loop position by output latency (+ IL ?)
+				   loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
+				   DBG(fprintf(stderr,"from rec Entering overdub state at %g\n", loop->dCurrPos));
+
+				   // input always immediately available
+				   pLS->lFramesUntilInput = 0;
 			   }
 		   } else {
 			   DBG(fprintf(stderr, "starting syncwait for overdub:  %f\n", fSyncMode));
@@ -1831,17 +1835,21 @@ runSooperLooper(LADSPA_Handle Instance,
 	      default:
 		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
 			      if (loop) {
-				      if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
-					      // we need to increment loop position by output latency (+ IL ?)
-					      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
-					      DBG(fprintf(stderr,"from rec Entering multiply state at %g\n", loop->dCurrPos));
-				      }
-				      
+
 				      loop = beginMultiply(pLS, loop);
 				      if (loop)
 					      srcloop = loop->srcloop;
 				      else
 					      srcloop = NULL;
+
+				      if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
+					      // input always immediately available
+					      pLS->lFramesUntilInput = 0;
+					      // we need to increment loop position by output latency (+ IL ?)
+					      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
+					      DBG(fprintf(stderr,"from rec Entering multiply state at %g\n", loop->dCurrPos));
+				      }
+
 			      }
 
 			      if (fQuantizeMode == QUANT_OFF) {
@@ -1902,15 +1910,18 @@ runSooperLooper(LADSPA_Handle Instance,
 		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
 			      if (loop)
 			      {
+				      loop = beginInsert(pLS, loop);
+				      if (loop) srcloop = loop->srcloop;
+				      else srcloop = NULL;
+
 				      if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
+					      // input always immediately available
+					      pLS->lFramesUntilInput = 0;
 					      // we need to increment loop position by output latency (+ IL ?)
 					      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
 					      DBG(fprintf(stderr,"from rec Entering insert state at %g\n", loop->dCurrPos));
 				      }
-				      
-				      loop = beginInsert(pLS, loop);
-				      if (loop) srcloop = loop->srcloop;
-				      else srcloop = NULL;
+
 			      }
 		      } else {
 			      if (pLS->state == STATE_RECORD) {
@@ -1972,16 +1983,18 @@ runSooperLooper(LADSPA_Handle Instance,
 		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
 			      if (loop)
 			      {
-				      if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
-					      // we need to increment loop position by output latency (+ IL ?)
-					      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
-					      DBG(fprintf(stderr,"from rec Entering multiply state at %g\n", loop->dCurrPos));
-				      }
-				      
 				      DBG(fprintf(stderr, "starting replace immediately\n"));
 				      loop = beginReplace(pLS, loop);
 				      if (loop) srcloop = loop->srcloop;
 				      else srcloop = NULL;
+
+				      if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
+					      // input always immediately available
+					      pLS->lFramesUntilInput = 0;
+					      // we need to increment loop position by output latency (+ IL ?)
+					      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
+					      DBG(fprintf(stderr,"from rec Entering multiply state at %g\n", loop->dCurrPos));
+				      }
 			      }
 
 			      if (fQuantizeMode == QUANT_OFF) {
@@ -2042,16 +2055,19 @@ runSooperLooper(LADSPA_Handle Instance,
 		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
 			      if (loop)
 			      {
-				      if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
-					      // we need to increment loop position by output latency (+ IL ?)
-					      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
-					      DBG(fprintf(stderr,"from rec Entering multiply state at %g\n", loop->dCurrPos));
-				      }
 
 				      DBG(fprintf(stderr, "starting subst immediately\n"));
 				      loop = beginSubstitute(pLS, loop);
 				      if (loop) srcloop = loop->srcloop;
 				      else srcloop = NULL;
+
+				      if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
+					      // input always immediately available
+					      pLS->lFramesUntilInput = 0;
+					      // we need to increment loop position by output latency (+ IL ?)
+					      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
+					      DBG(fprintf(stderr,"from rec Entering multiply state at %g\n", loop->dCurrPos));
+				      }
 			      }
 
 			      if (fQuantizeMode == QUANT_OFF) {
@@ -2750,12 +2766,15 @@ runSooperLooper(LADSPA_Handle Instance,
 			      //cerr << "ending recstop sync1: " << lCurrPos << endl;
 		      }
 
-		      // we need to increment loop position by output latency (+ IL ?)
-		      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency ) * fRate;
+		      DBG(fprintf(stderr,"transitioning to %d  at %g\n", pLS->nextState, loop->dCurrPos));
 		      
 		      loop = transitionToNext (pLS, loop, pLS->nextState);
 		      pLS->waitingForSync = 0;
 
+		      // we need to increment loop position by output latency (+ IL ?)
+		      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency ) * fRate;
+
+		      
 		      break;
 	      }
 
