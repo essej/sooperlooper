@@ -103,7 +103,7 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_running_frames = 0;
 	_use_common_ins = true;
 	_use_common_outs = true;
-	_auto_latency = false;  // default for now
+	_auto_latency = true;  // default for now
 	_have_discrete_io = discrete;
 	_curr_dry = 1.0f;
 	_target_dry = 1.0f;

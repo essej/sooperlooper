@@ -254,6 +254,9 @@ typedef struct {
 	LADSPA_Data fLoopFadeAtten;
 	LADSPA_Data fLoopFadeDelta;
 
+	LADSPA_Data fLoopSrcFadeAtten;
+	LADSPA_Data fLoopSrcFadeDelta;
+
 	LADSPA_Data fPlayFadeAtten;
 	LADSPA_Data fPlayFadeDelta;
 

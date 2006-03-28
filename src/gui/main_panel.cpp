@@ -264,7 +264,7 @@ MainPanel::init()
 	
 	_common_dry_bar = new SliderBar(_top_panel, ID_DryControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(132,20));
 	_common_dry_bar->set_units(wxT("dB"));
-	_common_dry_bar->set_label(wxT("main dry"));
+	_common_dry_bar->set_label(wxT("main in mon"));
 	_common_dry_bar->set_scale_mode(SliderBar::ZeroGainMode);
 	_common_dry_bar->set_show_indicator_bar(true);
 	_common_dry_bar->SetFont(sliderFont);

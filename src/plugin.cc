@@ -44,7 +44,7 @@ using namespace SooperLooper;
 
 
 /*****************************************************************************/
-//#define LOOPDEBUG
+#define LOOPDEBUG
 
 #ifdef LOOPDEBUG
 #define DBG(x) x
@@ -573,6 +573,8 @@ activateSooperLooper(LADSPA_Handle Instance) {
 
   pLS->fLoopFadeDelta = 0.0f;
   pLS->fLoopFadeAtten = 0.0f;
+  pLS->fLoopSrcFadeDelta = 0.0f;
+  pLS->fLoopSrcFadeAtten = 0.0f;
   pLS->fPlayFadeDelta = 0.0f;
   pLS->fPlayFadeAtten = 0.0f;
   pLS->fFeedFadeDelta = 0.0f;
@@ -1294,6 +1296,7 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
    {
       case STATE_PLAY:
 	      pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
+	      pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
 	      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 	      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 	      pLS->wasMuted = false;
@@ -1301,6 +1304,7 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
       case STATE_MUTE:
 	      pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
 	      pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
+	      pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
 	      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 	      pLS->wasMuted = true;
 	      break;
@@ -1334,6 +1338,7 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
       case STATE_TRIGGER_PLAY:
 	      pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
 	      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+	      pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
 	      if (loop) {
 		      pLS->state = STATE_PLAY;
 		      nextstate = STATE_PLAY;
@@ -1348,6 +1353,7 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
 	      // play the loop one_shot mode
 	      pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
 	      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+	      pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
 	      if (loop) {
 		      DBG(fprintf(stderr,"Starting ONESHOT state\n"));
 		      pLS->state = STATE_ONESHOT;
@@ -1424,6 +1430,7 @@ runSooperLooper(LADSPA_Handle Instance,
   double dDummy;
   int firsttime, backfill;
   int useDelay = 0;
+  int prevstate;
   
   float fPosRatio;
   int xfadeSamples = XFADE_SAMPLES;
@@ -1617,6 +1624,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			      pLS->wasMuted = false;
 			      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 			      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+			      pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
 
 			      if (loop) {
 				      // we need to increment loop position by output latency (+ IL ?)
@@ -1645,6 +1653,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		    pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		    pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 		    pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+		    pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
 			      
 		    pLS->state = STATE_PLAY;
 		    pLS->wasMuted = false;
@@ -1674,7 +1683,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		    pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		    pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 		    pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
-		    
+		    pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
+			      
 		    pLS->state = STATE_PLAY;
 		    pLS->wasMuted = false;
 		    DBG(fprintf(stderr,"Entering PLAY state after Multiply NEW loop\n"));
@@ -1754,6 +1764,9 @@ runSooperLooper(LADSPA_Handle Instance,
 
 				   // input always immediately available
 				   pLS->lFramesUntilInput = 0;
+
+				   pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
+				   
 			   }
 		   } else {
 			   DBG(fprintf(stderr, "starting syncwait for overdub:  %f\n", fSyncMode));
@@ -1835,19 +1848,22 @@ runSooperLooper(LADSPA_Handle Instance,
 	      default:
 		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
 			      if (loop) {
-
+				      prevstate = pLS->state;
+				      
 				      loop = beginMultiply(pLS, loop);
 				      if (loop)
 					      srcloop = loop->srcloop;
 				      else
 					      srcloop = NULL;
 
-				      if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
+				      if (prevstate == STATE_RECORD || prevstate == STATE_TRIG_STOP) {
 					      // input always immediately available
 					      pLS->lFramesUntilInput = 0;
 					      // we need to increment loop position by output latency (+ IL ?)
 					      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
 					      DBG(fprintf(stderr,"from rec Entering multiply state at %g\n", loop->dCurrPos));
+
+					      pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
 				      }
 
 			      }
@@ -1910,16 +1926,19 @@ runSooperLooper(LADSPA_Handle Instance,
 		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
 			      if (loop)
 			      {
+				      prevstate = pLS->state;
+				      
 				      loop = beginInsert(pLS, loop);
 				      if (loop) srcloop = loop->srcloop;
 				      else srcloop = NULL;
 
-				      if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
+				      if (prevstate == STATE_RECORD || prevstate == STATE_TRIG_STOP) {
 					      // input always immediately available
 					      pLS->lFramesUntilInput = 0;
 					      // we need to increment loop position by output latency (+ IL ?)
 					      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
 					      DBG(fprintf(stderr,"from rec Entering insert state at %g\n", loop->dCurrPos));
+					      pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
 				      }
 
 			      }
@@ -1983,17 +2002,20 @@ runSooperLooper(LADSPA_Handle Instance,
 		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
 			      if (loop)
 			      {
+				      prevstate = pLS->state;
+				      
 				      DBG(fprintf(stderr, "starting replace immediately\n"));
 				      loop = beginReplace(pLS, loop);
 				      if (loop) srcloop = loop->srcloop;
 				      else srcloop = NULL;
 
-				      if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
+				      if (prevstate == STATE_RECORD || prevstate == STATE_TRIG_STOP) {
 					      // input always immediately available
 					      pLS->lFramesUntilInput = 0;
 					      // we need to increment loop position by output latency (+ IL ?)
 					      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
 					      DBG(fprintf(stderr,"from rec Entering multiply state at %g\n", loop->dCurrPos));
+					      pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
 				      }
 			      }
 
@@ -2055,18 +2077,20 @@ runSooperLooper(LADSPA_Handle Instance,
 		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
 			      if (loop)
 			      {
+				      prevstate = pLS->state;
 
 				      DBG(fprintf(stderr, "starting subst immediately\n"));
 				      loop = beginSubstitute(pLS, loop);
 				      if (loop) srcloop = loop->srcloop;
 				      else srcloop = NULL;
 
-				      if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
+				      if (prevstate == STATE_RECORD || prevstate == STATE_TRIG_STOP) {
 					      // input always immediately available
 					      pLS->lFramesUntilInput = 0;
 					      // we need to increment loop position by output latency (+ IL ?)
 					      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
 					      DBG(fprintf(stderr,"from rec Entering multiply state at %g\n", loop->dCurrPos));
+					      pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
 				      }
 			      }
 
@@ -2128,7 +2152,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
 			 // we need to increment loop position by output latency (+ IL ?)
 			 loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
-			 DBG(fprintf(stderr,"from rec Entering multiply state at %g\n", loop->dCurrPos));
+			 DBG(fprintf(stderr,"from rec Entering mute state at %g\n", loop->dCurrPos));
 		 }
 		      
 		 pLS->state = STATE_MUTE;
@@ -2626,6 +2650,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		    pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
 		    //pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 
+		    // only place this goes up
+		    pLS->fLoopSrcFadeDelta = 1.0f / xfadeSamples;
+
 		 }
 		 else {
 		    DBG(fprintf(stderr, "out of memory! back to PLAY mode\n"));
@@ -2663,6 +2690,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      fScratchPos += scratchDelta;
 
 	      pLS->fLoopFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopFadeDelta);
+	      pLS->fLoopSrcFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopSrcFadeAtten + pLS->fLoopSrcFadeDelta);
 	      
 // 	      if (pLS->waitingForSync && (fSyncMode == 0.0 || pfSyncInput[lSampleIndex] != 0.0))
 // 	      {
@@ -2736,6 +2764,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      fFeedback += feedbackDelta;
 	      fScratchPos += scratchDelta;
 	      pLS->fLoopFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopFadeDelta);
+	      pLS->fLoopSrcFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopSrcFadeDelta);
 		   
 	      lCurrPos = (unsigned int) loop->dCurrPos;
 	      pLoopSample = & pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask];
@@ -2774,6 +2803,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		      // we need to increment loop position by output latency (+ IL ?)
 		      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency ) * fRate;
 
+		      pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
 		      
 		      break;
 	      }
@@ -2846,12 +2876,19 @@ runSooperLooper(LADSPA_Handle Instance,
 		 if (rCurrPos < 0) {
 		    rCurrPos += loop->lLoopLength;
 		 }
+		 rpCurrPos = fmod (loop->dCurrPos - lOutputLatency - lInputLatency, srcloop->lLoopLength);
+		 if (rpCurrPos < 0) {
+		    rpCurrPos += srcloop->lLoopLength;
+		 }
 		 
 		 pLoopSample = & pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask];
 
 		 if (pLS->lFramesUntilInput <= 0) {
 			 rLoopSample = & pLS->pSampleBuf[(loop->lLoopStart + (unsigned int) rCurrPos) & pLS->lBufferSizeMask];
+			 rpLoopSample = & pLS->pSampleBuf[(srcloop->lLoopStart + (unsigned int) rpCurrPos) & pLS->lBufferSizeMask];
+		 
 			 pLS->fLoopFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopFadeDelta);
+			 pLS->fLoopSrcFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopSrcFadeAtten + pLS->fLoopSrcFadeDelta);
 			 lInputReadPos = - pLS->lFramesUntilInput; // negate it
 			 lInputReadPos = (lInputReadPos <= pLS->lInputBufWritePos)
 				 ? (pLS->lInputBufWritePos - lInputReadPos)
@@ -2860,6 +2897,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 		 else {
 			 rLoopSample = 0;
+			 rpLoopSample = 0;
 			 pLS->lFramesUntilInput--;
 			 lInputReadPos = pLS->lInputBufWritePos;
 		 }
@@ -2904,9 +2942,17 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 //fInputSample = pfInput[lSampleIndex];
 		 fInputSample = pfInputLatencyBuf[(lInputReadPos + lSampleIndex) & pLS->lInputBufMask];
+
+		 //  xfade input into source loop (for cases immediately after record)
+		 if (rpLoopSample) {
+			 *(rpLoopSample) = ((*rpLoopSample) * pLS->fFeedFadeAtten) +  pLS->fLoopSrcFadeAtten * fInputSample;
+		 }
 		 
+		 // fill from the record position * and for the play pos !!?
+		 fillLoops(pLS, loop, (unsigned int) rCurrPos);
 		 fillLoops(pLS, loop, lCurrPos);
 
+		 
 		 switch(pLS->state)
 		 {
 		 case STATE_OVERDUB:
@@ -3070,6 +3116,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			 rLoopSample = & pLS->pSampleBuf[(loop->lLoopStart + (unsigned int) rCurrPos) & pLS->lBufferSizeMask];
 			 rpLoopSample = & pLS->pSampleBuf[(srcloop->lLoopStart + (unsigned int) rpCurrPos) & pLS->lBufferSizeMask];
 			 pLS->fLoopFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopFadeDelta);
+			 pLS->fLoopSrcFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopSrcFadeAtten + pLS->fLoopSrcFadeDelta);
 			 pLS->fFeedFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fFeedFadeAtten + pLS->fFeedFadeDelta);
 			 lInputReadPos = - pLS->lFramesUntilInput; // negate it
 			 lInputReadPos = (lInputReadPos <= pLS->lInputBufWritePos)
@@ -3129,12 +3176,19 @@ runSooperLooper(LADSPA_Handle Instance,
 
 		 
 		 
-		 fillLoops(pLS, loop, lpCurrPos);
-		 
 		 fInputSample = pfInputLatencyBuf[(lInputReadPos + lSampleIndex) & pLS->lInputBufMask];
 		 //fInputSample = pfInput[lSampleIndex];
 
+		 // TODO: xfade input into source loop (for cases immediately after record)
+		 //  xfade input into source loop (for cases immediately after record)
+		 if (rpLoopSample) {
+			 *(rpLoopSample) = ((*rpLoopSample) * pLS->fFeedFadeAtten) +  pLS->fLoopSrcFadeAtten * fInputSample;
+		 }
 
+		 // fill from the record position
+		 fillLoops(pLS, loop, (unsigned int) rpCurrPos);
+		 fillLoops(pLS, loop, lpCurrPos);
+		 
 		 
 		 
 		 // always use the source loop as the source
@@ -3286,6 +3340,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			 rLoopSample = & pLS->pSampleBuf[(loop->lLoopStart + (unsigned int) rCurrPos) & pLS->lBufferSizeMask];
 			 rpLoopSample = & pLS->pSampleBuf[(srcloop->lLoopStart + (unsigned int) rpCurrPos) & pLS->lBufferSizeMask];
 			 pLS->fLoopFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopFadeDelta);
+			 pLS->fLoopSrcFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopSrcFadeAtten + pLS->fLoopSrcFadeDelta);
 			 pLS->fFeedFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fFeedFadeAtten + pLS->fFeedFadeDelta);
 			 lInputReadPos = - pLS->lFramesUntilInput; // negate it
 			 lInputReadPos = (lInputReadPos <= pLS->lInputBufWritePos)
@@ -3301,10 +3356,19 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 
 		 
-		 fillLoops(pLS, loop, lCurrPos);
-		 
 		 //fInputSample = pfInput[lSampleIndex];
 		 fInputSample = pfInputLatencyBuf[(lInputReadPos + lSampleIndex) & pLS->lInputBufMask];
+
+		 // xfade input into source loop (for cases immediately after record)
+		 if (rpLoopSample) {
+			 *(rpLoopSample) = ((*rpLoopSample) * pLS->fFeedFadeAtten) +  pLS->fLoopSrcFadeAtten * fInputSample;
+		 }
+
+		 // fill from the record position
+		 fillLoops(pLS, loop, (unsigned int) rCurrPos);
+		 fillLoops(pLS, loop, lCurrPos);
+		 
+
 		 
 		 if (firsttime && *pLS->pfQuantMode != 0 )
 		 {
@@ -3599,6 +3663,7 @@ runSooperLooper(LADSPA_Handle Instance,
      	         fFeedback += feedbackDelta;
 	         fScratchPos += scratchDelta;
 		 pLS->fLoopFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopFadeAtten + pLS->fLoopFadeDelta);
+		 pLS->fLoopSrcFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fLoopSrcFadeAtten + pLS->fLoopSrcFadeDelta);
 		 pLS->fPlayFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fPlayFadeAtten + pLS->fPlayFadeDelta);
 		 pLS->fFeedFadeAtten = LIMIT_BETWEEN_0_AND_1 (pLS->fFeedFadeAtten + pLS->fFeedFadeDelta);
 
@@ -3627,15 +3692,14 @@ runSooperLooper(LADSPA_Handle Instance,
 // 		 }
 
 		 
-		 // fill loops if necessary
-		 fillLoops(pLS, loop, lCurrPos);
-
-
-		 
 		 //fInputSample = pfInput[lSampleIndex];
 		 fInputSample = pfInputLatencyBuf[(lInputReadPos + lSampleIndex) & pLS->lInputBufMask];
 
+		 // fill from the record position ??
+		 fillLoops(pLS, loop, (unsigned int) rCurrPos);
+		 fillLoops(pLS, loop, lCurrPos);
 
+	      
 		 
 		 fOutputSample =   tmpWet *  (*pLoopSample)
 		    + fDry * fInputSample;

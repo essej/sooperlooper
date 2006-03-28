@@ -270,7 +270,7 @@ LooperPanel::init()
 
 	_wet_control = slider = new SliderBar(this, ID_WetControl, 0.0f, 1.0f, 1.0f);
 	slider->set_units(wxT("dB"));
-	slider->set_label(wxT("wet"));
+	slider->set_label(wxT("out"));
 	slider->set_show_indicator_bar (true);
 	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
@@ -482,7 +482,7 @@ LooperPanel::post_init()
 		// dry is only meaningful with discrete io
 		_dry_control = slider = new SliderBar(this, ID_DryControl, 0.0f, 1.0f, 1.0f);
 		slider->set_units(wxT("dB"));
-		slider->set_label(wxT("dry"));
+		slider->set_label(wxT("in mon"));
 		slider->set_scale_mode(SliderBar::ZeroGainMode);
 		slider->SetFont(sliderFont);
 		slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
