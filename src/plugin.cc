@@ -735,10 +735,11 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
 
 
 
-static inline void fillLoops(SooperLooperI *pLS, LoopChunk *mloop, unsigned long lCurrPos)
+static inline void fillLoops(SooperLooperI *pLS, LoopChunk *mloop, unsigned long lCurrPos, bool leavemarks)
 {
    LoopChunk *loop=NULL, *nloop, *srcloop;
-
+   leavemarks = false;
+   
    // descend to the oldest valid unfilled loop
    for (nloop=mloop; nloop; nloop = nloop->srcloop)
    {
@@ -758,7 +759,8 @@ static inline void fillLoops(SooperLooperI *pLS, LoopChunk *mloop, unsigned long
    {
       srcloop = loop->srcloop;
 
-      if (loop->frontfill && lCurrPos<=loop->lMarkH && lCurrPos>=loop->lMarkL)
+      // leavemarks is a special hack
+      if (leavemarks || (loop->frontfill && lCurrPos<=loop->lMarkH && lCurrPos>=loop->lMarkL))
       {
 	      if (!srcloop->valid) {
 		      // if src is not valid, fill with silence
@@ -770,22 +772,24 @@ static inline void fillLoops(SooperLooperI *pLS, LoopChunk *mloop, unsigned long
 		      pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask] = 
 			      pLS->pSampleBuf[(srcloop->lLoopStart + (lCurrPos % srcloop->lLoopLength)) & pLS->lBufferSizeMask];
 	      }
-	      
-	      // move the right mark according to rate
-	      if (pLS->fCurrRate > 0) {
-		      loop->lMarkL = lCurrPos;
-	      }
-	      else {
-		      loop->lMarkH = lCurrPos;
-	      }
-	      
-	      // ASSUMPTION: our overdub rate is +/- 1 only
-	      if (loop->lMarkL == loop->lMarkH) {
-		      // now we take the input from ourself
-		      DBG(fprintf(stderr,"front segment filled for %08x for %08x in at %lu\n",
-				  (unsigned)loop, (unsigned) srcloop, loop->lMarkL);)
+
+	      if (!leavemarks) {
+		      // move the right mark according to rate
+		      if (pLS->fCurrRate > 0) {
+			      loop->lMarkL = lCurrPos;
+		      }
+		      else {
+			      loop->lMarkH = lCurrPos;
+		      }
+		      
+		      // ASSUMPTION: our overdub rate is +/- 1 only
+		      if (loop->lMarkL == loop->lMarkH) {
+			      // now we take the input from ourself
+			      DBG(fprintf(stderr,"front segment filled for %08x for %08x in at %lu\n",
+					  (unsigned)loop, (unsigned) srcloop, loop->lMarkL););
 			      loop->frontfill = 0;
-		      loop->lMarkL = loop->lMarkH = LONG_MAX;
+			      loop->lMarkL = loop->lMarkH = LONG_MAX;
+		      }
 	      }
       }
       else if (loop->backfill && lCurrPos<=loop->lMarkEndH && lCurrPos>=loop->lMarkEndL)		
@@ -802,30 +806,33 @@ static inline void fillLoops(SooperLooperI *pLS, LoopChunk *mloop, unsigned long
 			      pLS->pSampleBuf[(srcloop->lLoopStart +
 				       ((lCurrPos  + loop->lStartAdj - loop->lEndAdj) % srcloop->lLoopLength)) & pLS->lBufferSizeMask];
 	      }
-	  
-	      // move the right mark according to rate
-	      if (pLS->fCurrRate > 0) {
-		      loop->lMarkEndL = lCurrPos;
-	      }
-	      else {
-		      loop->lMarkEndH = lCurrPos;
-		      
-	      }
-	      // ASSUMPTION: our overdub rate is +/- 1 only
-	      if (loop->lMarkEndL == loop->lMarkEndH) {
-		      // now we take the input from ourself
-		      DBG(fprintf(stderr,"back segment filled in for %08x from %08x at %lu\n",
-				  (unsigned)loop, (unsigned)srcloop, loop->lMarkEndL);)
+
+	      if (!leavemarks) {
+		      // move the right mark according to rate
+		      if (pLS->fCurrRate > 0) {
+			      loop->lMarkEndL = lCurrPos;
+		      }
+		      else {
+			      loop->lMarkEndH = lCurrPos;
+			      
+		      }
+		      // ASSUMPTION: our overdub rate is +/- 1 only
+		      if (loop->lMarkEndL == loop->lMarkEndH) {
+			      // now we take the input from ourself
+			      DBG(fprintf(stderr,"back segment filled in for %08x from %08x at %lu\n",
+					  (unsigned)loop, (unsigned)srcloop, loop->lMarkEndL););
 			      loop->backfill = 0;
-		      loop->lMarkEndL = loop->lMarkEndH = LONG_MAX;
+			      loop->lMarkEndL = loop->lMarkEndH = LONG_MAX;
+		      }
 	      }
-	      
       }
       
       if (mloop == loop) break;
    }
 
 }
+
+
 
 static LoopChunk* transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nextstate);
 
@@ -878,6 +885,7 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 	      loop->srcloop = srcloop = loop->prev;
       }
 
+      
       pLS->state = STATE_MULTIPLY;
 
 //      if (*pLS->pfQuantMode == 0.0f) {
@@ -1436,7 +1444,7 @@ runSooperLooper(LADSPA_Handle Instance,
   int xfadeSamples = XFADE_SAMPLES;
   
   SooperLooperI * pLS;
-  LoopChunk *loop, *srcloop;
+  LoopChunk *loop, *srcloop=0;
   LoopChunk *lastloop;
   
   LADSPA_Data fSyncMode = 0.0f;
@@ -1849,7 +1857,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
 			      if (loop) {
 				      prevstate = pLS->state;
-				      
+
 				      loop = beginMultiply(pLS, loop);
 				      if (loop)
 					      srcloop = loop->srcloop;
@@ -2796,7 +2804,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		      }
 
 		      DBG(fprintf(stderr,"transitioning to %d  at %g\n", pLS->nextState, loop->dCurrPos));
-		      
+
 		      loop = transitionToNext (pLS, loop, pLS->nextState);
 		      pLS->waitingForSync = 0;
 
@@ -2949,8 +2957,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 		 
 		 // fill from the record position * and for the play pos !!?
-		 fillLoops(pLS, loop, (unsigned int) rCurrPos);
-		 fillLoops(pLS, loop, lCurrPos);
+		 fillLoops(pLS, loop, (unsigned int) rCurrPos, true);
+		 fillLoops(pLS, loop, lCurrPos, false);
 
 		 
 		 switch(pLS->state)
@@ -3179,15 +3187,16 @@ runSooperLooper(LADSPA_Handle Instance,
 		 fInputSample = pfInputLatencyBuf[(lInputReadPos + lSampleIndex) & pLS->lInputBufMask];
 		 //fInputSample = pfInput[lSampleIndex];
 
-		 // TODO: xfade input into source loop (for cases immediately after record)
+
+		 // fill from the record position
+		 fillLoops(pLS, loop, (unsigned int) rpCurrPos, true);
+
 		 //  xfade input into source loop (for cases immediately after record)
 		 if (rpLoopSample) {
 			 *(rpLoopSample) = ((*rpLoopSample) * pLS->fFeedFadeAtten) +  pLS->fLoopSrcFadeAtten * fInputSample;
 		 }
 
-		 // fill from the record position
-		 fillLoops(pLS, loop, (unsigned int) rpCurrPos);
-		 fillLoops(pLS, loop, lpCurrPos);
+		 fillLoops(pLS, loop, lpCurrPos, false);
 		 
 		 
 		 
@@ -3365,8 +3374,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 
 		 // fill from the record position
-		 fillLoops(pLS, loop, (unsigned int) rCurrPos);
-		 fillLoops(pLS, loop, lCurrPos);
+		 fillLoops(pLS, loop, (unsigned int) rCurrPos, true);
+		 fillLoops(pLS, loop, lCurrPos, false);
 		 
 
 		 
@@ -3696,8 +3705,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		 fInputSample = pfInputLatencyBuf[(lInputReadPos + lSampleIndex) & pLS->lInputBufMask];
 
 		 // fill from the record position ??
-		 fillLoops(pLS, loop, (unsigned int) rCurrPos);
-		 fillLoops(pLS, loop, lCurrPos);
+		 fillLoops(pLS, loop, (unsigned int) rCurrPos, true);
+		 fillLoops(pLS, loop, lCurrPos, false);
 
 	      
 		 
