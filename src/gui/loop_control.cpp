@@ -1347,7 +1347,7 @@ LoopControl::get_state (int index, LooperState & state, wxString & statestr)
 		ControlValMap::iterator iter = _params_val_map[index].find (wxT("state"));
 
 		if (iter != _params_val_map[index].end()) {
-			state = (LooperState) (*iter).second;
+			state = (LooperState) (int) (*iter).second;
 			statestr = state_map[state];
 			// set updated to false
 			_updated[index][wxT("state")] = false;
@@ -1368,7 +1368,7 @@ LoopControl::get_next_state (int index, LooperState & state, wxString & statestr
 		ControlValMap::iterator iter = _params_val_map[index].find (wxT("next_state"));
 
 		if (iter != _params_val_map[index].end()) {
-			state = (LooperState) (*iter).second;
+			state = (LooperState) (int) (*iter).second;
 			statestr = state_map[state];
 			// set updated to false
 			_updated[index][wxT("next_state")] = false;

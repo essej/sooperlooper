@@ -176,6 +176,7 @@ typedef struct {
 	unsigned long lInputBufReadPos;
 	unsigned long lInputBufWritePos;
 	long lFramesUntilInput; // used for input latency compensation
+	long lFramesUntilFilled; // used to fill the gaps right after a record
 	
 	// the loopchunk pool
 	LoopChunk * pLoopChunks;
