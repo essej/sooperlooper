@@ -752,6 +752,7 @@ Engine::process (nframes_t nframes)
 
 			m = 0;
 			syncm = -1;
+
 			
 			if ((int)_sync_source > 0 && (int)_sync_source <= (int)_rt_instances.size()) {
 				// we need to run the sync source loop first
@@ -769,6 +770,7 @@ Engine::process (nframes_t nframes)
 				if (syncm == m) continue; // skip if we already ran it
 				
 				// run for the time before this event
+
 				(*i)->run (usedframes, doframes);
 					
 				// process event
@@ -789,7 +791,7 @@ Engine::process (nframes_t nframes)
 
 		m = 0;
 		syncm = -1;
-		
+
 		if ((int)_sync_source > 0 && (int)_sync_source <= (int) _rt_instances.size()) {
 			// we need to run the sync source loop first
 			syncm = (int) _sync_source - 1;

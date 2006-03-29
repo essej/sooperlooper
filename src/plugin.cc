@@ -44,7 +44,7 @@ using namespace SooperLooper;
 
 
 /*****************************************************************************/
-//#define LOOPDEBUG
+#define LOOPDEBUG
 
 #ifdef LOOPDEBUG
 #define DBG(x) x
@@ -841,7 +841,8 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
    LoopChunk * srcloop = loop;
    int xfadeSamples = (int) (*pLS->pfXfadeSamples);
    if (xfadeSamples < 1) xfadeSamples = 1;
-
+   int prevstate = pLS->state;
+   
    // first check if this is a multi-increase
    if (loop && loop->mult_out == (int)loop->lCycles && loop->backfill) {
 	   //fprintf(stderr, "got a first multi-increase\n");
@@ -953,11 +954,16 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 			  
       }
 
-      double rCurrPos = srcloop->dCurrPos - lInputLatency - lOutputLatency;
-      if (rCurrPos < 0) {
-	      rCurrPos += loop->lLoopLength;
+      double rCurrPos = srcloop->dCurrPos;
+
+      if (prevstate != STATE_RECORD && prevstate != STATE_TRIG_STOP) {
+	      rCurrPos -= lInputLatency - lOutputLatency;
+      
+	      if (rCurrPos < 0) {
+		      rCurrPos += loop->lLoopLength;
+	      }
+	      rCurrPos = fmod (rCurrPos, loop->lLoopLength);
       }
-      rCurrPos = fmod (rCurrPos, loop->lLoopLength);
       
       if (loop->dCurrPos > 0) {
 	 loop->lMarkL = 0;
@@ -1057,6 +1063,7 @@ static LoopChunk * beginInsert(SooperLooperI *pLS, LoopChunk *loop)
    LoopChunk *srcloop = loop;
    int xfadeSamples = (int) (*pLS->pfXfadeSamples);
    if (xfadeSamples < 1) xfadeSamples = 1;
+   int prevstate = pLS->state;
    
    // try to get a new one with at least 1 cycle more length
    loop = pushNewLoopChunk(pLS, loop->lLoopLength + loop->lCycleLength, loop);
@@ -1134,11 +1141,16 @@ static LoopChunk * beginInsert(SooperLooperI *pLS, LoopChunk *loop)
       }
       pLS->nextState = -1;
 
-      double rCurrPos = srcloop->dCurrPos - lInputLatency - lOutputLatency;
-      if (rCurrPos < 0) {
-	      rCurrPos += loop->lLoopLength;
+      double rCurrPos = srcloop->dCurrPos;
+
+      if (prevstate != STATE_RECORD && prevstate != STATE_TRIG_STOP) {
+	      rCurrPos -= lInputLatency - lOutputLatency;
+      
+	      if (rCurrPos < 0) {
+		      rCurrPos += loop->lLoopLength;
+	      }
+	      rCurrPos = fmod (rCurrPos, loop->lLoopLength);
       }
-      rCurrPos = fmod (rCurrPos, loop->lLoopLength);
       
       if (loop->dCurrPos > 0) {
 	 loop->lMarkL = 0;
@@ -1218,8 +1230,9 @@ static LoopChunk * beginOverdub(SooperLooperI *pLS, LoopChunk *loop)
       long lTriggerLatency = (long) (*pLS->pfTriggerLatency);
 
       pLS->lFramesUntilInput = (long) lInputLatency - lTriggerLatency;
+      pLS->lFramesUntilFilled = lOutputLatency + lInputLatency;
       DBG(cerr << "frames until input: " << pLS->lFramesUntilInput << "  xfade samps: " << xfadeSamples << endl);
-      
+				      
       if (!loop->prev) {
 	      // then we are overwriting our own source
 	      // lets just back out and revalidate the passed in loop
@@ -1252,7 +1265,8 @@ static LoopChunk * beginOverdub(SooperLooperI *pLS, LoopChunk *loop)
       
       loop->dOrigFeedback = LIMIT_BETWEEN_0_AND_1(*pLS->pfFeedback);
 
-      double rCurrPos = loop->dCurrPos - lInputLatency - lOutputLatency;
+      //double rCurrPos = loop->dCurrPos - lInputLatency - lOutputLatency;
+      double rCurrPos = loop->dCurrPos;
       if (rCurrPos < 0) {
 	      rCurrPos += loop->lLoopLength;
       }
@@ -1662,10 +1676,11 @@ runSooperLooper(LADSPA_Handle Instance,
 			      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 			      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 			      pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
+			      DBG(fprintf(stderr,"from rec Entering PLAY state loop len: %lu\n", loop->lLoopLength));
 
 			      if (loop) {
 				      // we need to increment loop position by output latency (+ IL ?)
-				      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
+				      loop->dCurrPos = fmod(loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate, loop->lLoopLength);
 				      pLS->lFramesUntilFilled = lOutputLatency + lInputLatency;
 				      DBG(fprintf(stderr,"from rec Entering PLAY state at %g\n", loop->dCurrPos));
 			      }
@@ -2792,7 +2807,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      }
 	      
 	      // wrap at the proper loop end
-	      lCurrPos = (unsigned int)loop->dCurrPos;
+	      lCurrPos = (unsigned int) lrint(loop->dCurrPos);
 	      pLoopSample = & pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask];
 		      
 // 	      if ((char *)(lCurrPos + loop->pLoopStart) >= (pLS->pSampleBuf + pLS->lBufferSize)) {
@@ -2822,7 +2837,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	   }
 
 	   // update loop values (in case we get stopped by an event)
-	   lCurrPos = ((unsigned int)loop->dCurrPos);
+	   lCurrPos = (unsigned int) lrint(loop->dCurrPos);
 	   loop->lLoopLength = (unsigned long) lCurrPos;
 	   loop->lCycleLength = loop->lLoopLength;
 
@@ -3683,11 +3698,15 @@ runSooperLooper(LADSPA_Handle Instance,
 
 		 rCurrPos = fmod (loop->dCurrPos - lOutputLatency - lInputLatency, loop->lLoopLength);
 		 if (rCurrPos < 0) {
-		    rCurrPos += loop->lLoopLength;
+			 rCurrPos += loop->lLoopLength;
 		 }
 
 		 rLoopSample = & pLS->pSampleBuf[(loop->lLoopStart + (unsigned int) rCurrPos) & pLS->lBufferSizeMask];
 		 lInputReadPos = pLS->lInputBufWritePos;
+
+		 if (rCurrPos == loop->lLoopLength-1) {
+			 //DBG(cerr << "In play rcurrpos == : " << rCurrPos << "  val: " << *pLoopSample << endl;);
+		 }
 
 		 
 		 
