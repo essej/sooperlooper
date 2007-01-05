@@ -263,7 +263,10 @@ typedef struct {
 
 	LADSPA_Data fFeedFadeAtten;
 	LADSPA_Data fFeedFadeDelta;
-	
+
+	LADSPA_Data fFeedSrcFadeAtten;
+	LADSPA_Data fFeedSrcFadeDelta;
+
 	LADSPA_Data fLoopXfadeTime;
 
 	unsigned int lSamplesSinceSync;
