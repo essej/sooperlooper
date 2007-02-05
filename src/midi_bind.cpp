@@ -281,14 +281,14 @@ string MidiBindInfo::serialize() const
 	//    instance is loop #
 	//    min_val_bound is what to treat midi val 0
 	//    max_val_bound is what to treat midi val 127
-	//    valstyle can be 'gain'
+	//    valstyle can be 'gain' or 'toggle'
 
 	char buf[100];
 
 	// i:ch s:type i:param  s:cmd  s:ctrl i:instance f:min_val_bound f:max_val_bound s:valstyle
 	snprintf(buf, sizeof(buf), "%d %s %d  %s %s %d  %.9g %.9g  %s",
 		 channel, type.c_str(), param, command.c_str(),
-		 control.c_str(), instance, lbound, ubound, style == GainStyle ? "gain": "");
+		 control.c_str(), instance, lbound, ubound, style == GainStyle ? "gain": ( style == ToggleStyle ? "toggle": ""));
 	
 	return string(buf);
 }
@@ -328,6 +328,9 @@ bool MidiBindInfo::unserialize(string strval)
 
 	if (stylestr[0] == 'g') {
 		style = GainStyle;
+	}
+	else if (stylestr[0] == 't') {
+		style = ToggleStyle;
 	} else {
 		style = NormalStyle;
 	}

@@ -81,7 +81,10 @@ void PrefsDialog::init()
 	wxBoxSizer * topsizer = new wxBoxSizer(wxVERTICAL);
 	
 	_notebook = new wxNotebook (this, -1);
+#if wxCHECK_VERSION(2,6,0)
+#else
 	wxNotebookSizer *nbs = new wxNotebookSizer( _notebook );
+#endif
 	
 	_config_panel = new ConfigPanel (_parent, _notebook, -1);
 	_notebook->AddPage (_config_panel, wxT("Connection"), true);
@@ -95,7 +98,12 @@ void PrefsDialog::init()
 	_latency_panel = new LatencyPanel(_parent, _notebook, -1);
 	_notebook->AddPage (_latency_panel, wxT("Latency"), false);
 	
+#if wxCHECK_VERSION(2,6,0)
+	topsizer->Add (_notebook, 1, wxEXPAND|wxALL, 6);
+#else
 	topsizer->Add (nbs, 1, wxEXPAND|wxALL, 6);
+#endif
+
 	
 	
 	this->SetAutoLayout( true );     // tell dialog to use sizer

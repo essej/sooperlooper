@@ -37,7 +37,8 @@ public:
 	
 	enum Style {
 		NormalStyle = 0,
-		GainStyle,
+		GainStyle = 1,
+		ToggleStyle = 2
 	};
 	
 	MidiBindInfo() {}
@@ -62,6 +63,9 @@ public:
 	float       ubound;
 	
 	Style       style;
+
+	// internal state for toggle style
+	float       last_toggle_val;
 };
 
 	inline bool MidiBindInfo::operator==(const MidiBindInfo &other) const
@@ -111,7 +115,7 @@ public:
 	typedef std::map<int, BindingList> BindingsMap;
 	
 	// for direct use... be careful
-	const BindingsMap & bindings_map() { return _bindings; }
+	BindingsMap & bindings_map() { return _bindings; }
 	
 protected:
 

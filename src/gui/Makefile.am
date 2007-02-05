@@ -39,5 +39,7 @@ noinst_HEADERS = $(wildcard *.hpp *.h)
 
 EXTRA_DIST = $(wildcard pixmaps/*.xpm)
 
+# 	`@WX_CONFIG@ --rezflags` slgui
 mac: slgui
-	`@WX_CONFIG@ --rezflags` slgui
+	/Developer/Tools/Rez -d __DARWIN__ -t APPL Carbon.r -o slgui
+

@@ -361,22 +361,32 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long
 
 	int key = (chcmd << 8) | param;
 
-	MidiBindings::BindingsMap::const_iterator iter = _midi_bindings.bindings_map().find(key);
+	MidiBindings::BindingsMap::iterator iter = _midi_bindings.bindings_map().find(key);
 	
 	if (iter != _midi_bindings.bindings_map().end())
 	{
-		const MidiBindings::BindingList & elist = (*iter).second;
+		MidiBindings::BindingList & elist = (*iter).second;
 
-		for (MidiBindings::BindingList::const_iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
-			const MidiBindInfo & info = (*eiter);
+		for (MidiBindings::BindingList::iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
+			MidiBindInfo & info = (*eiter);
 			float scaled_val;
 			
 			if (info.style == MidiBindInfo::GainStyle) {
 				scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
 				scaled_val = uniform_position_to_gain (scaled_val);
 			}
-			else {
+			else if (info.style == MidiBindInfo::GainStyle) {
 				scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
+			}
+			else {
+				// toggle style is a bit of a hack, but here we go
+				if (info.last_toggle_val != info.ubound) {
+					scaled_val = info.ubound;
+				} 
+				else {
+					scaled_val = info.lbound;
+				}
+				info.last_toggle_val = scaled_val;
 			}
 			//cerr << "found binding: key: " << key << " val is " << (int) val << "  scaled: " << scaled_val << "  type: " << info.type << endl;
 			//cerr << "ctrl: " << info.control << "  cmd: " << info.command << endl;

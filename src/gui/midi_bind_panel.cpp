@@ -265,6 +265,7 @@ void MidiBindPanel::init()
 	_style_combo =  new wxChoice(_range_panel, ID_StyleCombo,  wxDefaultPosition, wxSize(30, -1), 0, 0);
 	_style_combo->Append (wxT("Normal"), (void *) MidiBindInfo::NormalStyle);
 	_style_combo->Append (wxT("Gain"), (void *) MidiBindInfo::GainStyle);
+	_style_combo->Append (wxT("Toggle"), (void *) MidiBindInfo::ToggleStyle);
 	_style_combo->SetToolTip(wxT("Choose a scaling type"));
 	_style_combo->SetSelection(0);
 	rowsizer->Add (_style_combo, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
@@ -438,7 +439,9 @@ void MidiBindPanel::refresh_state()
 		// range
 		item.SetColumn(3);
 		if (info.command == "set") {
-			item.SetText (wxString::Format(wxT("%g - %g %s"), info.lbound, info.ubound, info.style == MidiBindInfo::GainStyle ? wxT("gain") : wxT("")));
+			item.SetText (wxString::Format(wxT("%g - %g %s"), info.lbound, info.ubound, 
+						       info.style == MidiBindInfo::GainStyle ? wxT("gain") : 
+						       ( info.style == MidiBindInfo::ToggleStyle ? wxT("togg") : wxT("") )));
 		}
 		else {
 			if (info.command == "susnote") {
@@ -487,10 +490,13 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 		return;
 	}
 
-	MidiBindInfo * info = static_cast<MidiBindInfo *>((void *)_listctrl->GetItemData(_selitem));
+	MidiBindInfo * info = 0;
 
 	if (usethis) {
 		info = usethis;
+	}
+	else if (_selitem >=0) {
+		info = static_cast<MidiBindInfo *>((void *)_listctrl->GetItemData(_selitem));
 	}
 
 	if (!info) {
@@ -536,11 +542,14 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 	_lbound_ctrl->SetValue (wxString::Format(wxT("%g"), info->lbound));
 	_ubound_ctrl->SetValue (wxString::Format(wxT("%g"), info->ubound));
 
-	if (info->style == MidiBindInfo::NormalStyle) {
-		_style_combo->SetSelection(0);
+	if (info->style == MidiBindInfo::GainStyle) {
+		_style_combo->SetSelection(1);
+	}
+	if (info->style == MidiBindInfo::ToggleStyle) {
+		_style_combo->SetSelection(2);
 	}
 	else {
-		_style_combo->SetSelection(1);
+		_style_combo->SetSelection(0);
 	}
 	
 }
@@ -618,6 +627,9 @@ void MidiBindPanel::update_curr_binding()
 
 	if (_style_combo->GetSelection() == 1) {
 		_currinfo.style = MidiBindInfo::GainStyle;
+	}
+	else if (_style_combo->GetSelection() == 2) {
+		_currinfo.style = MidiBindInfo::ToggleStyle;
 	}
 	else {
 		_currinfo.style = MidiBindInfo::NormalStyle;
