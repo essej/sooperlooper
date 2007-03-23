@@ -1161,7 +1161,7 @@ static LoopChunk * beginInsert(SooperLooperI *pLS, LoopChunk *loop)
       
       if (loop->dCurrPos > 0) {
 	 loop->lMarkL = 0;
-	 loop->lMarkH = (unsigned long) rCurrPos - 1;
+	 loop->lMarkH = max((unsigned long) rCurrPos, 1ul) - 1;
       }
       else {
 	 loop->frontfill = 0; 
@@ -1311,7 +1311,10 @@ static LoopChunk * beginOverdub(SooperLooperI *pLS, LoopChunk *loop)
       } else {
 	 pLS->fCurrRate = 1.0;
 	 loop->lMarkL = 0;
-	 loop->lMarkH = (unsigned long) fmod (rCurrPos - (lOutputLatency + lInputLatency), loop->lLoopLength) - 1;
+	 //loop->lMarkH = (unsigned long) fmod (rCurrPos - (lOutputLatency + lInputLatency), loop->lLoopLength)) - 1;
+	 long markh = fmod (rCurrPos - (lOutputLatency + lInputLatency), loop->lLoopLength) - 1;
+	 if (markh < 0) markh = 0;
+	 loop->lMarkH = (unsigned long) markh;
 	 loop->lMarkEndL = (unsigned long) rCurrPos;
 	 loop->lMarkEndH = loop->lLoopLength - 1;
 

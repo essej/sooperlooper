@@ -542,6 +542,7 @@ LooperPanel::post_init()
 
 	_toppansizer->Layout();
 	_botpansizer->Layout();
+	GetSizer()->Layout();
 	Refresh(false);
 }
 
