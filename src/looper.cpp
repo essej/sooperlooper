@@ -153,6 +153,9 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	memset (ports, 0, sizeof(float) * LASTPORT);
 
 	memset(_down_stamps, 0, sizeof(nframes_t) * (Event::LAST_COMMAND+1));
+	for (int i=0; i < (int) Event::LAST_COMMAND+1; ++i) {
+	  _down_stamps[i] = 1 << 31;
+	}
 
 	_longpress_frames = (nframes_t) lrint (srate * 1.0); // more than 2 secs is SUS
 
@@ -570,8 +573,8 @@ Looper::do_event (Event *ev)
 		Event::command_t cmd = ev->Command;
 		if ((int) cmd >= 0 && (int) cmd < (int) Event::LAST_COMMAND)
 		{
-			
-			if (ports[State] != LooperStatePlaying
+
+		  if (ports[State] != LooperStatePlaying
 			    || cmd == Event::REVERSE || cmd == Event::DELAY || cmd == Event::UNDO || cmd == Event::REDO)
 			{
 				

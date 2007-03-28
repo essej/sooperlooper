@@ -319,6 +319,7 @@ MidiBridge::incoming_midi (Parser &p, byte *msg, size_t len)
 		b3 = 0;
 	}
 	
+	//fprintf(stderr, "incmoing: %02x  %02x  %02x\n", (int) b1,(int) b2, (int) b3);
 	
 	if (_learning || _getnext) {
 		finish_learn(b1, b2, b3);
@@ -375,7 +376,7 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long
 				scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
 				scaled_val = uniform_position_to_gain (scaled_val);
 			}
-			else if (info.style == MidiBindInfo::GainStyle) {
+			else if (info.style == MidiBindInfo::NormalStyle) {
 				scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
 			}
 			else {
@@ -388,7 +389,8 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long
 				}
 				info.last_toggle_val = scaled_val;
 			}
-			//cerr << "found binding: key: " << key << " val is " << (int) val << "  scaled: " << scaled_val << "  type: " << info.type << endl;
+
+			//fprintf(stderr, "found binding: key: %x  val: %02x  scaled: %g  type: %s\n", (int) key, (int) val, scaled_val, info.type.c_str());
 			//cerr << "ctrl: " << info.control << "  cmd: " << info.command << endl;
 
 			
@@ -414,7 +416,7 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long
 		MidiSyncEvent (Event::MidiTick, framepos); // emit
 	}
 	else {
-		//fprintf(stderr, "binding %x not found\n", key);
+		fprintf(stderr, "binding %x not found\n", key);
 	}
 }
 
@@ -447,7 +449,7 @@ MidiBridge::send_event (const MidiBindInfo & info, float val, long framepos)
 		
 		if (cmd == "note") {
 			if (val > 0.0f) {
-				//cerr << "val is " << val << endl;
+			  //cerr << "val is " << val << endl;
 				cmd = "down";
 				optype = Event::type_cmd_down;
 			}
