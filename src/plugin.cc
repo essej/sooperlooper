@@ -970,7 +970,10 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
       if (loop->dCurrPos > 0) {
 	 loop->lMarkL = 0;
 	 //loop->lMarkH = (unsigned long) rCurrPos - 1;
-	 loop->lMarkH = (unsigned long) max (rCurrPos - (lOutputLatency + lInputLatency), 1.0) - 1;
+	 //loop->lMarkH = (unsigned long) max (rCurrPos - (lOutputLatency + lInputLatency), 1.0) - 1;
+	 long markh = (long) fmod (rCurrPos - (lOutputLatency + lInputLatency), loop->lLoopLength) - 1;
+	 if (markh < 0) markh = 0;
+	 loop->lMarkH = markh;
 	 if (loop->lMarkH == 0) {
 		 loop->frontfill = 0;
 		 loop->lMarkL = loop->lMarkH = LONG_MAX;
@@ -1151,21 +1154,23 @@ static LoopChunk * beginInsert(SooperLooperI *pLS, LoopChunk *loop)
       double rCurrPos = srcloop->dCurrPos;
 
       if (prevstate != STATE_RECORD && prevstate != STATE_TRIG_STOP) {
-	      rCurrPos -= lInputLatency - lOutputLatency;
+	      //rCurrPos -= lInputLatency + lOutputLatency;
       
-	      if (rCurrPos < 0) {
-		      rCurrPos += loop->lLoopLength;
-	      }
-	      rCurrPos = fmod (rCurrPos, loop->lLoopLength);
+	      //if (rCurrPos < 0) {
+	      //	      rCurrPos += loop->lLoopLength;
+	      //}
+	      //rCurrPos = fmod (rCurrPos, loop->lLoopLength);
       }
       
       if (loop->dCurrPos > 0) {
-	 loop->lMarkL = 0;
-	 loop->lMarkH = max((unsigned long) rCurrPos, 1ul) - 1;
+	      long markh = (long) fmod (rCurrPos - (lOutputLatency + lInputLatency), loop->lLoopLength) - 1;
+	      if (markh < 0) markh = 0;
+	      loop->lMarkL = 0;
+	      loop->lMarkH = (unsigned long) markh;
       }
       else {
-	 loop->frontfill = 0; 
-	 loop->lMarkL = loop->lMarkH = LONG_MAX;
+	      loop->frontfill = 0; 
+	      loop->lMarkL = loop->lMarkH = LONG_MAX;
       }
       
       loop->lMarkEndL = loop->lMarkEndH = LONG_MAX;
@@ -1312,7 +1317,7 @@ static LoopChunk * beginOverdub(SooperLooperI *pLS, LoopChunk *loop)
 	 pLS->fCurrRate = 1.0;
 	 loop->lMarkL = 0;
 	 //loop->lMarkH = (unsigned long) fmod (rCurrPos - (lOutputLatency + lInputLatency), loop->lLoopLength)) - 1;
-	 long markh = fmod (rCurrPos - (lOutputLatency + lInputLatency), loop->lLoopLength) - 1;
+	 long markh = (long) fmod (rCurrPos - (lOutputLatency + lInputLatency), loop->lLoopLength) - 1;
 	 if (markh < 0) markh = 0;
 	 loop->lMarkH = (unsigned long) markh;
 	 loop->lMarkEndL = (unsigned long) rCurrPos;
@@ -2041,6 +2046,10 @@ runSooperLooper(LADSPA_Handle Instance,
 					      
 				      }
 
+			      }
+			      if (fQuantizeMode == QUANT_OFF) {
+				      // then send out a sync here for any slaves
+				      pfSyncOutput[0] = 1.0f;
 			      }
 		      } else {
 			      if (pLS->state == STATE_RECORD) {
@@ -3625,7 +3634,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 
 		 // ASSUMPTION: our rate is +1 only		 
-		 if (firsttime && (lCurrPos % loop->lCycleLength) == 0)
+		 if (firsttime && ((unsigned long)rCurrPos % loop->lCycleLength) == 0)
 		 {
 		    firsttime = loop->firsttime = 0;
 		    DBG(fprintf(stderr, "first time done\n"));
