@@ -19,6 +19,7 @@
 
 #include <wx/wx.h>
 #include <wx/listctrl.h>
+#include <wx/sysopt.h>
 
 #include <iostream>
 #include <string>
@@ -107,6 +108,8 @@ void KeysPanel::onPaint(wxPaintEvent &ev)
 void KeysPanel::init()
 {
 	wxBoxSizer * topsizer = new wxBoxSizer(wxVERTICAL);
+
+	wxSystemOptions::SetOption(wxT("mac.listctrl.always_use_generic"), 1);
 
 	_listctrl = new wxListCtrl(this, ID_ListCtrl, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER);
 	_listctrl->InsertColumn(0, wxT("Command"));

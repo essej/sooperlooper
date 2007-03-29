@@ -44,7 +44,7 @@ using namespace SooperLooper;
 
 
 /*****************************************************************************/
-//#define LOOPDEBUG
+#define LOOPDEBUG
 
 #ifdef LOOPDEBUG
 #define DBG(x) x
@@ -887,7 +887,6 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 	      loop->srcloop = srcloop = loop->prev;
       }
 
-      
       pLS->state = STATE_MULTIPLY;
 
 //      if (*pLS->pfQuantMode == 0.0f) {
@@ -960,7 +959,7 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 
       if (prevstate != STATE_RECORD && prevstate != STATE_TRIG_STOP) {
 	      rCurrPos -= lInputLatency - lOutputLatency;
-      
+	      
 	      if (rCurrPos < 0) {
 		      rCurrPos += loop->lLoopLength;
 	      }
@@ -972,6 +971,7 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 	 //loop->lMarkH = (unsigned long) rCurrPos - 1;
 	 //loop->lMarkH = (unsigned long) max (rCurrPos - (lOutputLatency + lInputLatency), 1.0) - 1;
 	 long markh = (long) fmod (rCurrPos - (lOutputLatency + lInputLatency), loop->lLoopLength) - 1;
+	 //cerr << "Low MARK H: " << markh << endl;
 	 if (markh < 0) markh = 0;
 	 loop->lMarkH = markh;
 	 if (loop->lMarkH == 0) {
@@ -980,6 +980,7 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 	 }
       }
       else {
+	      cerr << "no frontfill, dcurrpos: " << loop->dCurrPos << endl;
 	 // no need to frontfill
 	 loop->frontfill = 0;
 	 loop->lMarkL = loop->lMarkH = LONG_MAX;
@@ -991,6 +992,15 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
       DBG(fprintf(stderr,"Mark at L:%lu  h:%lu\n",loop->lMarkL, loop->lMarkH);
 	  fprintf(stderr,"EndMark at L:%lu  h:%lu\n",loop->lMarkEndL, loop->lMarkEndH);
 	  fprintf(stderr,"Entering MULTIPLY state  with cyclecount=%lu   curpos=%g   looplen=%lu\n", loop->lCycles, loop->dCurrPos, loop->lLoopLength));
+
+      if (prevstate == STATE_RECORD || prevstate == STATE_TRIG_STOP) {
+	      // input always immediately available
+	      pLS->lFramesUntilInput = 0;
+	      // rest is handled elsewhere
+	      pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
+	      pLS->fFeedSrcFadeDelta = 1.0f / xfadeSamples;
+      }
+
    }
 
    return loop;
@@ -1835,15 +1845,6 @@ runSooperLooper(LADSPA_Handle Instance,
 		 break;
 		 
 		 
-	      case STATE_DELAY:
-		 // goes back to overdub mode
-		 // pop the delay loop off....
-		 if (loop) {
-		    undoLoop(pLS);
-		    loop = pLS->headLoopChunk;
-		 }
-		 // continue through to default
-
 	   case STATE_RECORD:
 	   case STATE_TRIG_STOP:
 		   // lets sync on ending record with overdub
@@ -1867,6 +1868,8 @@ runSooperLooper(LADSPA_Handle Instance,
 				   pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
 				   pLS->fFeedSrcFadeDelta = 1.0f / xfadeSamples;
 
+				   // then send out a sync here for any slaves
+				   //pfSyncOutput[0] = 1.0f;
 			   }
 		   } else {
 			   DBG(fprintf(stderr, "starting syncwait for overdub:  %f\n", fSyncMode));
@@ -1876,6 +1879,15 @@ runSooperLooper(LADSPA_Handle Instance,
 		   }
 		   
 		   break;
+	   case STATE_DELAY:
+		   // goes back to overdub mode
+		   // pop the delay loop off....
+		   if (loop) {
+			   undoLoop(pLS);
+			   loop = pLS->headLoopChunk;
+		   }
+		   // continue through to default
+
 	   default:
 		   if (loop) {
 			   loop = beginOverdub(pLS, loop);
@@ -1955,7 +1967,7 @@ runSooperLooper(LADSPA_Handle Instance,
 					      srcloop = loop->srcloop;
 				      else
 					      srcloop = NULL;
-
+				      
 				      if (prevstate == STATE_RECORD || prevstate == STATE_TRIG_STOP) {
 					      // input always immediately available
 					      pLS->lFramesUntilInput = 0;
@@ -1967,14 +1979,11 @@ runSooperLooper(LADSPA_Handle Instance,
 					      pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
 					      pLS->fFeedSrcFadeDelta = 1.0f / xfadeSamples;
 				      }
-
+				      
 			      }
 
-			      if (fQuantizeMode == QUANT_OFF) {
-				      // then send out a sync here for any slaves
-				      pfSyncOutput[0] = 1.0f;
-			      }
-
+			      // then send out a sync here for any slaves
+			      pfSyncOutput[0] = 1.0f;
 		      } else {
 			      if (pLS->state == STATE_RECORD) {
 				      pLS->state = STATE_TRIG_STOP;
@@ -2047,10 +2056,8 @@ runSooperLooper(LADSPA_Handle Instance,
 				      }
 
 			      }
-			      if (fQuantizeMode == QUANT_OFF) {
-				      // then send out a sync here for any slaves
-				      pfSyncOutput[0] = 1.0f;
-			      }
+			      // then send out a sync here for any slaves
+			      pfSyncOutput[0] = 1.0f;
 		      } else {
 			      if (pLS->state == STATE_RECORD) {
 				      pLS->state = STATE_TRIG_STOP;
@@ -2077,11 +2084,8 @@ runSooperLooper(LADSPA_Handle Instance,
 			      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 			      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 
-			      if (fQuantizeMode == QUANT_OFF) {
-				      // then send out a sync here for any slaves
-				      pfSyncOutput[0] = 1.0f;
-			      }
-			      
+			      // then send out a sync here for any slaves
+			      pfSyncOutput[0] = 1.0f;
 		      } else {
 			      pLS->nextState = STATE_PLAY;
 			      pLS->waitingForSync = 1;
@@ -2130,10 +2134,8 @@ runSooperLooper(LADSPA_Handle Instance,
 				      }
 			      }
 
-			      if (fQuantizeMode == QUANT_OFF) {
-				      // then send out a sync here for any slaves
-				      pfSyncOutput[0] = 1.0f;
-			      }
+			      // then send out a sync here for any slaves
+			      pfSyncOutput[0] = 1.0f;
 		      }
 		      else {
 			      if (pLS->state == STATE_RECORD) {
@@ -2160,10 +2162,8 @@ runSooperLooper(LADSPA_Handle Instance,
 			      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 			      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 
-			      if (fQuantizeMode == QUANT_OFF) {
-				      // then send out a sync here for any slaves
-				      pfSyncOutput[0] = 1.0f;
-			      }
+			      // then send out a sync here for any slaves
+			      pfSyncOutput[0] = 1.0f;
 			      
 		      } else {
 			      pLS->nextState = STATE_PLAY;
@@ -3082,8 +3082,8 @@ runSooperLooper(LADSPA_Handle Instance,
 			 
 		 }
 		 else {
-			 if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (lCurrPos % loop->lCycleLength) == 0)
-			     || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0)) || (fQuantizeMode == QUANT_8TH && (lCurrPos % eighthSamples) == 0))
+			 if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (((unsigned int)rCurrPos) % loop->lCycleLength) == 0)
+			     || (fQuantizeMode == QUANT_LOOP && ((unsigned int) rCurrPos == 0)) || (fQuantizeMode == QUANT_8TH && (((unsigned int) rCurrPos) % eighthSamples) == 0))
 			 {
 				 pfSyncOutput[lSampleIndex] = 1.0f;
 			 }
@@ -3321,7 +3321,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			 
 		 }
 		 else {
-			 if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (slCurrPos % loop->lCycleLength) == 0))
+			 if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (((unsigned int) rCurrPos) % loop->lCycleLength) == 0))
 			 {
 				 pfSyncOutput[lSampleIndex] = 1.0f;
 			 }
@@ -3604,8 +3604,8 @@ runSooperLooper(LADSPA_Handle Instance,
 				 }
 			 }
 		 }
-		 else if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (lCurrPos % loop->lCycleLength) == 0)
-			  || (fQuantizeMode == QUANT_LOOP && (lCurrPos == 0)) || (fQuantizeMode == QUANT_8TH && (lCurrPos % eighthSamples) == 0)) {
+		 else if (fQuantizeMode == QUANT_OFF || (fQuantizeMode == QUANT_CYCLE && (((unsigned int) rCurrPos) % loop->lCycleLength) == 0)
+			  || (fQuantizeMode == QUANT_LOOP && (((unsigned int)rCurrPos) == 0)) || (fQuantizeMode == QUANT_8TH && (((unsigned int)rCurrPos) % eighthSamples) == 0)) {
 			 pfSyncOutput[lSampleIndex] = 1.0f;
 		 }
 		 
