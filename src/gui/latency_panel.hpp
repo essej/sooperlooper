@@ -68,6 +68,7 @@ class LatencyPanel
 	
 	
 	wxCheckBox  * _auto_check;
+	wxCheckBox  * _auto_disable_check;
 	SpinBox     * _input_spin;
 	SpinBox     * _output_spin;
 	

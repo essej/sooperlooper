@@ -247,6 +247,7 @@ class Engine
 	float              _common_output_peak;
 	float              _falloff_per_sample;
 	
+	bool               _auto_disable_latency;
    private:
 
 	double _tempo_counter;

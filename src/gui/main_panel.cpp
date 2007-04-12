@@ -842,7 +842,8 @@ MainPanel::on_xfade_change (float value)
 void
 MainPanel::on_dry_change (float value)
 {
-	_loop_control->post_global_ctrl_change (wxT("dry"), value);
+	//_loop_control->post_global_ctrl_change (wxT("dry"), value);
+	_loop_control->post_ctrl_change (-2, wxT("dry"), value);
 }
 
 void

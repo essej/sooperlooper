@@ -153,6 +153,7 @@ namespace SooperLooper {
 		    MidiStart,
 		    MidiStop,
 		    MidiTick,
+		    AutoDisableLatency,
 		    // these are per-loop, but not used in the old plugin part
 		    SaveLoop,
 		    UseCommonIns,

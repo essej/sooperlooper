@@ -332,6 +332,7 @@ LoopControl::disconnect (bool killit)
 		lo_send(_osc_addr, "/unregister_update", "sss", "wet", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/unregister_update", "sss", "dry", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/unregister_update", "sss", "input_gain", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/unregister_update", "sss", "auto_disable_latency", _our_url.c_str(), "/ctrl");
 
 		lo_send(_osc_addr, "/unregister_auto_update", "sss",  "in_peak_meter", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/unregister_auto_update", "sss",  "out_peak_meter", _our_url.c_str(), "/ctrl");
@@ -645,6 +646,7 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 		lo_send(_osc_addr, "/register_update", "sss", "wet", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_update", "sss", "dry", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_update", "sss", "input_gain", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/register_update", "sss", "auto_disable_latency", _our_url.c_str(), "/ctrl");
 
 		lo_send(_osc_addr, "/register_auto_update", "siss", "in_peak_meter", 100, _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_auto_update", "siss", "out_peak_meter", 100, _our_url.c_str(), "/ctrl");
@@ -804,6 +806,17 @@ LoopControl::request_control_value (int index,  wxString ctrl)
 }
 
 void
+LoopControl::request_global_control_value (wxString ctrl)
+{
+	if (!_osc_addr) return;
+	char buf[20];
+
+	snprintf(buf, sizeof(buf), "/get", index);
+	
+	lo_send(_osc_addr, buf, "sss", (const char *) ctrl.ToAscii(), _our_url.c_str(), "/ctrl");
+}
+
+void
 LoopControl::request_global_values()
 {
 	if (!_osc_addr) return;
@@ -819,6 +832,7 @@ LoopControl::request_global_values()
 	lo_send(_osc_addr, buf, "sss", "dry", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "wet", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "input_gain", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "auto_disable_latency", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "in_peak_meter", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "out_peak_meter", _our_url.c_str(), "/ctrl");
 

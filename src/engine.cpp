@@ -66,14 +66,15 @@ Engine::Engine ()
 	_midi_bridge = 0;
 	_learn_done = false;
 	_received_done = false;
-	_target_common_dry = 1.0f;
-	_curr_common_dry = 1.0f;
+	_target_common_dry = 0.0f;
+	_curr_common_dry = 0.0f;
 	_target_common_wet = 1.0f;
 	_curr_common_wet = 1.0f;
 	_target_input_gain = 1.0f;
 	_curr_input_gain = 1.0f;
 	_common_input_peak = 0.0f;
 	_common_output_peak = 0.0f;
+	_auto_disable_latency = true;
 	_loading = false;
 	_use_temp_input = true; // all the time for now
 	_ignore_quit = false;
@@ -537,6 +538,10 @@ Engine::add_loop (Looper * instance)
 {
 	_instances.push_back (instance);
 	
+	bool val = _auto_disable_latency && _target_common_dry > 0.0f;
+	instance->set_disable_latency_compensation (val);
+
+
 	update_sync_source();
 
 	LoopAdded (instance->get_index(), !_loading); // emit
@@ -865,7 +870,23 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 	}
 	else if (ev->Control == Event::DryLevel)
 	{
-		_target_common_dry = ev->Value;
+		if (ev->Value != _target_common_dry) {
+			
+			// if > 0 and auto_disable_latency is enabled, disable compensation for each loop
+			//   otherwise, enable compensation
+
+			if ((_target_common_dry == 0.0f) || (ev->Value == 0.0f)) {
+				bool val = _auto_disable_latency && ev->Value > 0.0f;
+
+				for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i) {
+					(*i)->set_disable_latency_compensation (val);
+				}
+				_conns_changed = true;
+			}
+
+			_target_common_dry = ev->Value;
+		}
+		
 	}
 	else if (ev->Control == Event::WetLevel)
 	{
@@ -874,6 +895,16 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 	else if (ev->Control == Event::InputGain)
 	{
 		_target_input_gain = ev->Value;
+	}
+	else if (ev->Control == Event::AutoDisableLatency)
+	{
+		_auto_disable_latency = ev->Value;
+		bool val = _auto_disable_latency && _target_common_dry > 0.0f;
+	
+		for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i) {
+			(*i)->set_disable_latency_compensation (val);
+		}
+		_conns_changed = true;
 	}
 }
 
@@ -1298,6 +1329,9 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (gg_event->param == "input_gain") {
 			gg_event->ret_value = (float) _curr_input_gain;
 		}
+		else if (gg_event->param == "auto_disable_latency") {
+			gg_event->ret_value =  (_auto_disable_latency) ? 1.0f: 0.0f;
+		}
 		else if (gg_event->param == "sync_source") {
 			gg_event->ret_value = (float) _sync_source;
 		}
@@ -1320,6 +1354,10 @@ Engine::process_nonrt_event (EventNonRT * event)
 		}
 		else if (gs_event->param == "input_gain") {
 			_target_input_gain = gs_event->value;
+		}
+		else if (gs_event->param == "auto_disable_latency") {
+			_auto_disable_latency = gs_event->value;
+			//cerr << "NEED TO setting disable_compensation " << endl;
 		}
 		else if (gs_event->param == "sync_source") {
 			if ((int) gs_event->value > (int) FIRST_SYNC_SOURCE
@@ -1947,6 +1985,11 @@ Engine::load_session (std::string fname, string * readstr)
 			sscanf (prop->value().c_str(), "%g", &_curr_input_gain);
 			_target_input_gain = _curr_input_gain;
 		}
+		if ((prop = globals_node->property ("auto_disable_latency")) != 0) {
+			int temp = 0;
+			sscanf (prop->value().c_str(), "%d", &temp);
+			_auto_disable_latency = temp ? true: false;
+		}
 		if ((prop = globals_node->property ("sync_source")) != 0) {
 			sscanf (prop->value().c_str(), "%d", (int *) (&_sync_source));
 		}
@@ -2020,6 +2063,9 @@ Engine::save_session (std::string fname, string * writestr)
 	
 	snprintf(buf, sizeof(buf), "%d", (int)_sync_source);
 	globals_node->add_property ("sync_source", buf);
+
+	snprintf(buf, sizeof(buf), "%d", (int)_auto_disable_latency ? 1 : 0);
+	globals_node->add_property ("auto_disable_latency", buf);
 	
 	
 	XMLNode * loopers_node = root_node->add_child ("Loopers");

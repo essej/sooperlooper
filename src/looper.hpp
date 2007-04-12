@@ -88,6 +88,9 @@ class Looper
 	void set_auto_latency (bool val) { _auto_latency = val; }
 	bool get_auto_latency () { return _auto_latency; }
 
+	// 
+	void set_disable_latency_compensation (bool val) { _disable_latency = val; recompute_latencies(); }
+	bool get_disable_latency_compensation () { return _disable_latency; }
 	
 	XMLNode& get_state () const;
 	int set_state (const XMLNode&);
@@ -161,6 +164,7 @@ class Looper
 	bool                _use_common_outs;
 	bool                _have_discrete_io;
 	bool                _auto_latency;
+	bool                _disable_latency;
 	
 	// SRC stuff
 #ifdef HAVE_SAMPLERATE

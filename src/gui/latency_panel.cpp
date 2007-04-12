@@ -36,12 +36,14 @@ enum {
 	ID_AutoCheck = 8000,
 	ID_InputLatency,
 	ID_OutputLatency,
-	ID_UpdateTimer
+	ID_UpdateTimer,
+	ID_AutoDisableCheck
 
 };
 
 BEGIN_EVENT_TABLE(SooperLooperGui::LatencyPanel, wxPanel)
 	EVT_CHECKBOX (ID_AutoCheck, SooperLooperGui::LatencyPanel::on_check)
+	EVT_CHECKBOX (ID_AutoDisableCheck, SooperLooperGui::LatencyPanel::on_check)
 	EVT_TIMER(ID_UpdateTimer, SooperLooperGui::LatencyPanel::OnUpdateTimer)
 
 	EVT_SIZE (SooperLooperGui::LatencyPanel::onSize)
@@ -98,6 +100,7 @@ LatencyPanel::OnUpdateTimer(wxTimerEvent &ev)
 		lcontrol.request_control_value(0, wxT("input_latency"));
 		lcontrol.request_control_value(0, wxT("output_latency"));
 		lcontrol.request_control_value(0, wxT("autoset_latency"));
+		lcontrol.request_global_control_value(wxT("auto_disable_latency"));
 		_do_request = false;
 		_update_timer->Start(200, true);
 		return;
@@ -146,6 +149,8 @@ void LatencyPanel::init()
 	
 	topsizer->Add (rowsizer, 0, wxEXPAND|wxALL, 6);
 
+	_auto_disable_check = new wxCheckBox(this, ID_AutoDisableCheck, wxT("Automatically Disable Compensation when Monitoring Input"));
+	topsizer->Add (_auto_disable_check, 0, wxEXPAND|wxALL, 12);
 
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
 	_update_timer->Start(5000, true);
@@ -165,6 +170,9 @@ void LatencyPanel::refresh_state()
 
 	if (lcontrol.get_value (0, wxT("autoset_latency"), retval)) {
 		_auto_check->SetValue(retval > 0.0f);
+	}
+	if (lcontrol.get_global_value (wxT("auto_disable_latency"), retval)) {
+		_auto_disable_check->SetValue(retval > 0.0f);
 	}
 	
 	if (lcontrol.get_value (0, wxT("input_latency"), retval)) {
@@ -199,8 +207,12 @@ void LatencyPanel::on_check (wxCommandEvent &ev)
 	// set state of autoset for all loops
 	LoopControl & lcontrol = _parent->get_loop_control();
 
-	lcontrol.post_ctrl_change (-1, wxT("autoset_latency"), _auto_check->GetValue() ? 1.0f : 0.0f);
-
+	if (ev.GetId() == ID_AutoCheck) {
+		lcontrol.post_ctrl_change (-1, wxT("autoset_latency"), _auto_check->GetValue() ? 1.0f : 0.0f);
+	}
+	else {
+		lcontrol.post_ctrl_change (-2, wxT("auto_disable_latency"), _auto_disable_check->GetValue() ? 1.0f : 0.0f);
+	}
 	_do_request = true;
 	_update_timer->Start(200, true);
 

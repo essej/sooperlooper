@@ -44,7 +44,7 @@ using namespace SooperLooper;
 
 
 /*****************************************************************************/
-#define LOOPDEBUG
+//#define LOOPDEBUG
 
 #ifdef LOOPDEBUG
 #define DBG(x) x

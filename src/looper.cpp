@@ -104,9 +104,10 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_use_common_ins = true;
 	_use_common_outs = true;
 	_auto_latency = true;  // default for now
+	_disable_latency = false;
 	_have_discrete_io = discrete;
-	_curr_dry = 1.0f;
-	_target_dry = 1.0f;
+	_curr_dry = 0.0f;
+	_target_dry = 0.0f;
 	_curr_input_gain = 1.0f;
 	_targ_input_gain = 1.0f;
 	_input_peak = 0.0f;
@@ -458,6 +459,12 @@ Looper::recompute_latencies()
 		}
 	}
 	
+	if (_disable_latency) {
+		ports[TriggerLatency] = 0; // should we?
+		ports[InputLatency] = 0;
+		ports[OutputLatency] = 0;
+	}
+
 	//cerr << "input lat: " << ports[InputLatency] << endl;
 	//cerr << "output lat: " << ports[OutputLatency] << endl;
 }
@@ -870,6 +877,7 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 
 		descriptor->connect_port (_instances[i], AudioOutputPort, outbuf);
 
+	       
 
 		if (i == 0) {
 			descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _use_sync_buf + offset);
