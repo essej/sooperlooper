@@ -119,15 +119,16 @@ AppFrame::AppFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 	_prefs_dialog = 0;
 	_help_window = 0;
 	
-	init();
+
 
 #ifdef __WXMAC__
 	wxApp::s_macAboutMenuItemId = ID_AboutMenu;
 	wxApp::s_macPreferencesMenuItemId = ID_PreferencesMenu;
 	wxApp::s_macExitMenuItemId = ID_QuitStop;
-	wxApp::s_macHelpMenuTitleName = "Help";
+	wxApp::s_macHelpMenuTitleName = "&Help";
 #endif
 
+	init();
 }
 
 AppFrame::~AppFrame()

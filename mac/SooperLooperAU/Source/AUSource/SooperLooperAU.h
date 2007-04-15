@@ -153,6 +153,9 @@ public:
 	virtual unsigned int get_input_port_count () { return _in_channel_id; }
 	virtual unsigned int get_output_port_count () {return _out_channel_id; }
 	
+	virtual SooperLooper::nframes_t get_input_port_latency (SooperLooper::port_id_t portid);
+	virtual SooperLooper::nframes_t get_output_port_latency (SooperLooper::port_id_t portid);
+
 	virtual bool get_transport_info (SooperLooper::TransportInfo &info);
 	
 	virtual SooperLooper::nframes_t get_samplerate() { return (SooperLooper::nframes_t) GetSampleRate(); }
@@ -178,7 +181,7 @@ protected:
 	AudioBufferList * _in_buflist[SL_MAXLOOPS];
 	AudioTimeStamp  _curr_stamp;
 	UInt32       _last_framepos;
-	
+	UInt32       _last_rendered_frames;
 	
 	std::string  _guiapp_path;
 protected:

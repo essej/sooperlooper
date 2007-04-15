@@ -689,6 +689,7 @@ void Engine::process_rt_loop_manage_events ()
 		else if (lmevt->etype == LoopManageEvent::AddLoop)
 		{
 			_rt_instances.push_back (lmevt->looper);
+			lmevt->looper->recompute_latencies();
 		}
 		
 		_loop_manage_to_rt_queue->increment_read_ptr(1);

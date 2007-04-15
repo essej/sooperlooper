@@ -60,6 +60,7 @@ SooperLooperAU::SooperLooperAU(AudioUnit component)
 	_out_channel_id = 0;
 	_engine_thread = 0;
 	_last_framepos = 0;
+	_last_rendered_frames = 0;
 	
 	//sl_init();
 	
@@ -270,6 +271,11 @@ ComponentResult 	SooperLooperAU::Render(	AudioUnitRenderActionFlags &ioActionFla
 {
 		// save the timestamp
 	_curr_stamp = inTimeStamp;
+	
+	if (_last_rendered_frames != nFrames) {
+		_last_rendered_frames = nFrames;
+		ConnectionsChanged(); // emit
+	}
 	
 	// if we're bypassed we need to passthru the other buses
 	if (ShouldBypassEffect())
@@ -599,6 +605,20 @@ sample_t * SooperLooperAU::get_output_port_buffer (port_id_t port, nframes_t nfr
 	}
 */	
 	return 0;
+}
+
+nframes_t SooperLooperAU::get_input_port_latency (port_id_t portid)
+{
+	// looks like the best we can do is report buffer size as an estimate.
+	// it may not always be the case, but this is only used for auto-setting latency compensation
+	return _last_rendered_frames;
+}
+
+nframes_t SooperLooperAU::get_output_port_latency (port_id_t portid)
+{
+	// looks like the best we can do is report buffer size as an estimate.
+	// it may not always be the case, but this is only used for auto-setting latency compensation
+	return _last_rendered_frames;
 }
 
 bool

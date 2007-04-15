@@ -162,6 +162,7 @@ class Engine
 	void prepare_buffers(nframes_t nframes);
 
 	void connections_changed();
+
 	
 	AudioDriver * _driver;
 	

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-beta="beta3"
+version="1.1.0-beta3-intel"
 
 cp ../src/sooperlooper macdist/SooperLooper.app/Contents/MacOS/
 cp ../src/gui/slgui macdist/SooperLooper.app/Contents/MacOS/
@@ -17,7 +17,13 @@ install_name_tool -change /opt/local/lib/libiconv.2.dylib @executable_path/../Fr
 strip sooperlooper
 strip slgui
 
-cd ../Frameworks
+cd .. 
+mkdir -p Frameworks
+cd Frameworks
+
+cp -f /opt/local/lib/libz.1.dylib .
+cp -f /opt/local/lib/libxml2.2.dylib .
+cp -f /opt/local/lib/libiconv.2.dylib .
 
 install_name_tool -id @executable_path/../Frameworks/libiconv.2.dylib libiconv.2.dylib 
 install_name_tool -id @executable_path/../Frameworks/libxml2.2.dylib libxml2.2.dylib 
@@ -28,4 +34,5 @@ install_name_tool -change /opt/local/lib/libiconv.2.dylib @executable_path/../Fr
 
 cd ../../../..
 
-hdiutil create -fs HFS+ -volname SooperLooper-1.1.0-${beta} -srcfolder macdist SooperLooper-1.1.0-${beta}-intel.dmg
+#rm -f SooperLooper-${version}.dmg
+#hdiutil create -fs HFS+ -volname SooperLooper-${version} -srcfolder macdist SooperLooper-${version}.dmg

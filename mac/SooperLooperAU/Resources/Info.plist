@@ -16,8 +16,10 @@
 	<string>BNDL</string>
 	<key>CFBundleSignature</key>
 	<string>Soop</string>
+	<key>CFBundleShortVersions</key>
+	<string>1.1.0</string>
 	<key>CFBundleVersion</key>
-	<string>1.0</string>
+	<string>1.1.0</string>
 	<key>CSResourcesFileMapped</key>
 	<true/>
 </dict>
