@@ -624,7 +624,10 @@ MainPanel::update_controls()
 		_common_wet_bar->set_indicator_value (val);
 	}
 
-	
+	if (_loop_control->is_global_updated(wxT("selected_loop_num"))) {
+		_loop_control->get_global_value(wxT("selected_loop_num"), val);
+		set_curr_loop ((int) val);
+	}
 }
 
 void
@@ -970,7 +973,7 @@ void MainPanel::intialize_keybindings ()
 	KeyboardTarget::add_action ("select_loop_7", bind (slot (*this, &MainPanel::select_loop_action), 7));
 	KeyboardTarget::add_action ("select_loop_8", bind (slot (*this, &MainPanel::select_loop_action), 8));
 	KeyboardTarget::add_action ("select_loop_9", bind (slot (*this, &MainPanel::select_loop_action), 9));
-	KeyboardTarget::add_action ("select_loop_all", bind (slot (*this, &MainPanel::select_loop_action), -1));
+	KeyboardTarget::add_action ("select_loop_all", bind (slot (*this, &MainPanel::select_loop_action), 0));
 
 	
 	// these are the defaults... they get overridden by rc file
@@ -1025,7 +1028,8 @@ void MainPanel::select_loop_action (bool release, int index)
 	index--;
 	
 	if (index < (int) _looper_panels.size()) {
-
+		// send osc control
+		_loop_control->post_ctrl_change(-2, "selected_loop_num", (float) index);
 		set_curr_loop (index);
 	}
 }

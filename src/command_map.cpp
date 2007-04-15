@@ -129,6 +129,10 @@ CommandMap::CommandMap()
 	_global_controls["tap_tempo"] = Event::TapTempo;
 	_global_controls["save_loop"] = Event::SaveLoop;
 	_global_controls["auto_disable_latency"] = Event::AutoDisableLatency;
+	_global_controls["select_next_loop"] = Event::SelectNextLoop;
+	_global_controls["select_prev_loop"] = Event::SelectPrevLoop;
+	_global_controls["select_all_loops"] = Event::SelectAllLoops;
+	_global_controls["selected_loop_num"] = Event::SelectedLoopNum;
 
 	_str_ctrl_map.insert (_global_controls.begin(), _global_controls.end());
 

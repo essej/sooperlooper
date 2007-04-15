@@ -333,6 +333,7 @@ LoopControl::disconnect (bool killit)
 		lo_send(_osc_addr, "/unregister_update", "sss", "dry", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/unregister_update", "sss", "input_gain", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/unregister_update", "sss", "auto_disable_latency", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/unregister_update", "sss", "selected_loop_num", _our_url.c_str(), "/ctrl");
 
 		lo_send(_osc_addr, "/unregister_auto_update", "sss",  "in_peak_meter", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/unregister_auto_update", "sss",  "out_peak_meter", _our_url.c_str(), "/ctrl");
@@ -647,6 +648,7 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 		lo_send(_osc_addr, "/register_update", "sss", "dry", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_update", "sss", "input_gain", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_update", "sss", "auto_disable_latency", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/register_update", "sss", "selected_loop_num", _our_url.c_str(), "/ctrl");
 
 		lo_send(_osc_addr, "/register_auto_update", "siss", "in_peak_meter", 100, _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_auto_update", "siss", "out_peak_meter", 100, _our_url.c_str(), "/ctrl");
@@ -833,6 +835,7 @@ LoopControl::request_global_values()
 	lo_send(_osc_addr, buf, "sss", "wet", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "input_gain", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "auto_disable_latency", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "selected_loop_num", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "in_peak_meter", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "out_peak_meter", _our_url.c_str(), "/ctrl");
 

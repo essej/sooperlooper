@@ -39,6 +39,8 @@ MidiBindings::MidiBindings()
 	_typemap["cc"] = 0xb0;
 	_typemap["n"] = 0x90;
 	_typemap["pc"] = 0xc0;
+	_typemap["on"] = 0x90;
+	_typemap["off"] = 0x90;
 
 	// temp bindings
 // 	_bindings[0x9000 | 48] = MidiBindInfo("note", "record", -1);
@@ -106,7 +108,7 @@ MidiBindings::binding_key (const MidiBindInfo & info) const
 
 	TypeMap::const_iterator titer = _typemap.find(info.type);
 	if (titer == _typemap.end()) {
-		cerr << "invalid midi type str: " << info.type << endl;
+		//cerr << "invalid midi type str: " << info.type << endl;
 		return 0;
 	}
 	

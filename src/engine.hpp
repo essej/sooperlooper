@@ -248,6 +248,8 @@ class Engine
 	float              _falloff_per_sample;
 	
 	bool               _auto_disable_latency;
+	int                _selected_loop;
+
    private:
 
 	double _tempo_counter;
@@ -263,7 +265,8 @@ class Engine
 	volatile bool _tempo_changed;
 	volatile bool _beat_occurred;
 	volatile bool _conns_changed;
-	
+	volatile bool _sel_loop_changed;
+
 	double _tempo_averages[TEMPO_WINDOW_SIZE];
 	double _running_tempo_sum;
 	unsigned int    _avgindex;

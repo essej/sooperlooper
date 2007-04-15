@@ -78,6 +78,7 @@ Engine::Engine ()
 	_loading = false;
 	_use_temp_input = true; // all the time for now
 	_ignore_quit = false;
+	_selected_loop = -1; // all
 	
 	_running_frames = 0;
 	_last_tempo_frame = 0;
@@ -576,6 +577,11 @@ Engine::remove_loop (Looper * looper)
 	}
 	
 	update_sync_source();
+
+	if (_selected_loop >= _instances.size()) {
+		_selected_loop = 0;
+	}
+
 	
 	return true;
 }
@@ -764,7 +770,8 @@ Engine::process (nframes_t nframes)
 				syncm = (int) _sync_source - 1;
 				_rt_instances[syncm]->run (usedframes, doframes);
 				
-				if (evt->Instance == -1 || evt->Instance == syncm) {
+				if (evt->Instance == -1 || evt->Instance == syncm ||
+				    (evt->Instance == -3 && (_selected_loop == syncm || _selected_loop == -1))) {
 					_rt_instances[syncm]->do_event (evt);
 				}
 			}
@@ -779,7 +786,8 @@ Engine::process (nframes_t nframes)
 				(*i)->run (usedframes, doframes);
 					
 				// process event
-				if (evt->Instance == -1 || evt->Instance == m) {
+				if (evt->Instance == -1 || evt->Instance == m || 
+				    (evt->Instance == -3 && (_selected_loop == m || _selected_loop == -1))) {
 					(*i)->do_event (evt);
 				}
 			}
@@ -905,6 +913,27 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			(*i)->set_disable_latency_compensation (val);
 		}
 		_conns_changed = true;
+	}
+	else if (ev->Control == Event::SelectedLoopNum)
+	{
+		cerr << "sel loop changed to : " << (int) ev->Value << endl;
+		_selected_loop = (int) ev->Value;
+		_sel_loop_changed = true;
+	}
+	else if (ev->Control == Event::SelectAllLoops)
+	{
+		_selected_loop = (int) -1;
+		_sel_loop_changed = true;
+	}
+	else if (ev->Control == Event::SelectPrevLoop)
+	{
+		_selected_loop = _selected_loop > 0 ? _selected_loop - 1 : _rt_instances.size() - 1;
+		_sel_loop_changed = true;
+	}
+	else if (ev->Control == Event::SelectNextLoop)
+	{
+		_selected_loop = (_selected_loop + 1) % _rt_instances.size();
+		_sel_loop_changed = true;
 	}
 }
 
@@ -1228,6 +1257,13 @@ Engine::mainloop()
 			_tempo_changed = false;
 		}
 
+		if (_sel_loop_changed)
+		{
+			ConfigUpdateEvent cu_event(ConfigUpdateEvent::Send, -2, Event::SelectedLoopNum, "", "", (float) _selected_loop);
+			_osc->finish_update_event (cu_event);
+			_sel_loop_changed = false;
+		}
+
 		if (_beat_occurred)
 		{
 			//cerr << "beat occurred" << endl;
@@ -1332,6 +1368,9 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (gg_event->param == "auto_disable_latency") {
 			gg_event->ret_value =  (_auto_disable_latency) ? 1.0f: 0.0f;
 		}
+		else if (gg_event->param == "selected_loop_num") {
+			gg_event->ret_value = (float) _selected_loop;
+		}
 		else if (gg_event->param == "sync_source") {
 			gg_event->ret_value = (float) _sync_source;
 		}
@@ -1358,6 +1397,9 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (gs_event->param == "auto_disable_latency") {
 			_auto_disable_latency = gs_event->value;
 			//cerr << "NEED TO setting disable_compensation " << endl;
+		}
+		else if (gs_event->param == "selected_loop_num") {
+			_selected_loop = (int) gs_event->value;
 		}
 		else if (gs_event->param == "sync_source") {
 			if ((int) gs_event->value > (int) FIRST_SYNC_SOURCE

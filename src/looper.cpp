@@ -105,6 +105,9 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_use_common_outs = true;
 	_auto_latency = true;  // default for now
 	_disable_latency = false;
+	_last_trigger_latency = 0.0f;
+	_last_input_latency = 0.0f;
+	_last_output_latency = 0.0f;
 	_have_discrete_io = discrete;
 	_curr_dry = 0.0f;
 	_target_dry = 0.0f;
@@ -430,6 +433,24 @@ Looper::set_buffer_size (nframes_t bufsize)
 		recompute_latencies();
 
 			
+	}
+}
+
+void Looper::set_disable_latency_compensation(bool val)
+{
+	if (val != _disable_latency) {
+		_disable_latency = val;
+		if (val) {
+			_last_trigger_latency = ports[TriggerLatency];
+			_last_input_latency = ports[InputLatency];
+			_last_output_latency = ports[OutputLatency] ;
+		} else {
+			ports[TriggerLatency] = _last_trigger_latency;
+			ports[InputLatency] = _last_input_latency;
+			ports[OutputLatency] = _last_output_latency;
+		}
+
+		recompute_latencies(); 
 	}
 }
 
@@ -1479,6 +1500,9 @@ Looper::get_state () const
 
 	snprintf(buf, sizeof(buf), "%s", _relative_sync ? "yes": "no");
 	node->add_property ("relative_sync", buf);
+
+	snprintf(buf, sizeof(buf), "%s", _auto_latency ? "yes": "no");
+	node->add_property ("auto_latency", buf);
 	
 	// panner
 	if (_panner) {
@@ -1563,7 +1587,11 @@ Looper::set_state (const XMLNode& node)
 	if ((prop = node.property ("relative_sync")) != 0) {
 		_relative_sync = (prop->value() == "yes");
 	}
-	
+
+	if ((prop = node.property ("auto_latency")) != 0) {
+		_auto_latency = (prop->value() == "yes");
+	}
+
 
 	for (iter = node.children().begin(); iter != node.children().end(); ++iter) {
 		if ((*iter)->name() == "Panner") {
@@ -1610,6 +1638,8 @@ Looper::set_state (const XMLNode& node)
 		}
 		
 	}
+
+	recompute_latencies();
 
 	return 0;
 }

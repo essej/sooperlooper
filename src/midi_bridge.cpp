@@ -416,7 +416,7 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long
 		MidiSyncEvent (Event::MidiTick, framepos); // emit
 	}
 	else {
-		fprintf(stderr, "binding %x not found\n", key);
+		// fprintf(stderr, "binding %x not found\n", key);
 	}
 }
 
@@ -434,28 +434,53 @@ MidiBridge::send_event (const MidiBindInfo & info, float val, long framepos)
 	Event::command_t cmdtype = cmdmap.to_command_t (info.control);
 	
 	if (cmd == "set") {
-		if (_use_osc) {
-			snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, cmd.c_str());
-			
-			if (lo_send(_addr, tmpbuf, "sf", info.control.c_str(), val) < 0) {
-				fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
-			}
+		bool sendit = true;
+
+		if (info.type == "cc") {
+			// nothing, just saves some compares for the common case
+		}
+		else if (info.type == "off" && val > 0.0f) {
+			// binding was for note off only, skip this
+			sendit = false;
+		}
+		else if (info.type == "on" && val == 0.0f) {
+			// binding was for note on only, skip this
+			sendit = false;
 		}
 
-		MidiControlEvent (optype, ctrltype, val, (int8_t) info.instance, framepos); // emit
+		if (sendit) {
+			if (_use_osc) {
+				snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, cmd.c_str());
+				
+				if (lo_send(_addr, tmpbuf, "sf", info.control.c_str(), val) < 0) {
+					fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
+				}
+			}
+			
+			MidiControlEvent (optype, ctrltype, val, (int8_t) info.instance, framepos); // emit
+		}
 		
 	}
 	else {
-		
+		bool sendit = true;
+
 		if (cmd == "note") {
 			if (val > 0.0f) {
-			  //cerr << "val is " << val << endl;
+				//cerr << "val is " << val << "  type is: " << info.type << endl;
 				cmd = "down";
 				optype = Event::type_cmd_down;
+				if (info.type == "off") {
+					// binding was for note off only, skip this
+					sendit = false;
+				}
 			}
 			else {
 				cmd = "up";
 				optype = Event::type_cmd_up;
+				if (info.type == "on") {
+					// binding was for note on only, skip this
+					sendit = false;
+				}
 			}
 		}
 		else if (cmd == "susnote") {
@@ -469,16 +494,17 @@ MidiBridge::send_event (const MidiBindInfo & info, float val, long framepos)
 			}
 		}
 
-		if (_use_osc) {
-			snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, cmd.c_str());
-			
-			if (lo_send(_addr, tmpbuf, "s", info.control.c_str()) < 0) {
-				fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
+		if (sendit) {
+			if (_use_osc) {
+				snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, cmd.c_str());
+				
+				if (lo_send(_addr, tmpbuf, "s", info.control.c_str()) < 0) {
+					fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
+				}
 			}
+
+			MidiCommandEvent (optype, cmdtype, (int8_t) info.instance, framepos); // emit
 		}
-
-		MidiCommandEvent (optype, cmdtype, (int8_t) info.instance, framepos); // emit
-
 	}
 }
 

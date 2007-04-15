@@ -83,6 +83,8 @@ END_EVENT_TABLE()
 
 static const wxString CcString(wxT("CC"));
 static const wxString NoteString(wxT("Note"));
+static const wxString NoteOnString(wxT("Note On"));
+static const wxString NoteOffString(wxT("Note Off"));
 static const wxString PcString(wxT("PC"));
 	
 static int wxCALLBACK list_sort_callback (long item1, long item2, long sortData)
@@ -201,12 +203,13 @@ void MidiBindPanel::init()
 	rowsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
 	_loopnum_combo =  new wxChoice(_edit_panel, ID_LoopNumCombo, wxDefaultPosition, wxSize(100, -1), 0, 0);
+	_loopnum_combo->Append (wxT("Selected"), (void *) -2);
 	_loopnum_combo->Append (wxT("Global"), (void *) -1);
 	_loopnum_combo->Append (wxT("All"), (void *) 0);
 	for (int i=1; i <= 16; ++i) {
 		_loopnum_combo->Append (wxString::Format(wxT("%d"), i), (void *) i);
 	}
-	_loopnum_combo->SetSelection(1);
+	_loopnum_combo->SetSelection(2);
 	rowsizer->Add (_loopnum_combo, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
 
 	_sus_check = new wxCheckBox(_edit_panel, ID_SusCheck, wxT("SUS"));
@@ -235,6 +238,8 @@ void MidiBindPanel::init()
 	_type_combo = new wxChoice(_edit_panel, ID_TypeCombo,  wxDefaultPosition, wxSize(100, -1), 0, 0);
 	//_control_combo->SetToolTip(wxT("Choose control or command"));
 	_type_combo->Append (NoteString);
+	_type_combo->Append (NoteOnString);
+	_type_combo->Append (NoteOffString);
 	_type_combo->Append (CcString);
 	_type_combo->Append (PcString);
 	_type_combo->SetSelection(0);
@@ -429,6 +434,9 @@ void MidiBindPanel::refresh_state()
 		else if (info.instance == -2) {
 			item.SetText (wxT("Global"));
 		}
+		else if (info.instance == -3) {
+			item.SetText (wxT("Selected"));
+		}
 		_listctrl->SetItem (item);
 
 		// midi event
@@ -510,7 +518,7 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 		}
 	}
 
-	_loopnum_combo->SetSelection(info->instance + 2);
+	_loopnum_combo->SetSelection(info->instance + 3);
 	_chan_spin->SetValue(info->channel + 1);
 
 	if (info->type == "cc") {
@@ -518,6 +526,12 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 	}
 	else if (info->type == "n") {
 		_type_combo->SetStringSelection(NoteString);
+	}
+	else if (info->type == "on") {
+		_type_combo->SetStringSelection(NoteOnString);
+	}
+	else if (info->type == "off") {
+		_type_combo->SetStringSelection(NoteOffString);
 	}
 	else if (info->type == "pc") {
 		_type_combo->SetStringSelection(PcString);
@@ -578,6 +592,12 @@ void MidiBindPanel::update_curr_binding()
 	wxString tsel = _type_combo->GetStringSelection();
 	if (tsel == NoteString) {
 		_currinfo.type = "n";
+	}
+	else if (tsel == NoteOnString) {
+		_currinfo.type = "on";
+	}
+	else if (tsel == NoteOffString) {
+		_currinfo.type = "off";
 	}
 	else if (tsel == CcString) {
 		_currinfo.type = "cc";

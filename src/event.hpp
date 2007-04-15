@@ -154,6 +154,10 @@ namespace SooperLooper {
 		    MidiStop,
 		    MidiTick,
 		    AutoDisableLatency,
+		    SelectNextLoop,
+		    SelectPrevLoop,
+		    SelectAllLoops,
+		    SelectedLoopNum,
 		    // these are per-loop, but not used in the old plugin part
 		    SaveLoop,
 		    UseCommonIns,
