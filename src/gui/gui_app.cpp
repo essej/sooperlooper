@@ -111,7 +111,7 @@ GuiApp::parse_options (int argc, wxChar **argv)
 
 	wxString logotext = wxT("SooperLooper ") +
 		wxString::FromAscii (sooperlooper_version) +
-		wxT("\nCopyright 2005 Jesse Chappell\n")
+		wxT("\nCopyright 2007 Jesse Chappell\n")
 		wxT("SooperLooper comes with ABSOLUTELY NO WARRANTY\n")
 		wxT("This is free software, and you are welcome to redistribute it\n")
 		wxT("under certain conditions; see the file COPYING for details\n");
