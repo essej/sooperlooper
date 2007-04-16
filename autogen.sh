@@ -187,6 +187,7 @@ dnl figure out how best to optimize
 dnl 
 
 gcc_major_version=`$CC -dumpversion | sed -e 's/\..*//'`
+os_system=`uname -s`
 
 if test "\$target_cpu" = "powerpc"; then
   AC_DEFINE(POWERPC, 1, "Are we running a ppc CPU?")
@@ -204,6 +205,12 @@ dnl -mcpu=7450 does not reliably work with gcc 3.*
   fi
   OPT_FLAGS="\$OPT_FLAGS -mhard-float -mpowerpc-gfxopt"
 elif echo \$target_cpu | grep "i*86" >/dev/null; then
+ if test "\$os_system" = "Darwin"; then
+   # pretty good assumption
+   mmx="-mmmx" 
+   sse="-msse -mfpmath=sse"
+   OPT_FLAGS="-D_REENTRANT -Os -fomit-frame-pointer \$mmx \$sse"   
+ else
   cat /proc/cpuinfo | grep mmx >/dev/null
   if test \$? = 0; then
     mmx="-mmmx"
@@ -216,17 +223,20 @@ elif echo \$target_cpu | grep "i*86" >/dev/null; then
   if test \$? = 0; then
     dreidnow="-m3dnow"
   fi
+ 
+ 
   AC_DEFINE(x86, 1, "Nope its intel")
   if test "\$target_cpu" = "i586"; then
-    OPT_FLAGS="-DREENTRANT -O2 -march=i586 -fomit-frame-pointer -ffast-math -fstrength-reduce"
+    OPT_FLAGS="-DREENTRANT -O2 -march=i586 -fomit-frame-pointer"
   elif test "\$target_cpu" = "i686"; then
-    OPT_FLAGS="-D_REENTRANT -O2 -march=i686 -fomit-frame-pointer -ffast-math -fstrength-reduce"
-    if test "\$gcc_major_version" = "3"; then
+    OPT_FLAGS="-D_REENTRANT -O2 -march=i686 -fomit-frame-pointer"
+    if test "\$gcc_major_version" -ge "3"; then
       OPT_FLAGS="\$OPT_FLAGS \$mmx \$sse \$dreidnow"
     fi
   else
-    OPT_FLAGS="-D_REENTRANT -O2 -fomit-frame-pointer -ffast-math -fstrength-reduce"
+    OPT_FLAGS="-D_REENTRANT -O2 -fomit-frame-pointer"
   fi
+ fi
 fi
 
 OPT_FLAGS="\$OPT_FLAGS -pipe"

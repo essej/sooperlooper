@@ -578,7 +578,7 @@ Engine::remove_loop (Looper * looper)
 	
 	update_sync_source();
 
-	if (_selected_loop >= _instances.size()) {
+	if (_selected_loop >= (int) _instances.size()) {
 		_selected_loop = 0;
 	}
 
@@ -917,7 +917,6 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 	}
 	else if (ev->Control == Event::SelectedLoopNum)
 	{
-		cerr << "sel loop changed to : " << (int) ev->Value << endl;
 		_selected_loop = (int) ev->Value;
 		_sel_loop_changed = true;
 	}

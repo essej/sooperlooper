@@ -813,7 +813,7 @@ LoopControl::request_global_control_value (wxString ctrl)
 	if (!_osc_addr) return;
 	char buf[20];
 
-	snprintf(buf, sizeof(buf), "/get", index);
+	snprintf(buf, sizeof(buf), "/get");
 	
 	lo_send(_osc_addr, buf, "sss", (const char *) ctrl.ToAscii(), _our_url.c_str(), "/ctrl");
 }

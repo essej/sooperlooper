@@ -1,7 +1,7 @@
 #!/bin/sh
 
 rm -rf macdist/SooperLooperAU.component
-cp -R SooperLooperAU/build/Development/SooperLooperAU.component macdist/
+cp -Rp SooperLooperAU/build/Deployment/SooperLooperAU.component macdist/
 
 #cd macdist/SooperLooperAU.component/Contents/MacOS
 

@@ -130,7 +130,7 @@ GuiApp::parse_options (int argc, wxChar **argv)
 	long longval;
 
 	if (parser.Found (wxT("V"))) {
-		cerr << logotext << endl;
+		fprintf(stderr, "%s\n", (const char *) logotext.ToAscii());
 		return false;
 	}
 	
