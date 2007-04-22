@@ -29,36 +29,49 @@
       
       <div id="Content">
 
-<h4> OS X Usage</h4>
+<div class="textbox_head"><strong>OS X Usage</strong></div>
+<div class="textbox">
 <p>
 For the OS X package, a double-clickable application is provided that
-starts the GUI and and engine for you.  Before starting SooperLooper,
+starts the GUI and and engine for you.  Before starting the SooperLooper application,
 be sure to start the JACK system using the JackPilot application that
 came with JACK-OSX.  You need to explicitly press the Start button after launching JackPilot.
  Then use the Routing features of JackPilot to
-connect the inputs and outputs of SooperLooper to the desired places.
-To connect your MIDI device, you need to use a MIDI patchbay such as
-the one found <a href="http://pete.yandell.com/software/">here</a>.
-</p>
-<p>
+connect the inputs and outputs of SooperLooper to the desired places.  Click on the source, double-click on the destination.
 Read JACK's documentation PDF for all the details on the flexibility of
 its inter-application routing system.  Also note that AU and VST insert 
 plugins are available to route JACK audio from within other apps as well.
-
+</p>	
+	<p>
+To connect your MIDI device, you need to use a MIDI patchbay such as
+the one found <a href="http://pete.yandell.com/software/">here</a>.
 </p>
+
+<p>
+The AudioUnit plugin SooperLooperAU is a Music Effect type plugin, which means that
+	it accepts both audio and midi input and output.  Some plugin hosts do not handle this
+	properly.  For instance Garageband does not allow you to send midi events into the plugin for control.
+	Ableton Live does, but requires you to insert it into a MIDI Track, and patch the audio inputs as sidechains
+	from other Audio Tracks and choose In monitoring on that audio track.  Other hosts such as Rax and AULab handle it more easily.
+	</p><p>
+	<b>IMPORTANT NOTE:</b> You do <i>not</i> need to run JACK when using the AU plugin in a host.
+	You still can, however, to take advantage of JACK's
+	inter-application routing capabilities among your other audio applications.
+	</p>
 
 	<p>
 	  Use the Add and Remove Loop
 	  menu items from the Session menu to control the loop count.  Note that
 	  the default maximum loop memory per loop is around 40 seconds,
-	  so you might want to either use the -t engine command line option or the <b>Add Custom Loop</b> GUI command
+	  so you might want to use the <b>Add Custom Loop</b> GUI command
 	  to choose the maximum time used per channel of each loop.  Don't
 use too large a number if your RAM is limited, your system can slow down to
 a crawl.
 	</p>
+</div>
 
-
-<h4> Linux Usage </h4>
+<div class="textbox_head"><strong>Linux Usage</strong></div>
+<div class="textbox">
 	<p>
 	  
 	  Assuming the software is already installed (see <a href="download.html">Download</a> page for details),
@@ -153,7 +166,7 @@ Options:
 
 	</div>
       </div>
-
+</div>
 
       <div class="copyright">
 	&copy; 2005  Jesse Chappell  <i>&lt;jesse at essej dot net&gt;</i>
@@ -176,7 +189,7 @@ Options:
 
 
 	<a href="donate.html" title="Donate">Donate</a><br>
-	
+        <a href="https://lists.sourceforge.net/lists/listinfo/sooperlooper-users">Email List</a><br>	
       </div>
       
     </body>

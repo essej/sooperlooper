@@ -47,7 +47,7 @@ The feature-set is roughly based on that of the EDP (LoopIII and many features f
 	</p>
 	<h4>Command Options</h4>
 	<p> SooperLooper supports long-presses (from gui, or when commands
-	  are bound from MIDI note message).  When a command is held down for more than 2 seconds,
+	  are bound from MIDI note message).  When a command is held down for more than 1 second,
 	  it becomes a momentary (or SUS) control, so that when the command is released, it ends the
 	  operation (as if you had quickly pressed and released a command twice).  In the gui, middle-mouse button
 	  press-releases are always momentary (releases always end the operation immediately).  
@@ -199,7 +199,7 @@ The feature-set is roughly based on that of the EDP (LoopIII and many features f
 	  the available loop memory is used, and it will eventually
 	  start reclaiming the oldest versions.
 
-	  <p> Note that to undo all existing state, press Undo while Muted.
+	  <p> Note that to undo all existing state, do a long-press of Undo.
 
 	  <p> Pressing Undo when an operation is waiting for sync or quantization will
 	    cancel the pending operation.
@@ -215,8 +215,7 @@ The feature-set is roughly based on that of the EDP (LoopIII and many features f
 	  your last undo).  Taken together UNDO and REDO allow you to do some
 	  neat things: record a verse part, then hit record to do a chorus
 	  part.  To get back to the verse, press UNDO... to get to the chorus
-	  press REDO...  Pressing UNDO while in MUTE mode undoes all the way
-	  back (can be redone).
+	  press REDO.
 	</div>
 	
 	<div class="commandbox_head">
@@ -307,21 +306,30 @@ The feature-set is roughly based on that of the EDP (LoopIII and many features f
 	<h4> Control Reference </h4>
 
 	<div class="commandbox_head">
-	  <b>common dry</b>
+	  <b>main in mon</b>
 	</div>
 	<div class="commandbox">
-	  The <b>common dry</b> control sets the level of any incoming
-	  audio for passthrough to the common outputs.
+	  The <b>main in mon</b> control sets the level of any incoming
+	  audio for passthrough monitoring to the common outputs.
 	</div>
 
 	<div class="commandbox_head">
-	  <b>common wet</b>
+	  <b>main out</b>
 	</div>
 	<div class="commandbox">
-	  The <b>common wet</b> control sets master level of all loop
-	  audio being sent out the common output ports.  It does not
-	  affect the passthrough level from the common inputs, use the
-	  common dry control for that.
+	  The <b>main wet</b> control sets master level of all loop
+	  audio being sent out the main output ports.  It does not
+	  affect the passthrough level from the main inputs, use the
+	  main in mon control for that.
+	</div>
+
+	<div class="commandbox_head">
+	  <b>input gain</b>
+	</div>
+	<div class="commandbox">
+	  The <b>input gain</b> control sets a gain attenuation of the incoming
+	  main input audio.  This affect the input into the loops only, not the main
+	  passthrough monitoring.
 	</div>
 	
 	<div class="commandbox_head">
@@ -349,11 +357,12 @@ The feature-set is roughly based on that of the EDP (LoopIII and many features f
 	</div>
 	
 	<div class="commandbox_head">
-	  <b>comn in</b>
+	  <b>main in</b>
 	</div>
 	<div class="commandbox">
-	  The <b>comn in</b> control toggles the use of the common
-	  inputs for audio input to the loop.
+	  The <b>main in</b> control toggles the use of the main
+	  inputs for audio input to the loop.  This option only shows up with the loop
+	  also has discrete inputs.
 	</div>
 
 	<div class="commandbox_head">
@@ -386,7 +395,7 @@ The feature-set is roughly based on that of the EDP (LoopIII and many features f
 
 
 	<a href="donate.html" title="Donate">Donate</a><br>
-	
+        <a href="https://lists.sourceforge.net/lists/listinfo/sooperlooper-users">Email List</a><br>	
       </div>
       
     </body>

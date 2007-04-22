@@ -36,7 +36,8 @@
 	  <b> OS X Note </b>
 	  <p>
 	    To connect your MIDI device to SooperLooper, you first need to use a MIDI patchbay such as
-	    the one found <a href="http://pete.yandell.com/software/">here</a>.
+	    the one found <a href="http://pete.yandell.com/software/">here</a>.  This only applies to the "standalone" application, the AudioUnit
+	    gets its midi events directly from the host.
 	  </p>
 	</div>
 	
@@ -71,7 +72,11 @@
 	  (feedback, output level, sync, etc), and which loop index
 	  the binding will control.  The SUS option makes the binding
 	  behave as a momentary control with note and CC events (see
-	  <a href="doc_commands.html">commands</a>).
+	  <a href="doc_commands.html">commands</a>).  The All choice will apply
+	  the command to all loop instances, the Selected will apply it to
+	currently selected loop instance (changed via GUI keyboard controls 0-9 or
+	the global controls selected_loop_num, select_prev_loop, select_next_loop, and select_all_loops
+	which can be bound to midi events themselves).
 	</p>
 
 	<p> The MIDI Event area allows editing of the midi event
@@ -79,7 +84,10 @@
 	  controls to specify how the midi 0-127 values are mapped to
 	  the target control.  The scaling type choice may be either
 	  Normal (linear) or Gain (logarithmic).  The first entry maps
-	  to midi value of 0, the second entry maps to 127.
+	  to midi value of 0, the second entry maps to 127.  For instance, on the gain and level
+	  controls, the native range of the control is from 0 -> 1, so a midi event with 127 value will
+	  set the control to 1, and 0 for 0.  If you wanted to ignore the lower end of the range, you could
+	  set the min to 0.5, and then an event with 0 value will set the value to that.
 	</p>
 	<p>
 	  If the Learn button is pressed,
@@ -120,7 +128,7 @@
 
 
 	<a href="donate.html" title="Donate">Donate</a><br>
-	
+        <a href="https://lists.sourceforge.net/lists/listinfo/sooperlooper-users">Email List</a><br>	
       </div>
       
     </body>

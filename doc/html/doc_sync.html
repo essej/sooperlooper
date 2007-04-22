@@ -131,7 +131,52 @@ next sync point) and still get the right length loop.
 	  tempo.
 	</p>
 	
-      </div>
+
+<div class="textbox">
+      <h4> Latency Compensation </h4>
+<p>
+  Latency compensation allows those of you who
+don't monitor your live input through software have SL put your
+overdubs in the right place, irregardless of your buffer size.  Please
+note that if you are currently playing software instruments or using
+SW effects inline for monitoring, then you probably won't use the
+compensation feature because you are hearing what you get when you
+play with the loop, and you're only real choice is to use small buffer
+sizes to get low latency.  This might not be strictly true with regard
+to initial loop record/playback and triggering, we'll see.
+</p>
+  <p>
+In the GUI you will see a new tab in the Preferences window called
+Latency.  This exposes controls for Input Latency and Output Latency,
+as well as a toggle to automatically pick the values for these based
+on the information gathered from JACK or the AU plugin host.  Note the
+numbers from JACK are more likely to be correct, as AU plugins don't
+get all the info they need to judge it.  Either way, the automatic
+will only get you close, you might need to tweak the values yourself
+based on your hardware setup as well.  Basically, both controls
+together affect the compensation of overdubs, but the Input Latency
+also affects what content gets added to loop.  If it is too low, you
+can actually get audio the was played before you started the
+operation, and if too high you will cut off audio you intended to get
+recorded.  Once the Input latency feels right, if the overdubs aren't
+aligned with the existing loop audio the way you heard it when
+playing, then adjust the Output Latency.  There is an excellent
+description of this in Mobius' documentation in the
+<a href="http://zonemobius.com/mobiusdoc.htm#Latency%20Calibration">latency calibration</a> section.
+Check out the last 3 paragraphs of that section especially.
+</p>
+  <p>
+The Latency tab also has a "Automatically Disable Compensation when
+Monitoring input" option, which when enabled automatically turns off
+any compensation when your 'main in mon' control is not -infinity.
+This enforces the fact that if you are passing the input through for
+monitoring in SW you are hearing andn playing to the latency already.
+However, you may still want some input
+compensation to get the intended content in the loop based on your
+triggering of the operation.
+</p>
+</div>
+</div>
 
 
       <div class="copyright">
@@ -155,7 +200,7 @@ next sync point) and still get the right length loop.
 
 
 	<a href="donate.html" title="Donate">Donate</a><br>
-	
+        <a href="https://lists.sourceforge.net/lists/listinfo/sooperlooper-users">Email List</a><br>	
       </div>
       
     </body>
