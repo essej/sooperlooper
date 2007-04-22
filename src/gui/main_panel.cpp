@@ -1029,7 +1029,7 @@ void MainPanel::select_loop_action (bool release, int index)
 	
 	if (index < (int) _looper_panels.size()) {
 		// send osc control
-		_loop_control->post_ctrl_change(-2, "selected_loop_num", (float) index);
+		_loop_control->post_ctrl_change(-2, wxT("selected_loop_num"), (float) index);
 		set_curr_loop (index);
 	}
 }
