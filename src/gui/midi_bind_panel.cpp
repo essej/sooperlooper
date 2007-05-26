@@ -465,7 +465,7 @@ void MidiBindPanel::refresh_state()
 		itemid++;
 	}
 
-	_listctrl->SortItems (list_sort_callback, (unsigned) _listctrl);
+	_listctrl->SortItems (list_sort_callback, (unsigned long) _listctrl);
 	
 	for (long i=0; i < _listctrl->GetItemCount(); ++i) {
 		item.SetId(i);
@@ -582,7 +582,7 @@ void MidiBindPanel::update_curr_binding()
 	_currinfo.channel = _chan_spin->GetValue() - 1;
 
 	if (_loopnum_combo->GetSelection() >= 0) {
-		_currinfo.instance = (int) _loopnum_combo->GetClientData(_loopnum_combo->GetSelection()) - 1;
+		_currinfo.instance = (int) (long) _loopnum_combo->GetClientData(_loopnum_combo->GetSelection()) - 1;
 	}
 	else {
 		_currinfo.instance = -1;
