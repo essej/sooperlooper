@@ -178,6 +178,7 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	ports[PlaybackSync] = 0.0f;
 	ports[UseSafetyFeedback] = 1.0f;
 	ports[TriggerLatency] = 0;
+	ports[MuteQuantized] = 0;
 
 	_slave_sync_port = 1.0f;
 
@@ -1245,7 +1246,8 @@ Looper::load_loop (string fname)
 	float old_recthresh = ports[TriggerThreshold];
 	float old_syncmode = ports[Sync];
 	float old_xfadesamples = ports[FadeSamples];
-	
+	float old_state  = ports[State];
+
 	ports[TriggerThreshold] = 0.0f;
 	ports[Sync] = 0.0f;
 	ports[FadeSamples] = 0.0f;
@@ -1312,12 +1314,18 @@ Looper::load_loop (string fname)
 	}
 	
 
-	// change state to unknown, then the end record
+	// change state to unknown, then the end record (with mute optionally)
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
 		ports[Multi] = Event::UNKNOWN;
 		descriptor->run (_instances[i], 0);
-		ports[Multi] = Event::RECORD;
+
+		if ((int)old_state == LooperStateMuted) {
+			ports[Multi] = Event::MUTE;
+		}
+		else {
+			ports[Multi] = Event::RECORD;
+		}
 		descriptor->run (_instances[i], 0);
 	}
 

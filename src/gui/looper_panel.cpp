@@ -789,57 +789,6 @@ void LooperPanel::create_buttons()
 }
 
 
-wxString
-LooperPanel::get_pixmap_path (const wxString & namebase)
-{
-	wxString filename;
-	wxString pixmapdir(wxT("pixmaps/"));
-	
-#ifdef PIXMAPDIR
-	pixmapdir = PIXMAPDIR;
-#endif
-	
-	if (wxFile::Exists(wxString::Format(wxT("%s%s"), pixmapdir.c_str(), namebase.c_str()))) {
-		filename = wxString::Format(wxT("%s%s"), pixmapdir.c_str(), namebase.c_str());
-	}
-	else if (wxFile::Exists(wxString::Format(wxT("pixmaps%c%s"), wxFileName::GetPathSeparator(), namebase.c_str()))) {
-		filename = wxString::Format(wxT("pixmaps%c%s"), wxFileName::GetPathSeparator(), namebase.c_str());
-	}
-	else if (wxFile::Exists (namebase)) {
-		filename = namebase;
-	}
-	
-	return filename;
-}
-
-bool
-LooperPanel::load_bitmaps (PixButton * butt, wxString namebase)
-{
-	wxString bpath;
-
-	if(!(bpath = get_pixmap_path(namebase + wxT("_normal.png"))).empty()) {
-		butt->set_normal_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
-	}
-	
-	if(!(bpath = get_pixmap_path(namebase + wxT("_selected.png"))).empty()) {
-		butt->set_selected_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
-	}
-
-	if(!(bpath = get_pixmap_path(namebase + wxT("_focus.png"))).empty()) {
-		butt->set_focus_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
-	}
-
-	if(!(bpath = get_pixmap_path(namebase + wxT("_disabled.png"))).empty()) {
-		butt->set_disabled_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
-	}
-
-	if(!(bpath = get_pixmap_path(namebase + wxT("_active.png"))).empty()) {
-		butt->set_active_bitmap (wxBitmap(bpath, wxBITMAP_TYPE_PNG));
-	}
-
-	return true;
-}
-
 
 void
 LooperPanel::update_controls()

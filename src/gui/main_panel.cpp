@@ -88,7 +88,9 @@ enum {
 	ID_XfadeSlider,
 	ID_DryControl,
 	ID_WetControl,
-	ID_InGainControl
+	ID_InGainControl,
+	ID_MuteQuantCheck,
+	ID_OdubQuantCheck
 };
 
 
@@ -230,6 +232,20 @@ MainPanel::init()
 	_quantize_choice->append_choice (wxT("8th"), 2);
 	_quantize_choice->append_choice (wxT("loop"), 3);
 	rowsizer->Add (_quantize_choice, 0, wxALL|wxEXPAND, 2);
+
+	_mute_quant_check = new CheckBox(this, ID_MuteQuantCheck, wxT("mute quant"), true, wxDefaultPosition, wxSize(85, 18));
+	_mute_quant_check->SetFont(sliderFont);
+	_mute_quant_check->SetToolTip(wxT("quantize mute operations"));
+	_mute_quant_check->value_changed.connect (slot (*this, &MainPanel::on_mute_quant_check));
+	_mute_quant_check->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("mute_quantized")));
+	rowsizer->Add (_mute_quant_check, 0, wxALL|wxEXPAND, 2);
+
+	_odub_quant_check = new CheckBox(this, ID_OdubQuantCheck, wxT("odub quant"), true, wxDefaultPosition, wxSize(85, 18));
+	_odub_quant_check->SetFont(sliderFont);
+	_odub_quant_check->SetToolTip(wxT("quantize overdub operations"));
+	_odub_quant_check->value_changed.connect (slot (*this, &MainPanel::on_odub_quant_check));
+	_odub_quant_check->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("overdub_quantized")));
+	rowsizer->Add (_odub_quant_check, 0, wxALL|wxEXPAND, 2);
 
 	rowsizer->Add (1, 1, 1);
 
@@ -593,6 +609,16 @@ MainPanel::update_controls()
 		_loop_control->get_value(0, wxT("relative_sync"), val);
  		_relsync_check->set_value (val > 0.0);
 	}
+
+ 	if (_loop_control->is_updated(0, wxT("mute_quantized"))) {
+		_loop_control->get_value(0, wxT("mute_quantized"), val);
+ 		_mute_quant_check->set_value (val > 0.0);
+	}
+
+ 	if (_loop_control->is_updated(0, wxT("overdub_quantized"))) {
+		_loop_control->get_value(0, wxT("overdub_quantized"), val);
+ 		_odub_quant_check->set_value (val > 0.0);
+	}
 	
 	if (_loop_control->is_updated(0, wxT("fade_samples"))) {
 		_loop_control->get_value(0, wxT("fade_samples"), val);
@@ -813,6 +839,14 @@ MainPanel::on_bind_request (wxString val)
 		info.lbound = 0.0f;
 		info.ubound = 3.0f;
 	}
+	else if (val == wxT("mute_quantized")) {
+		info.control = "mute_quantized";
+		info.instance = -1;
+	}
+	else if (val == wxT("overdub_quantized")) {
+		info.control = "overdub_quantized";
+		info.instance = -1;
+	}
 	else {
 		donothing = true;
 	}
@@ -892,6 +926,20 @@ MainPanel::on_round_check (bool val)
 {
 	// send for all loops
 	_loop_control->post_ctrl_change (-1, wxT("round"), val ? 1.0f: 0.0f);
+}
+
+void
+MainPanel::on_mute_quant_check (bool val)
+{
+	// send for all loops
+	_loop_control->post_ctrl_change (-1, wxT("mute_quantized"), val ? 1.0f: 0.0f);
+}
+
+void
+MainPanel::on_odub_quant_check (bool val)
+{
+	// send for all loops
+	_loop_control->post_ctrl_change (-1, wxT("overdub_quantized"), val ? 1.0f: 0.0f);
 }
 
 void

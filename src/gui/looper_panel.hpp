@@ -67,9 +67,6 @@ class LooperPanel
 	
 	void create_buttons();
 	
-	bool load_bitmaps (PixButton * butt, wxString namebase);
-	wxString get_pixmap_path (const wxString & namebase);
-
 	void slider_events(float val, int id);
 	void control_bind_events(int id);
 

@@ -50,12 +50,14 @@ enum ControlPort {
 	InputLatency,
 	OutputLatency,
 	TriggerLatency,
+	MuteQuantized,
+	OverdubQuantized,
 	LASTCONTROLPORT,
 	RelativeSync // not an enum
 };
 
 enum OutputPort {
-	State = 22,
+	State = 24,
 	LoopLength,
 	LoopPosition,
 	CycleLength,
@@ -68,7 +70,7 @@ enum OutputPort {
 };
 
 enum AudioPort {
-	AudioInputPort=31,
+	AudioInputPort=33,
 	AudioOutputPort,
 	SyncInputPort,
 	SyncOutputPort,
@@ -204,7 +206,8 @@ typedef struct {
 	LADSPA_Data fRoundMode;    
 	LADSPA_Data fRedoTapMode;
 	LADSPA_Data fSyncMode;
-
+	LADSPA_Data fMuteQuantized;
+	LADSPA_Data fOverdubQuantized;
     
 	// used only when in DELAY mode
 	int bHoldMode;
@@ -322,6 +325,8 @@ typedef struct {
 	LADSPA_Data *pfSyncMode;    
 	LADSPA_Data *pfPlaybackSyncMode;    
 	LADSPA_Data *pfRateCtrlActive;
+	LADSPA_Data *pfMuteQuantized;
+	LADSPA_Data *pfOverdubQuantized;
 
 	LADSPA_Data *pfXfadeSamples;
 

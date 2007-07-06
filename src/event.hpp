@@ -107,6 +107,8 @@ namespace SooperLooper {
 		    SUBSTITUTE,
 		    UNDO_ALL,
 		    REDO_ALL,
+		    MUTE_ON,
+		    MUTE_OFF,
 		    LAST_COMMAND
 	    } Command;
 
@@ -135,6 +137,8 @@ namespace SooperLooper {
 		    InputLatency,
 		    OutputLatency,
 		    TriggerLatency,
+		    MuteQuantized,
+		    OverdubQuantized,
 		    // read only
 		    State,
 		    LoopLength,

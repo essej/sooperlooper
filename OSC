@@ -47,6 +47,8 @@ COMMANDS:
   substitute
   undo_all
   redo_all
+  mute_on
+  mute_off
 
 SET PARAMETER VALUES
 
@@ -79,6 +81,12 @@ SET PARAMETER VALUES
   pan2         	:: range 0 -> 1
   pan3         	:: range 0 -> 1
   pan4         	:: range 0 -> 1
+  input_latency :: range 0 -> ...
+  output_latency :: range 0 -> ...
+  trigger_latency :: range 0 -> ...
+  autoset_latency  :: 0 = off, not 0 = on
+  mute_quantized  :: 0 = off, not 0 = on
+  overdub_quantized :: 0 == off, not 0 = on
 
 GET PARAMETER VALUES
 
@@ -147,6 +155,10 @@ GLOBAL PARAMETERS
   sync_source  :: -3 = internal,  -2 = midi, -1 = jack, 0 = none, # > 0 = loop number (1 indexed) 
   tap_tempo :: any changes
   save_loop :: any change triggers quick save, be careful
+  select_next_loop  :: any changes
+  select_prev_loop  :: any changes
+  select_all_loops   :: any changes
+  selected_loop_num   :: -1 = all, 0->N selects loop instances (first loop is 0, etc) 
 
 
 LOOP ADD/REMOVE

@@ -125,6 +125,9 @@ using namespace SooperLooper;
 #define MULTI_UNDO_ALL   17
 #define MULTI_REDO_ALL   18
 
+#define MULTI_MUTE_ON    19
+#define MULTI_MUTE_OFF   20
+
 
 /*****************************************************************************/
 
@@ -557,6 +560,8 @@ activateSooperLooper(LADSPA_Handle Instance) {
   pLS->fRoundMode = 0;  
   pLS->bHoldMode = 0;
   pLS->fSyncMode = 0;
+  pLS->fMuteQuantized = 0;
+  pLS->fOverdubQuantized = 0;
   pLS->fRedoTapMode = 1;
   pLS->bRateCtrlActive = (int) *pLS->pfRateCtrlActive;
 
@@ -689,6 +694,12 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
 	 break;
       case TriggerLatency:
 	 pLS->pfTriggerLatency = DataLocation;
+	 break;
+      case MuteQuantized:
+	 pLS->pfMuteQuantized = DataLocation;
+	 break;
+      case OverdubQuantized:
+	 pLS->pfOverdubQuantized = DataLocation;
 	 break;
 	 
       case AudioInputPort:
@@ -1540,7 +1551,9 @@ runSooperLooper(LADSPA_Handle Instance,
   LADSPA_Data fSyncMode = 0.0f;
   LADSPA_Data fQuantizeMode = 0.0f;
   LADSPA_Data fPlaybackSyncMode = 0.0f;
-  
+  LADSPA_Data fMuteQuantized = 0.0f;
+  LADSPA_Data fOverdubQuantized = 0.0f;
+
   unsigned long lSampleIndex;
 
   LADSPA_Data fSafetyFeedback;
@@ -1572,6 +1585,8 @@ runSooperLooper(LADSPA_Handle Instance,
 
   fQuantizeMode = *pLS->pfQuantMode;
 
+  fMuteQuantized = *pLS->pfMuteQuantized;
+  fOverdubQuantized = *pLS->pfOverdubQuantized;
   
   eighthPerCycle = (unsigned int) *pLS->pfEighthPerCycle;
 
@@ -1612,7 +1627,24 @@ runSooperLooper(LADSPA_Handle Instance,
   {
      useDelay = 1;
   }
-
+  else if (lMultiCtrl == MULTI_MUTE_ON) {
+	  if (pLS->state != STATE_MUTE) {
+		  // lets mute it
+		  lMultiCtrl = MULTI_MUTE;
+	  } else {
+		  // already muted, do nothing
+		  lMultiCtrl = -1;
+	  }
+  }
+  else if (lMultiCtrl == MULTI_MUTE_OFF) {
+	  if (pLS->state == STATE_MUTE) {
+		  // lets unmute it
+		  lMultiCtrl = MULTI_MUTE;
+	  } else {
+		  // already not muted, do nothing
+		  lMultiCtrl = -1;
+	  }
+  }
   
   if (fTapTrig == pLS->fLastTapCtrl) {
      // ignore it, we must have a change to trigger a tap
@@ -1824,13 +1856,22 @@ runSooperLooper(LADSPA_Handle Instance,
 	{
 	   switch(pLS->state) {
 	      case STATE_OVERDUB:
-		      // don't sync overdub ops
-		      pLS->state = STATE_PLAY;
-		      pLS->wasMuted = false;
-		      DBG(fprintf(stderr,"Entering PLAY state\n"));
-		      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
-		      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
-		      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+		      // don't sync overdub ops unless asked to
+		      if ((fOverdubQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF)) {
+
+			      pLS->state = STATE_PLAY;
+			      pLS->wasMuted = false;
+			      DBG(fprintf(stderr,"Entering PLAY state\n"));
+			      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+			      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+			      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+			      // then send out a sync here for any slaves
+			      pfSyncOutput[0] = 1.0f;
+		      }
+		      else {
+			      pLS->nextState = STATE_PLAY;
+			      pLS->waitingForSync = 1;
+		      }
 		      break;
 	      case STATE_MULTIPLY:
 		 if (loop) {
@@ -1889,12 +1930,25 @@ runSooperLooper(LADSPA_Handle Instance,
 		   // continue through to default
 
 	   default:
-		   if (loop) {
-			   loop = beginOverdub(pLS, loop);
-			   if (loop)
-				   srcloop = loop->srcloop;
-			   else
-				   srcloop = NULL;
+		   if ((fOverdubQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF)) {
+
+			   if (loop) {
+				   loop = beginOverdub(pLS, loop);
+				   if (loop)
+					   srcloop = loop->srcloop;
+				   else
+					   srcloop = NULL;
+			   }
+			   // then send out a sync here for any slaves
+			   pfSyncOutput[0] = 1.0f;
+		   }
+		   else {
+			   if (pLS->state == STATE_RECORD) {
+				   pLS->state = STATE_TRIG_STOP;
+			   }
+			   DBG(fprintf(stderr, "starting syncwait for overdub\n"));
+			   pLS->nextState = STATE_OVERDUB;
+			   pLS->waitingForSync = 1;
 		   }
 	   }
 	} break;
@@ -2226,17 +2280,33 @@ runSooperLooper(LADSPA_Handle Instance,
 	
 	case MULTI_MUTE:
 	{
+
 	   switch(pLS->state) {
-	      case STATE_MUTE:
+
+	       case STATE_MUTE:
 		      // reset for audio ramp
 		      //pLS->lRampSamples = xfadeSamples;
 	       case STATE_ONESHOT:
-		 // this enters play mode but from the continuous position
-		 pLS->state = STATE_PLAY;
-		 pLS->wasMuted = false;
-		 DBG(fprintf(stderr,"Entering PLAY state continuous\n"));
-		 pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+		       // this enters play mode but from the continuous position
+		       if ((fMuteQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF)) {
+			       pLS->state = STATE_PLAY;
+			       pLS->wasMuted = false;
+			       DBG(fprintf(stderr,"Entering PLAY state continuous\n"));
+			       pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 
+			       // then send out a sync here for any slaves
+			       pfSyncOutput[0] = 1.0f;
+		       }
+		       else {
+			       // wait for sync
+			       if (pLS->state == STATE_RECORD) {
+				       pLS->state = STATE_TRIG_STOP;
+			       }
+			       DBG(fprintf(stderr, "starting syncwait for play from mute\n"));
+			       pLS->nextState = STATE_PLAY;
+			       pLS->waitingForSync = 1;	 
+		       }
+		 
 		 break;
 
 	      case STATE_MULTIPLY:
@@ -2262,23 +2332,38 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // continue through to default
 
 	      default:
-		 if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
+		   if ((fMuteQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF)) 
+		   {
+		     if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
 			 // we need to increment loop position by output latency (+ IL ?)
 			 loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
 			 DBG(fprintf(stderr,"from rec Entering mute state at %g\n", loop->dCurrPos));
 			 pLS->lFramesUntilFilled = lOutputLatency + lInputLatency;
+		     }
+		 
+	
+		     pLS->state = STATE_MUTE;
+		     DBG(fprintf(stderr,"Entering MUTE state\n"));
+		     // reset for audio ramp
+		     //pLS->lRampSamples = xfadeSamples;
+		     pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
+		     
+		     pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+		     pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+		     pLS->wasMuted = true;
+		     
+		      // then send out a sync here for any slaves
+		      pfSyncOutput[0] = 1.0f;
 		 }
-		      
-		 pLS->state = STATE_MUTE;
-		 DBG(fprintf(stderr,"Entering MUTE state\n"));
-		 // reset for audio ramp
-		 //pLS->lRampSamples = xfadeSamples;
-		 pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
-
-		 pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
-		 pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
-		 pLS->wasMuted = true;
-
+		 else {
+			 // wait for sync
+			 if (pLS->state == STATE_RECORD) {
+				 pLS->state = STATE_TRIG_STOP;
+			 }
+			 DBG(fprintf(stderr, "starting syncwait for mute\n"));
+			 pLS->nextState = STATE_MUTE;
+			 pLS->waitingForSync = 1;	 
+		 }
 	   }
 
 	} break;
@@ -3829,7 +3914,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 {
 			 loop->dCurrPos = lCurrPos + modf(loop->dCurrPos, &dDummy);
 				 
-			 DBG(fprintf(stderr, "transition to next at: %lu: %lu  %g  : %u\n", lSampleIndex, lCurrPos, loop->dCurrPos, loop->lLoopLength));
+			 DBG(fprintf(stderr, "transition to next at: %lu: %u  %g  : %lu\n", lSampleIndex, lCurrPos, loop->dCurrPos, loop->lLoopLength));
 			 loop = transitionToNext (pLS, loop, pLS->nextState);
 			 if (loop)  srcloop = loop->srcloop;
 			 else srcloop = NULL;
@@ -4327,6 +4412,10 @@ LADSPA_Descriptor * create_sl_descriptor()
       = strdup("OutputLatency");
     pcPortNames[TriggerLatency] 
       = strdup("TriggerLatency");
+    pcPortNames[MuteQuantized] 
+      = strdup("MuteQuantized");
+    pcPortNames[OverdubQuantized] 
+      = strdup("OverdubQuantized");
     
     pcPortNames[AudioInputPort] 
       = strdup("Input");
@@ -4465,7 +4554,20 @@ LADSPA_Descriptor * create_sl_descriptor()
       = 0.0f;
     psPortRangeHints[TriggerLatency].UpperBound
       = 1000000.0f;
-    
+
+    psPortRangeHints[MuteQuantized].HintDescriptor
+      = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_TOGGLED;
+    psPortRangeHints[MuteQuantized].LowerBound 
+      = 0.0f;
+    psPortRangeHints[MuteQuantized].UpperBound
+      = 1.0f; 
+    psPortRangeHints[OverdubQuantized].HintDescriptor
+      = LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_TOGGLED;
+    psPortRangeHints[OverdubQuantized].LowerBound 
+      = 0.0f;
+    psPortRangeHints[OverdubQuantized].UpperBound
+      = 1.0f;
+   
     
     psPortRangeHints[Round].HintDescriptor
       = LADSPA_HINT_TOGGLED;

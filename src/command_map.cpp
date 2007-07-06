@@ -57,6 +57,8 @@ CommandMap::CommandMap()
 	_str_cmd_map["substitute"]  = Event::SUBSTITUTE;
 	_str_cmd_map["undo_all"]  = Event::UNDO_ALL;
 	_str_cmd_map["redo_all"]  = Event::REDO_ALL;
+	_str_cmd_map["mute_on"]  = Event::MUTE_ON;
+	_str_cmd_map["mute_off"]  = Event::MUTE_OFF;
 	
 	for (StringCommandMap::iterator iter = _str_cmd_map.begin(); iter != _str_cmd_map.end(); ++iter) {
 		_cmd_str_map[(*iter).second] = (*iter).first;
@@ -84,6 +86,8 @@ CommandMap::CommandMap()
 	_input_controls["output_latency"]  = Event::OutputLatency;
 	_input_controls["trigger_latency"]  = Event::TriggerLatency;
 	_input_controls["autoset_latency"]  = Event::AutosetLatency;
+	_input_controls["mute_quantized"]  = Event::MuteQuantized;
+	_input_controls["overdub_quantized"]  = Event::OverdubQuantized;
 	//_input_controls["eighth_per_cycle_loop"] = Event::EighthPerCycleLoop;
 	//_input_controls["tempo_input"] = Event::TempoInput;
 	_input_controls["input_gain"]  = Event::InputGain;
