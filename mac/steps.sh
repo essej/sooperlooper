@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version="1.1.0-beta3-intel"
+version="1.2.0"
 
 cp ../src/sooperlooper macdist/SooperLooper.app/Contents/MacOS/
 cp ../src/gui/slgui macdist/SooperLooper.app/Contents/MacOS/
