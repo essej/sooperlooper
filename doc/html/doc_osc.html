@@ -87,6 +87,10 @@ COMMANDS:
   substitute
   undo_all
   redo_all
+  mute_on
+  mute_off
+  solo
+  pause
 
 SET PARAMETER VALUES
 
@@ -150,6 +154,8 @@ GET PARAMETER VALUES
 		11 = Scratching
 		12 = OneShot
 		13 = Substitute
+		14 = Paused
+
   next_state  :: same as state
 
   loop_len  :: in seconds
@@ -160,6 +166,7 @@ GET PARAMETER VALUES
   rate_output 
   in_peak_meter  :: absolute float sample value 0.0 -> 1.0 (or higher)
   out_peak_meter  :: absolute float sample value 0.0 -> 1.0 (or higher)
+  is_soloed       :: 1 if soloed, 0 if not
 
 SAVE/LOAD
 
