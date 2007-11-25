@@ -221,7 +221,7 @@ class Engine
 	};
 
 	float  *       _internal_sync_buf;
-	SyncSourceType _sync_source;
+	int _sync_source;
 
 	double    _tempo;        // bpm
 	float    _eighth_cycle; // eighth notes per loop cycle
@@ -271,6 +271,10 @@ class Engine
 	double _tempo_averages[TEMPO_WINDOW_SIZE];
 	double _running_tempo_sum;
 	unsigned int    _avgindex;
+
+	nframes_t       _longpress_frames;
+	nframes_t       _solo_down_stamp;
+
 
 	bool _loading;
 };

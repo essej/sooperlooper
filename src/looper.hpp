@@ -91,7 +91,13 @@ class Looper
 	// disables any compensation but maintains the current values
 	void set_disable_latency_compensation (bool val);
 	bool get_disable_latency_compensation () { return _disable_latency; }
-	
+
+	// called when some loop instance is being soloed, index says which instance (may not be us)
+	void set_soloed (int index, bool value);
+	bool is_soloed() const { return _is_soloed; }
+
+	bool is_longpress (int command);
+
 	XMLNode& get_state () const;
 	int set_state (const XMLNode&);
 
@@ -168,6 +174,9 @@ class Looper
 	LADSPA_Data         _last_trigger_latency;
 	LADSPA_Data         _last_input_latency;
 	LADSPA_Data         _last_output_latency;
+
+	bool                _pre_solo_muted;
+	bool                _is_soloed;
 
 	// SRC stuff
 #ifdef HAVE_SAMPLERATE

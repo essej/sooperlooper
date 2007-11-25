@@ -275,6 +275,7 @@ LoopControl::setup_param_map()
 	state_map[LooperStateReplacing] = wxT("replacing");
 	state_map[LooperStateDelay] = wxT("delay");
 	state_map[LooperStateMuted] = wxT("muted");
+	state_map[LooperStatePaused] = wxT("paused");
 	state_map[LooperStateScratching] = wxT("scratching");
 	state_map[LooperStateOneShot] = wxT("one shot");
 	state_map[LooperStateSubstitute] = wxT("substituting");
@@ -720,6 +721,8 @@ LoopControl::control_handler(const char *path, const char *types, lo_arg **argv,
 	wxString ctrl = wxString::FromAscii(&argv[1]->s);
 	float val  = argv[2]->f;
 
+
+	// cerr << "got " << ctrl.ToAscii() << " = " << val << "  index=" << index << endl;
 	
 	if (index == -2)
 	{
@@ -751,7 +754,6 @@ LoopControl::control_handler(const char *path, const char *types, lo_arg **argv,
 	
 	_params_val_map[index][ctrl] = val;
 
-	//cerr << "got " << ctrl << " = " << val << "  index=" << index << endl;
 	
 	return 0;
 }
@@ -1011,6 +1013,7 @@ LoopControl::register_auto_updates(int index, bool unreg)
 		lo_send(_osc_addr, buf, "sss", "rate_output", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "sss", "in_peak_meter", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "sss", "out_peak_meter", _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "sss", "is_soloed", _our_url.c_str(), "/ctrl");
 
 	} else {
 		snprintf(buf, sizeof(buf), "/sl/%d/register_auto_update", index);
@@ -1026,6 +1029,7 @@ LoopControl::register_auto_updates(int index, bool unreg)
 		lo_send(_osc_addr, buf, "siss", "rate_output",100, _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "siss", "in_peak_meter", 100, _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "siss", "out_peak_meter", 100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, buf, "siss",  "is_soloed", 100, _our_url.c_str(), "/ctrl");
 	}
 
 	

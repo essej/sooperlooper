@@ -109,6 +109,8 @@ namespace SooperLooper {
 		    REDO_ALL,
 		    MUTE_ON,
 		    MUTE_OFF,
+		    PAUSE,
+		    SOLO,
 		    LAST_COMMAND
 	    } Command;
 
@@ -173,6 +175,7 @@ namespace SooperLooper {
 		    RelativeSync,
 		    InputGain,
 		    AutosetLatency,
+		    IsSoloed,
 		    // this is ugly, because i want them midi bindable
 		    PanChannel1,
 		    PanChannel2,

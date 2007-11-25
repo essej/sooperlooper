@@ -117,6 +117,16 @@
 #include "pixmaps/substitute_focus.xpm"
 #include "pixmaps/substitute_normal.xpm"
 #include "pixmaps/substitute_selected.xpm"
+#include "pixmaps/pause_active.xpm"
+#include "pixmaps/pause_disabled.xpm"
+#include "pixmaps/pause_focus.xpm"
+#include "pixmaps/pause_normal.xpm"
+#include "pixmaps/pause_selected.xpm"
+#include "pixmaps/solo_active.xpm"
+#include "pixmaps/solo_disabled.xpm"
+#include "pixmaps/solo_focus.xpm"
+#include "pixmaps/solo_normal.xpm"
+#include "pixmaps/solo_selected.xpm"
 
 
 #endif

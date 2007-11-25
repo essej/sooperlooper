@@ -59,6 +59,8 @@ CommandMap::CommandMap()
 	_str_cmd_map["redo_all"]  = Event::REDO_ALL;
 	_str_cmd_map["mute_on"]  = Event::MUTE_ON;
 	_str_cmd_map["mute_off"]  = Event::MUTE_OFF;
+	_str_cmd_map["pause"]  = Event::PAUSE;
+	_str_cmd_map["solo"]  = Event::SOLO;
 	
 	for (StringCommandMap::iterator iter = _str_cmd_map.begin(); iter != _str_cmd_map.end(); ++iter) {
 		_cmd_str_map[(*iter).second] = (*iter).first;
@@ -116,6 +118,7 @@ CommandMap::CommandMap()
 	_output_controls["channel_count"]  = Event::ChannelCount;
 	_output_controls["in_peak_meter"]  = Event::InPeakMeter;
 	_output_controls["out_peak_meter"]  = Event::OutPeakMeter;
+	_output_controls["is_soloed"]  = Event::IsSoloed;
 
 	_str_ctrl_map.insert (_output_controls.begin(), _output_controls.end());
 

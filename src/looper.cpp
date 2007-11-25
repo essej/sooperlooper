@@ -118,6 +118,7 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_panner = 0;
 	_relative_sync = false;
 	descriptor = 0;
+	_pre_solo_muted = false;
 	
 	if (!descriptor) {
 		descriptor = create_sl_descriptor ();
@@ -387,6 +388,48 @@ Looper::use_sync_buf(sample_t * buf)
 	}
 }
 
+void 
+Looper::set_soloed (int index, bool value)
+{
+	if (index != (int) _index) {
+		// someone else is being soloed (or unsoloed), note our mute state, then mute self
+		if (value) {
+			if (ports[State] != LooperStateMuted) {
+				_pre_solo_muted = false;
+				Event ev;
+				ev.Type = Event::type_cmd_hit;
+				ev.Command = Event::MUTE_ON;
+				do_event(&ev);
+			}
+			else {
+				_pre_solo_muted = true;
+			}
+			_is_soloed = false;
+		}
+		else {
+			// they are being unsoloed, restore our mute state
+			if (!_pre_solo_muted) {
+				Event ev;
+				ev.Type = Event::type_cmd_hit;
+				ev.Command = Event::MUTE_OFF;
+				do_event(&ev);
+			}
+		}
+	}
+	else {
+		_is_soloed = value;
+			
+		if (value && ports[State] == LooperStateMuted) {
+			// ensure we are not muted if we are soloed
+			Event ev;
+			ev.Type = Event::type_cmd_hit;
+			ev.Command = Event::MUTE_OFF;
+			do_event(&ev);
+		}
+	}
+}
+
+
 void
 Looper::set_buffer_size (nframes_t bufsize)
 {
@@ -529,6 +572,9 @@ Looper::get_control_value (Event::control_t ctrl)
 	else if (ctrl == Event::AutosetLatency) {
 		return _auto_latency;
 	}
+	else if (ctrl == Event::IsSoloed) {
+		return _is_soloed ? 1.0f : 0.0f;
+	}
 	// i wish i could do something better for this
 	else if (ctrl == Event::PanChannel1) {
 		if (_panner && _panner->size() > 0) {
@@ -575,6 +621,17 @@ void Looper::set_port (ControlPort n, float val)
 		ports[n] = val;
 		break;
 	}
+}
+
+
+bool 
+Looper::is_longpress (int cmd)
+{
+	if ((int) cmd >= 0 && (int) cmd < (int) Event::LAST_COMMAND) {
+
+		return _running_frames > (_down_stamps[cmd] + _longpress_frames);
+	}
+	return false;
 }
 
 

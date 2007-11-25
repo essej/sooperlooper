@@ -88,7 +88,8 @@ Engine::Engine ()
 	
 	_loop_manage_to_rt_queue = 0;
 	_loop_manage_to_main_queue = 0;
-	
+
+	_solo_down_stamp = 1 << 31;
 	
 	pthread_cond_init (&_event_cond, NULL);
 
@@ -162,6 +163,8 @@ bool Engine::initialize(AudioDriver * driver, int buschans, int port, string pin
 	memset(_internal_sync_buf, 0, sizeof(float) * driver->get_buffersize());
 
 	_falloff_per_sample = 30.0f / driver->get_samplerate(); // 30db per second falloff
+
+	_longpress_frames = (nframes_t) lrint (driver->get_samplerate() * 1.0);
 
 	calculate_tempo_frames();
 	
@@ -758,7 +761,7 @@ Engine::process (nframes_t nframes)
 			doframes = fragpos - usedframes;
 
 			// handle special global RT events
-			if (evt->Instance == -2) {
+			if (evt->Instance == -2 || evt->Command == Event::SOLO) {
 				do_global_rt_event (evt, usedframes + doframes, nframes - (usedframes + doframes));
 			}
 
@@ -896,6 +899,34 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			_target_common_dry = ev->Value;
 		}
 		
+	}
+	else if (ev->Command == Event::SOLO) 
+	{
+		// notify all loops they are being soloed or not (this acts as a toggle)
+		int target_instance = (ev->Instance == -3) ? _selected_loop : ev->Instance;
+
+		if (target_instance >= 0 && target_instance < (int) _rt_instances.size()) 
+		{
+			if (ev->Type == Event::type_cmd_down || ev->Type == Event::type_cmd_hit || ev->Type == Event::type_cmd_upforce
+			    || (ev->Type == Event::type_cmd_up && _running_frames > (_solo_down_stamp + _longpress_frames)))
+			{
+				bool target_solo_state = _rt_instances[target_instance]->is_soloed();
+				
+				for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i) 
+				{
+					(*i)->set_soloed (target_instance, !target_solo_state);
+				}
+
+				if (ev->Type == Event::type_cmd_down) {
+					_solo_down_stamp = _running_frames;
+				} else {
+					_solo_down_stamp = 1 << 31;
+				}
+			}
+		}
+		
+		// change the event's instance so it isn't used later in the process call
+		ev->Instance = -100;
 	}
 	else if (ev->Control == Event::WetLevel)
 	{

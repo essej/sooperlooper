@@ -57,6 +57,8 @@ enum {
 	ID_ReverseButton,
 	ID_SubstituteButton,
 	ID_MuteButton,
+	ID_PauseButton,
+	ID_SoloButton,
 	ID_RateButton,
 	ID_ScratchButton,
 	ID_LoadButton,
@@ -380,9 +382,14 @@ LooperPanel::init()
 	
 	rowsizer->Add(lilcolsizer, 0, wxTOP|wxLEFT, 3);
 	
+	lilcolsizer = new wxBoxSizer(wxVERTICAL);
 	
- 	rowsizer->Add (_mute_button, 0, wxTOP|wxLEFT, 5);
-	
+ 	lilcolsizer->Add (_mute_button, 0, wxTOP, 2);
+
+ 	lilcolsizer->Add (_pause_button, 0, wxTOP, 2);
+
+	rowsizer->Add(lilcolsizer, 0, wxTOP|wxLEFT, 3);	
+
 	colsizer->Add (rowsizer, 0, wxEXPAND);
 
 	colsizer->Add (20,-1, 1);
@@ -407,6 +414,10 @@ LooperPanel::init()
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
+
+	// solo
+ 	rowsizer->Add (_solo_button, 0, wxTOP|wxLEFT, 3);
+
 	
 	colsizer->Add (rowsizer, 0, wxEXPAND);
 
@@ -622,6 +633,14 @@ LooperPanel::bind_events()
 	_mute_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("mute"))));
 	_mute_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("mute"))));
 
+	_pause_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("pause"))));
+	_pause_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("pause"))));
+	_pause_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("pause"))));
+
+	_solo_button->pressed.connect (bind (slot (*this, &LooperPanel::pressed_events), wxString(wxT("solo"))));
+	_solo_button->released.connect (bind (slot (*this, &LooperPanel::released_events), wxString(wxT("solo"))));
+	_solo_button->bind_request.connect (bind (slot (*this, &LooperPanel::button_bind_events), wxString(wxT("solo"))));
+
 	_halfx_button->pressed.connect (bind (slot (*this, &LooperPanel::rate_button_event), 0.5f));
 	_halfx_button->bind_request.connect (bind (slot (*this, &LooperPanel::rate_bind_events), 0.5f));
 	_1x_button->pressed.connect (bind (slot (*this, &LooperPanel::rate_button_event), 1.0f));
@@ -664,6 +683,8 @@ void LooperPanel::create_buttons()
  	_trig_button = new PixButton(this, ID_TrigButton);
  	_once_button = new PixButton(this, ID_OnceButton);
  	_mute_button = new PixButton(this, ID_MuteButton);
+ 	_pause_button = new PixButton(this, ID_PauseButton);
+ 	_solo_button = new PixButton(this, ID_SoloButton);
  	_scratch_button = new PixButton(this, ID_ScratchButton);
  	_halfx_button = new PixButton(this, ID_HalfXButton, true);
  	_1x_button = new PixButton(this, ID_OneXButton, true);
@@ -736,6 +757,18 @@ void LooperPanel::create_buttons()
 	_mute_button->set_focus_bitmap (wxBitmap(mute_focus));
 	_mute_button->set_disabled_bitmap (wxBitmap(mute_disabled));
 	_mute_button->set_active_bitmap (wxBitmap(mute_active));
+
+	_pause_button->set_normal_bitmap (wxBitmap(pause_normal));
+	_pause_button->set_selected_bitmap (wxBitmap(pause_selected));
+	_pause_button->set_focus_bitmap (wxBitmap(pause_focus));
+	_pause_button->set_disabled_bitmap (wxBitmap(pause_disabled));
+	_pause_button->set_active_bitmap (wxBitmap(pause_active));
+
+	_solo_button->set_normal_bitmap (wxBitmap(solo_normal));
+	_solo_button->set_selected_bitmap (wxBitmap(solo_selected));
+	_solo_button->set_focus_bitmap (wxBitmap(solo_focus));
+	_solo_button->set_disabled_bitmap (wxBitmap(solo_disabled));
+	_solo_button->set_active_bitmap (wxBitmap(solo_active));
 
 	_scratch_button->set_normal_bitmap (wxBitmap(scratch_normal));
 	_scratch_button->set_selected_bitmap (wxBitmap(scratch_selected));
@@ -892,15 +925,20 @@ LooperPanel::update_controls()
 // 	}
 	if (_loop_control->is_updated(_index, wxT("sync"))) {
 		_loop_control->get_value(_index, wxT("sync"), val);
-		_sync_check->set_value (val > 0.0);
+		_sync_check->set_value (val > 0.0f);
 	}
 	if (_loop_control->is_updated(_index, wxT("playback_sync"))) {
 		_loop_control->get_value(_index, wxT("playback_sync"), val);
-		_play_sync_check->set_value (val > 0.0);
+		_play_sync_check->set_value (val > 0.0f);
 	}
 	if (_loop_control->is_updated(_index, wxT("use_feedback_play"))) {
 		_loop_control->get_value(_index, wxT("use_feedback_play"), val);
-		_play_feed_check->set_value (val > 0.0);
+		_play_feed_check->set_value (val > 0.0f);
+	}
+
+	if (_loop_control->is_updated(_index, wxT("is_soloed"))) {
+		_loop_control->get_value(_index, wxT("is_soloed"), val);
+		_solo_button->set_active(val > 0.0f);
 	}
 
 	for (int i=0; i < _chan_count; ++i) {
@@ -914,7 +952,7 @@ LooperPanel::update_controls()
 	if (_use_main_in_check) {
 		if (_loop_control->is_updated(_index, wxT("use_common_ins"))) {
 			_loop_control->get_value(_index, wxT("use_common_ins"), val);
-			_use_main_in_check->set_value (val > 0.0);
+			_use_main_in_check->set_value (val > 0.0f);
 		}
 	}
 // 	if (_loop_control->is_updated(_index, "use_rate")) {
@@ -999,6 +1037,9 @@ LooperPanel::update_state()
 	case LooperStateOneShot:
 		_once_button->set_active(false);
 		break;
+	case LooperStatePaused:
+		_pause_button->set_active(false);
+		break;
 	default:
 		break;
 	}
@@ -1049,6 +1090,10 @@ LooperPanel::update_state()
 	case LooperStateOneShot:
 		_once_button->set_active(true);
 		_flashing_button = _once_button;
+		break;
+	case LooperStatePaused:
+		_pause_button->set_active(true);
+		_flashing_button = _pause_button;
 		break;
 	default:
 		break;
@@ -1115,7 +1160,7 @@ LooperPanel::update_state()
 			_flash_timer->Stop();
 
 			_loop_control->get_value(_index, wxT("rate_output"), val);
-			if (val < 0.0) {
+			if (val < 0.0f) {
 				_reverse_button->set_active(true);
 			}
 			else {
@@ -1218,8 +1263,8 @@ LooperPanel::button_bind_events (wxString cmd)
 		info.command = "note"; // should this be something else?
 	}
 	info.instance = _index;
-	info.lbound = 0.0;
-	info.ubound = 1.0;
+	info.lbound = 0.0f;
+	info.ubound = 1.0f;
 
 	start_learning (info);
 }
@@ -1369,8 +1414,8 @@ LooperPanel::control_bind_events(int id)
 	info.type = "cc";
 	info.command = "set";
 	info.instance = _index;
-	info.lbound = 0.0;
-	info.ubound = 1.0;
+	info.lbound = 0.0f;
+	info.ubound = 1.0f;
 
 	
 	switch(id)
@@ -1444,8 +1489,8 @@ void LooperPanel::pan_bind_events(int chan)
 	info.type = "cc";
 	info.command = "set";
 	info.instance = _index;
-	info.lbound = 0.0;
-	info.ubound = 1.0;
+	info.lbound = 0.0f;
+	info.ubound = 1.0f;
 	info.style = MidiBindInfo::NormalStyle;
 
 	snprintf (cmdbuf, sizeof(cmdbuf), "pan_%d", chan+1);

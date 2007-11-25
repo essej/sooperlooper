@@ -100,7 +100,8 @@ enum LooperState
 	LooperStateMuted,
 	LooperStateScratching,
 	LooperStateOneShot,
-	LooperStateSubstitute
+	LooperStateSubstitute,
+	LooperStatePaused
 };
 
 	
@@ -193,6 +194,7 @@ typedef struct {
 	int nextState;
 
 	bool wasMuted;
+	double dPausedPos;
 
 	bool safetyFeedback;
 	

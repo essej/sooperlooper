@@ -115,6 +115,8 @@ class LooperPanel
 	PixButton * _reverse_button;
 	PixButton * _substitute_button;
 	PixButton * _mute_button;
+	PixButton * _pause_button;
+	PixButton * _solo_button;
 	PixButton * _scratch_button;
 	PixButton * _load_button;
 	PixButton * _save_button;

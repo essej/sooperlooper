@@ -28,7 +28,7 @@
 
 using std::string;
 
-#if HAVE_GETMNTENT
+#ifdef HAVE_GETMNTENT
 #include <mntent.h>
 
 struct mntent_sorter {

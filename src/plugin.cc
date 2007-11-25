@@ -92,6 +92,7 @@ using namespace SooperLooper;
 #define STATE_SCRATCH    11
 #define STATE_ONESHOT    12
 #define STATE_SUBSTITUTE  13
+#define STATE_PAUSED     14
 
 #define STATE_TRIGGER_PLAY 16
 
@@ -127,6 +128,7 @@ using namespace SooperLooper;
 
 #define MULTI_MUTE_ON    19
 #define MULTI_MUTE_OFF   20
+#define MULTI_PAUSE      21
 
 
 /*****************************************************************************/
@@ -1406,14 +1408,23 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
 	      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 	      pLS->fFeedSrcFadeDelta = 1.0f / xfadeSamples;
 	      pLS->wasMuted = false;
+	      if (pLS->state == STATE_PAUSED && loop) {
+		      // set current loop position to paused position
+		      loop->dCurrPos = pLS->dPausedPos;
+		      DBG(fprintf(stderr, "t2n setting loop pos to pause pos: %g\n", pLS->dPausedPos));
+	      }
 	      break;
       case STATE_MUTE:
+      case STATE_PAUSED:
 	      pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
 	      pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 	      pLS->fLoopSrcFadeDelta = -1.0f / xfadeSamples;
 	      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 	      pLS->fFeedSrcFadeDelta = 1.0f / xfadeSamples;
 	      pLS->wasMuted = true;
+	      if (nextstate == STATE_PAUSED && loop) {
+		      pLS->dPausedPos = loop->dCurrPos;
+	      }
 	      break;
 
       case STATE_OVERDUB:
@@ -1730,7 +1741,7 @@ runSooperLooper(LADSPA_Handle Instance,
   
   if (lMultiCtrl >= 0 && lMultiCtrl <= 127)
   {
-     // fprintf(stderr, "Multictrl val is %ld\n", lMultiCtrl);
+	  // fprintf(stderr, "Multictrl val is %ld\n", lMultiCtrl);
 
      //lMultiCtrl = lMultiCtrl;
 
@@ -2279,6 +2290,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	} break;
 	
 	case MULTI_MUTE:
+        case MULTI_PAUSE:
 	{
 
 	   switch(pLS->state) {
@@ -2287,12 +2299,19 @@ runSooperLooper(LADSPA_Handle Instance,
 		      // reset for audio ramp
 		      //pLS->lRampSamples = xfadeSamples;
 	       case STATE_ONESHOT:
-		       // this enters play mode but from the continuous position
-		       if ((fMuteQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF)) {
+	       case STATE_PAUSED:
+	       // this enters play mode but from the continuous position
+		       if ((fMuteQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) || pLS->state == STATE_PAUSED) {
 			       pLS->state = STATE_PLAY;
 			       pLS->wasMuted = false;
 			       DBG(fprintf(stderr,"Entering PLAY state continuous\n"));
 			       pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+			       
+			       if (lMultiCtrl == MULTI_PAUSE && loop) {
+				       // set current loop position to paused position
+				       loop->dCurrPos = pLS->dPausedPos;
+				       DBG(fprintf(stderr, "setting loop pos to pause pos: %g\n", pLS->dPausedPos));
+			       }
 
 			       // then send out a sync here for any slaves
 			       pfSyncOutput[0] = 1.0f;
@@ -2311,14 +2330,14 @@ runSooperLooper(LADSPA_Handle Instance,
 
 	      case STATE_MULTIPLY:
 		 if (loop) {
-		    loop = endMultiply(pLS, loop, STATE_MUTE);
+		    loop = endMultiply(pLS, loop, lMultiCtrl == MULTI_MUTE ? STATE_MUTE: STATE_PAUSED);
 		 }
 		 break;
 
 
 	      case STATE_INSERT:
 		 if (loop) {
-		    loop = endInsert(pLS, loop, STATE_MUTE);
+		    loop = endInsert(pLS, loop, lMultiCtrl == MULTI_MUTE ? STATE_MUTE: STATE_PAUSED);
 		 }
 		 break;
 
@@ -2342,8 +2361,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		     }
 		 
 	
-		     pLS->state = STATE_MUTE;
-		     DBG(fprintf(stderr,"Entering MUTE state\n"));
+		     pLS->state = (lMultiCtrl==MULTI_MUTE ? STATE_MUTE: STATE_PAUSED);
+		     DBG(fprintf(stderr,"Entering MUTE/pause state\n"));
 		     // reset for audio ramp
 		     //pLS->lRampSamples = xfadeSamples;
 		     pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
@@ -2352,6 +2371,10 @@ runSooperLooper(LADSPA_Handle Instance,
 		     pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 		     pLS->wasMuted = true;
 		     
+		     if (lMultiCtrl == MULTI_PAUSE) {
+			     pLS->dPausedPos = loop->dCurrPos;
+		     }
+
 		      // then send out a sync here for any slaves
 		      pfSyncOutput[0] = 1.0f;
 		 }
@@ -2361,7 +2384,7 @@ runSooperLooper(LADSPA_Handle Instance,
 				 pLS->state = STATE_TRIG_STOP;
 			 }
 			 DBG(fprintf(stderr, "starting syncwait for mute\n"));
-			 pLS->nextState = STATE_MUTE;
+			 pLS->nextState = lMultiCtrl==MULTI_MUTE ? STATE_MUTE: STATE_PAUSED;
 			 pLS->waitingForSync = 1;	 
 		 }
 	   }
@@ -2519,7 +2542,8 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_REPLACE:
 	      case STATE_SUBSTITUTE:
 	      case STATE_DELAY:
-   	      case STATE_MUTE:
+	      case STATE_MUTE:
+	      case STATE_PAUSED:
 		      // POP the head off and start the previous
 		      // one at the same position if possible
 		      
@@ -2610,6 +2634,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_REPLACE:
 	      case STATE_SUBSTITUTE:
 	      case STATE_MUTE:
+              case STATE_PAUSED:
 		 // immediately redo last if possible
 		 redoLoop(pLS);
 
@@ -3983,12 +4008,15 @@ runSooperLooper(LADSPA_Handle Instance,
 			 *(pLoopSample) *= fFeedback * pLS->fFeedFadeAtten;
 		 }
 		 
-		 
-		 // increment and wrap at the proper loop end
-		 loop->dCurrPos = loop->dCurrPos + fRate;
-
 		 pfOutput[lSampleIndex] = fOutputSample;
-		 
+
+		 if (pLS->state == STATE_PAUSED && pLS->fPlayFadeAtten == 0.0f) {
+			 // do not increment time
+		 }
+		 else {
+			 // increment and wrap at the proper loop end
+			 loop->dCurrPos = loop->dCurrPos + fRate;
+		 }
 
  		 if (pLS->fNextCurrRate != 0 && pfSyncInput[lSampleIndex] != 0.0f && fTempo > 0.0f) {
  		       // commit the new rate at boundary (quantized)

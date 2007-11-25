@@ -1005,6 +1005,8 @@ void MainPanel::intialize_keybindings ()
 	KeyboardTarget::add_action ("redo", bind (slot (*this, &MainPanel::command_action), wxT("redo")));	
 	KeyboardTarget::add_action ("oneshot", bind (slot (*this, &MainPanel::command_action), wxT("oneshot")));
 	KeyboardTarget::add_action ("trigger", bind (slot (*this, &MainPanel::command_action), wxT("trigger")));
+	KeyboardTarget::add_action ("pause", bind (slot (*this, &MainPanel::command_action), wxT("pause")));
+	KeyboardTarget::add_action ("solo", bind (slot (*this, &MainPanel::command_action), wxT("solo")));
 
 	KeyboardTarget::add_action ("delay", bind (slot (*this, &MainPanel::misc_action), wxT("delay")));
 	KeyboardTarget::add_action ("taptempo", bind (slot (*this, &MainPanel::misc_action), wxT("taptempo")));
@@ -1041,6 +1043,9 @@ void MainPanel::intialize_keybindings ()
 	_keyboard->add_binding ("h", "oneshot");
 	_keyboard->add_binding (" ", "trigger");
 	_keyboard->add_binding ("t", "taptempo");
+	_keyboard->add_binding ("z", "pause");
+	_keyboard->add_binding ("`", "solo");
+
 	_keyboard->add_binding ("Control-s", "save");
 	_keyboard->add_binding ("Control-o", "load");
 	_keyboard->add_binding ("escape", "cancel_midi_learn");
