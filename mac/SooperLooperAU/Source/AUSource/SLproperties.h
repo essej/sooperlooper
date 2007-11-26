@@ -10,7 +10,8 @@
 #define __slproperties_h__
 
 enum {
-	kSLguiAppPathProperty = 80000
+	kSLguiAppPathProperty = 80000,
+	kSLguiStayOnTopProperty
 };
 
 #endif

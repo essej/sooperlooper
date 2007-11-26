@@ -74,6 +74,7 @@ class GuiApp : public wxApp
 	wxString _midi_bind_file;
 	wxString _server_name;
 	wxString _client_name;
+	bool  _stay_on_top;
 	
 	wxChar ** _engine_argv;
 

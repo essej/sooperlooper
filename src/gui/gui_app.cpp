@@ -99,6 +99,7 @@ static const wxCmdLineEntryDesc cmdLineDesc[] =
 	{ wxCMD_LINE_OPTION, wxT("E"), wxT("exec-name"), wxT("use name as binary to execute as sooperlooper engine (default is sooperlooper)")},
 	{ wxCMD_LINE_OPTION, wxT("J"), wxT("jack-name"), wxT("jack client name, default is sooperlooper_1")},
 	{ wxCMD_LINE_OPTION, wxT("S"), wxT("jack-server-name"), wxT("specify JACK server name")},
+	{ wxCMD_LINE_SWITCH, wxT("T"), wxT("stay-on-top"), wxT("keep main window on top of other applications")},
 	{ wxCMD_LINE_NONE }
 };
 	
@@ -174,6 +175,8 @@ GuiApp::parse_options (int argc, wxChar **argv)
 	parser.Found (wxT("S"), &_server_name);
 	parser.Found (wxT("J"), &_client_name);
 
+	_stay_on_top = parser.Found (wxT("T"));
+
 	return true;
 }
 	
@@ -188,6 +191,7 @@ GuiApp::GuiApp()
 	_loop_count = 0;
 	_channels = 0;
 	_mem_secs = 0.0f;
+	_stay_on_top = false;
 }
 
 GuiApp::~GuiApp()
@@ -221,7 +225,7 @@ bool GuiApp::OnInit()
 
 
 	// Create the main application window
-	_frame = new AppFrame (wxT("SooperLooper"), wxPoint(100, 100), wxDefaultSize);
+	_frame = new AppFrame (wxT("SooperLooper"), wxPoint(100, 100), wxDefaultSize, _stay_on_top);
 
 #ifdef __WXMAC__
 	if (_exec_name.empty()) {
@@ -275,12 +279,14 @@ bool GuiApp::OnInit()
 	// Show it and tell the application that it's our main window
 	_frame->SetSizeHints(790, 210);
 	_frame->SetSize(800, 215);
-	_frame->Show(TRUE);
+
 
 	SetTopWindow(_frame);
 
+	_frame->Show(FALSE);
 	_frame->Raise();
-	
+	_frame->Show(TRUE);
+
 		
 	// success: wxApp::OnRun() will be called which will enter the main message
 	// loop and the application will run. If we returned FALSE here, the

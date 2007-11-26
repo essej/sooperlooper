@@ -66,6 +66,7 @@ public:
 	virtual bool				HandleEvent(EventRef event);
 	
 	void create_slgui();
+	void set_stay_on_top(short value) { _stay_on_top = value; }
 	
 	static pascal void NavEventCallback(NavEventCallbackMessage callBackSelector,
 								NavCBRecPtr             callBackParms, 
@@ -76,6 +77,10 @@ public:
 protected:
 		void init_app_path();
 	    void set_app_path_property(std::string guipath);
+		
+		void init_stay_on_top();
+	    void set_stay_on_top_property(short value);
+		
 		bool DisplayOpenFileDialog();
 
 		static void * _slgui_thread(void * arg);
@@ -84,11 +89,12 @@ protected:
 	ControlRef _startGuiButton;
 	ControlRef _browseButton;
 	ControlRef _pathText;
+	ControlRef _stayOnTopCheck;
 	EventHandlerRef _winHandler;
 	
 	LaunchSLgui * _launcher;
 	std::string _slapp_path;
-	
+	short    _stay_on_top;
 };
 
 #endif

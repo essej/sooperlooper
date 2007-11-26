@@ -61,6 +61,7 @@ SooperLooperAU::SooperLooperAU(AudioUnit component)
 	_engine_thread = 0;
 	_last_framepos = 0;
 	_last_rendered_frames = 0;
+	_stay_on_top = 0;
 	
 	//sl_init();
 	
@@ -421,6 +422,12 @@ ComponentResult		SooperLooperAU::GetPropertyInfo (AudioUnitPropertyID	inID,
 		outWritable = true;
 		return noErr;
 	}
+	else if (inID == kSLguiStayOnTopProperty) {
+		outDataSize = sizeof(short);
+		outWritable = true;
+		return noErr;
+	}
+
 	
 	return AUMIDIEffectBase::GetPropertyInfo (inID, inScope, inElement, outDataSize, outWritable);
 }
@@ -438,7 +445,10 @@ ComponentResult		SooperLooperAU::GetProperty(	AudioUnitPropertyID inID,
 		strcpy ((char *)outData, _guiapp_path.c_str());
 		return noErr;
 	}
-	
+	else if (inID == kSLguiStayOnTopProperty) {
+		*((short *)outData) = _stay_on_top;
+		return noErr;
+	}
 	return AUMIDIEffectBase::GetProperty (inID, inScope, inElement, outData);
 }
 
@@ -454,7 +464,11 @@ ComponentResult		SooperLooperAU::SetProperty(AudioUnitPropertyID 		inID,
 		//cerr << "set app path in AU to: " << _guiapp_path << endl;
 		return noErr;
 	}
-
+	else if (inID == kSLguiStayOnTopProperty) {
+		_stay_on_top = *((short *) inData);
+		//cerr << "set app path in AU to: " << _guiapp_path << endl;
+		return noErr;
+	}
 	return AUMIDIEffectBase::SetProperty (inID, inScope, inElement, inData, inDataSize);
 }
 
@@ -697,7 +711,7 @@ ComponentResult SooperLooperAU::SaveState(CFPropertyListRef *outData)
 	// save session state as string
 	string sess_str;
 	if (_engine->save_session("", &sess_str)) { 
-		CFMutableDataRef cfdata = CFDataCreateMutable(NULL, NULL);	
+		CFMutableDataRef cfdata = CFDataCreateMutable(NULL, 0);	
 		unsigned long plaindatasize;
 		const UInt8 * plaindata = (const UInt8 *) sess_str.c_str();
 		plaindatasize = sess_str.size();
@@ -712,7 +726,7 @@ ComponentResult SooperLooperAU::SaveState(CFPropertyListRef *outData)
 	MidiBindings & bindings = _midi_bridge->bindings();
 	stringstream midisstr;
 	if (bindings.save_bindings(midisstr)) {
-		CFMutableDataRef cfdata = CFDataCreateMutable(NULL, NULL);	
+		CFMutableDataRef cfdata = CFDataCreateMutable(NULL, 0);	
 		unsigned long plaindatasize;
 		const string & midistr = midisstr.str();
 		const UInt8 * plaindata = (const UInt8 *) midistr.c_str();
@@ -725,7 +739,7 @@ ComponentResult SooperLooperAU::SaveState(CFPropertyListRef *outData)
 
 	// save guiapp path
 	{
-		CFMutableDataRef cfdata = CFDataCreateMutable(NULL, NULL);	
+		CFMutableDataRef cfdata = CFDataCreateMutable(NULL, 0);	
 		unsigned long plaindatasize;
 		const UInt8 * plaindata = (const UInt8 *) _guiapp_path.c_str();
 		plaindatasize = _guiapp_path.size();
@@ -733,6 +747,14 @@ ComponentResult SooperLooperAU::SaveState(CFPropertyListRef *outData)
 		CFDataAppendBytes(cfdata, plaindata, plaindatasize);
 		CFDictionarySetValue(dict, CFSTR("SLAppPath"), cfdata);
 		CFRelease(cfdata);	
+	}
+		
+	// save guiapp path
+	{
+		CFDataRef cfdata = CFDataCreate(NULL, (const UInt8 *) &_stay_on_top, sizeof(short));	
+		CFDictionarySetValue(dict, CFSTR("SLstayOnTop"), cfdata);
+		CFRelease(cfdata);	
+		cerr << "saved stay on top as " << _stay_on_top << endl;		
 	}
 		
 	*outData = dict;
@@ -799,6 +821,18 @@ ComponentResult SooperLooperAU::RestoreState(CFPropertyListRef inData)
 
 		_guiapp_path.assign((const char *) plaindata, plaindatasize);
 	}
+	
+	// restore stay on top
+	CFDataRef stayontop_data =
+		reinterpret_cast<CFDataRef>(CFDictionaryGetValue((CFDictionaryRef)inData,
+														 CFSTR("SLstayOnTop")));
+	if (stayontop_data != NULL)
+	{
+		const UInt8 * plaindata = CFDataGetBytePtr(stayontop_data);
+		_stay_on_top = *((short*)plaindata);
+		cerr << "restored stay on top as " << _stay_on_top << endl;
+	}
+
 	
 	return noErr;
 }

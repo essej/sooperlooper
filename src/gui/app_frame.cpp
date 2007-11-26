@@ -78,7 +78,8 @@ enum {
 	ID_XfadeSlider,
 	ID_DryControl,
 	ID_WetControl,
-	ID_InGainControl
+	ID_InGainControl,
+	ID_StayOnTop,
 };
 
 
@@ -109,11 +110,12 @@ BEGIN_EVENT_TABLE(AppFrame, wxFrame)
 	EVT_MENU(ID_LoadSession, AppFrame::on_load_session)
 	EVT_MENU(ID_SaveSession, AppFrame::on_save_session)
 
+	EVT_MENU(ID_StayOnTop, AppFrame::on_view_menu)
 	
 END_EVENT_TABLE()
 
-AppFrame::AppFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
-	: wxFrame((wxFrame *)NULL, -1, title, pos, size, wxDEFAULT_FRAME_STYLE, wxT("sooperlooper"))
+AppFrame::AppFrame(const wxString& title, const wxPoint& pos, const wxSize& size, bool stay_on_top)
+: wxFrame((wxFrame *)NULL, -1, title, pos, size, wxDEFAULT_FRAME_STYLE | (stay_on_top ? wxSTAY_ON_TOP : 0), wxT("sooperlooper"))
 
 {
 	_prefs_dialog = 0;
@@ -182,6 +184,10 @@ AppFrame::init()
 	menuFile->Append(ID_QuitStop, wxT("Quit and Stop Engine\tCtrl-Q"), wxT("Exit from GUI and stop engine"));
 	
 	menuBar->Append(menuFile, wxT("&Session"));
+
+
+	//wxMenu *menuView = new wxMenu(wxT(""));
+	//menuBar->Append(menuView, wxT("&View"));
 	
 
 	wxMenu *menuHelp = new wxMenu(wxT(""));
@@ -198,8 +204,6 @@ AppFrame::init()
 	this->SetSizer( _topsizer );      // actually set the sizer
 	_topsizer->Fit( this );            // set size to minimum size as calculated by the sizer
 	_topsizer->SetSizeHints( this );   // set size hints to honour mininum size
-
-	Raise();
 }
 
 

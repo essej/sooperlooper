@@ -63,6 +63,8 @@ using namespace std;
 
 #define kSLstartCmd 'Strt'
 #define kSLbrowseCmd 'Brws'
+#define kSLstayOnTopCmd 'Otop'
+
 
 COMPONENT_ENTRY(SooperLooperAUView)
 
@@ -71,6 +73,7 @@ SooperLooperAUView::SooperLooperAUView(AudioUnitCarbonView auv) : AUCarbonViewBa
 	_launcher = 0;
 	_slapp_path = kDefaultSlguiPath;
 	_winHandler = 0;
+	_stay_on_top = 0;
 }
 
 SooperLooperAUView::~SooperLooperAUView()
@@ -95,6 +98,7 @@ OSStatus	SooperLooperAUView::CreateUI(Float32 xoffset, Float32 yoffset)
     // for each parameter, create controls
 	// inside mCarbonWindow, embedded in mCarbonPane
 	
+#define kCheckWidth 120
 #define kLabelWidth 220
 #define kLabelHeight 16
 #define kEditTextWidth 40
@@ -116,6 +120,7 @@ OSStatus	SooperLooperAUView::CreateUI(Float32 xoffset, Float32 yoffset)
 
 	// initialize slapp path
 	init_app_path();
+	init_stay_on_top();
 	
 	//cerr << "INITIAL APP PATH is : " << _slapp_path << endl;
 	
@@ -183,7 +188,15 @@ OSStatus	SooperLooperAUView::CreateUI(Float32 xoffset, Float32 yoffset)
 		
 		r.top = ypos + yoff;
 		r.bottom = r.top + kLabelHeight;
-		r.left = 100 +xoff;
+
+		r.left = 3 + xoff;
+		r.right = r.left + kCheckWidth;
+		verify_noerr(CreateCheckBoxControl (mCarbonWindow, &r, CFSTR("Keep on top"), _stay_on_top, true, &newControl));
+		verify_noerr(EmbedControl(newControl));
+		_stayOnTopCheck = newControl;
+		//SetControlCommandID (_stayOnTopCheck, kSLstayOnTopCmd);
+		
+		r.left = 6 + kCheckWidth + xoff;
 		r.right = r.left + kLabelWidth;
 		verify_noerr(CreatePushButtonControl (mCarbonWindow, &r, CFSTR("Start GUI"), &newControl));
 		verify_noerr(EmbedControl(newControl));
@@ -308,6 +321,75 @@ void SooperLooperAUView::set_app_path_property(std::string guipath)
 	}
 }
 
+void SooperLooperAUView::init_stay_on_top()
+{
+	short value = 0;
+	
+	// use non-empty value from AU property first
+	AudioUnit slau = GetEditAudioUnit();
+	UInt32 datasize = sizeof(short);
+	Boolean writable;
+	if (AudioUnitGetPropertyInfo(slau, kSLguiStayOnTopProperty, kAudioUnitScope_Global, 0, &datasize, &writable) == noErr)
+	{
+		if (AudioUnitGetProperty(slau, kSLguiStayOnTopProperty, kAudioUnitScope_Global, 0, &value, &datasize) == noErr) 
+		{
+			_stay_on_top = value;
+			return;
+		}
+	}
+	
+	// now try loading the default from a pref file
+	// ~/.sooperlooper/default_stay_on_top
+	char * homedir = getenv("HOME");
+	if (homedir) {
+		char line[500];
+		string defpath(homedir);
+		defpath += "/.sooperlooper/default_stay_on_top";
+		ifstream defappstream(defpath.c_str());
+		if (defappstream.is_open() && !defappstream.eof()) {
+			defappstream.getline (line, sizeof(line));
+			size_t len = strlen(line);
+			if (line[len-1] == '\n') line[len-1] = '\0';
+			if (sscanf(line, "%hd", &value) == 1) {
+				_stay_on_top = value;
+			}
+			defappstream.close();
+		}
+	}
+	
+}
+
+void SooperLooperAUView::set_stay_on_top_property(short value)
+{
+	AudioUnit slau = GetEditAudioUnit();
+	UInt32 datasize;
+	Boolean writable;
+	if (AudioUnitGetPropertyInfo(slau, kSLguiStayOnTopProperty, kAudioUnitScope_Global, 0, &datasize, &writable) == noErr)
+	{
+		if (writable) {
+			AudioUnitSetProperty(slau, kSLguiStayOnTopProperty, kAudioUnitScope_Global, 0, &_stay_on_top, sizeof(short));
+		}
+	}
+	
+	// also write default into file
+	char * homedir = getenv("HOME");
+	if (homedir) {
+		struct stat st;
+		string defpath(homedir);
+		defpath += "/.sooperlooper";
+		// create dir if necessary
+		if (::stat(defpath.c_str(), &st) != 0) {
+			::mkdir(defpath.c_str(), 0755);
+		}
+		defpath += "/default_stay_on_top";
+		ofstream defappstream(defpath.c_str());
+		if (defappstream.is_open()) {
+			defappstream << _stay_on_top << endl;
+			defappstream.close();
+		}
+	}
+}
+
 void SooperLooperAUView::create_slgui()
 {
 	// get OSC port (arg 2)
@@ -337,6 +419,10 @@ void SooperLooperAUView::create_slgui()
 	args.push_back(portbuf);
 	args.push_back("-N");
 	
+	if (GetControlValue(_stayOnTopCheck)) {
+		args.push_back("-T");
+	}
+		
   //cerr << "launching " << slguipath << endl;
   if (_launcher == 0)
   {
@@ -351,6 +437,8 @@ void SooperLooperAUView::create_slgui()
 	
   if (_launcher->isRunning()) {
 	  set_app_path_property(_slapp_path);  
+	  _stay_on_top = GetControlValue(_stayOnTopCheck);
+	  set_stay_on_top_property(_stay_on_top);
 	  //cerr << "set path property" << endl;
   }
 	//_slgui_thread(this);
@@ -394,7 +482,12 @@ pascal OSStatus SooperLooperAUView::winEventHandler (EventHandlerCallRef myHandl
 			
 			result = noErr;
 			break;
+		case kSLstayOnTopCmd:
+		
+			result = noErr;
+			break;
 	}
+		
     return result;
 }
 

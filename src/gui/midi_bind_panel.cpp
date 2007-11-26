@@ -197,15 +197,19 @@ void MidiBindPanel::init()
 	populate_controls();
 	//_control_combo->SetSelection(0);
 	colsizer->Add (_control_combo, 0, wxALL|wxALIGN_CENTRE|wxEXPAND, 2);
+	_control_combo->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	staticText = new wxStaticText(_edit_panel, -1, wxT("Loop #"), wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
+	staticText->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	rowsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
 	_loopnum_combo =  new wxChoice(_edit_panel, ID_LoopNumCombo, wxDefaultPosition, wxSize(100, -1), 0, 0);
+	_loopnum_combo->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	_loopnum_combo->Append (wxT("Selected"), (void *) -2);
 	_loopnum_combo->Append (wxT("Global"), (void *) -1);
 	_loopnum_combo->Append (wxT("All"), (void *) 0);
+
 	for (int i=1; i <= 16; ++i) {
 		_loopnum_combo->Append (wxString::Format(wxT("%d"), i), (void *) i);
 	}
@@ -213,6 +217,8 @@ void MidiBindPanel::init()
 	rowsizer->Add (_loopnum_combo, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
 
 	_sus_check = new wxCheckBox(_edit_panel, ID_SusCheck, wxT("SUS"));
+	_sus_check->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
+
 	rowsizer->Add (_sus_check, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
 	
 	colsizer->Add (rowsizer, 0, wxALL|wxEXPAND, 0);
@@ -230,12 +236,16 @@ void MidiBindPanel::init()
 
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	staticText = new wxStaticText(_edit_panel, -1, wxT("Ch#"), wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
+	staticText->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
+
 	rowsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
 	_chan_spin =  new wxSpinCtrl(_edit_panel, ID_ChanSpin, wxT("1"), wxDefaultPosition, wxSize(50,-1), wxSP_ARROW_KEYS, 1, 16, 1, wxT("KeyAware"));
+	_chan_spin->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	rowsizer->Add (_chan_spin, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 	
 	_type_combo = new wxChoice(_edit_panel, ID_TypeCombo,  wxDefaultPosition, wxSize(100, -1), 0, 0);
+	_type_combo->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	//_control_combo->SetToolTip(wxT("Choose control or command"));
 	_type_combo->Append (NoteString);
 	_type_combo->Append (NoteOnString);
@@ -246,9 +256,11 @@ void MidiBindPanel::init()
 	rowsizer->Add (_type_combo, 1, wxALL|wxALIGN_CENTRE_VERTICAL|wxEXPAND, 2);
 
 	_param_spin =  new wxSpinCtrl(_edit_panel, ID_ParamSpin, wxT("0"), wxDefaultPosition, wxSize(50,-1), wxSP_ARROW_KEYS, 0, 127, 0, wxT("KeyAware"));
+	_param_spin->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	rowsizer->Add (_param_spin, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
 	_learn_button = new wxButton (_edit_panel, ID_LearnButton, wxT("Learn"), wxDefaultPosition, wxSize(-1, -1));
+	_learn_button->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	rowsizer->Add (_learn_button, 0, wxALL, 3);
 
 	colsizer->Add (rowsizer, 0, wxALL|wxEXPAND, 0);
@@ -256,18 +268,23 @@ void MidiBindPanel::init()
 	_range_panel = new wxPanel(_edit_panel);
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	staticText = new wxStaticText(_range_panel, -1, wxT("Range"), wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
+	staticText->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	rowsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
 	_lbound_ctrl = new wxTextCtrl(_range_panel, ID_LBoundCtrl, wxT(""), wxDefaultPosition, wxSize(40, -1), 0, wxDefaultValidator, wxT("KeyAware"));
+	_lbound_ctrl->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	rowsizer->Add (_lbound_ctrl, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
 
 	staticText = new wxStaticText(_range_panel, -1, wxT(" to "), wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
+	staticText->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	rowsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
 	_ubound_ctrl = new wxTextCtrl(_range_panel, ID_UBoundCtrl, wxT(""), wxDefaultPosition, wxSize(40, -1), 0, wxDefaultValidator, wxT("KeyAware"));
+	_ubound_ctrl->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	rowsizer->Add (_ubound_ctrl, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
 
 	_style_combo =  new wxChoice(_range_panel, ID_StyleCombo,  wxDefaultPosition, wxSize(30, -1), 0, 0);
+	_style_combo->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	_style_combo->Append (wxT("Normal"), (void *) MidiBindInfo::NormalStyle);
 	_style_combo->Append (wxT("Gain"), (void *) MidiBindInfo::GainStyle);
 	_style_combo->Append (wxT("Toggle"), (void *) MidiBindInfo::ToggleStyle);
@@ -511,7 +528,7 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 		return;
 	}
 
-	for (int i=0; i < _control_combo->GetCount(); ++i) {
+	for (int i=0; i < (int)_control_combo->GetCount(); ++i) {
 		if (static_cast<const char *>(_control_combo->GetClientData(i)) == info->control) {
 			_control_combo->SetSelection(i);
 			break;

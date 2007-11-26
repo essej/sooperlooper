@@ -52,7 +52,7 @@ class AppFrame
 public:
 	
 	// ctor(s)
-	AppFrame(const wxString& title, const wxPoint& pos, const wxSize& size);
+	AppFrame(const wxString& title, const wxPoint& pos, const wxSize& size, bool stay_on_top=false);
 	virtual ~AppFrame();
 	
 	// event handlers (these functions should _not_ be virtual)
@@ -81,6 +81,8 @@ protected:
 
 	void on_load_session (wxCommandEvent &ev);
 	void on_save_session (wxCommandEvent &ev);
+
+	void on_timer_event(wxTimerEvent &ev);
 
 	MainPanel * _mainpanel;
 	
