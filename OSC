@@ -49,6 +49,8 @@ COMMANDS:
   redo_all
   mute_on
   mute_off
+  solo
+  pause
 
 SET PARAMETER VALUES
 
@@ -124,6 +126,7 @@ GET PARAMETER VALUES
   rate_output 
   in_peak_meter  :: absolute float sample value 0.0 -> 1.0 (or higher)
   out_peak_meter  :: absolute float sample value 0.0 -> 1.0 (or higher)
+  is_soloed       :: 1 if soloed, 0 if not
 
 SAVE/LOAD
 
