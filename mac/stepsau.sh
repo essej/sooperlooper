@@ -1,7 +1,16 @@
 #!/bin/sh
 
 rm -rf macdist/SooperLooperAU.component
-cp -Rp SooperLooperAU/build/Deployment/SooperLooperAU.component macdist/
+
+if [ -d SooperLooperAU/build/Deployment/SooperLooperAU.component ] ; then
+	cp -Rp SooperLooperAU/build/Deployment/SooperLooperAU.component macdist/
+elif [ -d SooperLooperAU/build/SooperLooperAU.component ] ; then
+	cp -Rp SooperLooperAU/build/SooperLooperAU.component macdist/
+else
+	echo "no component found!"
+	exit 1
+fi	
+
 
 #cd macdist/SooperLooperAU.component/Contents/MacOS
 

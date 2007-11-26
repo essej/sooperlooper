@@ -66,7 +66,7 @@ public:
 	virtual bool				HandleEvent(EventRef event);
 	
 	void create_slgui();
-	void set_stay_on_top(short value) { _stay_on_top = value; }
+	void update_stay_on_top();
 	
 	static pascal void NavEventCallback(NavEventCallbackMessage callBackSelector,
 								NavCBRecPtr             callBackParms, 

@@ -194,7 +194,7 @@ OSStatus	SooperLooperAUView::CreateUI(Float32 xoffset, Float32 yoffset)
 		verify_noerr(CreateCheckBoxControl (mCarbonWindow, &r, CFSTR("Keep on top"), _stay_on_top, true, &newControl));
 		verify_noerr(EmbedControl(newControl));
 		_stayOnTopCheck = newControl;
-		//SetControlCommandID (_stayOnTopCheck, kSLstayOnTopCmd);
+		SetControlCommandID (_stayOnTopCheck, kSLstayOnTopCmd);
 		
 		r.left = 6 + kCheckWidth + xoff;
 		r.right = r.left + kLabelWidth;
@@ -448,6 +448,12 @@ void SooperLooperAUView::create_slgui()
 
 }
 
+void SooperLooperAUView::update_stay_on_top()
+{
+	_stay_on_top = GetControlValue(_stayOnTopCheck);
+	set_stay_on_top_property(_stay_on_top);
+}
+
 void * SooperLooperAUView::_slgui_thread(void * arg)
 {
 	return 0;
@@ -483,7 +489,7 @@ pascal OSStatus SooperLooperAUView::winEventHandler (EventHandlerCallRef myHandl
 			result = noErr;
 			break;
 		case kSLstayOnTopCmd:
-		
+			auview->update_stay_on_top();
 			result = noErr;
 			break;
 	}
