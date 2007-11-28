@@ -161,10 +161,17 @@ sl_read_current_loop_audio (LADSPA_Handle instance, float * buf, unsigned long f
 	if (!loop) return 0;
 	if (loop_offset > loop->lLoopLength) return 0;
 	
+	// adjust for sync pos, so that a loop_offset of 0 actually means start from the syncpos
+	unsigned long adj_offset  = (loop_offset + (loop->lLoopLength - loop->lSyncPos)) % loop->lLoopLength;
 	unsigned long frames_left = loop->lLoopLength - loop_offset;
-	unsigned long startpos = (loop->lLoopStart + loop_offset) & pLS->lBufferSizeMask;
+	unsigned long startpos = (loop->lLoopStart + adj_offset) & pLS->lBufferSizeMask;
 	unsigned long first_chunk;
 	unsigned long second_chunk=0;
+
+	if (adj_offset > (loop->lLoopLength - loop->lSyncPos)) {
+		// between sync and end of loop mem, clamp frames
+		frames = std::min(loop->lLoopLength-adj_offset, frames);
+	}
 
 	if (frames > frames_left) {
 		frames = frames_left;
@@ -259,6 +266,8 @@ static LoopChunk * ensureLoopSpace(SooperLooperI* pLS, LoopChunk *loop, unsigned
 		loop->valid = 1;
 		loop->mult_out = 0;
 		loop->lSyncOffset = 0;
+		loop->lSyncPos = 0;
+		loop->lOrigSyncPos = 0;
 		
 		loop->next = NULL;
 		loop->prev = pLS->headLoopChunk;
@@ -401,7 +410,7 @@ static void redoLoop(SooperLooperI *pLS)
 	   }
 	   else {
 		   // start at loop beginning
-		   nextloop->dCurrPos = nextloop->lSyncOffset;
+		   nextloop->dCurrPos = nextloop->lLoopLength - nextloop->lSyncPos;
 	   }
 	   
 	   pLS->headLoopChunk = nextloop;
@@ -1465,10 +1474,11 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
 		      pLS->state = STATE_PLAY;
 		      nextstate = STATE_PLAY;
 		      pLS->wasMuted = false;
-		      if (pLS->fCurrRate > 0)
-			      loop->dCurrPos = (double) loop->lSyncOffset;
+		      if (pLS->fCurrRate > 0) {
+			      loop->dCurrPos = (double) loop->lLoopLength - loop->lSyncPos;
+		      }
 		      else
-			      loop->dCurrPos = (loop->lLoopLength - loop->lSyncOffset) - 1;
+			      loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) - 1;
 	      }
 	      break;
       case STATE_ONESHOT:
@@ -1481,9 +1491,9 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
 		      DBG(fprintf(stderr,"Starting ONESHOT state\n"));
 		      pLS->state = STATE_ONESHOT;
 		      if (pLS->fCurrRate > 0)
-			      loop->dCurrPos = (double) loop->lSyncOffset;
+			      loop->dCurrPos = loop->lLoopLength - loop->lSyncPos;
 		      else
-			      loop->dCurrPos = (loop->lLoopLength - loop->lSyncOffset) - 1;
+			      loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) - 1;
 	      }
 	      break;
    }
@@ -2080,9 +2090,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		    DBG(fprintf(stderr,"Starting ONESHOT state\n"));
 		    pLS->state = STATE_ONESHOT;
 		    if (pLS->fCurrRate > 0)
-			    loop->dCurrPos = (double) loop->lSyncOffset;
+			    loop->dCurrPos = loop->lLoopLength - loop->lSyncPos;
 		    else
-			    loop->dCurrPos = (loop->lLoopLength - loop->lSyncOffset) - 1;
+			    loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) - 1;
 		 }
 		 break;
 	      case STATE_MULTIPLY:
@@ -2476,7 +2486,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 pLS->state = STATE_PLAY;
 		 pLS->wasMuted = false;
 		 if (loop) {
-		    loop->dCurrPos = loop->lSyncOffset;
+		    loop->dCurrPos = loop->lLoopLength - loop->lSyncPos;
 		 }
 		 DBG(fprintf(stderr,"Entering PLAY state from top\n"));
 		 break;
@@ -2501,9 +2511,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		    pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 		    pLS->state = STATE_ONESHOT;
 		    if (pLS->fCurrRate > 0)
-			    loop->dCurrPos = (double) loop->lSyncOffset;
+			    loop->dCurrPos = loop->lLoopLength -  loop->lSyncPos;
 		    else
-			    loop->dCurrPos = (loop->lLoopLength - loop->lSyncOffset) - 1;
+			    loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) - 1;
 
 		    // we need to increment loop position by output latency (+ IL ?)
 		    loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
@@ -2735,9 +2745,9 @@ runSooperLooper(LADSPA_Handle Instance,
 				      pLS->state = STATE_ONESHOT;
 
 				      if (pLS->fCurrRate > 0)
-					      loop->dCurrPos = (double) loop->lSyncOffset;
+					      loop->dCurrPos = loop->lLoopLength - loop->lSyncPos;
 				      else
-					      loop->dCurrPos = (loop->lLoopLength - loop->lSyncOffset) - 1;
+					      loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) - 1;
 
 
 				      if (prevstate == STATE_RECORD || prevstate == STATE_TRIG_STOP) {
@@ -2815,7 +2825,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	{
 		// set current loop's sync offset to the current pos
 		if (loop) {
-			loop->lSyncOffset = (unsigned long) loop->dCurrPos;
+			loop->lSyncPos = (unsigned long) loop->dCurrPos;
 		}
 
 	} break;
@@ -2824,7 +2834,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	{
 		// set current loop's sync offset to the current pos
 		if (loop) {
-			loop->lSyncOffset = loop->lOrigSyncOffset;
+			loop->lSyncPos = loop->lOrigSyncPos;
 		}
 
 	} break;
@@ -2925,10 +2935,15 @@ runSooperLooper(LADSPA_Handle Instance,
 
 		    if (fSyncMode == 2.0f) {
 			    // use sync offset
-			    loop->lSyncOffset = loop->lOrigSyncOffset = pLS->lSamplesSinceSync;
+			    loop->lSyncOffset = pLS->lSamplesSinceSync;
+			    // this needs to be adjusted for latency
+			    loop->lOrigSyncPos = loop->lSyncPos = pLS->lSamplesSinceSync + (unsigned long) (( lOutputLatency + lInputLatency) * fRate); 
 			    //cerr << "sync offset is: " << loop->lSyncOffset << endl;
 		    }
-		    
+		    else {
+			    loop->lSyncOffset = 0;
+			    loop->lOrigSyncPos = loop->lSyncPos = 0;
+		    }
 		    // cause input-to-loop fade in
 		    pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
 		    pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
@@ -3942,17 +3957,17 @@ runSooperLooper(LADSPA_Handle Instance,
 
 		 if (syncSamples && fPlaybackSyncMode != 0.0f && fQuantizeMode != QUANT_OFF && !pLS->donePlaySync
 		     && ( pfSyncInput[lSampleIndex] != 0.0f)
-		     && ((lCurrPos + syncSamples) >= loop->lLoopLength
-			 || (lCurrPos > 0 && lCurrPos < (unsigned int) lrintf(syncSamples) )))
+		     && ((lCurrPos + syncSamples) >= (loop->lLoopLength - loop->lSyncPos)
+			 || (lCurrPos > loop->lSyncPos && lCurrPos < (unsigned int) loop->lSyncPos + lrintf(syncSamples) )))
 		 {
 			 //cerr << "PLAYBACK SYNC hit at " << lCurrPos << endl;
 			 //pLS->waitingForSync = 1;
 			 pLS->donePlaySync = true;
 
 			 if (pLS->fCurrRate > 0)
-				 loop->dCurrPos = (double) loop->lSyncOffset;
+				 loop->dCurrPos = (double) loop->lLoopLength - loop->lSyncPos;
 			 else
-				 loop->dCurrPos = (loop->lLoopLength - loop->lSyncOffset) - 1;
+				 loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) - 1;
 
 			 pfSyncOutput[lSampleIndex] = 1.0f;
 		 }

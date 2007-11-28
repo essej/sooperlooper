@@ -1304,10 +1304,16 @@ Looper::load_loop (string fname)
 	float old_syncmode = ports[Sync];
 	float old_xfadesamples = ports[FadeSamples];
 	float old_state  = ports[State];
+	float old_in_latency = ports[InputLatency];
+	float old_out_latency = ports[OutputLatency];
+	float old_trig_latency = ports[TriggerLatency];
 
 	ports[TriggerThreshold] = 0.0f;
 	ports[Sync] = 0.0f;
 	ports[FadeSamples] = 0.0f;
+	ports[InputLatency] = 0.0f;
+	ports[OutputLatency] = 0.0f;
+	ports[TriggerLatency] = 0.0f;
 	_slave_sync_port = 0.0;
 	
 	// now set it to mute just to make sure we weren't already recording
@@ -1389,6 +1395,9 @@ Looper::load_loop (string fname)
 	ports[TriggerThreshold] = old_recthresh;
 	ports[Sync] = old_syncmode;
 	ports[FadeSamples] = old_xfadesamples;
+	ports[InputLatency] = old_in_latency;
+	ports[OutputLatency] = old_out_latency;
+	ports[TriggerLatency] = old_trig_latency;
 	_slave_sync_port = 1.0;
 	
 	ret = true;

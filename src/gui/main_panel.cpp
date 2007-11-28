@@ -1079,7 +1079,7 @@ void MainPanel::command_action (bool release, wxString cmd)
 	}
 	else {
 		_loop_control->post_down_event (_curr_loop, cmd);
-		cerr << "action " << cmd.ToAscii() << endl;
+		//cerr << "action " << cmd.ToAscii() << endl;
 	}
 }
 
