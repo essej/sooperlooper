@@ -1007,6 +1007,14 @@ void MainPanel::intialize_keybindings ()
 	KeyboardTarget::add_action ("trigger", bind (slot (*this, &MainPanel::command_action), wxT("trigger")));
 	KeyboardTarget::add_action ("pause", bind (slot (*this, &MainPanel::command_action), wxT("pause")));
 	KeyboardTarget::add_action ("solo", bind (slot (*this, &MainPanel::command_action), wxT("solo")));
+	KeyboardTarget::add_action ("solo_prev", bind (slot (*this, &MainPanel::command_action), wxT("solo_prev")));
+	KeyboardTarget::add_action ("solo_next", bind (slot (*this, &MainPanel::command_action), wxT("solo_next")));
+	KeyboardTarget::add_action ("record_solo", bind (slot (*this, &MainPanel::command_action), wxT("record_solo")));
+	KeyboardTarget::add_action ("record_solo_prev", bind (slot (*this, &MainPanel::command_action), wxT("record_solo_prev")));
+	KeyboardTarget::add_action ("record_solo_next", bind (slot (*this, &MainPanel::command_action), wxT("record_solo_next")));
+	KeyboardTarget::add_action ("set_sync_pos", bind (slot (*this, &MainPanel::command_action), wxT("set_sync_pos")));
+	KeyboardTarget::add_action ("reset_sync_pos", bind (slot (*this, &MainPanel::command_action), wxT("reset_sync_pos")));
+
 
 	KeyboardTarget::add_action ("delay", bind (slot (*this, &MainPanel::misc_action), wxT("delay")));
 	KeyboardTarget::add_action ("taptempo", bind (slot (*this, &MainPanel::misc_action), wxT("taptempo")));
@@ -1044,7 +1052,7 @@ void MainPanel::intialize_keybindings ()
 	_keyboard->add_binding (" ", "trigger");
 	_keyboard->add_binding ("t", "taptempo");
 	_keyboard->add_binding ("z", "pause");
-	_keyboard->add_binding ("`", "solo");
+	_keyboard->add_binding ("q", "solo");
 
 	_keyboard->add_binding ("Control-s", "save");
 	_keyboard->add_binding ("Control-o", "load");
@@ -1071,6 +1079,7 @@ void MainPanel::command_action (bool release, wxString cmd)
 	}
 	else {
 		_loop_control->post_down_event (_curr_loop, cmd);
+		cerr << "action " << cmd.ToAscii() << endl;
 	}
 }
 

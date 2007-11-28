@@ -761,7 +761,12 @@ Engine::process (nframes_t nframes)
 			doframes = fragpos - usedframes;
 
 			// handle special global RT events
-			if (evt->Instance == -2 || evt->Command == Event::SOLO) {
+			if (evt->Instance == -2 
+			    || evt->Command == Event::SOLO
+			    || evt->Command == Event::SOLO_NEXT ||  evt->Command == Event::SOLO_PREV
+			    || evt->Command == Event::RECORD_SOLO_NEXT ||  evt->Command == Event::RECORD_SOLO_PREV 
+			    || evt->Command == Event::RECORD_SOLO)
+			{
 				do_global_rt_event (evt, usedframes + doframes, nframes - (usedframes + doframes));
 			}
 
@@ -900,10 +905,29 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 		}
 		
 	}
-	else if (ev->Command == Event::SOLO) 
+	else if (ev->Command == Event::SOLO || ev->Command == Event::SOLO_NEXT ||  ev->Command == Event::SOLO_PREV
+		 ||  ev->Command == Event::RECORD_SOLO_NEXT ||  ev->Command == Event::RECORD_SOLO_PREV || ev->Command == Event::RECORD_SOLO)
 	{
 		// notify all loops they are being soloed or not (this acts as a toggle)
 		int target_instance = (ev->Instance == -3) ? _selected_loop : ev->Instance;
+
+		if (ev->Type == Event::type_cmd_down || ev->Type == Event::type_cmd_hit || ev->Type == Event::type_cmd_upforce
+		    || (ev->Type == Event::type_cmd_up && _running_frames > (_solo_down_stamp + _longpress_frames)))
+		{	
+			if (ev->Command == Event::SOLO_NEXT ||  ev->Command == Event::RECORD_SOLO_NEXT) {
+				// increment selected
+				_selected_loop = (_selected_loop + 1) % _rt_instances.size();
+				_sel_loop_changed = true;
+				target_instance = _selected_loop;
+			}
+			else if (ev->Command == Event::SOLO_PREV ||  ev->Command == Event::RECORD_SOLO_PREV) {
+				// decrement selected
+				_selected_loop = _selected_loop > 0 ? _selected_loop - 1 : _rt_instances.size() - 1;
+				_sel_loop_changed = true;
+				target_instance = _selected_loop;
+			}
+		}
+
 
 		if (target_instance >= 0 && target_instance < (int) _rt_instances.size()) 
 		{
@@ -925,8 +949,16 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			}
 		}
 		
-		// change the event's instance so it isn't used later in the process call
-		ev->Instance = -100;
+		if (ev->Command == Event::RECORD_SOLO_NEXT ||  ev->Command == Event::RECORD_SOLO_PREV || ev->Command == Event::RECORD_SOLO)
+		{
+			// change the instance to the target we soloed, and the command to record
+			ev->Instance = target_instance;
+			ev->Command = Event::RECORD;
+		}
+		else {
+			// change the event's instance so it isn't used later in the process call
+			ev->Instance = -100;
+		}
 	}
 	else if (ev->Control == Event::WetLevel)
 	{

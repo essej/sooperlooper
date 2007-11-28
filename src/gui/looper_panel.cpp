@@ -386,7 +386,7 @@ LooperPanel::init()
 	
  	lilcolsizer->Add (_mute_button, 0, wxTOP, 2);
 
- 	lilcolsizer->Add (_pause_button, 0, wxTOP, 2);
+ 	lilcolsizer->Add (_solo_button, 0, wxTOP, 2);
 
 	rowsizer->Add(lilcolsizer, 0, wxTOP|wxLEFT, 3);	
 
@@ -415,8 +415,8 @@ LooperPanel::init()
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
 
-	// solo
- 	rowsizer->Add (_solo_button, 0, wxTOP|wxLEFT, 3);
+	// pause
+ 	rowsizer->Add (_pause_button, 0, wxTOP|wxLEFT, 3);
 
 	
 	colsizer->Add (rowsizer, 0, wxEXPAND);
@@ -988,10 +988,12 @@ LooperPanel::update_state()
 	wxString statestr, nstatestr;
 	LooperState state, nextstate;
 	float val;
-	
+	float soloed = false;
+
 	_loop_control->get_state(_index, state, statestr);
 	_loop_control->get_next_state(_index, nextstate, nstatestr);
 	_loop_control->get_value(_index, wxT("waiting"), val);
+	_loop_control->get_value(_index, wxT("is_soloed"), soloed);
 	_waiting = (val > 0.0f) ? true : false;
 	
 
@@ -1135,7 +1137,10 @@ LooperPanel::update_state()
 				break;
 			case LooperStateMuted:
 			case LooperStatePlaying:
-				if (state == LooperStatePlaying || state == LooperStateMuted) {
+				if (soloed) {
+					_flashing_button = _solo_button;
+				}
+				else if (state == LooperStatePlaying || state == LooperStateMuted) {
 					_flashing_button = _reverse_button;
 				}
 				break;
@@ -1146,7 +1151,12 @@ LooperPanel::update_state()
 		}
 		else if (state == LooperStatePlaying || state == LooperStateMuted) {
 			// special case, we are pending reverse
-			_flashing_button = _reverse_button;
+			if (soloed) {
+				_flashing_button = _solo_button;
+			} else {
+				_flashing_button = _reverse_button;
+			}
+			
 		}
 		
 		// make sure flash time is going
@@ -1166,6 +1176,8 @@ LooperPanel::update_state()
 			else {
 				_reverse_button->set_active(false);
 			}
+
+			_solo_button->set_active(soloed);
 		}
 
 	}

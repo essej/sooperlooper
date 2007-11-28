@@ -135,6 +135,7 @@ typedef struct _LoopChunk {
 	unsigned long lMarkEndH;        
 
 	unsigned long lSyncOffset;
+	unsigned long lOrigSyncOffset;
 	
 	int firsttime;
 	int frontfill;

@@ -130,6 +130,9 @@ using namespace SooperLooper;
 #define MULTI_MUTE_OFF   20
 #define MULTI_PAUSE      21
 
+#define MULTI_SET_SYNC_POS 28
+#define MULTI_RESET_SYNC_POS 29
+
 
 /*****************************************************************************/
 
@@ -398,7 +401,7 @@ static void redoLoop(SooperLooperI *pLS)
 	   }
 	   else {
 		   // start at loop beginning
-		   nextloop->dCurrPos = 0.0;
+		   nextloop->dCurrPos = nextloop->lSyncOffset;
 	   }
 	   
 	   pLS->headLoopChunk = nextloop;
@@ -1463,9 +1466,9 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
 		      nextstate = STATE_PLAY;
 		      pLS->wasMuted = false;
 		      if (pLS->fCurrRate > 0)
-			      loop->dCurrPos = 0.0;
+			      loop->dCurrPos = (double) loop->lSyncOffset;
 		      else
-			      loop->dCurrPos = loop->lLoopLength - 1;
+			      loop->dCurrPos = (loop->lLoopLength - loop->lSyncOffset) - 1;
 	      }
 	      break;
       case STATE_ONESHOT:
@@ -1478,9 +1481,9 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
 		      DBG(fprintf(stderr,"Starting ONESHOT state\n"));
 		      pLS->state = STATE_ONESHOT;
 		      if (pLS->fCurrRate > 0)
-			      loop->dCurrPos = 0.0;
+			      loop->dCurrPos = (double) loop->lSyncOffset;
 		      else
-			      loop->dCurrPos = loop->lLoopLength - 1;		       
+			      loop->dCurrPos = (loop->lLoopLength - loop->lSyncOffset) - 1;
 	      }
 	      break;
    }
@@ -2077,9 +2080,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		    DBG(fprintf(stderr,"Starting ONESHOT state\n"));
 		    pLS->state = STATE_ONESHOT;
 		    if (pLS->fCurrRate > 0)
-		       loop->dCurrPos = 0.0;
+			    loop->dCurrPos = (double) loop->lSyncOffset;
 		    else
-		       loop->dCurrPos = loop->lLoopLength - 1;		       
+			    loop->dCurrPos = (loop->lLoopLength - loop->lSyncOffset) - 1;
 		 }
 		 break;
 	      case STATE_MULTIPLY:
@@ -2473,7 +2476,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 pLS->state = STATE_PLAY;
 		 pLS->wasMuted = false;
 		 if (loop) {
-		    loop->dCurrPos = 0.0f;
+		    loop->dCurrPos = loop->lSyncOffset;
 		 }
 		 DBG(fprintf(stderr,"Entering PLAY state from top\n"));
 		 break;
@@ -2498,9 +2501,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		    pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 		    pLS->state = STATE_ONESHOT;
 		    if (pLS->fCurrRate > 0)
-		       loop->dCurrPos = 0.0f;
+			    loop->dCurrPos = (double) loop->lSyncOffset;
 		    else
-		       loop->dCurrPos = loop->lLoopLength - 1;
+			    loop->dCurrPos = (loop->lLoopLength - loop->lSyncOffset) - 1;
 
 		    // we need to increment loop position by output latency (+ IL ?)
 		    loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
@@ -2730,11 +2733,12 @@ runSooperLooper(LADSPA_Handle Instance,
 				      prevstate = pLS->state;
 				      
 				      pLS->state = STATE_ONESHOT;
+
 				      if (pLS->fCurrRate > 0)
-					      loop->dCurrPos = 0.0;
+					      loop->dCurrPos = (double) loop->lSyncOffset;
 				      else
-					      loop->dCurrPos = loop->lLoopLength - 1;		       
-				
+					      loop->dCurrPos = (loop->lLoopLength - loop->lSyncOffset) - 1;
+
 
 				      if (prevstate == STATE_RECORD || prevstate == STATE_TRIG_STOP) {
 					      // we need to increment loop position by output latency (+ IL ?)
@@ -2806,7 +2810,25 @@ runSooperLooper(LADSPA_Handle Instance,
 		      break;
 		}
 	} break;
-	
+
+        case MULTI_SET_SYNC_POS:
+	{
+		// set current loop's sync offset to the current pos
+		if (loop) {
+			loop->lSyncOffset = (unsigned long) loop->dCurrPos;
+		}
+
+	} break;
+
+        case MULTI_RESET_SYNC_POS:
+	{
+		// set current loop's sync offset to the current pos
+		if (loop) {
+			loop->lSyncOffset = loop->lOrigSyncOffset;
+		}
+
+	} break;
+
 	case MULTI_QUANT_TOG:
 	{
 	   // toggle quantize
@@ -2903,7 +2925,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
 		    if (fSyncMode == 2.0f) {
 			    // use sync offset
-			    loop->lSyncOffset = pLS->lSamplesSinceSync;
+			    loop->lSyncOffset = loop->lOrigSyncOffset = pLS->lSamplesSinceSync;
 			    //cerr << "sync offset is: " << loop->lSyncOffset << endl;
 		    }
 		    
@@ -3926,10 +3948,11 @@ runSooperLooper(LADSPA_Handle Instance,
 			 //cerr << "PLAYBACK SYNC hit at " << lCurrPos << endl;
 			 //pLS->waitingForSync = 1;
 			 pLS->donePlaySync = true;
+
 			 if (pLS->fCurrRate > 0)
-				 loop->dCurrPos = 0.0;
+				 loop->dCurrPos = (double) loop->lSyncOffset;
 			 else
-				 loop->dCurrPos = loop->lLoopLength - 1;
+				 loop->dCurrPos = (loop->lLoopLength - loop->lSyncOffset) - 1;
 
 			 pfSyncOutput[lSampleIndex] = 1.0f;
 		 }

@@ -61,7 +61,15 @@ CommandMap::CommandMap()
 	_str_cmd_map["mute_off"]  = Event::MUTE_OFF;
 	_str_cmd_map["pause"]  = Event::PAUSE;
 	_str_cmd_map["solo"]  = Event::SOLO;
-	
+	_str_cmd_map["solo_next"]  = Event::SOLO_NEXT;
+	_str_cmd_map["solo_prev"]  = Event::SOLO_PREV;
+	_str_cmd_map["record_solo"]  = Event::RECORD_SOLO;	
+	_str_cmd_map["record_solo_next"]  = Event::RECORD_SOLO_NEXT;	
+	_str_cmd_map["record_solo_prev"]  = Event::RECORD_SOLO_PREV;	
+	_str_cmd_map["set_sync_pos"]  = Event::SET_SYNC_POS;
+	_str_cmd_map["reset_sync_pos"]  = Event::RESET_SYNC_POS;
+
+
 	for (StringCommandMap::iterator iter = _str_cmd_map.begin(); iter != _str_cmd_map.end(); ++iter) {
 		_cmd_str_map[(*iter).second] = (*iter).first;
 	}

@@ -111,6 +111,13 @@ namespace SooperLooper {
 		    MUTE_OFF,
 		    PAUSE,
 		    SOLO,
+		    SOLO_NEXT,
+		    SOLO_PREV,
+		    RECORD_SOLO,
+		    RECORD_SOLO_NEXT,
+		    RECORD_SOLO_PREV,
+		    SET_SYNC_POS,
+		    RESET_SYNC_POS,
 		    LAST_COMMAND
 	    } Command;
 

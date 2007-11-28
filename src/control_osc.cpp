@@ -100,6 +100,9 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 
 	// for all loops
 	on_loop_added(-1);
+
+	// for selected loop
+	on_loop_added(-3);
 	
 	// lo_server_thread_add_method(_sthread, NULL, NULL, ControlOSC::_dummy_handler, this);
 
