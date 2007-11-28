@@ -2825,7 +2825,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	{
 		// set current loop's sync offset to the current pos
 		if (loop) {
-			loop->lSyncPos = (unsigned long) loop->dCurrPos;
+			loop->lSyncPos = (unsigned long) (loop->lLoopLength - loop->dCurrPos);
 		}
 
 	} break;
