@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version="1.4.0"
+version="1.4.1"
 
 cp ../src/sooperlooper macdist/SooperLooper.app/Contents/MacOS/
 cp ../src/gui/slgui macdist/SooperLooper.app/Contents/MacOS/

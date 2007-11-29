@@ -707,20 +707,6 @@ Looper::do_event (Event *ev)
 
 		if ((int)ev->Control >= (int)Event::TriggerThreshold && (int)ev->Control < (int) Event::State) {
 
-			switch (ev->Control) 
-			{
-			case Event::DryLevel:
-				_target_dry = ev->Value;
-				break;
-			case  Event::Quantize:
-				ev->Value = roundf(ev->Value);
-				// passthru is intentional
-			default:
-				ports[ev->Control] = ev->Value;
-				//cerr << "set port " << ev->Control << "  to: " << ev->Value << endl;
-				break;
-			}
-			
 #ifdef HAVE_SAMPLERATE
 			if (ev->Control == Event::Rate) {
 				// uses
@@ -739,7 +725,22 @@ Looper::do_event (Event *ev)
 				}
 			}
 #endif
-		}
+	
+			switch (ev->Control) 
+			{
+			case Event::DryLevel:
+				_target_dry = ev->Value;
+				break;
+			case  Event::Quantize:
+				ev->Value = roundf(ev->Value);
+				// passthru is intentional
+			default:
+				ports[ev->Control] = ev->Value;
+				//cerr << "set port " << ev->Control << "  to: " << ev->Value << endl;
+				break;
+			}
+			
+	}
 		else if (ev->Control == Event::InputGain)
 		{
 			_targ_input_gain = ev->Value;
@@ -1480,7 +1481,6 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 
 	sample_t * bigbuf   = new float[bufsize * _chan_count];
 
-	// now start recording and run for loop length total
 	nframes_t nframes = bufsize;
 	nframes_t frames_left = (nframes_t) lrintf(ports[LoopLength] * _driver->get_samplerate());
 

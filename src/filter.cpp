@@ -27,7 +27,7 @@ using namespace SooperLooper;
 using namespace std;
 
 OnePoleFilter::OnePoleFilter(float srate)
-	: fLastCutoff(0), fAmountOfCurrent(0), fAmountOfLast(0)
+	: fLastOutput(0), fLastCutoff(0), fCurrCutoff(0), fAmountOfCurrent(0), fAmountOfLast(0)
 {
 	set_samplerate (srate);
 	
