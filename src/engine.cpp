@@ -998,8 +998,34 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 		_selected_loop = (_selected_loop + 1) % _rt_instances.size();
 		_sel_loop_changed = true;
 	}
-}
+	else if (ev->Control == Event::SyncTo)
+	{
+		if ((int) ev->Value > (int) FIRST_SYNC_SOURCE
+		    && ev->Value <= _rt_instances.size())
+		{
+			_sync_source = (SyncSourceType) (int) roundf(ev->Value);
+			update_sync_source();
+		}
+	}	
+	else if (ev->Control == Event::Tempo) {
+		if (ev->Value > 0.0f) {
+			set_tempo((double) ev->Value, false);
+		}
+	}
+	else if (ev->Control == Event::EighthPerCycle) {
+		if (ev->Value > 0.0f) {
+			_eighth_cycle = ev->Value;
+			
+			// update all loops
+			for (unsigned int n=0; n < _rt_instances.size(); ++n) {
+				_rt_instances[n]->set_port(EighthPerCycleLoop, _eighth_cycle);
+			}
+		}
+		calculate_midi_tick(true);
+	}
 
+}
+	
 bool Engine::push_loop_manage_to_rt (LoopManageEvent & lme)
 {
 	if (_loop_manage_to_rt_queue->write (&lme, 1) != 1) {
@@ -1474,7 +1500,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 		}
 		else if (gs_event->param == "tempo") {
 			    if (gs_event->value > 0.0f) {
-				    set_tempo((double) gs_event->value, false);
+				    set_tempo((double) gs_event->value, true);
 			    }
 		}
 		else if (gs_event->param == "eighth_per_cycle") {
