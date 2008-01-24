@@ -534,7 +534,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		float newval;
 		
 		if (_snap_mode == IntegerSnap) {
-			newval = _value + ev.GetWheelRotation();
+                   newval = _value + ((ev.GetWheelRotation() > 0) ? 1 : -1);
 		}
 		else {
 			if (ev.GetWheelRotation() > 0) {

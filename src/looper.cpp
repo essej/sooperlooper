@@ -651,7 +651,7 @@ void Looper::set_port (ControlPort n, float val)
 		if (_tempo_stretch && ports[CycleLength] != 0.0f) {
 			// new ratio is origtempo/newtempo
 		        double tempo = (30.0 * ports[EighthPerCycleLoop] / ports[CycleLength]);
-			cerr << "tempo calc: " << tempo << " tempo input: " << val << endl;
+			//cerr << "tempo calc: " << tempo << " tempo input: " << val << endl;
 			// clamp it if close to the same
 			tempo = (abs(tempo-val) < 0.001) ? val: tempo;
 			double newratio = min(4.0, max(0.5, tempo / (double) val)); 
@@ -1156,7 +1156,19 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		}
 	
 #endif
-			
+
+		// resample sync using Rate
+		_src_data.end_of_input = 0;
+		_src_data.src_ratio = _src_in_ratio;
+		_src_data.input_frames = nframes;
+		_src_data.output_frames = (long) ceil (nframes * _stretch_ratio);
+		_src_data.data_in = _use_sync_buf + offset;
+		_src_data.data_out = _src_sync_buffer;
+		src_process (_insync_src_state, &_src_data);
+		
+		//alt_frames = _src_data.output_frames_gen;
+
+                
 		// stretch output by running the looper as much as we need
 		size_t avail_samps = _out_stretcher->available();
 		//nframes_t needSamples = (nframes_t) ceil(nframes * _stretch_ratio);

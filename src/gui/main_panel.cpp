@@ -233,14 +233,14 @@ MainPanel::init()
 	_quantize_choice->append_choice (wxT("loop"), 3);
 	rowsizer->Add (_quantize_choice, 0, wxALL|wxEXPAND, 2);
 
-	_mute_quant_check = new CheckBox(this, ID_MuteQuantCheck, wxT("mute quant"), true, wxDefaultPosition, wxSize(85, 18));
+	_mute_quant_check = new CheckBox(this, ID_MuteQuantCheck, wxT("mute quant"), true, wxDefaultPosition, wxSize(90, 18));
 	_mute_quant_check->SetFont(sliderFont);
 	_mute_quant_check->SetToolTip(wxT("quantize mute operations"));
 	_mute_quant_check->value_changed.connect (slot (*this, &MainPanel::on_mute_quant_check));
 	_mute_quant_check->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("mute_quantized")));
 	rowsizer->Add (_mute_quant_check, 0, wxALL|wxEXPAND, 2);
 
-	_odub_quant_check = new CheckBox(this, ID_OdubQuantCheck, wxT("odub quant"), true, wxDefaultPosition, wxSize(85, 18));
+	_odub_quant_check = new CheckBox(this, ID_OdubQuantCheck, wxT("odub quant"), true, wxDefaultPosition, wxSize(90, 18));
 	_odub_quant_check->SetFont(sliderFont);
 	_odub_quant_check->SetToolTip(wxT("quantize overdub operations"));
 	_odub_quant_check->value_changed.connect (slot (*this, &MainPanel::on_odub_quant_check));
