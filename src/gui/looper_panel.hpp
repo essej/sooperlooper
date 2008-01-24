@@ -134,12 +134,15 @@ class LooperPanel
 	SliderBar * _wet_control;
 	SliderBar * _scratch_control;
 	SliderBar * _rate_control;
+	SliderBar * _stretch_control;
+	SliderBar * _pitch_control;
 
 	CheckBox * _quantize_check;
 	CheckBox * _round_check;
 	CheckBox * _sync_check;
 	CheckBox * _play_feed_check;
 	CheckBox * _play_sync_check;
+	CheckBox * _tempo_stretch_check;
 	wxBoxSizer * _maininsizer;
 	CheckBox * _use_main_in_check;
 

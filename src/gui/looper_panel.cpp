@@ -75,6 +75,8 @@ enum {
 	ID_WetControl,
 	ID_ScratchControl,
 	ID_RateControl,
+	ID_StretchControl,
+	ID_PitchControl,
 	ID_InputGainControl,
 
 	ID_InputLatency,
@@ -86,6 +88,7 @@ enum {
 	ID_RoundCheck,
 	ID_SyncCheck,
 	ID_UseFeedbackPlayCheck,
+	ID_TempoStretchCheck,
 	ID_PlaySyncCheck,
 	ID_UseMainInCheck,
 	ID_Panner,
@@ -361,6 +364,14 @@ LooperPanel::init()
 	_play_feed_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("use_feedback_play")));
 	_play_feed_check->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) _play_feed_check->GetId()));
 	lilrowsizer->Add (_play_feed_check, 1, wxLEFT, 3);
+
+	_tempo_stretch_check = new CheckBox(this, ID_TempoStretchCheck, wxT("t. stretch"), true, wxDefaultPosition, wxSize(55, 18));
+	_tempo_stretch_check->SetFont(sliderFont);
+	_tempo_stretch_check->SetToolTip(wxT("enable automatic timestretch when tempo changes"));
+	_tempo_stretch_check->value_changed.connect (bind (slot (*this, &LooperPanel::check_events), wxT("tempo_stretch")));
+	_tempo_stretch_check->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) _tempo_stretch_check->GetId()));
+	lilrowsizer->Add (_tempo_stretch_check, 1, wxLEFT, 3);
+
 	lilcolsizer->Add (lilrowsizer, 0, wxTOP|wxEXPAND, 0);
 	
 	rowsizer->Add(lilcolsizer, 1, wxTOP|wxLEFT, 3);
@@ -415,6 +426,18 @@ LooperPanel::init()
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
 
+	// pitch control
+	_pitch_control = slider = new SliderBar(this, ID_PitchControl, -12.0f, 12.0f, 0.0f);
+	slider->set_units(wxT(""));
+	slider->set_label(wxT("pitch"));
+	slider->set_style (SliderBar::CenterStyle);
+	slider->set_decimal_digits (1);
+	slider->set_snap_mode(SliderBar::IntegerSnap);
+	slider->SetFont(sliderFont);
+	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
+
 	// pause
  	rowsizer->Add (_pause_button, 0, wxTOP|wxLEFT, 3);
 
@@ -438,6 +461,18 @@ LooperPanel::init()
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
+
+	// stretch control
+	_stretch_control = slider = new SliderBar(this, ID_StretchControl, 0.5f, 4.0f, 1.0f);
+	slider->set_units(wxT(""));
+	slider->set_label(wxT("stretch"));
+	slider->set_style (SliderBar::CenterStyle);
+	slider->set_decimal_digits (2);
+	slider->SetFont(sliderFont);
+	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
+
 
 	/*
 	_triglatency_spin =  new SpinBox(this, ID_TriggerLatency, 0.0f, 32768.0f, 0.0f, true, wxDefaultPosition, wxSize(65, 20));
@@ -884,6 +919,14 @@ LooperPanel::update_controls()
 
 		update_rate_buttons(val);
 	}
+	if (_loop_control->is_updated(_index, wxT("stretch_ratio"))) {
+		_loop_control->get_value(_index, wxT("stretch_ratio"), val);
+		_stretch_control->set_value (val);
+	}
+	if (_loop_control->is_updated(_index, wxT("pitch_shift"))) {
+		_loop_control->get_value(_index, wxT("pitch_shift"), val);
+		_pitch_control->set_value (val);
+	}
 	if (_loop_control->is_updated(_index, wxT("rate_output"))) {
 		_loop_control->get_value(_index, wxT("rate_output"), val);
 		if (val < 0.0) {
@@ -934,6 +977,10 @@ LooperPanel::update_controls()
 	if (_loop_control->is_updated(_index, wxT("use_feedback_play"))) {
 		_loop_control->get_value(_index, wxT("use_feedback_play"), val);
 		_play_feed_check->set_value (val > 0.0f);
+	}
+	if (_loop_control->is_updated(_index, wxT("tempo_stretch"))) {
+		_loop_control->get_value(_index, wxT("tempo_stretch"), val);
+		_tempo_stretch_check->set_value (val > 0.0f);
 	}
 
 	if (_loop_control->is_updated(_index, wxT("is_soloed"))) {
@@ -1395,6 +1442,14 @@ LooperPanel::slider_events(float val, int id)
 		val = _rate_control->get_value();
 		update_rate_buttons (val);
 		break;
+	case ID_StretchControl:
+		ctrl = wxT("stretch_ratio");
+		val = _stretch_control->get_value();
+		break;
+	case ID_PitchControl:
+		ctrl = wxT("pitch_shift");
+		val = _pitch_control->get_value();
+		break;
 	case ID_OutputLatency:
 		ctrl = wxT("output_latency");
 		cerr << "outlat " << val << endl;
@@ -1463,6 +1518,18 @@ LooperPanel::control_bind_events(int id)
 		info.lbound = 0.25;
 		info.ubound = 4.0;
 		break;
+	case ID_StretchControl:
+		info.control = "stretch_ratio";
+		info.style = MidiBindInfo::NormalStyle;
+		info.lbound = 0.5;
+		info.ubound = 4.0;
+		break;
+	case ID_PitchControl:
+		info.control = "pitch_shift";
+		info.style = MidiBindInfo::IntegerStyle;
+		info.lbound = -12;
+		info.ubound = 12;
+		break;
 	case ID_SyncCheck:
 		info.control = "sync";
 		info.style = MidiBindInfo::NormalStyle;
@@ -1473,6 +1540,10 @@ LooperPanel::control_bind_events(int id)
 		break;
 	case ID_UseFeedbackPlayCheck:
 		info.control = "use_feedback_play";
+		info.style = MidiBindInfo::NormalStyle;
+		break;
+	case ID_TempoStretchCheck:
+		info.control = "tempo_stretch";
 		info.style = MidiBindInfo::NormalStyle;
 		break;
 	default:

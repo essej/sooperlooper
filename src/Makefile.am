@@ -5,7 +5,7 @@ bin_PROGRAMS =  sooperlooper slconsole
 slpresetdir  = $(datadir)/sooperlooper/presets
 slpreset_DATA =  midiwizard.slb oxy8.slb edp4.slb bcf2000.slb
 
-AM_CXXFLAGS =  @JACK_CFLAGS@ @LOSC_CFLAGS@ @SIGCPP_CFLAGS@ @SNDFILE_CFLAGS@ @SAMPLERATE_CFLAGS@ @XML_CFLAGS@
+AM_CXXFLAGS =  @JACK_CFLAGS@ @LOSC_CFLAGS@ @SIGCPP_CFLAGS@ @SNDFILE_CFLAGS@ @SAMPLERATE_CFLAGS@ @XML_CFLAGS@ @RUBBERBAND_CFLAGS@ @FFTW_CFLAGS@
 
 #SYSDEP_SRCS=
 #if WITH_ALSA
@@ -40,7 +40,7 @@ libsldrivers_a_SOURCES      = \
 sooperlooper_SOURCES = \
 	sooperlooper.cpp
 
-sooperlooper_LDADD =  libsldrivers.a libslcore.a @JACK_LIBS@ @LOSC_LIBS@ @SIGCPP_LIBS@ @SNDFILE_LIBS@ @SAMPLERATE_LIBS@ @AUDIO_LIBS@ @XML_LIBS@
+sooperlooper_LDADD =  libsldrivers.a libslcore.a @JACK_LIBS@ @LOSC_LIBS@ @SIGCPP_LIBS@ @RUBBERBAND_LIBS@ @FFTW_LIBS@ @SNDFILE_LIBS@ @SAMPLERATE_LIBS@ @AUDIO_LIBS@ @XML_LIBS@
 sooperlooper_LDFLAGS = 
 
 slconsole_SOURCES = slconsole.cpp

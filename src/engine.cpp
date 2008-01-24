@@ -1311,23 +1311,25 @@ Engine::mainloop()
 			evt = vec.buf[0];
 
 			if (evt->Control == Event::SaveLoop) {
-				cerr << "got save: " << (int) evt->Instance <<  endl;
+				int instance = evt->Instance == -3 ? _selected_loop : evt->Instance;
+				cerr << "got save: " << (int) instance <<  endl;
 				// save with no filename will autogenerate a unique name
 				for (unsigned int n=0; n < _instances.size(); ++n) {
-					if (evt->Instance < 0 || evt->Instance == (int)n) {
+					if (instance < 0 || instance == (int)n) {
 						_instances[n]->save_loop ();
 					}
 				}
 			}
 			else if (evt->Type == Event::type_control_change) {
-				ConfigUpdateEvent cuev (ConfigUpdateEvent::Send, evt->Instance, evt->Control, "", "", evt->Value);
+				int instance = evt->Instance == -3 ? _selected_loop : evt->Instance;
+				ConfigUpdateEvent cuev (ConfigUpdateEvent::Send, instance, evt->Control, "", "", evt->Value);
 				cuev.source = evt->source;
 				_osc->finish_update_event (cuev);
 			}
 			else if (evt->Type == Event::type_cmd_down || evt->Type == Event::type_cmd_hit) {
 				//cerr << "got command: " << evt->Command << endl;
-				     
-				ConfigUpdateEvent cuev (ConfigUpdateEvent::SendCmd, evt->Instance, evt->Command, "", "");
+				int instance = evt->Instance == -3 ? _selected_loop : evt->Instance;
+				ConfigUpdateEvent cuev (ConfigUpdateEvent::SendCmd, instance, evt->Command, "", "");
 				cuev.source = evt->source;
 				_osc->finish_update_event (cuev);
 			}
@@ -2054,7 +2056,6 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 				}
 			}
 		}
-		
 	}
 		
 	if (hit_at >= 0 && _tempo < 400.0) {

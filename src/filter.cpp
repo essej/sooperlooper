@@ -39,6 +39,7 @@ OnePoleFilter::run_lowpass (float * buf, uint32_t nframes)
 	
 	if (fLastCutoff != fCurrCutoff) {
 		fLastCutoff = fCurrCutoff;
+		fLastOutput = 0;
 		if (fLastCutoff <= 0) {
 			/* Reject everything. */
 			fAmountOfCurrent = fAmountOfLast = 0;

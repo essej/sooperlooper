@@ -757,7 +757,6 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
 	 pLS->pfNextStateOut = DataLocation;
 	 break;
 
-
    }
 }
 
@@ -3047,7 +3046,6 @@ runSooperLooper(LADSPA_Handle Instance,
 	   loop->lLoopLength = (unsigned long) lCurrPos;
 	   loop->lCycleLength = loop->lLoopLength;
 
-	   
 	} break;
 
 	case STATE_TRIG_STOP:
@@ -3152,7 +3150,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		   loop->lCycleLength = loop->lLoopLength;
 		   loop->lCycles = 1;
 	   }
-	   
+	
+
+   
 	} break;
 
 
@@ -4689,9 +4689,9 @@ LADSPA_Descriptor * create_sl_descriptor()
 
     psPortRangeHints[NextState].HintDescriptor
       = LADSPA_HINT_BOUNDED_BELOW;
-    psPortRangeHints[LoopPosition].LowerBound 
+    psPortRangeHints[NextState].LowerBound 
       = 0.0;
-    
+
     
     psDescriptor->instantiate
       = instantiateSooperLooper;

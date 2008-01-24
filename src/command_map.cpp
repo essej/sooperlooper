@@ -107,7 +107,9 @@ CommandMap::CommandMap()
 	_input_controls["pan_2"]  = Event::PanChannel2;
 	_input_controls["pan_3"]  = Event::PanChannel3;
 	_input_controls["pan_4"]  = Event::PanChannel4;
-
+	_input_controls["stretch_ratio"] = Event::StretchRatio;
+	_input_controls["pitch_shift"] = Event::PitchShift;
+	_input_controls["tempo_stretch"] = Event::TempoStretch;
 
 	_str_ctrl_map.insert (_input_controls.begin(), _input_controls.end());
 

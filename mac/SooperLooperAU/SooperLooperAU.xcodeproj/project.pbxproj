@@ -21,6 +21,8 @@
 		881935150878E77D008C28C2 /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935140878E77D008C28C2 /* libiconv.dylib */; };
 		881935190878E7A0008C28C2 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935180878E7A0008C28C2 /* CoreFoundation.framework */; };
 		8819351B0878E7CA008C28C2 /* libm.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8819351A0878E7CA008C28C2 /* libm.dylib */; };
+		884365080D464EBF00E6C1F9 /* librubberband.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 884365070D464EBF00E6C1F9 /* librubberband.a */; };
+		8843650A0D464EDA00E6C1F9 /* libfftw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 884365090D464EDA00E6C1F9 /* libfftw3.a */; };
 		8855A55108B571B500B1396A /* TaskWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 8855A54F08B571B500B1396A /* TaskWrapper.h */; };
 		8855A55208B571B500B1396A /* TaskWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 8855A55008B571B500B1396A /* TaskWrapper.m */; };
 		8855A55D08B5732D00B1396A /* launch_slgui.h in Headers */ = {isa = PBXBuildFile; fileRef = 8855A55B08B5732D00B1396A /* launch_slgui.h */; };
@@ -252,6 +254,8 @@
 		881935140878E77D008C28C2 /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = /usr/lib/libiconv.dylib; sourceTree = "<absolute>"; };
 		881935180878E7A0008C28C2 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 		8819351A0878E7CA008C28C2 /* libm.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libm.dylib; path = /usr/lib/libm.dylib; sourceTree = "<absolute>"; };
+		884365070D464EBF00E6C1F9 /* librubberband.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = librubberband.a; path = /usr/local/lib/librubberband.a; sourceTree = "<absolute>"; };
+		884365090D464EDA00E6C1F9 /* libfftw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfftw3.a; path = /opt/local/lib/libfftw3.a; sourceTree = "<absolute>"; };
 		8855A54F08B571B500B1396A /* TaskWrapper.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TaskWrapper.h; sourceTree = "<group>"; };
 		8855A55008B571B500B1396A /* TaskWrapper.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = TaskWrapper.m; sourceTree = "<group>"; };
 		8855A55B08B5732D00B1396A /* launch_slgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = launch_slgui.h; sourceTree = "<group>"; };
@@ -462,6 +466,8 @@
 				888AC6DB087E2C7C001F80AD /* Cocoa.framework in Frameworks */,
 				8855A6F608B59DE600B1396A /* libxml2.dylib in Frameworks */,
 				886245A508B8E4F3003959C6 /* AppKit.framework in Frameworks */,
+				884365080D464EBF00E6C1F9 /* librubberband.a in Frameworks */,
+				8843650A0D464EDA00E6C1F9 /* libfftw3.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -482,6 +488,8 @@
 		089C1671FE841209C02AAC07 /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				884365090D464EDA00E6C1F9 /* libfftw3.a */,
+				884365070D464EBF00E6C1F9 /* librubberband.a */,
 				886245A408B8E4F3003959C6 /* AppKit.framework */,
 				8855A6F508B59DE600B1396A /* libxml2.dylib */,
 				888AC6DA087E2C7C001F80AD /* Cocoa.framework */,

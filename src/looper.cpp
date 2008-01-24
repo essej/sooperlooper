@@ -35,6 +35,8 @@
 #include <sndfile.h>
 #endif
 
+#include <rubberband/RubberBandStretcher.h>
+
 #include "ladspa.h"
 #include "plugin.hpp"
 #include "filter.hpp"
@@ -43,9 +45,12 @@
 #include "panner.hpp"
 #include "command_map.hpp"
 
+
+
 using namespace std;
 using namespace SooperLooper;
 using namespace PBD;
+using namespace RubberBand;
 
 extern	LADSPA_Descriptor* create_sl_descriptor ();
 extern	void cleanup_sl_descriptor (LADSPA_Descriptor *);
@@ -53,10 +58,9 @@ extern	void cleanup_sl_descriptor (LADSPA_Descriptor *);
 
 
 static const double MinResamplingRate = 0.25f;
-static const double MaxResamplingRate = 4.0f;
-#ifdef HAVE_SAMPLERATE
+static const double MaxResamplingRate = 8.0f;
 static const int SrcAudioQuality = SRC_LINEAR;
-#endif
+
 
 Looper::Looper (AudioDriver * driver, unsigned int index, unsigned int chan_count, float loopsecs, bool discrete)
 	: _driver (driver), _index(index), _chan_count(chan_count), _loopsecs(loopsecs)
@@ -119,7 +123,13 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_relative_sync = false;
 	descriptor = 0;
 	_pre_solo_muted = false;
-	
+	_stretch_ratio = 1.0;
+	_pitch_shift = 0.0;
+	_stretch_buffer = 0;
+	_tempo_stretch = false;
+	_pending_stretch = false;
+	_pending_stretch_ratio = 0.0;
+
 	if (!descriptor) {
 		descriptor = create_sl_descriptor ();
 	}
@@ -130,7 +140,6 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_output_ports = new port_id_t[_chan_count];
 	
 	// SRC stuff
-#ifdef HAVE_SAMPLERATE
 	_in_src_states = new SRC_STATE*[_chan_count];
 	_out_src_states = new SRC_STATE*[_chan_count];
 	memset (_in_src_states, 0, sizeof(SRC_STATE*) * _chan_count);
@@ -144,11 +153,19 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_src_buffer_len = 0;
 	_src_in_ratio = 1.0;
 	_src_out_ratio = 1.0;
-#endif
+
 	_lp_filter = new OnePoleFilter*[_chan_count];
 	memset (_lp_filter, 0, sizeof(OnePoleFilter*) * _chan_count);
-	
+
+
 	nframes_t srate = _driver->get_samplerate();
+	
+	// rubberband stretch stuff
+	_in_stretcher = new RubberBandStretcher(srate, _chan_count, 
+					     RubberBandStretcher::OptionProcessRealTime | RubberBandStretcher::OptionTransientsCrisp | RubberBandStretcher::OptionPhaseAdaptive);
+	_out_stretcher = new RubberBandStretcher(srate, _chan_count, 
+					     RubberBandStretcher::OptionProcessRealTime | RubberBandStretcher::OptionTransientsCrisp | RubberBandStretcher::OptionPhaseAdaptive);
+
 	
 	set_buffer_size(_driver->get_buffersize());
 	
@@ -239,13 +256,11 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 
 		_lp_filter[i] = new OnePoleFilter(srate);
 		
-#ifdef HAVE_SAMPLERATE
+
 		// SRC stuff
 		_in_src_states[i] = src_new (SrcAudioQuality, 1, &dummyerror);
 		_out_src_states[i] = src_new (SrcAudioQuality, 1, &dummyerror);
 		_lp_filter[i]->set_cutoff (_src_in_ratio * _lp_filter[i]->get_samplerate() * 0.48f);
-#endif		
-
 		
 		
 	}
@@ -311,14 +326,14 @@ Looper::destroy()
 			_output_ports[i] = 0;
 		}
 
-#ifdef HAVE_SAMPLERATE
+
 		if (_out_src_states[i]) {
 			src_delete (_out_src_states[i]);
 		}
 		if (_in_src_states[i]) {
 			src_delete (_in_src_states[i]);
 		}
-#endif
+
 
 		if (_lp_filter[i]) {
 			delete _lp_filter[i];
@@ -347,7 +362,7 @@ Looper::destroy()
 		delete _panner;
 	}
 	
-#ifdef HAVE_SAMPLERATE
+	// SRC stuff
 	delete [] _in_src_states;
 	delete [] _out_src_states;
 
@@ -360,8 +375,15 @@ Looper::destroy()
 		delete [] _src_sync_buffer;
 	if (_src_in_buffer) 
 		delete [] _src_in_buffer;
-#endif
 
+	// rubberband
+	delete _in_stretcher;
+	delete _out_stretcher;
+
+	if (_stretch_buffer) {
+		delete [] _stretch_buffer;
+		_stretch_buffer = 0;
+	}
 }
 
 
@@ -463,7 +485,7 @@ Looper::set_buffer_size (nframes_t bufsize)
 			_use_sync_buf = _our_syncin_buf;
 		}
 
-#ifdef HAVE_SAMPLERATE
+
 		if (_src_sync_buffer) 
 			delete [] _src_sync_buffer;
 		if (_src_in_buffer) 
@@ -471,12 +493,11 @@ Looper::set_buffer_size (nframes_t bufsize)
 		_src_buffer_len = (nframes_t) ceil (_buffersize * MaxResamplingRate);
 		_src_sync_buffer = new float[_src_buffer_len];
 		_src_in_buffer = new float[_src_buffer_len];
-#endif
+
+		_stretch_buffer = new float[_src_buffer_len * _chan_count];
 
 		// set automatic latency values if appropriate
 		recompute_latencies();
-
-			
 	}
 }
 
@@ -575,6 +596,15 @@ Looper::get_control_value (Event::control_t ctrl)
 	else if (ctrl == Event::IsSoloed) {
 		return _is_soloed ? 1.0f : 0.0f;
 	}
+	else if (ctrl == Event::StretchRatio) {
+		return _stretch_ratio;
+	}
+	else if (ctrl == Event::PitchShift) {
+		return _pitch_shift;
+	}
+	else if (ctrl == Event::TempoStretch) {
+		return _tempo_stretch ? 1.0f: 0.0f;
+	}
 	// i wish i could do something better for this
 	else if (ctrl == Event::PanChannel1) {
 		if (_panner && _panner->size() > 0) {
@@ -617,6 +647,18 @@ void Looper::set_port (ControlPort n, float val)
 	case RelativeSync:
 		_relative_sync = val;
 		break;
+	case TempoInput:
+		if (_tempo_stretch && ports[CycleLength] != 0.0f) {
+			// new ratio is origtempo/newtempo
+		        double tempo = (30.0 * ports[EighthPerCycleLoop] / ports[CycleLength]);
+			cerr << "tempo calc: " << tempo << " tempo input: " << val << endl;
+			// clamp it if close to the same
+			tempo = (abs(tempo-val) < 0.001) ? val: tempo;
+			double newratio = min(4.0, max(0.5, tempo / (double) val)); 
+			_pending_stretch_ratio = newratio;
+			_pending_stretch = true;
+		}
+		// fallthrough intentional
 	default:
 		ports[n] = val;
 		break;
@@ -704,10 +746,9 @@ Looper::do_event (Event *ev)
 	else if (ev->Type == Event::type_control_change)
 	{
 		// todo: specially handle TriggerThreshold to work across all channels
-
+		
 		if ((int)ev->Control >= (int)Event::TriggerThreshold && (int)ev->Control < (int) Event::State) {
 
-#ifdef HAVE_SAMPLERATE
 			if (ev->Control == Event::Rate) {
 				// uses
 				_src_in_ratio = (double) max (MinResamplingRate, min ((double)ev->Value, MaxResamplingRate));
@@ -724,7 +765,6 @@ Looper::do_event (Event *ev)
 					_lp_filter[i]->set_cutoff (_src_in_ratio * _lp_filter[i]->get_samplerate() * 0.48);
 				}
 			}
-#endif
 	
 			switch (ev->Control) 
 			{
@@ -740,7 +780,7 @@ Looper::do_event (Event *ev)
 				break;
 			}
 			
-	}
+		}
 		else if (ev->Control == Event::InputGain)
 		{
 			_targ_input_gain = ev->Value;
@@ -780,6 +820,25 @@ Looper::do_event (Event *ev)
 		else if (ev->Control == Event::PanChannel4) {
 			if (_panner && _panner->size() > 3) {
 				(*_panner)[3]->set_position (ev->Value);
+			}
+		}
+		else if (ev->Control == Event::PitchShift) {
+			_pitch_shift = ev->Value; // in semitones
+			_out_stretcher->setPitchScale(pow(2.0, _pitch_shift / 12.0));
+		}
+		else if (ev->Control == Event::StretchRatio) {
+			_pending_stretch_ratio = min(4.0, max(0.25, (double) ev->Value)); 
+			_pending_stretch = true;
+		}
+		else if (ev->Control == Event::TempoStretch) {
+			_tempo_stretch = ev->Value > 0.0; 
+			if (_tempo_stretch && ports[CycleLength] != 0.0f) {
+				double tempo = (30.0 * ports[EighthPerCycleLoop] / ports[CycleLength]);
+				//cerr << "tempo calc: " << tempo << endl;
+				// clamp it if close to the same
+				tempo = (abs(tempo-ports[TempoInput]) < 0.001) ? ports[TempoInput]: tempo;
+				_pending_stretch_ratio = min(4.0, max(0.5, (double) tempo / ports[TempoInput])); 
+				_pending_stretch = true;
 			}
 		}
 
@@ -827,11 +886,33 @@ Looper::run (nframes_t offset, nframes_t nframes)
 			ports[Multi] = requested_cmd;
 			request_pending = false;
 			// cerr << "requested mode " << requested_cmd << endl;
+
+			if (requested_cmd == Event::RECORD && ports[State] != LooperStateRecording) {
+				// record cmd, lets reset stretch and pitch ratios to 1 always
+				_pending_stretch_ratio = _stretch_ratio = 1.0;
+				_pending_stretch = true;
+				_pitch_shift = 0.0;
+				_out_stretcher->setPitchScale(pow(2.0, _pitch_shift / 12.0));
+			}
 		}
 
 	} else if (ports[Multi] >= 0) {
 		ports[Multi] = -1;
 		//cerr << "reset to -1\n";
+	}
+
+	// deal with any pending stretch ratio change from non-rt context
+	if (_pending_stretch) {
+		double newratio = _pending_stretch_ratio;
+		if (_stretch_ratio == 1.0 && newratio != 1.0)
+		{
+			_in_stretcher->reset();
+			_out_stretcher->reset();
+		}
+		_stretch_ratio = newratio;
+		_in_stretcher->setTimeRatio(1.0/_stretch_ratio);
+		_out_stretcher->setTimeRatio(_stretch_ratio);
+		_pending_stretch = false;
 	}
 
 	LADSPA_Data oldsync = ports[Sync];
@@ -849,6 +930,9 @@ Looper::run (nframes_t offset, nframes_t nframes)
 	_output_peak = flush_to_zero (f_clamp (DB_CO (CO_DB(_output_peak) - nframes * _falloff_per_sample), 0.0f, 20.0f));
 	
 	
+	
+	run_loops (offset, nframes);
+/*
 	if (ports[Rate] == 1.0f) {
 		run_loops (offset, nframes);
 	}
@@ -859,7 +943,7 @@ Looper::run (nframes_t offset, nframes_t nframes)
 		run_loops (offset, nframes);
 #endif		
 	}
-	
+*/	
 	ports[Sync] = oldsync;
 }
 
@@ -867,375 +951,311 @@ Looper::run (nframes_t offset, nframes_t nframes)
 void
 Looper::run_loops (nframes_t offset, nframes_t nframes)
 {
-	LADSPA_Data * inbuf = 0 , *outbuf = 0, *real_inbuf = 0;
+	//LADSPA_Data * inbuf = 0 , *outbuf = 0, *real_inbuf = 0;
+	nframes_t alt_frames = nframes;
 	float currdry = _curr_dry;
 	float curr_ing = _curr_input_gain;
 	float ing_delta = flush_to_zero (_targ_input_gain - _curr_input_gain) / max((nframes_t) 1, (nframes - 1));
 	float dry_delta = flush_to_zero (_target_dry - _curr_dry) / max((nframes_t) 1, (nframes - 1));
-	
-	// get common outputs
-	size_t comnouts = _driver->get_engine()->get_common_output_count();
-	sample_t* com_obufs[comnouts];
-	for (size_t n=0; n < comnouts; ++n) {
+	bool  resampled = ports[Rate] != 1.0f;
+	bool  stretched = _stretch_ratio != 1.0;
+	bool  pitched = _pitch_shift != 0.0;
+
+	if (resampled) {
+		_src_data.end_of_input = 0;
 		
-		com_obufs[n] = _driver->get_engine()->get_common_output_buffer (n);
-		if (com_obufs[n]) {
-			com_obufs[n] += offset;
-		}
-	}
-	
-
-	for (unsigned int i=0; i < _chan_count; ++i)
-	{
-		/* (re)connect audio ports */
-		if (_have_discrete_io) {
-			real_inbuf = (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], _buffersize);
-			if (real_inbuf) {
-				real_inbuf += offset;
-			}
-			inbuf = real_inbuf;
-			
-			outbuf = (LADSPA_Data*) _driver->get_output_port_buffer (_output_ports[i], _buffersize);
-			if (outbuf) {
-				outbuf += offset;
-			} else {
-				outbuf = _tmp_io_buf;
-			}
-		}
-		else {
-			inbuf = 0;
-			outbuf = _tmp_io_buf;
-			real_inbuf = 0;
-		}
-
-		if (_use_common_ins || !_have_discrete_io || !real_inbuf) {
-			// mix common input into this buffer
-			sample_t * comin = _driver->get_engine()->get_common_input_buffer(i);			
-			if (comin)
-			{
-				comin += offset;
-				
-				curr_ing = _curr_input_gain;
-
-				if (_have_discrete_io && real_inbuf) {
-					for (nframes_t pos=0; pos < nframes; ++pos) {
-						curr_ing += ing_delta;
-						_tmp_io_buf[pos] = curr_ing * (real_inbuf[pos] + comin[pos]);
-					}
-					inbuf = _tmp_io_buf;
-				}
-				else {
-					for (nframes_t pos=0; pos < nframes; ++pos) {
-						curr_ing += ing_delta;
-						
-						_tmp_io_buf[pos] = curr_ing * (comin[pos]);
-					}
-					inbuf = _tmp_io_buf;
-				}
-
-			}
-		}
-		else {
-			// we have discrete and not using common
-			curr_ing = _curr_input_gain;
-			for (nframes_t pos=0; pos < nframes; ++pos) {
-				curr_ing += ing_delta;
-
-				_tmp_io_buf[pos] = curr_ing * (real_inbuf[pos]);
-			}
-			inbuf = _tmp_io_buf;
-		}
-		
-		// no longer needed
-		if (inbuf == 0) continue;
-		
-		// calculate input peak
-		compute_peak (inbuf, nframes, _input_peak);
-
-		
-		descriptor->connect_port (_instances[i], AudioInputPort, inbuf);
-
-		descriptor->connect_port (_instances[i], AudioOutputPort, outbuf);
-
-	       
-
-		if (i == 0) {
-			descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _use_sync_buf + offset);
-			descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _our_syncout_buf + offset);
-		}
-		else {
-			// all others get the first channel's sync-out as input
-			descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _our_syncout_buf + offset);
-			descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _dummy_buf + offset);
-		}
-		
-		
-		/* do it */
-		descriptor->run (_instances[i], nframes);
-
-		if (_panner && _use_common_outs) {
-			// mix this output into common outputs
-			(*_panner)[i]->distribute (outbuf, com_obufs, 1.0f, nframes);
-		} 
-
-		if (_have_discrete_io && real_inbuf) {
-			// just mix the dry into the outputs
-			currdry = _curr_dry;
-
-			for (nframes_t pos=0; pos < nframes; ++pos) {
-				currdry += dry_delta;
-				
-				outbuf[pos] += currdry * real_inbuf[pos];
-			}
-		}
-
-		// calculate output peak post mixing with dry
-		compute_peak (outbuf, nframes, _output_peak);
-		
-		
-	}
-
-
-	_curr_dry = flush_to_zero (currdry);
-	if (dry_delta <= 0.00003f) {
-		_curr_dry = _target_dry;
-	}
-	
-	_curr_input_gain = flush_to_zero (curr_ing);
-	if (ing_delta <= 0.00003f) {
-		// force to == target
-		_curr_input_gain = _targ_input_gain;
-	}
-	
-
-}
-
-void
-Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
-{
-#ifdef HAVE_SAMPLERATE
-	nframes_t alt_frames;
-	LADSPA_Data * inbuf=0, *outbuf=0, *real_inbuf=0;
-	float currdry = _curr_dry;
-	float curr_ing = _curr_input_gain;
-	float ing_delta = flush_to_zero (_targ_input_gain - _curr_input_gain) / max((nframes_t) 1, (nframes - 1));
-	float dry_delta = flush_to_zero (_target_dry - _curr_dry) / max((nframes_t) 1, (nframes - 1));
-	
-	_src_data.end_of_input = 0;
-	
-	// resample input audio and sync using Rate
-	_src_data.src_ratio = _src_in_ratio;
-	_src_data.input_frames = nframes;
-	_src_data.output_frames = (long) ceil (nframes * _src_in_ratio);
-	
-	// sync input
-	_src_data.data_in = _use_sync_buf + offset;
-	_src_data.data_out = _src_sync_buffer;
-	src_process (_insync_src_state, &_src_data);
-
-	alt_frames = _src_data.output_frames_gen;
-	// cerr << "nframes: " << nframes << "  output: " <<  _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << endl;
-
-
-	// get common outputs
-	size_t comnouts = _driver->get_engine()->get_common_output_count();
-	sample_t* com_obufs[comnouts];
-	for (size_t n=0; n < comnouts; ++n) {
-
-		com_obufs[n] = _driver->get_engine()->get_common_output_buffer (n);
-		if (com_obufs[n]) {
-			com_obufs[n] += offset;
-		}
-	}
-	
-	
-	// process
-	for (unsigned int i=0; i < _chan_count; ++i)
-	{
-		if (_have_discrete_io) {
-			real_inbuf = (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], _buffersize);
-			if (real_inbuf) {
-				real_inbuf += offset;
-			}
-			inbuf = real_inbuf;
-			
-			outbuf = (LADSPA_Data*) _driver->get_output_port_buffer (_output_ports[i], _buffersize);
-			if (outbuf) {
-				outbuf += offset;
-			} else {
-				outbuf = _tmp_io_buf;
-			}
-		}
-		else {
-			inbuf = 0;
-			outbuf = _tmp_io_buf;
-			real_inbuf = 0;
-		}
-
-		if (_use_common_ins || !_have_discrete_io || !real_inbuf) {
-			// mix common input into this buffer
-			sample_t * comin = _driver->get_engine()->get_common_input_buffer(i);			
-			if (comin)
-			{
-				comin += offset;
-				curr_ing = _curr_input_gain;
-				
-				if (_have_discrete_io && real_inbuf) {
-					for (nframes_t pos=0; pos < nframes; ++pos) {
-						curr_ing += ing_delta;
-						_tmp_io_buf[pos] = curr_ing * (real_inbuf[pos] + comin[pos]);
-					}
-					inbuf = _tmp_io_buf;
-				}
-				else {
-					for (nframes_t pos=0; pos < nframes; ++pos) {
-						curr_ing += ing_delta;
-						
-						_tmp_io_buf[pos] = curr_ing * (comin[pos]);
-					}
-					inbuf = _tmp_io_buf;
-				}
-
-			}
-		}
-		else {
-			// we have discrete and not using common
-			curr_ing = _curr_input_gain;
-			for (nframes_t pos=0; pos < nframes; ++pos) {
-				curr_ing += ing_delta;
-
-				_tmp_io_buf[pos] = curr_ing * (real_inbuf[pos]);
-			}
-			inbuf = _tmp_io_buf;
-		}
-
-		// no longer needed
-		if (inbuf == 0) continue;
-		
-		// calculate input peak
-		compute_peak (inbuf, nframes, _input_peak);
-
-		// resample input
+		// resample input audio and sync using Rate
 		_src_data.src_ratio = _src_in_ratio;
 		_src_data.input_frames = nframes;
 		_src_data.output_frames = (long) ceil (nframes * _src_in_ratio);
-		_src_data.data_in = (sample_t *) inbuf;
-		_src_data.data_out = _src_in_buffer;
-		src_process (_in_src_states[i], &_src_data);
-
+		
+		// sync input
+		_src_data.data_in = _use_sync_buf + offset;
+		_src_data.data_out = _src_sync_buffer;
+		src_process (_insync_src_state, &_src_data);
+		
 		alt_frames = _src_data.output_frames_gen;
+	}
 
-//  		if (i==0 && _src_data.output_frames != alt_frames) {
-			
-// 			cerr << "nframes: " << nframes << "  output: " <<  _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << " delta: " << delta_frames << endl;
-// 		}
+	// get common outputs
+	size_t comnouts = _driver->get_engine()->get_common_output_count();
+	sample_t* com_obufs[comnouts];
+	for (size_t n=0; n < comnouts; ++n) {
 		
+		com_obufs[n] = _driver->get_engine()->get_common_output_buffer (n);
+		if (com_obufs[n]) {
+			com_obufs[n] += offset;
+		}
+	}
 
-// 		if (i==0 && _src_data.output_frames != alt_frames) {
-// 			//cerr << "1 ---- sup out: " << _src_data.output_frames << "  gen: " << alt_frames << endl;
-// 		}
-// 		if (i==0 && _src_data.input_frames != _src_data.input_frames_used) {
-// 			cerr << "2 sup in: " << _src_data.input_frames << "  used: " << _src_data.input_frames_used << endl;
-// 		}
-		
+	// input bufs
+	sample_t* inbufs[_chan_count];
+	sample_t* real_inbufs[_chan_count];
+	sample_t* outbufs[_chan_count];
+	
+
+	for (unsigned int i=0; i < _chan_count; ++i)
+	{
 		/* (re)connect audio ports */
-		
-		descriptor->connect_port (_instances[i], AudioInputPort, (LADSPA_Data*) _src_in_buffer);
-		descriptor->connect_port (_instances[i], AudioOutputPort, (LADSPA_Data*) _src_in_buffer);
-
-
-		if (i == 0) {
-			descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _src_sync_buffer);
-			descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _src_sync_buffer);
+		if (_have_discrete_io) {
+			real_inbufs[i] = (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], _buffersize);
+			if (real_inbufs[i]) {
+				real_inbufs[i] += offset;
+			}
+			inbufs[i] = real_inbufs[i];
+			
+			outbufs[i] = (LADSPA_Data*) _driver->get_output_port_buffer (_output_ports[i], _buffersize);
+			if (outbufs[i]) {
+				outbufs[i] += offset;
+			} else {
+				outbufs[i] = _tmp_io_buf;
+			}
 		}
 		else {
-			// all others get the first channel's sync-out as input
-			descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _src_sync_buffer);
-			descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _dummy_buf);
+			inbufs[i] = 0;
+			outbufs[i] = _tmp_io_buf;
+			real_inbufs[i] = 0;
 		}
-		
-		
-		/* do it */
-		descriptor->run (_instances[i], alt_frames);
 
+		if (_use_common_ins || !_have_discrete_io || !real_inbufs[i]) {
+			// mix common input into this buffer
+			sample_t * comin = _driver->get_engine()->get_common_input_buffer(i);			
+			if (comin)
+			{
+				comin += offset;
+				
+				curr_ing = _curr_input_gain;
 
-		// resample output
-		_src_data.src_ratio = _src_out_ratio;
-		_src_data.input_frames = alt_frames;
-		if (_src_out_ratio <= 1.0) {
-			_src_data.output_frames = nframes;
+				if (_have_discrete_io && real_inbufs[i]) {
+					for (nframes_t pos=0; pos < nframes; ++pos) {
+						curr_ing += ing_delta;
+						_tmp_io_buf[pos] = curr_ing * (real_inbufs[i][pos] + comin[pos]);
+					}
+					inbufs[i] = _tmp_io_buf;
+				}
+				else {
+					for (nframes_t pos=0; pos < nframes; ++pos) {
+						curr_ing += ing_delta;
+						
+						_tmp_io_buf[pos] = curr_ing * (comin[pos]);
+					}
+					inbufs[i] = _tmp_io_buf;
+				}
+
+			}
 		}
 		else {
-			//_src_data.output_frames = (long) ceil (ceil(nframes * _src_in_ratio) * _src_out_ratio);
-			_src_data.output_frames = nframes ;
+			// we have discrete and not using common
+			curr_ing = _curr_input_gain;
+			for (nframes_t pos=0; pos < nframes; ++pos) {
+				curr_ing += ing_delta;
+
+				_tmp_io_buf[pos] = curr_ing * (real_inbufs[i][pos]);
+			}
+			inbufs[i] = _tmp_io_buf;
 		}
-		_src_data.data_in = _src_in_buffer;
-		_src_data.data_out = (sample_t *) outbuf;
-		src_process (_out_src_states[i], &_src_data);
+		
+		// no longer needed
+		if (inbufs[i] == 0) continue;
+		
+		// calculate input peak
+		compute_peak (inbufs[i], nframes, _input_peak);
 
-//  		if (i==0 && _src_data.input_frames != _src_data.input_frames_used) {
-//  			cerr << "3 out sup in: " << _src_data.input_frames << "  used: " << _src_data.input_frames_used << endl;
-//  		}
+	}
 
-		if (_src_data.output_frames_gen != (long) nframes) {
-			//if (i==0) {
-			//	cerr << "4 oframes: " << _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << " nframes: " << nframes<< endl;
+	if (resampled) {
+		for (unsigned int i=0; i < _chan_count; ++i)
+		{
+
+			// resample input
+			_src_data.src_ratio = _src_in_ratio;
+			_src_data.input_frames = nframes;
+			_src_data.output_frames = (long) ceil (nframes * _src_in_ratio);
+			_src_data.data_in = (sample_t *) inbufs[i];
+			_src_data.data_out = _src_in_buffer;
+			src_process (_in_src_states[i], &_src_data);
+			
+			alt_frames = _src_data.output_frames_gen;
+
+			descriptor->connect_port (_instances[i], AudioInputPort, (LADSPA_Data*) _src_in_buffer);
+			descriptor->connect_port (_instances[i], AudioOutputPort, (LADSPA_Data*) _src_in_buffer);
+
+			if (i == 0) {
+				descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _src_sync_buffer);
+				descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _src_sync_buffer);
+			} else {
+				// all others get the first channel's sync-out as input
+				descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _src_sync_buffer);
+				descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _dummy_buf);
+			}
+			
+			/* do it */
+			descriptor->run (_instances[i], alt_frames);
+			
+			// resample output
+			_src_data.src_ratio = _src_out_ratio;
+			_src_data.input_frames = alt_frames;
+			if (_src_out_ratio <= 1.0) {
+				_src_data.output_frames = nframes;
+			}
+			else {
+				//_src_data.output_frames = (long) ceil (ceil(nframes * _src_in_ratio) * _src_out_ratio);
+				_src_data.output_frames = nframes ;
+			}
+			_src_data.data_in = _src_in_buffer;
+			_src_data.data_out = (sample_t *) outbufs[i];
+			src_process (_out_src_states[i], &_src_data);
+			
+			//if (i==0 && _src_data.input_frames != _src_data.input_frames_used) {
+			//	cerr << "3 out sup in: " << _src_data.input_frames << "  used: " << _src_data.input_frames_used << endl;
 			//}
 			
-			// reread
-			long leftover = nframes - _src_data.output_frames_gen;
-			_src_data.data_out = _src_data.data_out + _src_data.output_frames_gen;
-			_src_data.data_in = _src_data.data_in + _src_data.input_frames_used - 1;
-			_src_data.input_frames = alt_frames - _src_data.input_frames_used + 1;
-			_src_data.output_frames = leftover;
-			src_process (_out_src_states[i], &_src_data);
+			if (_src_data.output_frames_gen != (long) nframes) {
+				//if (i==0) {
+				//	cerr << "4 oframes: " << _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << " nframes: " << nframes<< endl;
+				//}
+				
+				// reread
+				long leftover = nframes - _src_data.output_frames_gen;
+				_src_data.data_out = _src_data.data_out + _src_data.output_frames_gen;
+				_src_data.data_in = _src_data.data_in + _src_data.input_frames_used - 1;
+				_src_data.input_frames = alt_frames - _src_data.input_frames_used + 1;
+				_src_data.output_frames = leftover;
+				src_process (_out_src_states[i], &_src_data);
+				
+				//if (i==0) {
+				//	cerr << "4.5 oframes: " << _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << " leftover: " << leftover << endl;
+				//}
+			}
+			
+			//cerr << "out altframes: " << alt_frames << "  output: " <<  _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << endl;
+			// lowpass the output if rate < 1
+			if (_src_in_ratio < 1.0) {
+				// this is just problematic, lets not do it
+				//_lp_filter[i]->run_lowpass (_src_data.data_out, nframes);
+			}
 
-			//if (i==0) {
-			//	cerr << "4.5 oframes: " << _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << " leftover: " << leftover << endl;
-			//}
+			
 		}
-
-		//cerr << "out altframes: " << alt_frames << "  output: " <<  _src_data.output_frames << "  gen: " << _src_data.output_frames_gen << endl;
-		// lowpass the output if rate < 1
-		if (_src_in_ratio < 1.0) {
-
-			_lp_filter[i]->run_lowpass (_src_data.data_out, nframes);
+	}
+	else if (stretched || pitched) 
+	{
+#if 0
+		nframes_t needSamples = (nframes_t) floor(nframes / _stretch_ratio);
+		//cerr << "in samps req: " << sampsReq << "  need: " << needSamples << endl;
+		alt_frames = needSamples;
+		
+		// stretch input
+		_in_stretcher->process(&inbuf, (size_t) nframes, false);
+		size_t avail_samps = _in_stretcher->available();			
+		size_t got_samps = _in_stretcher->retrieve(&_src_in_buffer, avail_samps);
+		if (got_samps < alt_frames) {
+			// clear the remaining
+			cerr << "clearing in " << alt_frames - got_samps << "  avail: " << avail_samps << "  got samps: " << got_samps << endl;
+			memset(&_src_in_buffer[got_samps], 0, (alt_frames - got_samps) * sizeof(float));
 		}
+	
+#endif
+			
+		// stretch output by running the looper as much as we need
+		size_t avail_samps = _out_stretcher->available();
+		//nframes_t needSamples = (nframes_t) ceil(nframes * _stretch_ratio);
+
+		while (avail_samps < nframes) {
+			size_t sampsReq = _out_stretcher->getSamplesRequired();
+			size_t sampsUse = min(sampsReq, (size_t) nframes);
+
+			// run the looper(s)
+			for (unsigned int i=0; i < _chan_count; ++i) {
+				// zero any input, we're not allowing input while stretching for now
+				memset(outbufs[i], 0, sampsUse * sizeof(float));			
+				// todo sync buf
+				if (i == 0) {
+					descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _src_sync_buffer);
+					descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _src_sync_buffer);
+				} else {
+					// all others get the first channel's sync-out as input
+					descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _src_sync_buffer);
+					descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _dummy_buf);
+				}
+				
+				descriptor->connect_port (_instances[i], AudioInputPort, (LADSPA_Data*) outbufs[i]);
+				descriptor->connect_port (_instances[i], AudioOutputPort, (LADSPA_Data*) outbufs[i]);
+				descriptor->run (_instances[i], sampsUse);
+				
+			}
+
+			// stretch
+			_out_stretcher->process(outbufs, sampsUse, false);
+				
+			avail_samps = _out_stretcher->available();
+		}
+		
+		_out_stretcher->retrieve(outbufs, nframes);			
+		
+	}
+	else 
+	{
+		// nornal operation
+
+		for (unsigned int i=0; i < _chan_count; ++i)
+		{
+				
+			descriptor->connect_port (_instances[i], AudioInputPort, inbufs[i]);
+			descriptor->connect_port (_instances[i], AudioOutputPort, outbufs[i]);
+				
+			if (i == 0) {
+				descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _use_sync_buf + offset);
+				descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _our_syncout_buf + offset);
+			} else {
+				// all others get the first channel's sync-out as input
+				descriptor->connect_port (_instances[i], SyncInputPort, (LADSPA_Data*) _our_syncout_buf + offset);
+				descriptor->connect_port (_instances[i], SyncOutputPort, (LADSPA_Data*) _dummy_buf + offset);
+			}
+				
+			/* do it */
+			descriptor->run (_instances[i], alt_frames);
+		}
+	}
+
+		
+	for (unsigned int i=0; i < _chan_count; ++i)
+	{
 
 		if (_panner && _use_common_outs) {
 			// mix this output into common outputs
-			(*_panner)[i]->distribute (outbuf, com_obufs, 1.0f, nframes);
+			(*_panner)[i]->distribute (outbufs[i], com_obufs, 1.0f, nframes);
 		} 
-		
-		if (_have_discrete_io && real_inbuf) {
+
+		if (_have_discrete_io && real_inbufs[i]) {
 			// just mix the dry into the outputs
 			currdry = _curr_dry;
-			
+
 			for (nframes_t pos=0; pos < nframes; ++pos) {
 				currdry += dry_delta;
 				
-				outbuf[pos] += currdry * real_inbuf[pos];
+				outbufs[i][pos] += currdry * real_inbufs[i][pos];
 			}
 		}
 
 		// calculate output peak post mixing with dry
-		compute_peak (outbuf, nframes, _output_peak);
+		compute_peak (outbufs[i], nframes, _output_peak);
+		
 		
 	}
 
-
-	// resample out sync
-	_src_data.src_ratio = _src_out_ratio;
-	_src_data.input_frames = alt_frames;
-	_src_data.output_frames = nframes;
-	_src_data.data_in =  _src_sync_buffer;
-	_src_data.data_out = _our_syncout_buf + offset;
-	src_process (_outsync_src_state, &_src_data);
-
-	// 
-	_curr_dry = flush_to_zero (currdry);
-	if (dry_delta <= 0.00003f) {
-		_curr_dry = _target_dry;
+	if (resampled) {
+		// resample out sync
+		_src_data.src_ratio = _src_out_ratio;
+		_src_data.input_frames = alt_frames;
+		_src_data.output_frames = nframes;
+		_src_data.data_in =  _src_sync_buffer;
+		_src_data.data_out = _our_syncout_buf + offset;
+		src_process (_outsync_src_state, &_src_data);
+		_curr_dry = flush_to_zero (currdry);
+		if (dry_delta <= 0.00003f) {
+			_curr_dry = _target_dry;
+		}
 	}
 	
 	_curr_input_gain = flush_to_zero (curr_ing);
@@ -1243,10 +1263,8 @@ Looper::run_loops_resampled (nframes_t offset, nframes_t nframes)
 		// force to == target
 		_curr_input_gain = _targ_input_gain;
 	}
-
-	
-#endif	
 }
+
 
 bool
 Looper::load_loop (string fname)

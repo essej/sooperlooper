@@ -286,11 +286,22 @@ string MidiBindInfo::serialize() const
 	//    valstyle can be 'gain' or 'toggle'
 
 	char buf[100];
+	char stylebuf[20];
+
+	if (style == GainStyle) {
+		snprintf(stylebuf, sizeof(stylebuf), "gain");
+	} else if (style == ToggleStyle) {
+		snprintf(stylebuf, sizeof(stylebuf), "toggle");
+	} else if (style == IntegerStyle) {
+		snprintf(stylebuf, sizeof(stylebuf), "integer");
+	} else {
+		strncpy(stylebuf, "", sizeof(stylebuf));
+	}
 
 	// i:ch s:type i:param  s:cmd  s:ctrl i:instance f:min_val_bound f:max_val_bound s:valstyle
 	snprintf(buf, sizeof(buf), "%d %s %d  %s %s %d  %.9g %.9g  %s",
 		 channel, type.c_str(), param, command.c_str(),
-		 control.c_str(), instance, lbound, ubound, style == GainStyle ? "gain": ( style == ToggleStyle ? "toggle": ""));
+		 control.c_str(), instance, lbound, ubound, stylebuf);
 	
 	return string(buf);
 }
@@ -333,6 +344,9 @@ bool MidiBindInfo::unserialize(string strval)
 	}
 	else if (stylestr[0] == 't') {
 		style = ToggleStyle;
+	}
+	else if (stylestr[0] == 'i') {
+		style = IntegerStyle;
 	} else {
 		style = NormalStyle;
 	}

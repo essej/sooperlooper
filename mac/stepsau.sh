@@ -2,7 +2,9 @@
 
 rm -rf macdist/SooperLooperAU.component
 
-if [ -d SooperLooperAU/build/Deployment/SooperLooperAU.component ] ; then
+if [ -d SooperLooperAU/build/Default/SooperLooperAU.component ] ; then
+	cp -Rp SooperLooperAU/build/Default/SooperLooperAU.component macdist/
+elif [ -d SooperLooperAU/build/Deployment/SooperLooperAU.component ] ; then
 	cp -Rp SooperLooperAU/build/Deployment/SooperLooperAU.component macdist/
 elif [ -d SooperLooperAU/build/SooperLooperAU.component ] ; then
 	cp -Rp SooperLooperAU/build/SooperLooperAU.component macdist/

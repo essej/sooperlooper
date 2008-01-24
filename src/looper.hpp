@@ -26,9 +26,9 @@
 #include <config.h>
 #endif
 
-#ifdef HAVE_SAMPLERATE
 #include <samplerate.h>
-#endif
+
+
 
 #include "audio_driver.hpp"
 #include "lockmonitor.hpp"
@@ -41,11 +41,16 @@
 
 #include <pbd/xml++.h>
 
+namespace RubberBand {
+	class RubberBandStretcher;
+}
+
 
 namespace SooperLooper {
 
 class OnePoleFilter;	
 class Panner;
+
 	
 class Looper 
 {
@@ -179,7 +184,6 @@ class Looper
 	bool                _is_soloed;
 
 	// SRC stuff
-#ifdef HAVE_SAMPLERATE
 	SRC_STATE**            _in_src_states;
 	SRC_STATE**            _out_src_states;
 	SRC_STATE*            _insync_src_state;
@@ -191,12 +195,23 @@ class Looper
 	double                _src_in_ratio;
 	double                _src_out_ratio;
 	SRC_DATA              _src_data;
-#endif
+
 
 	OnePoleFilter  **     _lp_filter;
-	
+
+	// rubberband stuff
+	RubberBand::RubberBandStretcher * _in_stretcher;
+	RubberBand::RubberBandStretcher * _out_stretcher;
+	double                             _stretch_ratio;
+	double                             _pitch_shift; // in semitones
+	float *                            _stretch_buffer;
+
+	bool                               _tempo_stretch;
+	volatile bool                      _pending_stretch;
+	volatile double                    _pending_stretch_ratio;
+
 	bool _ok;
-	bool request_pending;
+	volatile bool request_pending;
 
 	PBD::NonBlockingLock _loop_lock;
 };

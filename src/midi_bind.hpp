@@ -38,7 +38,8 @@ public:
 	enum Style {
 		NormalStyle = 0,
 		GainStyle = 1,
-		ToggleStyle = 2
+		ToggleStyle = 2,
+		IntegerStyle = 3
 	};
 	
 	MidiBindInfo() {}

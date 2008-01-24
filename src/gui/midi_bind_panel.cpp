@@ -287,6 +287,7 @@ void MidiBindPanel::init()
 	_style_combo->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	_style_combo->Append (wxT("Normal"), (void *) MidiBindInfo::NormalStyle);
 	_style_combo->Append (wxT("Gain"), (void *) MidiBindInfo::GainStyle);
+	_style_combo->Append (wxT("Integer"), (void *) MidiBindInfo::IntegerStyle);
 	_style_combo->Append (wxT("Toggle"), (void *) MidiBindInfo::ToggleStyle);
 	_style_combo->SetToolTip(wxT("Choose a scaling type"));
 	_style_combo->SetSelection(0);
@@ -466,7 +467,8 @@ void MidiBindPanel::refresh_state()
 		if (info.command == "set") {
 			item.SetText (wxString::Format(wxT("%g - %g %s"), info.lbound, info.ubound, 
 						       info.style == MidiBindInfo::GainStyle ? wxT("gain") : 
-						       ( info.style == MidiBindInfo::ToggleStyle ? wxT("togg") : wxT("") )));
+						       ( info.style == MidiBindInfo::ToggleStyle ? wxT("togg") : 
+							 ( info.style == MidiBindInfo::IntegerStyle ? wxT("int") :  wxT("") ))));
 		}
 		else {
 			if (info.command == "susnote") {
@@ -576,7 +578,10 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 	if (info->style == MidiBindInfo::GainStyle) {
 		_style_combo->SetSelection(1);
 	}
-	if (info->style == MidiBindInfo::ToggleStyle) {
+	else if (info->style == MidiBindInfo::ToggleStyle) {
+		_style_combo->SetSelection(3);
+	}
+	else if (info->style == MidiBindInfo::IntegerStyle) {
 		_style_combo->SetSelection(2);
 	}
 	else {
@@ -666,6 +671,9 @@ void MidiBindPanel::update_curr_binding()
 		_currinfo.style = MidiBindInfo::GainStyle;
 	}
 	else if (_style_combo->GetSelection() == 2) {
+		_currinfo.style = MidiBindInfo::IntegerStyle;
+	}
+	else if (_style_combo->GetSelection() == 3) {
 		_currinfo.style = MidiBindInfo::ToggleStyle;
 	}
 	else {

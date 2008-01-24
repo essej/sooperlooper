@@ -520,25 +520,29 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 			update_value_str();
 			do_redraw();
 			//cerr << "new val is: " << _value << endl;
-		}
 
 		
-		_last_x = ev.GetX();
+			_last_x = ev.GetX();
+		}
 	}
 	else if (ev.Moving()) {
 		// do nothing
 	}
 	else if (ev.GetEventType() == wxEVT_MOUSEWHEEL)
 	{
-		// don't get the events right now
 		float fscale = 0.02f * (ev.ControlDown() ? 0.5f: 1.0f);
 		float newval;
 		
-		if (ev.GetWheelRotation() > 0) {
-			newval = _value + (_upper_bound - _lower_bound) * fscale;			
+		if (_snap_mode == IntegerSnap) {
+			newval = _value + ev.GetWheelRotation();
 		}
 		else {
-			newval = _value - (_upper_bound - _lower_bound) * fscale;			
+			if (ev.GetWheelRotation() > 0) {
+				newval = _value + (_upper_bound - _lower_bound) * fscale;			
+			}
+			else {
+				newval = _value - (_upper_bound - _lower_bound) * fscale;			
+			}
 		}
 
 

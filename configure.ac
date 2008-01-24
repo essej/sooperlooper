@@ -7,8 +7,8 @@ AC_CANONICAL_TARGET
 AC_VALIDATE_CACHED_SYSTEM_TUPLE()
 
 SOOP_MAJOR_VERSION=1
-SOOP_MINOR_VERSION=4
-SOOP_MICRO_VERSION=1
+SOOP_MINOR_VERSION=5
+SOOP_MICRO_VERSION=0
 
 BETA=
 
@@ -110,7 +110,6 @@ AC_SUBST(XML_LIBS)
 
 dnl libsndfile
 PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.2, ac_cv_sndfile=1, ac_cv_sndfile=0)
-
 AC_DEFINE_UNQUOTED([HAVE_SNDFILE],${ac_cv_sndfile},[Set to 1 if you have libsndfile.])
 AC_SUBST(SNDFILE_CFLAGS)
 AC_SUBST(SNDFILE_LIBS)
@@ -121,6 +120,16 @@ AC_DEFINE_UNQUOTED([HAVE_SAMPLERATE],${ac_cv_samplerate},[Set to 1 if you have l
 AC_SUBST(SAMPLERATE_CFLAGS)
 AC_SUBST(SAMPLERATE_LIBS)
 
+dnl librubberband
+PKG_CHECK_MODULES(RUBBERBAND, rubberband >= 0.0.13, ac_cv_rubberband=1, ac_cv_rubberband=0)
+AC_DEFINE_UNQUOTED([HAVE_RUBBERBAND],${ac_cv_rubberband},[Set to 1 if you have librubberband.])
+AC_SUBST(RUBBERBAND_CFLAGS)
+AC_SUBST(RUBBERBAND_LIBS)
+
+dnl fftw (needed by librubberband)
+PKG_CHECK_MODULES(FFTW, fftw3 >= 3.0, have_fftw=yes , have_fftw=no )
+AC_SUBST(FFTW_CFLAGS)
+AC_SUBST(FFTW_LIBS)
 
 dnl wxwindows
 

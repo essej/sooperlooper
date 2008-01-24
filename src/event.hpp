@@ -183,6 +183,9 @@ namespace SooperLooper {
 		    InputGain,
 		    AutosetLatency,
 		    IsSoloed,
+		    StretchRatio,
+		    PitchShift,
+		    TempoStretch,
 		    // this is ugly, because i want them midi bindable
 		    PanChannel1,
 		    PanChannel2,

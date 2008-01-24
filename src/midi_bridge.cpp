@@ -379,6 +379,10 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long
 			else if (info.style == MidiBindInfo::NormalStyle) {
 				scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
 			}
+			else if (info.style == MidiBindInfo::IntegerStyle) {
+				// round to nearest integer value
+				scaled_val = (float) nearbyintf(((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound);
+			}
 			else {
 				// toggle style is a bit of a hack, but here we go
 				if (info.last_toggle_val != info.ubound) {
