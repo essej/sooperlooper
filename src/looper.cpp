@@ -1707,10 +1707,13 @@ Looper::set_state (const XMLNode& node)
 
 	if ((prop = node.property ("stretch_ratio")) != 0) {
 		sscanf (prop->value().c_str(), "%lg", &_stretch_ratio);
+		_pending_stretch_ratio = _stretch_ratio;
+		_pending_stretch = true;
 	}
 
 	if ((prop = node.property ("pitch_shift")) != 0) {
 		sscanf (prop->value().c_str(), "%lg", &_pitch_shift);
+		_out_stretcher->setPitchScale(pow(2.0, _pitch_shift / 12.0));
 	}
 
 	if ((prop = node.property ("tempo_stretch")) != 0) {

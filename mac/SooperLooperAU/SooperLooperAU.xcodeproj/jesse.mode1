@@ -321,7 +321,7 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>88EF515C0D48587B007AB060</string>
+										<string>88678CFA0D49881C000970FA</string>
 										<key>history</key>
 										<array>
 											<string>885F13A20BD26C400069E7EC</string>
@@ -337,7 +337,7 @@
 											<string>883C6BA90CFA8D96004A9146</string>
 											<string>883C6BAA0CFA8D96004A9146</string>
 											<string>883C6BAB0CFA8D96004A9146</string>
-											<string>884365110D46505C00E6C1F9</string>
+											<string>88EF515C0D48587B007AB060</string>
 										</array>
 										<key>prevStack</key>
 										<array>
@@ -412,9 +412,9 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>88EF51580D465139007AB060</string>
+				<string>88678CFB0D49881C000970FA</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
-				<string>88EF51590D465139007AB060</string>
+				<string>88678CFC0D49881C000970FA</string>
 				<string>1CE0B20306471E060097A5F4</string>
 				<string>1CE0B20506471E060097A5F4</string>
 			</array>
@@ -590,6 +590,8 @@
 							<string>230pt</string>
 						</dict>
 						<dict>
+							<key>BecomeActive</key>
+							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXBuildLogShowsTranscriptDefaultKey</key>
@@ -631,7 +633,7 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>885F13710BD2630F0069E7EC</string>
-				<string>88EF515A0D465139007AB060</string>
+				<string>88678CF80D49782D000970FA</string>
 				<string>1CD0528F0623707200166675</string>
 				<string>XCMainBuildResultsModuleGUID</string>
 			</array>
