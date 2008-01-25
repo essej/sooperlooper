@@ -38,6 +38,9 @@ install_name_tool -change /opt/local/lib/libiconv.2.dylib @executable_path/../Fr
 
 cd ../../../..
 
+./stepsau.sh
+
+
 # now tar it up
 ARCH=`uname -p`
 distdir=sl_macdist_${version}_${ARCH}
