@@ -1607,7 +1607,16 @@ Looper::get_state () const
 
 	snprintf(buf, sizeof(buf), "%s", _auto_latency ? "yes": "no");
 	node->add_property ("auto_latency", buf);
+
+	snprintf(buf, sizeof(buf), "%s", _tempo_stretch ? "yes": "no");
+	node->add_property ("tempo_stretch", buf);
 	
+	snprintf(buf, sizeof(buf), "%.10g", _stretch_ratio);
+	node->add_property ("stretch_ratio", buf);
+	
+	snprintf(buf, sizeof(buf), "%.10g", _pitch_shift);
+	node->add_property ("pitch_shift", buf);
+
 	// panner
 	if (_panner) {
 		node->add_child_nocopy (_panner->state (true));
@@ -1694,6 +1703,18 @@ Looper::set_state (const XMLNode& node)
 
 	if ((prop = node.property ("auto_latency")) != 0) {
 		_auto_latency = (prop->value() == "yes");
+	}
+
+	if ((prop = node.property ("stretch_ratio")) != 0) {
+		sscanf (prop->value().c_str(), "%lg", &_stretch_ratio);
+	}
+
+	if ((prop = node.property ("pitch_shift")) != 0) {
+		sscanf (prop->value().c_str(), "%lg", &_pitch_shift);
+	}
+
+	if ((prop = node.property ("tempo_stretch")) != 0) {
+		_tempo_stretch = (prop->value() == "yes");
 	}
 
 

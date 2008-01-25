@@ -38,5 +38,12 @@ install_name_tool -change /opt/local/lib/libiconv.2.dylib @executable_path/../Fr
 
 cd ../../../..
 
+# now tar it up
+ARCH=`uname -p`
+distdir=sl_macdist_${version}_${ARCH}
+ln -sf macdist $distdir
+tar chfz ${distdir}.tgz $distdir
+rm $distdir
+
 #rm -f SooperLooper-${version}.dmg
 #hdiutil create -fs HFS+ -volname SooperLooper-${version} -srcfolder macdist SooperLooper-${version}.dmg
