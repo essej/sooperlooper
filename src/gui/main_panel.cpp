@@ -1265,7 +1265,7 @@ void MainPanel::do_load_session ()
 
 }
 
-void MainPanel::do_save_session ()
+void MainPanel::do_save_session (bool write_audio)
 {
 	wxString filename = do_file_selector (wxT("Choose file to save session"), wxT("slsess"), wxT("*.*"), wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
 	
@@ -1275,7 +1275,7 @@ void MainPanel::do_save_session ()
 		if (filename.size() <= 7 || (filename.size() > 7 && filename.substr(filename.size() - 7, 7) != wxT(".slsess"))) {
 			filename += wxT(".slsess");
 		}
-		_loop_control->post_save_session (filename);
+		_loop_control->post_save_session (filename, write_audio);
 	}
 
 }

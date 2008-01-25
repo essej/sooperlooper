@@ -155,8 +155,9 @@ ControlOSC::register_callbacks()
 		// load session:  s:filename  s:returl  s:retpath
 		lo_server_add_method(serv, "/load_session", "sss", ControlOSC::_load_session_handler, this);
 
-		// save session:  s:filename  s:returl  s:retpath
+		// save session:  s:filename  s:returl  s:retpath (i:write_audio)
 		lo_server_add_method(serv, "/save_session", "sss", ControlOSC::_save_session_handler, this);
+		lo_server_add_method(serv, "/save_session", "sssi", ControlOSC::_save_session_handler, this);
 		
 		// add loop del handler:  i:index 
 		lo_server_add_method(serv, "/loop_del", "i", ControlOSC::_loop_del_handler, this);
@@ -1003,9 +1004,14 @@ int ControlOSC::save_session_handler(const char *path, const char *types, lo_arg
 	string fname (&argv[0]->s);
 	string returl (&argv[1]->s);
 	string retpath (&argv[2]->s);
+	bool audio = false;
+
+	if (argc > 3) {
+		audio = (bool) argv[3]->i;
+	}
 
 	// push this onto a queue for the main event loop to process
-	_engine->push_nonrt_event ( new SessionEvent (SessionEvent::Save, fname, returl, retpath));
+	_engine->push_nonrt_event ( new SessionEvent (SessionEvent::Save, fname, returl, retpath, audio));
 	
 	return 0;
 }

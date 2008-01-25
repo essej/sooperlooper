@@ -60,6 +60,7 @@ enum {
 	ID_MidiBindingsMenu,
 	ID_LoadSession,
 	ID_SaveSession,
+	ID_SaveSessionAudio,
 	ID_Quit,
 	ID_QuitStop,
 	ID_AddLoop,
@@ -109,6 +110,7 @@ BEGIN_EVENT_TABLE(AppFrame, wxFrame)
 
 	EVT_MENU(ID_LoadSession, AppFrame::on_load_session)
 	EVT_MENU(ID_SaveSession, AppFrame::on_save_session)
+	EVT_MENU(ID_SaveSessionAudio, AppFrame::on_save_session_audio)
 
 	EVT_MENU(ID_StayOnTop, AppFrame::on_view_menu)
 	
@@ -164,6 +166,7 @@ AppFrame::init()
 
 	menuFile->Append(ID_LoadSession, wxT("Load Session\tCtrl-L"), wxT("Load session"));
 	menuFile->Append(ID_SaveSession, wxT("Save Session\tCtrl-P"), wxT("Save session"));
+	menuFile->Append(ID_SaveSessionAudio, wxT("Save Session with Audio\tCtrl-Shift-P"), wxT("Save session with Audio"));
 
 	menuFile->AppendSeparator();
 	
@@ -353,5 +356,10 @@ void AppFrame::on_load_session (wxCommandEvent &ev)
 void AppFrame::on_save_session (wxCommandEvent &ev)
 {
 	_mainpanel->do_save_session();
+}
+
+void AppFrame::on_save_session_audio (wxCommandEvent &ev)
+{
+	_mainpanel->do_save_session(true);
 }
 

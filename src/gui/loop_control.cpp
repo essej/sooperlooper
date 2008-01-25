@@ -1261,16 +1261,23 @@ LoopControl::post_load_session(wxString fname)
 }
 
 bool
-LoopControl::post_save_session(wxString fname)
+LoopControl::post_save_session(wxString fname, bool write_audio)
 {
 	if (!_osc_addr) return false;
 	char buf[30];
 
 	snprintf(buf, sizeof(buf), "/save_session");
 
-	// send request for updates
-	if (lo_send(_osc_addr, buf, "sss", (const char *) fname.ToAscii(), _our_url.c_str(), "/error") == -1) {
-		return false;
+
+	if (write_audio) {
+		if (lo_send(_osc_addr, buf, "sssi", (const char *) fname.ToAscii(), _our_url.c_str(), "/error", write_audio) == -1) {
+			return false;
+		}
+	}
+	else {
+		if (lo_send(_osc_addr, buf, "sss", (const char *) fname.ToAscii(), _our_url.c_str(), "/error") == -1) {
+			return false;
+		}
 	}
 
 	return true;

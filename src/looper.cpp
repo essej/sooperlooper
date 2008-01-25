@@ -1745,5 +1745,10 @@ Looper::set_state (const XMLNode& node)
 
 	recompute_latencies();
 
+	// load audio if we should
+	if ((prop = node.property ("loop_audio")) != 0) {
+		load_loop(prop->value());
+	}
+
 	return 0;
 }

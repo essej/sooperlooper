@@ -116,7 +116,7 @@ class Engine
 
 	// session state
 	bool load_session (std::string fname, std::string * readstr=0);
-	bool save_session (std::string fname, std::string * writestr=0);
+	bool save_session (std::string fname, bool write_audio = false, std::string * writestr=0);
 	
   protected:	
 

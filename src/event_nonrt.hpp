@@ -65,12 +65,13 @@ namespace SooperLooper {
 			Save
 		} type;
 
-		SessionEvent(Type tp, std::string fname, std::string returl, std::string retpath) 
-			: type(tp), filename(fname), ret_url(returl), ret_path(retpath) {}
+		SessionEvent(Type tp, std::string fname, std::string returl, std::string retpath, bool audio=false) 
+			: type(tp), filename(fname), write_audio(audio), ret_url(returl), ret_path(retpath) {}
 
 		virtual ~SessionEvent() {}
 
 		std::string      filename;
+		bool             write_audio;
 		std::string      ret_url;
 		std::string      ret_path;
 	};

@@ -81,6 +81,7 @@ protected:
 
 	void on_load_session (wxCommandEvent &ev);
 	void on_save_session (wxCommandEvent &ev);
+	void on_save_session_audio (wxCommandEvent &ev);
 
 	void on_timer_event(wxTimerEvent &ev);
 

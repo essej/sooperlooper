@@ -85,7 +85,7 @@ public:
 
 	void do_close(bool quitengine=false);
 	void do_load_session ();
-	void do_save_session ();
+	void do_save_session (bool write_audio=false);
 	
 	
 	void init_loopers (int count);

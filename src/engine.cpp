@@ -1654,7 +1654,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 			}
 		}
 		else {
-			if (!save_session (sess_event->filename)) {
+			if (!save_session (sess_event->filename, sess_event->write_audio)) {
 				_osc->send_error(sess_event->ret_url, sess_event->ret_path, "Session Save Failed");
 			}
 		}
@@ -2164,7 +2164,7 @@ Engine::load_session (std::string fname, string * readstr)
 }
 
 bool
-Engine::save_session (std::string fname, string * writestr)
+Engine::save_session (std::string fname, bool write_audio, string * writestr)
 {
 	// make xmltree
 	LocaleGuard lg ("POSIX");
@@ -2202,9 +2202,22 @@ Engine::save_session (std::string fname, string * writestr)
 	
 	XMLNode * loopers_node = root_node->add_child ("Loopers");
 
-	for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i)
+	int n=0;
+	for (Instances::iterator i = _instances.begin(); i != _instances.end(); ++i, ++n)
 	{
-		loopers_node->add_child_nocopy ((*i)->get_state());
+		XMLNode * node = & ((*i)->get_state());
+
+		if (write_audio && !fname.empty()) {
+			// add property with audio_pathname and write it out
+			char pathstr[512];
+			snprintf(pathstr, sizeof(pathstr), "%s_loop_%02d.wav", fname.c_str(), n);
+
+			node->add_property("loop_audio", pathstr);
+
+			(*i)->save_loop(pathstr, LoopFileEvent::FormatFloat);
+		}
+
+		loopers_node->add_child_nocopy (*node);
 	}
 
 

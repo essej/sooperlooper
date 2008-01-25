@@ -622,6 +622,10 @@ activateSooperLooper(LADSPA_Handle Instance) {
   if (pLS->pfSecsTotal) {
      *pLS->pfSecsTotal = (LADSPA_Data) pLS->fTotalSecs;
   }
+
+  if (pLS->pfSecsFree) {
+	  *pLS->pfSecsFree = pLS->lBufferSize / pLS->fSampleRate;
+  }
   
   //fprintf(stderr,"activated\n");  
 }
