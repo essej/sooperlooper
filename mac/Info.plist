@@ -19,9 +19,9 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0</string>
+	<string>1.5.0</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>1.5.0</string>
 	<key>CFBundleGetInfoString</key>
 	<string>SooperLooper version 1.5.0, (c) 2008 Jesse Chappell</string>
 	<key>CFBundleLongVersionString</key>

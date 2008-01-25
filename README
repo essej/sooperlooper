@@ -66,7 +66,7 @@ SooperLooper's primary features are listed below:
 * 	MIDI Bindings are arbitarily definable and can be configured to emulate existing setup (EDP, etc)
 * 	Key Bindings are arbitarily definable for the GUI
 * 	OSC Interface provides the ultimate network-transparent control of the engine
-
+*       Timestretch and pitch shift
 
 USAGE
 
@@ -112,5 +112,8 @@ BUILD REQUIREMENTS
   libsamplerate    -- http://www.mega-nerd.com/SRC/
   ncurses          -- you probably already have it
   libxml2          -- same here
+  RubberBand       -- http://www.breakfastquay.com/rubberband/
+  fftw3            -- www.fftw.org  (needed by rubberband)
+
 
 
