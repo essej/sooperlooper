@@ -229,7 +229,7 @@ bool GuiApp::OnInit()
 
 #ifdef __WXMAC__
 	if (_exec_name.empty()) {
-		_exec_name = GetExecutablePath(argv[0]) + "sooperlooper";
+		_exec_name = GetExecutablePath(argv[0]) + wxT("sooperlooper");
 	}
 #endif
 	// escape all spaces with
@@ -320,7 +320,7 @@ GetExecutablePath(wxString argv0)
     filename.Normalize();
 
     path = filename.GetFullPath();
-    path = path.BeforeLast('/') + "/";
+    path = path.BeforeLast('/') + wxT("/");
 
     return path;
 }

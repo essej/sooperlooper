@@ -129,7 +129,7 @@ AppFrame::AppFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 	wxApp::s_macAboutMenuItemId = ID_AboutMenu;
 	wxApp::s_macPreferencesMenuItemId = ID_PreferencesMenu;
 	wxApp::s_macExitMenuItemId = ID_QuitStop;
-	wxApp::s_macHelpMenuTitleName = "&Help";
+	wxApp::s_macHelpMenuTitleName = wxT("&Help");
 #endif
 
 	init();
