@@ -2,6 +2,10 @@
 
 rm -rf macdist/SooperLooperAU.component
 
+cd SooperLooperAU
+xcodebuild
+cd ..
+
 if [ -d SooperLooperAU/build/Default/SooperLooperAU.component ] ; then
 	cp -Rp SooperLooperAU/build/Default/SooperLooperAU.component macdist/
 elif [ -d SooperLooperAU/build/Deployment/SooperLooperAU.component ] ; then
