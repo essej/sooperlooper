@@ -160,7 +160,7 @@ class Looper
 	LADSPA_Data        * _use_sync_buf;
 	LADSPA_Data        * _dummy_buf;
 
-	LADSPA_Data        * _tmp_io_buf;
+	LADSPA_Data        ** _tmp_io_bufs;
 
 	Panner             * _panner; 
 

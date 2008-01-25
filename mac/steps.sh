@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version="1.4.1"
+version="1.5.0"
 
 cp ../src/sooperlooper macdist/SooperLooper.app/Contents/MacOS/
 cp ../src/gui/slgui macdist/SooperLooper.app/Contents/MacOS/
@@ -44,6 +44,7 @@ cd ../../../..
 # now tar it up
 ARCH=`uname -p`
 distdir=sl_macdist_${version}_${ARCH}
+rm -rf $distdir
 ln -sf macdist $distdir
 tar chfz ${distdir}.tgz $distdir
 rm $distdir

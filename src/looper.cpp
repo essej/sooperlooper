@@ -103,7 +103,7 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_our_syncin_buf = 0;
 	_our_syncout_buf = 0;
 	_dummy_buf = 0;
-	_tmp_io_buf = 0;
+	_tmp_io_bufs = 0;
 	_running_frames = 0;
 	_use_common_ins = true;
 	_use_common_outs = true;
@@ -158,6 +158,9 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	memset (_lp_filter, 0, sizeof(OnePoleFilter*) * _chan_count);
 
 
+	_tmp_io_bufs = new float*[_chan_count];
+	memset(_tmp_io_bufs, 0, sizeof(float *) * _chan_count);
+
 	nframes_t srate = _driver->get_samplerate();
 	
 	// rubberband stretch stuff
@@ -208,6 +211,7 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
+		_tmp_io_bufs[i] = new float[_buffersize];
 
 		if ((_instances[i] = descriptor->instantiate (descriptor, srate)) == 0) {
 			return false;
@@ -338,6 +342,10 @@ Looper::destroy()
 		if (_lp_filter[i]) {
 			delete _lp_filter[i];
 		}
+
+		if (_tmp_io_bufs[i]) {
+			delete _tmp_io_bufs[i];
+		}
 	}
 
 	delete [] _instances;
@@ -353,8 +361,8 @@ Looper::destroy()
 	if (_dummy_buf)
 		delete [] _dummy_buf;
 
-	if (_tmp_io_buf)
-		delete [] _tmp_io_buf;
+	if (_tmp_io_bufs)
+		delete [] _tmp_io_bufs;
 
 	delete [] _lp_filter;
 
@@ -470,14 +478,19 @@ Looper::set_buffer_size (nframes_t bufsize)
 
 		if (_dummy_buf)
 			delete [] _dummy_buf;
-		if (_tmp_io_buf)
-			delete [] _tmp_io_buf;
+	
+		for (size_t i=0; i < _chan_count; ++i) {
+			if (_tmp_io_bufs[i]) {
+				delete [] _tmp_io_bufs[i];
+			}
+
+			_tmp_io_bufs[i] = new float[_buffersize];
+		}
 		
 		_buffersize = bufsize;
 		
 		_our_syncin_buf = new float[_buffersize];
 		_our_syncout_buf = new float[_buffersize];
-		_tmp_io_buf = new float[_buffersize];
 		// big enough for use with resampling too
 		_dummy_buf = new float[(nframes_t) ceil (_buffersize * MaxResamplingRate)];
 		
@@ -996,6 +1009,10 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
+		inbufs[i] = 0;
+		real_inbufs[i] = 0;
+		outbufs[i] = 0;
+
 		/* (re)connect audio ports */
 		if (_have_discrete_io) {
 			real_inbufs[i] = (LADSPA_Data*) _driver->get_input_port_buffer (_input_ports[i], _buffersize);
@@ -1008,12 +1025,12 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 			if (outbufs[i]) {
 				outbufs[i] += offset;
 			} else {
-				outbufs[i] = _tmp_io_buf;
+				outbufs[i] = _tmp_io_bufs[i];
 			}
 		}
 		else {
 			inbufs[i] = 0;
-			outbufs[i] = _tmp_io_buf;
+			outbufs[i] = _tmp_io_bufs[i];
 			real_inbufs[i] = 0;
 		}
 
@@ -1029,17 +1046,17 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 				if (_have_discrete_io && real_inbufs[i]) {
 					for (nframes_t pos=0; pos < nframes; ++pos) {
 						curr_ing += ing_delta;
-						_tmp_io_buf[pos] = curr_ing * (real_inbufs[i][pos] + comin[pos]);
+						_tmp_io_bufs[i][pos] = curr_ing * (real_inbufs[i][pos] + comin[pos]);
 					}
-					inbufs[i] = _tmp_io_buf;
+					inbufs[i] = _tmp_io_bufs[i];
 				}
 				else {
 					for (nframes_t pos=0; pos < nframes; ++pos) {
 						curr_ing += ing_delta;
 						
-						_tmp_io_buf[pos] = curr_ing * (comin[pos]);
+						_tmp_io_bufs[i][pos] = curr_ing * (comin[pos]);
 					}
-					inbufs[i] = _tmp_io_buf;
+					inbufs[i] = _tmp_io_bufs[i];
 				}
 
 			}
@@ -1050,9 +1067,9 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 			for (nframes_t pos=0; pos < nframes; ++pos) {
 				curr_ing += ing_delta;
 
-				_tmp_io_buf[pos] = curr_ing * (real_inbufs[i][pos]);
+				_tmp_io_bufs[i][pos] = curr_ing * (real_inbufs[i][pos]);
 			}
-			inbufs[i] = _tmp_io_buf;
+			inbufs[i] = _tmp_io_bufs[i];
 		}
 		
 		// no longer needed
@@ -1146,7 +1163,7 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		alt_frames = needSamples;
 		
 		// stretch input
-		_in_stretcher->process(&inbuf, (size_t) nframes, false);
+		_in_stretcher->process(inbufs, (size_t) nframes, false);
 		size_t avail_samps = _in_stretcher->available();			
 		size_t got_samps = _in_stretcher->retrieve(&_src_in_buffer, avail_samps);
 		if (got_samps < alt_frames) {

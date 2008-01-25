@@ -218,8 +218,6 @@
 			<key>Layout</key>
 			<array>
 				<dict>
-					<key>BecomeActive</key>
-					<true/>
 					<key>ContentConfiguration</key>
 					<dict>
 						<key>PBXBottomSmartGroupGIDs</key>
@@ -269,12 +267,13 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>30</integer>
+									<integer>28</integer>
+									<integer>26</integer>
 									<integer>0</integer>
 								</array>
 							</array>
 							<key>PBXSmartGroupTreeModuleOutlineStateVisibleRectKey</key>
-							<string>{{0, 0}, {262, 542}}</string>
+							<string>{{0, 174}, {262, 542}}</string>
 						</dict>
 						<key>PBXTopSmartGroupGIDs</key>
 						<array/>
@@ -304,12 +303,14 @@
 					<key>Dock</key>
 					<array>
 						<dict>
+							<key>BecomeActive</key>
+							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXProjectModuleGUID</key>
 								<string>1CE0B20306471E060097A5F4</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>SooperLooperAUView.mm</string>
+								<string>Info.plist</string>
 								<key>PBXSplitModuleInNavigatorKey</key>
 								<dict>
 									<key>Split0</key>
@@ -317,11 +318,11 @@
 										<key>PBXProjectModuleGUID</key>
 										<string>1CE0B20406471E060097A5F4</string>
 										<key>PBXProjectModuleLabel</key>
-										<string>SooperLooperAUView.mm</string>
+										<string>Info.plist</string>
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>88678CFA0D49881C000970FA</string>
+										<string>88923AF90D49AE90003D3F7D</string>
 										<key>history</key>
 										<array>
 											<string>885F13A20BD26C400069E7EC</string>
@@ -337,7 +338,9 @@
 											<string>883C6BA90CFA8D96004A9146</string>
 											<string>883C6BAA0CFA8D96004A9146</string>
 											<string>883C6BAB0CFA8D96004A9146</string>
-											<string>88EF515C0D48587B007AB060</string>
+											<string>88923AF30D49AE90003D3F7D</string>
+											<string>88923AF40D49AE90003D3F7D</string>
+											<string>88923AF50D49AE90003D3F7D</string>
 										</array>
 										<key>prevStack</key>
 										<array>
@@ -355,6 +358,9 @@
 											<string>883C6B740CFA7C8D004A9146</string>
 											<string>883C6BAF0CFA8D96004A9146</string>
 											<string>883C6BB20CFA8D96004A9146</string>
+											<string>88923AF60D49AE90003D3F7D</string>
+											<string>88923AF70D49AE90003D3F7D</string>
+											<string>88923AF80D49AE90003D3F7D</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -412,9 +418,9 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>88678CFB0D49881C000970FA</string>
+				<string>88923AFA0D49AE90003D3F7D</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
-				<string>88678CFC0D49881C000970FA</string>
+				<string>88923AFB0D49AE90003D3F7D</string>
 				<string>1CE0B20306471E060097A5F4</string>
 				<string>1CE0B20506471E060097A5F4</string>
 			</array>
@@ -548,7 +554,6 @@
 	<integer>5</integer>
 	<key>WindowOrderList</key>
 	<array>
-		<string>885F13710BD2630F0069E7EC</string>
 		<string>/Users/jesse/src/sooperlooper_cvs/mac/SooperLooperAU/SooperLooperAU.xcodeproj</string>
 	</array>
 	<key>WindowString</key>
@@ -590,8 +595,6 @@
 							<string>230pt</string>
 						</dict>
 						<dict>
-							<key>BecomeActive</key>
-							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXBuildLogShowsTranscriptDefaultKey</key>
@@ -633,7 +636,7 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>885F13710BD2630F0069E7EC</string>
-				<string>88678CF80D49782D000970FA</string>
+				<string>88B87B500D4990F800886251</string>
 				<string>1CD0528F0623707200166675</string>
 				<string>XCMainBuildResultsModuleGUID</string>
 			</array>
