@@ -145,7 +145,7 @@ OSStatus	SooperLooperAUView::CreateUI(Float32 xoffset, Float32 yoffset)
 	*/
 	
 	{
-		CAAUParameter auvp(mEditAudioUnit, 0, kAudioUnitScope_Global, 0);
+		CAAUParameter auvp(mEditAudioUnit,  kParam_OSCPort, kAudioUnitScope_Global, 0);
 		char tmpstr[255];
 		snprintf(tmpstr, sizeof(tmpstr), "SooperLooper OSC server port is: %d", (int) auvp.GetValue());
 		CFStringRef statstr = CFStringCreateWithCString(0, tmpstr, CFStringGetSystemEncoding());
@@ -393,7 +393,7 @@ void SooperLooperAUView::set_stay_on_top_property(short value)
 void SooperLooperAUView::create_slgui()
 {
 	// get OSC port (arg 2)
-	CAAUParameter auvp(mEditAudioUnit, 0, kAudioUnitScope_Global, 0);
+	CAAUParameter auvp(mEditAudioUnit,  kParam_OSCPort, kAudioUnitScope_Global, 0);
 	//char cmdbuf[255];
 	//snprintf(cmdbuf, sizeof(cmdbuf), "/Users/jesse/src/sooperlooper/src/gui/slgui -H localhost -P %d -N &", (int) auvp.GetValue()); 
 	//system(cmdbuf);

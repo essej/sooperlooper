@@ -37,6 +37,49 @@ public:
 		}
 		return *_instance;
 	}
+
+	enum ControlUnit {
+		UnitGeneric = 0,
+		UnitGain,
+		UnitPercent,
+		UnitSeconds,
+		UnitBoolean,
+		UnitIndexed,
+		UnitSamples,
+		UnitInteger,
+		UnitSemitones,
+		UnitRatio,
+		UnitTempo
+	};
+
+	struct ControlInfo
+	{
+		ControlInfo (const std::string & nm, Event::control_t ctl, ControlUnit unt = UnitGeneric, float minVal=0.0f, float maxVal=1.0f, float defaultVal=0.0f)
+			: name(nm), ctrl(ctl), minValue(minVal), maxValue(maxVal), defaultValue(defaultVal), unit(unt) {}
+		ControlInfo() {}
+		ControlInfo(const ControlInfo & other) 
+			: name(other.name), ctrl(other.ctrl), minValue(other.minValue), 
+			  maxValue(other.maxValue), defaultValue(other.defaultValue), unit(other.unit) {}
+
+		ControlInfo & operator=(const ControlInfo & other) {
+			name = other.name;
+			ctrl = other.ctrl;
+			maxValue = other.maxValue;
+			minValue = other.minValue;
+			defaultValue = other.defaultValue;
+			unit = other.unit;
+			return *this;
+		}
+		
+		virtual ~ControlInfo() {}
+
+		std::string name;
+		Event::control_t ctrl;
+		float minValue;
+		float maxValue;
+		float defaultValue;
+		ControlUnit unit;
+	};
 	
 	inline Event::command_t  to_command_t (std::string cmd);
 	inline std::string       to_command_str (Event::command_t cmd);
@@ -49,6 +92,9 @@ public:
 
 	void get_commands (std::list<std::string> & cmdlist);
 	void get_controls (std::list<std::string> & ctrllist);
+	void get_global_controls (std::list<std::string> & ctrllist);
+
+	bool get_control_info(const std::string & ctrl, ControlInfo & info);
 
 	bool is_command (std::string cmd) { return _str_cmd_map.find(cmd) != _str_cmd_map.end(); }
 	bool is_control (std::string ctrl) { return _str_ctrl_map.find(ctrl) != _str_ctrl_map.end(); }
@@ -62,6 +108,13 @@ protected:
 	CommandMap();
 	virtual ~CommandMap() {}
 	
+	void add_input_control(const std::string & name, Event::control_t ctrl, 
+			       ControlUnit unt = UnitGeneric, float minVal=0.0f, float maxVal=1.0f, float defaultVal=0.0f);
+	void add_output_control(const std::string & name, Event::control_t ctrl, 
+			       ControlUnit unt = UnitGeneric, float minVal=0.0f, float maxVal=1.0f, float defaultVal=0.0f);
+	void add_global_control(const std::string & name, Event::control_t ctrl, 
+			       ControlUnit unt = UnitGeneric, float minVal=0.0f, float maxVal=1.0f, float defaultVal=0.0f);
+
 	static CommandMap * _instance;
 
 	typedef std::map<std::string, Event::command_t> StringCommandMap;
@@ -75,6 +128,9 @@ protected:
 
 	typedef std::map<Event::control_t, std::string> ControlStringMap;
 	ControlStringMap _ctrl_str_map;
+
+	typedef std::map<std::string, ControlInfo> ControlInfoMap;
+	ControlInfoMap _ctrl_info_map;
 
 	typedef	std::map<std::string,Event::type_t> StringTypeMap;
 	StringTypeMap _str_type_map;

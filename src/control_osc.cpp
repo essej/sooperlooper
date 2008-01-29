@@ -1421,7 +1421,8 @@ void ControlOSC::send_auto_updates ()
 		_last_value_map[ipair] = val;
 
 		// cerr << "ctrl " << ipair.second << " is new: " << val << endl;
-		
+		//_engine->ParamChanged(_cmd_map->to_control_t(ipair.second), ipair.first);
+
 		if ( ! send_registered_updates (iter, ipair.second, val, ipair.first, -1)) {
 			// remove ipair if false is returned.. no more good registrations
 			tmpiter = iter;

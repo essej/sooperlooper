@@ -74,61 +74,60 @@ CommandMap::CommandMap()
 		_cmd_str_map[(*iter).second] = (*iter).first;
 	}
 
-	
-	_input_controls["rec_thresh"]  = Event::TriggerThreshold;
-	_input_controls["feedback"]  = Event::Feedback;
-	_input_controls["use_feedback_play"]  = Event::UseFeedbackPlay;
-	_input_controls["dry"]  = Event::DryLevel;
-	_input_controls["wet"]  = Event::WetLevel;
-	_input_controls["rate"]  = Event::Rate;
-	_input_controls["scratch_pos"]  = Event::ScratchPosition;
-	_input_controls["delay_trigger"]  = Event::TapDelayTrigger;
-	_input_controls["quantize"]  = Event::Quantize;
-	_input_controls["round"]  = Event::Round;
-	_input_controls["redo_is_tap"]  = Event::RedoTap;
-	_input_controls["sync"]  = Event::SyncMode;
-	_input_controls["playback_sync"]  = Event::PlaybackSync;
-	_input_controls["use_rate"]  = Event::UseRate;
-	_input_controls["fade_samples"]  = Event::FadeSamples;
-	_input_controls["use_safety_feedback"]  = Event::UseSafetyFeedback;
-	_input_controls["relative_sync"]  = Event::RelativeSync;
-	_input_controls["input_latency"]  = Event::InputLatency;
-	_input_controls["output_latency"]  = Event::OutputLatency;
-	_input_controls["trigger_latency"]  = Event::TriggerLatency;
-	_input_controls["autoset_latency"]  = Event::AutosetLatency;
-	_input_controls["mute_quantized"]  = Event::MuteQuantized;
-	_input_controls["overdub_quantized"]  = Event::OverdubQuantized;
+	add_input_control("rec_thresh", Event::TriggerThreshold, UnitGain, 0.0f, 1.0f, 0.0f);
+	add_input_control("feedback", Event::Feedback, UnitPercent, 0.0f, 1.0f, 1.0f);
+	add_input_control("use_feedback_play", Event::UseFeedbackPlay, UnitBoolean, 0.0f, 1.0f, 0.0f);
+	add_input_control("dry", Event::DryLevel, UnitGain, 0.0f, 1.0f, 0.0f);
+	add_input_control("wet", Event::WetLevel, UnitGain, 0.0f, 1.0f, 1.0f);
+	add_input_control("rate", Event::Rate, UnitRatio, 0.25f, 4.0f, 1.0f);
+	add_input_control("scratch_pos", Event::ScratchPosition, UnitRatio, 0.0f, 1.0f, 0.0f);
+	add_input_control("delay_trigger",  Event::TapDelayTrigger, UnitGeneric, 0.0f, 1.0f, 0.0f);
+	add_input_control("quantize", Event::Quantize, UnitIndexed, 0.0f, 6.0f, 0.0f);
+	add_input_control("round", Event::Round, UnitBoolean);
+	add_input_control("redo_is_tap", Event::RedoTap, UnitBoolean);
+	add_input_control("sync", Event::SyncMode, UnitBoolean);
+	add_input_control("playback_sync", Event::PlaybackSync, UnitBoolean);
+	add_input_control("use_rate", Event::UseRate, UnitBoolean);
+	add_input_control("fade_samples", Event::FadeSamples, UnitSamples, 0.0f, 4096.0f, 64.0f);
+	add_input_control("use_safety_feedback", Event::UseSafetyFeedback, UnitBoolean, 0.0f, 1.0f, 1.0f);
+	add_input_control("relative_sync", Event::RelativeSync, UnitBoolean);
+	add_input_control("input_latency", Event::InputLatency, UnitSamples, 0.0f, 32768.0f, 0.0f);
+	add_input_control("output_latency", Event::OutputLatency, UnitSamples, 0.0f, 32768.0f, 0.0f);
+	add_input_control("trigger_latency", Event::TriggerLatency, UnitSamples, 0.0f, 32768.0f, 0.0f);
+	add_input_control("autoset_latency", Event::AutosetLatency, UnitBoolean, 0.0f, 1.0f, 1.0f);
+	add_input_control("mute_quantized", Event::MuteQuantized, UnitBoolean);
+	add_input_control("overdub_quantized", Event::OverdubQuantized, UnitBoolean);
 	//_input_controls["eighth_per_cycle_loop"] = Event::EighthPerCycleLoop;
 	//_input_controls["tempo_input"] = Event::TempoInput;
-	_input_controls["input_gain"]  = Event::InputGain;
-	_input_controls["use_common_ins"]  = Event::UseCommonIns;
-	_input_controls["use_common_outs"]  = Event::UseCommonOuts;
-	_input_controls["pan_1"]  = Event::PanChannel1;
-	_input_controls["pan_2"]  = Event::PanChannel2;
-	_input_controls["pan_3"]  = Event::PanChannel3;
-	_input_controls["pan_4"]  = Event::PanChannel4;
-	_input_controls["stretch_ratio"] = Event::StretchRatio;
-	_input_controls["pitch_shift"] = Event::PitchShift;
-	_input_controls["tempo_stretch"] = Event::TempoStretch;
+	add_input_control("input_gain", Event::InputGain, UnitGain, 0.0f, 1.0f, 1.0f);
+	add_input_control("use_common_ins", Event::UseCommonIns, UnitBoolean, 0.0f, 1.0f, 1.0f);
+	add_input_control("use_common_outs", Event::UseCommonOuts, UnitBoolean, 0.0f, 1.0f, 1.0f);
+	add_input_control("pan_1", Event::PanChannel1, UnitGeneric, 0.0f, 1.0f, 0.5f);
+	add_input_control("pan_2", Event::PanChannel2, UnitGeneric, 0.0f, 1.0f, 0.5f);
+	add_input_control("pan_3", Event::PanChannel3, UnitGeneric, 0.0f, 1.0f, 0.5f);
+	add_input_control("pan_4", Event::PanChannel4, UnitGeneric, 0.0f, 1.0f, 0.5f);
+	add_input_control("stretch_ratio", Event::StretchRatio, UnitRatio, 0.5f, 4.0f, 1.0f);
+	add_input_control("pitch_shift", Event::PitchShift, UnitSemitones, -12.0f, 12.0f, 0.0f); 
+	add_input_control("tempo_stretch", Event::TempoStretch, UnitBoolean);
 
 	_str_ctrl_map.insert (_input_controls.begin(), _input_controls.end());
 
 	
 	// outputs
-	_output_controls["waiting"]  = Event::Waiting;
-	_output_controls["state"]  = Event::State;
-	_output_controls["next_state"]  = Event::NextState;
-	_output_controls["loop_len"]  = Event::LoopLength;
-	_output_controls["loop_pos"]  = Event::LoopPosition;
-	_output_controls["cycle_len"]  = Event::CycleLength;
-	_output_controls["free_time"]  = Event::FreeTime;
-	_output_controls["total_time"]  = Event::TotalTime;
-	_output_controls["rate_output"]  = Event::TrueRate;
-	_output_controls["has_discrete_io"]  = Event::HasDiscreteIO;
-	_output_controls["channel_count"]  = Event::ChannelCount;
-	_output_controls["in_peak_meter"]  = Event::InPeakMeter;
-	_output_controls["out_peak_meter"]  = Event::OutPeakMeter;
-	_output_controls["is_soloed"]  = Event::IsSoloed;
+	add_output_control("waiting", Event::Waiting, UnitBoolean);
+	add_output_control("state", Event::State, UnitIndexed, -1.0f, 20.0f);
+	add_output_control("next_state", Event::NextState, UnitIndexed, -1.0f, 20.0f);
+	add_output_control("loop_len", Event::LoopLength, UnitSeconds, 0.0f, 1e6);
+	add_output_control("loop_pos", Event::LoopPosition,  UnitSeconds, 0.0f, 1e6);
+	add_output_control("cycle_len", Event::CycleLength,  UnitSeconds, 0.0f, 1e6);
+	add_output_control("free_time", Event::FreeTime,  UnitSeconds, 0.0f, 1e6);
+	add_output_control("total_time", Event::TotalTime,  UnitSeconds, 0.0f, 1e6);
+	add_output_control("rate_output", Event::TrueRate, UnitGeneric, 0.0f, 8.0f);
+	add_output_control("has_discrete_io", Event::HasDiscreteIO, UnitBoolean);
+	add_output_control("channel_count", Event::ChannelCount, UnitInteger, 0.0f, 16.0f);
+	add_output_control("in_peak_meter", Event::InPeakMeter, UnitGeneric, 0.0f, 4.0f);
+	add_output_control("out_peak_meter", Event::OutPeakMeter, UnitGeneric, 0.0f, 4.0f);
+	add_output_control("is_soloed", Event::IsSoloed, UnitBoolean);
 
 	_str_ctrl_map.insert (_output_controls.begin(), _output_controls.end());
 
@@ -140,16 +139,16 @@ CommandMap::CommandMap()
 	_str_ctrl_map.insert (_event_controls.begin(), _event_controls.end());
 	
 	// global params
-	_global_controls["tempo"] = Event::Tempo;
-	_global_controls["eighth_per_cycle"] = Event::EighthPerCycle;
-	_global_controls["sync_source"] = Event::SyncTo;
-	_global_controls["tap_tempo"] = Event::TapTempo;
-	_global_controls["save_loop"] = Event::SaveLoop;
-	_global_controls["auto_disable_latency"] = Event::AutoDisableLatency;
-	_global_controls["select_next_loop"] = Event::SelectNextLoop;
-	_global_controls["select_prev_loop"] = Event::SelectPrevLoop;
-	_global_controls["select_all_loops"] = Event::SelectAllLoops;
-	_global_controls["selected_loop_num"] = Event::SelectedLoopNum;
+	add_global_control("tempo", Event::Tempo, UnitTempo, 0.0f, 1000.0f, 120.0f);
+	add_global_control("eighth_per_cycle", Event::EighthPerCycle, UnitIndexed, 0.0, 2048.0f);
+	add_global_control("sync_source", Event::SyncTo, UnitIndexed, -5.0f, 16.0f);
+	add_global_control("tap_tempo", Event::TapTempo, UnitGeneric);
+	add_global_control("save_loop", Event::SaveLoop);
+	add_global_control("auto_disable_latency", Event::AutoDisableLatency, UnitBoolean, 0.0f, 1.0f, 1.0f);
+	add_global_control("select_next_loop", Event::SelectNextLoop);
+	add_global_control("select_prev_loop", Event::SelectPrevLoop);
+	add_global_control("select_all_loops", Event::SelectAllLoops);
+	add_global_control("selected_loop_num", Event::SelectedLoopNum, UnitIndexed, -1.0f, 32.0f);
 
 	_str_ctrl_map.insert (_global_controls.begin(), _global_controls.end());
 
@@ -173,4 +172,42 @@ void CommandMap::get_controls (list<std::string> & ctrllist)
 	for (StringControlMap::iterator iter = _str_ctrl_map.begin(); iter != _str_ctrl_map.end(); ++iter) {
 		ctrllist.push_back ((*iter).first);
 	}
+}
+
+void CommandMap::get_global_controls (list<std::string> & ctrllist)
+{
+	for (StringControlMap::iterator iter = _global_controls.begin(); iter != _global_controls.end(); ++iter) {
+		ctrllist.push_back ((*iter).first);
+	}
+}
+
+bool CommandMap::get_control_info(const std::string & ctrl, ControlInfo & info)
+{
+	ControlInfoMap::iterator found = _ctrl_info_map.find(ctrl);
+	if (found != _ctrl_info_map.end()) {
+		info = found->second;
+		return true;
+	}
+	return false;
+}
+
+void CommandMap::add_input_control(const std::string & name, Event::control_t ctrl, 
+				   ControlUnit unit, float minVal, float maxVal, float defaultVal)
+{
+	_input_controls[name] = ctrl;
+	_ctrl_info_map[name] = ControlInfo(name, ctrl, unit, minVal, maxVal, defaultVal);
+}
+
+void CommandMap::add_output_control(const std::string & name, Event::control_t ctrl, 
+			       ControlUnit unit, float minVal, float maxVal, float defaultVal)
+{
+	_output_controls[name] = ctrl;
+	_ctrl_info_map[name] = ControlInfo(name, ctrl, unit, minVal, maxVal, defaultVal);
+}
+
+void CommandMap::add_global_control(const std::string & name, Event::control_t ctrl, 
+				   ControlUnit unit, float minVal, float maxVal, float defaultVal)
+{
+	_global_controls[name] = ctrl;
+	_ctrl_info_map[name] = ControlInfo(name, ctrl, unit, minVal, maxVal, defaultVal);
 }

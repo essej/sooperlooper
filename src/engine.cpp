@@ -35,6 +35,7 @@
 #include "midi_bind.hpp"
 #include "midi_bridge.hpp"
 #include "utils.hpp"
+#include "command_map.hpp"
 
 using namespace SooperLooper;
 using namespace std;
@@ -1224,6 +1225,15 @@ Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 		}
 		else if (ctrl == Event::InputGain) {
 			return _curr_input_gain;
+		} 
+		else if (ctrl == Event::Tempo) {
+			return _tempo;
+		}
+		else if (ctrl == Event::SyncTo) {
+			return _sync_source;
+		}
+		else if (ctrl == Event::EighthPerCycle) {
+			return _eighth_cycle;
 		}
 	}
 
@@ -1325,6 +1335,8 @@ Engine::mainloop()
 				ConfigUpdateEvent cuev (ConfigUpdateEvent::Send, instance, evt->Control, "", "", evt->Value);
 				cuev.source = evt->source;
 				_osc->finish_update_event (cuev);
+
+				ParamChanged(evt->Control, instance); // emit
 			}
 			else if (evt->Type == Event::type_cmd_down || evt->Type == Event::type_cmd_hit) {
 				//cerr << "got command: " << evt->Command << endl;
@@ -1346,6 +1358,7 @@ Engine::mainloop()
 			ConfigUpdateEvent cu_event(ConfigUpdateEvent::Send, -2, Event::Tempo, "", "", (float) _tempo);
 			_osc->finish_update_event (cu_event);
 			_tempo_changed = false;
+			ParamChanged(Event::Tempo, -2); // emit
 		}
 
 		if (_sel_loop_changed)
@@ -1353,6 +1366,7 @@ Engine::mainloop()
 			ConfigUpdateEvent cu_event(ConfigUpdateEvent::Send, -2, Event::SelectedLoopNum, "", "", (float) _selected_loop);
 			_osc->finish_update_event (cu_event);
 			_sel_loop_changed = false;
+			ParamChanged(Event::SelectedLoopNum, -2); // emit
 		}
 
 		if (_beat_occurred)
@@ -1440,6 +1454,8 @@ Engine::process_nonrt_event (EventNonRT * event)
 	MidiBindingEvent   * mb_event;
 	SessionEvent       * sess_event;
 	
+	CommandMap & cmdmap = CommandMap::instance();
+
 	if ((gp_event = dynamic_cast<GetParamEvent*> (event)) != 0)
 	{
 		gp_event->ret_value = get_control_value (gp_event->control, gp_event->instance);
@@ -1517,6 +1533,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 			calculate_midi_tick();
 		}
 
+		ParamChanged(cmdmap.to_control_t(gs_event->param), -2); // emit
 	}
 	else if ((cu_event = dynamic_cast<ConfigUpdateEvent*> (event)) != 0)
 	{

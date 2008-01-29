@@ -14,4 +14,10 @@ enum {
 	kSLguiStayOnTopProperty
 };
 
+enum {
+	kParam_OSCPort = 999,
+	//Add your parameters here...
+	kNumberOfParameters // bogus now
+};
+
 #endif

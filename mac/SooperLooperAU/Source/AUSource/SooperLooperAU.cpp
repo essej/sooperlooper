@@ -11,9 +11,13 @@
 #include "SooperLooperAU.h"
 #include "SLproperties.h"
 
+
+#include "AudioToolbox/AudioUnitUtilities.h"
+
 #include "engine.hpp"
 #include "midi_bridge.hpp"
 #include "control_osc.hpp"
+#include "command_map.hpp"
 
 #include <pbd/transmitter.h>
 using namespace PBD;
@@ -44,7 +48,7 @@ SooperLooperAU::SooperLooperAU(AudioUnit component)
 	: AUMIDIEffectBase(component, false), _engine(0), _midi_bridge(0)
 {
 	CreateElements();
-	Globals()->UseIndexedParameters(kNumberOfParameters);
+	//Globals()->UseIndexedParameters(kNumberOfParameters);
 	//SetParameter(kParam_LoopCount, kDefaultValue_LoopCount );
     //SetParameter(kParam_LoopSecs, 40.0);
     
@@ -70,9 +74,8 @@ SooperLooperAU::SooperLooperAU(AudioUnit component)
 	
 	_engine->set_midi_bridge (_midi_bridge);
 	_engine->set_ignore_quit (true);
-	
+	_engine->ParamChanged.connect(slot(*this, &SooperLooperAU::parameter_changed));
 }
-
 
 SooperLooperAU::~SooperLooperAU () 
 { 
@@ -111,6 +114,34 @@ ComponentResult		SooperLooperAU::GetParameterValueStrings(AudioUnitScope		inScop
 }
 
 
+void SooperLooperAU::setup_params()
+{
+	// query the engine's command map for all the params
+	// keep global ones separate
+	
+	// our convention here will be
+	// global controls are left alone
+	// (i+1)*1000 is added to all control #s where i is the loop index
+	
+	list<string> ctrls;
+	SooperLooper::CommandMap & cmdmap = SooperLooper::CommandMap::instance();
+	cmdmap.get_controls(ctrls);
+	
+	for (list<string>::iterator iter = ctrls.begin(); iter != ctrls.end(); ++iter) {
+		Event::control_t ctrl = cmdmap.to_control_t(*iter);
+		if (cmdmap.is_global_control(*iter)) {
+			Globals()->SetParameter(ctrl, _engine->get_control_value(ctrl, -2));
+		}
+		else {
+		
+			for (int i=0; i < SL_MAXLOOPS; ++i) {
+				Globals()->SetParameter(ctrl + ((i+1)*1000), _engine->get_control_value(ctrl, i));
+			}
+		}
+	}
+	
+}
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //	SooperLooperAU::GetParameterInfo
@@ -120,6 +151,14 @@ ComponentResult		SooperLooperAU::GetParameterInfo(AudioUnitScope		inScope,
                                                         AudioUnitParameterInfo	&outParameterInfo )
 {
 	ComponentResult result = noErr;
+	int instance;
+	int ctrl;
+	string ctrlstr;
+	int flags;
+	char numbuf[6];
+
+	SooperLooper::CommandMap::ControlInfo ctrlinfo;
+	SooperLooper::CommandMap & cmdmap = SooperLooper::CommandMap::instance();
 
 	outParameterInfo.flags = 	kAudioUnitParameterFlag_IsWritable
 						|		kAudioUnitParameterFlag_IsReadable;
@@ -153,7 +192,73 @@ ComponentResult		SooperLooperAU::GetParameterInfo(AudioUnitScope		inScope,
                 break;
 				
 			default:
-                result = kAudioUnitErr_InvalidParameter;
+
+				// anything else is either a global control, or a loop instance control
+					
+				if (inParameterID >= 1000) {
+					instance = (inParameterID / 1000) - 1;
+					ctrl = inParameterID % 1000;
+					snprintf(numbuf, sizeof(numbuf), "%d-", instance+1);
+					ctrlstr = cmdmap.to_control_str((SooperLooper::Event::control_t)ctrl);
+					flags = cmdmap.is_output_control(ctrlstr) ? kAudioUnitParameterFlag_IsReadable : kAudioUnitParameterFlag_IsReadable|kAudioUnitParameterFlag_IsWritable;
+
+					if (cmdmap.get_control_info(ctrlstr, ctrlinfo)) {
+						//cerr << "control info: " << ctrlstr << "  minval: " << ctrlinfo.minValue << "  maxval: " << ctrlinfo.maxValue << endl;
+					}
+					ctrlstr = numbuf + ctrlstr;
+					
+				}
+				else {
+					instance = -2;
+					ctrl = inParameterID;
+					ctrlstr = cmdmap.to_control_str((SooperLooper::Event::control_t)ctrl);
+					cmdmap.get_control_info(ctrlstr, ctrlinfo);
+					flags = kAudioUnitParameterFlag_IsReadable|kAudioUnitParameterFlag_IsWritable;
+				}
+				
+				CFStringRef statstr = CFStringCreateWithCString(0, ctrlstr.c_str(), CFStringGetSystemEncoding());
+				AUBase::FillInParameterName (outParameterInfo, statstr, false);
+				CFRelease(statstr);
+				
+				switch (ctrlinfo.unit)
+				{
+					case SooperLooper::CommandMap::UnitSeconds:
+						outParameterInfo.unit = kAudioUnitParameterUnit_Seconds;
+						break;
+					case SooperLooper::CommandMap::UnitIndexed:
+						outParameterInfo.unit = kAudioUnitParameterUnit_Indexed;
+						break;
+					case SooperLooper::CommandMap::UnitGain:
+						outParameterInfo.unit = kAudioUnitParameterUnit_MixerFaderCurve1;
+						break;
+					case SooperLooper::CommandMap::UnitRatio:
+						outParameterInfo.unit = kAudioUnitParameterUnit_Ratio;
+						break;
+					case SooperLooper::CommandMap::UnitSemitones:
+						outParameterInfo.unit = kAudioUnitParameterUnit_RelativeSemiTones;
+						break;
+					case SooperLooper::CommandMap::UnitBoolean:
+						outParameterInfo.unit = kAudioUnitParameterUnit_Boolean;
+						break;
+					case SooperLooper::CommandMap::UnitSamples:
+						outParameterInfo.unit = kAudioUnitParameterUnit_SampleFrames;
+						break;
+					case SooperLooper::CommandMap::UnitInteger:
+						outParameterInfo.unit = kAudioUnitParameterUnit_Indexed;
+						break;
+					case SooperLooper::CommandMap::UnitTempo:
+						outParameterInfo.unit = kAudioUnitParameterUnit_BPM;
+						break;
+					default:
+						outParameterInfo.unit = kAudioUnitParameterUnit_Generic;
+				}
+				
+				outParameterInfo.flags = flags;
+				outParameterInfo.minValue = ctrlinfo.minValue;
+				outParameterInfo.maxValue = ctrlinfo.maxValue;
+				outParameterInfo.defaultValue = ctrlinfo.defaultValue;
+				
+                //result = kAudioUnitErr_InvalidParameter;
                 break;
             }
 	} else {
@@ -188,7 +293,7 @@ ComponentResult		SooperLooperAU::Initialize()
 	
 	_engine->initialize (this, auNumInputs, 10051);
 
-	SetParameter(kParam_OSCPort, _engine->get_control_osc()->get_server_port());
+	Globals()->SetParameter(kParam_OSCPort, _engine->get_control_osc()->get_server_port());
 	
 	if (_pending_restore.empty()) {
 		int numloops = 1;
@@ -213,13 +318,15 @@ ComponentResult		SooperLooperAU::Initialize()
 		_out_buflist[n] = 0;			
 	}
 	
+	setup_params();
+	
 	return noErr;
 }
 
 /*! @method Cleanup */
 void				SooperLooperAU::Cleanup()
 {
-	cerr << "cleanuop called" << endl;
+	cerr << "SLAU cleanup called" << endl;
 	// totally kill the engine
 	if (_alive) {
 		_alive = false;	
@@ -472,6 +579,114 @@ ComponentResult		SooperLooperAU::SetProperty(AudioUnitPropertyID 		inID,
 	return AUMIDIEffectBase::SetProperty (inID, inScope, inElement, inData, inDataSize);
 }
 
+
+//_____________________________________________________________________________
+//
+ComponentResult 	SooperLooperAU::GetParameter(	AudioUnitParameterID			inID,
+													AudioUnitScope 					inScope,
+													AudioUnitElement 				inElement,
+													Float32 &						outValue)
+{
+	if (inScope == kAudioUnitScope_Group) {
+		return GetGroupParameter (inID, inElement, outValue);
+	}
+	
+	if (inID ==  kParam_OSCPort) {
+	    //cerr << "outvalue for port is: " << Globals()->GetParameter(inID) << endl;
+		outValue = Globals()->GetParameter(inID);
+		return noErr;
+	}
+	
+	int instance;
+	int ctrl;
+	
+	//AUElement *elem = SafeGetElement(inScope, inElement);
+	//outValue = elem->GetParameter(inID);
+
+	if (inID >= 1000) {
+		// loop specific
+		instance = (inID / 1000) - 1;
+		ctrl = inID % 1000;
+	}
+	else {
+		// global
+		instance = -2;
+		ctrl = inID;
+	}
+	//cerr << "getparam: " << inID << endl;
+	outValue = _engine->get_control_value((SooperLooper::Event::control_t) ctrl, instance);
+	
+	return noErr;
+}
+
+											
+//_____________________________________________________________________________
+//
+ComponentResult  SooperLooperAU::SetParameter(			AudioUnitParameterID			inID,
+													AudioUnitScope 					inScope,
+													AudioUnitElement 				inElement,
+													Float32							inValue,
+													UInt32							inBufferOffsetInFrames)
+{
+	if (inScope == kAudioUnitScope_Group) {
+		return SetGroupParameter (inID, inElement, inValue, inBufferOffsetInFrames);
+	}
+	
+	AUElement *elem = SafeGetElement(inScope, inElement);
+	elem->SetParameter(inID, inValue);
+	
+	int instance;
+	int ctrl;
+
+	if (inID >= 1000) {
+		// loop specific
+		instance = (inID / 1000) - 1;
+		ctrl = inID % 1000;
+	}
+	else {
+		// global
+		instance = -2;
+		ctrl = inID;
+	}
+
+	//cerr << "set param: " << inID << endl;
+	_engine->push_control_event (SooperLooper::Event::type_control_change, (SooperLooper::Event::control_t)ctrl, inValue, instance);
+	
+	return noErr;
+}
+
+void SooperLooperAU::parameter_changed(int ctrl_id, int instance)
+{
+	int paramid;
+	
+	if (instance < 0) {
+			paramid = ctrl_id;
+	} else {
+		paramid = (instance+1)*1000 + ctrl_id;
+	}
+   //cerr << "notifying for change on: " << ctrl_id << "  inst: " << instance << endl;
+	AudioUnitParameter changedUnit;	
+	changedUnit.mAudioUnit = GetComponentInstance();
+	//changedUnit.mParameterID = kAUParameterListener_AnyParameter;
+	changedUnit.mScope = kAudioUnitScope_Global;
+	changedUnit.mElement = 0;
+	changedUnit.mParameterID = paramid;
+	AUParameterListenerNotify (NULL, NULL, &changedUnit);
+}
+
+#if 0
+// just leave this in for reference in case I need it
+void SooperLooperAU::loops_changed()
+{
+	AudioUnitEvent myEvent;
+    myEvent.mEventType = kAudioUnitEvent_PropertyChange;
+    myEvent.mArgument.mProperty.mAudioUnit = GetComponentInstance();
+    myEvent.mArgument.mProperty.mPropertyID = kAudioUnitProperty_ParameterInfo;
+    myEvent.mArgument.mProperty.mScope = kAudioUnitScope_Global;
+    myEvent.mArgument.mProperty.mElement = 0;
+    AUEventListenerNotify(NULL, NULL, &myEvent);
+}
+#endif
 
 // SL audio driver stuff
 
@@ -754,7 +969,7 @@ ComponentResult SooperLooperAU::SaveState(CFPropertyListRef *outData)
 		CFDataRef cfdata = CFDataCreate(NULL, (const UInt8 *) &_stay_on_top, sizeof(short));	
 		CFDictionarySetValue(dict, CFSTR("SLstayOnTop"), cfdata);
 		CFRelease(cfdata);	
-		cerr << "saved stay on top as " << _stay_on_top << endl;		
+		//cerr << "saved stay on top as " << _stay_on_top << endl;		
 	}
 		
 	*outData = dict;
@@ -784,13 +999,13 @@ ComponentResult SooperLooperAU::RestoreState(CFPropertyListRef inData)
 			_engine->load_session ("", &sess_str);
 		}
 		else {
-			cerr << "doing pending restore" << endl;
+			//cerr << "doing pending restore" << endl;
 			_pending_restore = sess_str;
 		}
 	}
 	
 	if (_engine && _engine->get_control_osc()) {
-		SetParameter(kParam_OSCPort, _engine->get_control_osc()->get_server_port());
+		Globals()->SetParameter(kParam_OSCPort, _engine->get_control_osc()->get_server_port());
 	}
 	
 	// restore midi bindings
@@ -830,7 +1045,7 @@ ComponentResult SooperLooperAU::RestoreState(CFPropertyListRef inData)
 	{
 		const UInt8 * plaindata = CFDataGetBytePtr(stayontop_data);
 		_stay_on_top = *((short*)plaindata);
-		cerr << "restored stay on top as " << _stay_on_top << endl;
+		//cerr << "restored stay on top as " << _stay_on_top << endl;
 	}
 
 	

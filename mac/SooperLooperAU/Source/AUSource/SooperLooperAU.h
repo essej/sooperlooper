@@ -32,18 +32,13 @@ namespace SooperLooper {
 
 static CFStringRef kParameterOSCPortName = CFSTR("OSC Port");
 
-enum {
-	kParam_OSCPort = 0,
-	//Add your parameters here...
-	kNumberOfParameters
-};
 
 #define SL_MAXLOOPS 9
 
 #pragma mark ____SooperLooperAU 
 class SooperLooperAU 
 	: public AUMIDIEffectBase,
-public SooperLooper::AudioDriver
+public SooperLooper::AudioDriver, public SigC::Object
 {
 public:
 	SooperLooperAU(AudioUnit component);
@@ -85,12 +80,27 @@ public:
 												 AudioUnitParameterID	inParameterID,
 												 AudioUnitParameterInfo	&outParameterInfo);
     
+	/*! @method GetParameter */
+	virtual ComponentResult 	GetParameter(			AudioUnitParameterID			inID,
+														AudioUnitScope 					inScope,
+														AudioUnitElement 				inElement,
+														Float32 &						outValue);
+												
+	/*! @method SetParameter */
+	virtual ComponentResult 	SetParameter(			AudioUnitParameterID			inID,
+														AudioUnitScope 					inScope,
+														AudioUnitElement 				inElement,
+														Float32							inValue,
+														UInt32							inBufferOffsetInFrames);
+
+
+	
 	virtual ComponentResult		GetPropertyInfo(AudioUnitPropertyID		inID,
 												AudioUnitScope			inScope,
 												AudioUnitElement		inElement,
 												UInt32 &			outDataSize,
 												Boolean	&			outWritable );
-	
+			
 	virtual ComponentResult		GetProperty(AudioUnitPropertyID inID,
 											AudioUnitScope		inScope,
 											AudioUnitElement		inElement,
@@ -142,6 +152,7 @@ public:
 	virtual bool activate() { return true;}
 	virtual bool deactivate() { return true;}
 	
+	
 	virtual bool  create_input_port (std::string name, SooperLooper::port_id_t & port_id) ;
 	virtual bool  create_output_port (std::string name, SooperLooper::port_id_t & port_id) ;
 	
@@ -163,10 +174,13 @@ public:
 
 protected:
 	
+	void setup_params();
+	void parameter_changed(int ctrl_id, int instance);
+	
 	// SL stuff
 	SooperLooper::Engine *     _engine;
 	SooperLooper::MidiBridge * _midi_bridge;
-		
+			
 	pthread_t  _engine_thread;
 	static void * _engine_mainloop (void * arg);
 

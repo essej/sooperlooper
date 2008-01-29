@@ -106,6 +106,8 @@ class Engine
 	SigC::Signal2<void, int, bool> LoopAdded;
 	SigC::Signal0<void> LoopRemoved;
 
+	SigC::Signal2<void, int , int> ParamChanged;
+
 	// the main non-rt event processing loop
 	void mainloop();
 	
