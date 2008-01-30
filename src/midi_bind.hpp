@@ -42,9 +42,10 @@ public:
 		IntegerStyle = 3
 	};
 	
-	MidiBindInfo() {}
-	MidiBindInfo (int chan, std::string tp, std::string cmd, std::string ctrl, int instc, float lbnd=0.0f, float ubnd=1.0f, Style styl=NormalStyle)
-		: channel(chan), type(tp), command(cmd), control(ctrl), instance(instc), lbound(lbnd), ubound(ubnd), style(styl) {}
+	MidiBindInfo() : data_min(0), data_max(127) {}
+	MidiBindInfo (int chan, std::string tp, std::string cmd, std::string ctrl, int instc, float lbnd=0.0f, float ubnd=1.0f, Style styl=NormalStyle, int dmin=0, int dmax=127)
+		: channel(chan), type(tp), command(cmd), control(ctrl), instance(instc),
+		  lbound(lbnd), ubound(ubnd),  data_min(dmin), data_max(dmax), style(styl) {}
 
 	inline bool operator==(const MidiBindInfo &) const;
 
@@ -60,9 +61,14 @@ public:
 	
 	int         instance;
 	
+	// target value bounds
 	float       lbound;
 	float       ubound;
 	
+	// incoming event value bounds
+	int         data_min;
+	int         data_max;
+
 	Style       style;
 
 	// internal state for toggle style

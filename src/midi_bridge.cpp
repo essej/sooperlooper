@@ -371,17 +371,30 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long
 		for (MidiBindings::BindingList::iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
 			MidiBindInfo & info = (*eiter);
 			float scaled_val;
-			
+			float val_ratio;
+			int clamped_val;
+
+			// clamp it
+			clamped_val = min((MIDI::byte) info.data_max, max((MIDI::byte) info.data_min, val));
+
+			if (info.data_min == info.data_max) {
+				val_ratio = 0.0f;
+			}
+			else {
+				// calculate value as a ratio to map to the target range
+				val_ratio = (clamped_val - info.data_min) / (float)(info.data_max - info.data_min);
+			}
+
 			if (info.style == MidiBindInfo::GainStyle) {
-				scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
+				scaled_val = (float) (val_ratio *  ( info.ubound - info.lbound)) + info.lbound;
 				scaled_val = uniform_position_to_gain (scaled_val);
 			}
 			else if (info.style == MidiBindInfo::NormalStyle) {
-				scaled_val = (float) ((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound;
+				scaled_val = (float) (val_ratio *  ( info.ubound - info.lbound)) + info.lbound;
 			}
 			else if (info.style == MidiBindInfo::IntegerStyle) {
 				// round to nearest integer value
-				scaled_val = (float) nearbyintf(((val/127.0f) *  ( info.ubound - info.lbound)) + info.lbound);
+				scaled_val = (float) nearbyintf((val_ratio *  ( info.ubound - info.lbound)) + info.lbound);
 			}
 			else {
 				// toggle style is a bit of a hack, but here we go

@@ -57,7 +57,9 @@ enum {
 	ID_LoadButton,
 	ID_SaveButton,
 	ID_SusCheck,
-	ID_AppendCheck
+	ID_AppendCheck,
+	ID_DataMinCtrl,
+	ID_DataMaxCtrl
 
 };
 
@@ -253,7 +255,7 @@ void MidiBindPanel::init()
 	_type_combo->Append (CcString);
 	_type_combo->Append (PcString);
 	_type_combo->SetSelection(0);
-	rowsizer->Add (_type_combo, 1, wxALL|wxALIGN_CENTRE_VERTICAL|wxEXPAND, 2);
+	rowsizer->Add (_type_combo, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
 	_param_spin =  new wxSpinCtrl(_edit_panel, ID_ParamSpin, wxT("0"), wxDefaultPosition, wxSize(50,-1), wxSP_ARROW_KEYS, 0, 127, 0, wxT("KeyAware"));
 	_param_spin->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
@@ -267,7 +269,7 @@ void MidiBindPanel::init()
 
 	_range_panel = new wxPanel(_edit_panel);
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
-	staticText = new wxStaticText(_range_panel, -1, wxT("Range"), wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
+	staticText = new wxStaticText(_range_panel, -1, wxT("Targ Range"), wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
 	staticText->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	rowsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
@@ -299,6 +301,32 @@ void MidiBindPanel::init()
 	rowsizer->Fit(_range_panel);
 	
 	colsizer->Add (_range_panel, 0, wxALL|wxEXPAND, 0);
+
+
+	_data_range_panel = new wxPanel(_edit_panel);
+	rowsizer = new wxBoxSizer(wxHORIZONTAL);
+	staticText = new wxStaticText(_data_range_panel, -1, wxT("Data Range"), wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
+	staticText->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
+	rowsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
+
+	_data_min_ctrl = new wxTextCtrl(_data_range_panel, ID_DataMinCtrl, wxT(""), wxDefaultPosition, wxSize(40, -1), 0, wxDefaultValidator, wxT("KeyAware"));
+	_data_min_ctrl->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
+	rowsizer->Add (_data_min_ctrl, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
+
+	staticText = new wxStaticText(_data_range_panel, -1, wxT(" to "), wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
+	staticText->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
+	rowsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
+
+	_data_max_ctrl = new wxTextCtrl(_data_range_panel, ID_DataMaxCtrl, wxT(""), wxDefaultPosition, wxSize(40, -1), 0, wxDefaultValidator, wxT("KeyAware"));
+	_data_max_ctrl->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
+	rowsizer->Add (_data_max_ctrl, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 1);
+
+	_data_range_panel->SetAutoLayout( true );     // tell dialog to use sizer
+        _data_range_panel->SetSizer( rowsizer );      // actually set the sizer
+	//rowsizer->SetSizeHints( _range_panel );   // set size hints to honour mininum size
+	//rowsizer->Fit(_data_range_panel);
+	
+	colsizer->Add (_data_range_panel, 0, wxALL|wxEXPAND, 0);
 
 	
 	editsizer->Add (colsizer, 1, wxALL|wxEXPAND, 4);
@@ -465,7 +493,8 @@ void MidiBindPanel::refresh_state()
 		// range
 		item.SetColumn(3);
 		if (info.command == "set") {
-			item.SetText (wxString::Format(wxT("%g - %g %s"), info.lbound, info.ubound, 
+			item.SetText (wxString::Format(wxT("%g - %g  (%d - %d)  %s"), info.lbound, info.ubound,
+						       info.data_min, info.data_max, 
 						       info.style == MidiBindInfo::GainStyle ? wxT("gain") : 
 						       ( info.style == MidiBindInfo::ToggleStyle ? wxT("togg") : 
 							 ( info.style == MidiBindInfo::IntegerStyle ? wxT("int") :  wxT("") ))));
@@ -558,9 +587,11 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 
 	if (info->command == "set") {
 		_range_panel->Enable(true);
+		_data_range_panel->Enable(true);
 	}
 	else {
 		_range_panel->Enable(false);
+		_data_range_panel->Enable(false);
 		if (info->command == "susnote") {
 			_sus_check->SetValue(true);
 		}
@@ -574,6 +605,9 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 
 	_lbound_ctrl->SetValue (wxString::Format(wxT("%g"), info->lbound));
 	_ubound_ctrl->SetValue (wxString::Format(wxT("%g"), info->ubound));
+
+	_data_min_ctrl->SetValue (wxString::Format(wxT("%d"), info->data_min));
+	_data_max_ctrl->SetValue (wxString::Format(wxT("%d"), info->data_max));
 
 	if (info->style == MidiBindInfo::GainStyle) {
 		_style_combo->SetSelection(1);
@@ -592,7 +626,8 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 
 void MidiBindPanel::update_curr_binding()
 {
-	double fval;
+	double fval = 0.0;
+	long  lval = 0;
 	CommandMap & cmap = CommandMap::instance();
 
 	if (_control_combo->GetSelection() < 0) {
@@ -667,6 +702,22 @@ void MidiBindPanel::update_curr_binding()
 		_currinfo.ubound = 1.0;
 	}
 
+	if (_data_min_ctrl->GetValue().ToLong(&lval)) {
+		cerr << "data minis: " << (const char *) _data_min_ctrl->GetValue().ToAscii() << endl;
+		_currinfo.data_min = (int) lval;
+	}
+	else {
+		_currinfo.data_min = 0;
+	}
+
+	if (_data_max_ctrl->GetValue().ToLong(&lval)) {
+		cerr << "data max is: " << (const char *) _data_max_ctrl->GetValue().ToAscii() << endl;
+		_currinfo.data_max = (int) lval;
+	}
+	else {
+		_currinfo.data_max = 127;
+	}
+
 	if (_style_combo->GetSelection() == 1) {
 		_currinfo.style = MidiBindInfo::GainStyle;
 	}
@@ -692,9 +743,17 @@ void MidiBindPanel::on_combo (wxCommandEvent &ev)
 
  	if (CommandMap::instance().is_command(control)) {
  		_range_panel->Enable(false);
+ 		_data_range_panel->Enable(false);
  	}
  	else {
  		_range_panel->Enable(true);
+ 		_data_range_panel->Enable(true);
+
+		// set default ranges
+		CommandMap::ControlInfo info;
+		CommandMap::instance().get_control_info(control, info);
+		_lbound_ctrl->SetValue(wxString::Format(wxT("%g"), info.minValue));
+		_ubound_ctrl->SetValue(wxString::Format(wxT("%g"), info.maxValue));
  	}
 }
 

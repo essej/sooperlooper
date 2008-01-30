@@ -145,7 +145,7 @@ MidiBindings::add_binding (const MidiBindInfo & info, bool exclusive)
 	_bindings[key].push_back (info);
 	// cerr << "added binding: " << info.type << "  "  << info.control << "  " << info.instance << "  " << info.lbound << "  " << info.ubound << endl;
 	
-	//cerr << "added binding: " << info.serialize() << endl;
+	// cerr << "added binding: " << info.serialize() << endl;
 	return true;
 }
 
@@ -271,7 +271,7 @@ bool MidiBindings::save_bindings (std::ostream & outstream)
 
 string MidiBindInfo::serialize() const
 {
-	//  ch type param   cmd  ctrl  instance  [min_val_bound max_val_bound valstyle]
+	//  ch type param   cmd  ctrl  instance  [min_val_bound max_val_bound valstyle min_data max_data]
 	//
 	//    ch = midi channel starting from 0
 	//    type is one of:  'pc' = program change  'cc' = control change  'n' = note on/off
@@ -284,6 +284,7 @@ string MidiBindInfo::serialize() const
 	//    min_val_bound is what to treat midi val 0
 	//    max_val_bound is what to treat midi val 127
 	//    valstyle can be 'gain' or 'toggle'
+	//    min_data and max_data can be integer values from 0 to 127
 
 	char buf[100];
 	char stylebuf[20];
@@ -295,13 +296,13 @@ string MidiBindInfo::serialize() const
 	} else if (style == IntegerStyle) {
 		snprintf(stylebuf, sizeof(stylebuf), "integer");
 	} else {
-		strncpy(stylebuf, "", sizeof(stylebuf));
+		strncpy(stylebuf, "norm", sizeof(stylebuf));
 	}
 
-	// i:ch s:type i:param  s:cmd  s:ctrl i:instance f:min_val_bound f:max_val_bound s:valstyle
-	snprintf(buf, sizeof(buf), "%d %s %d  %s %s %d  %.9g %.9g  %s",
+	// i:ch s:type i:param  s:cmd  s:ctrl i:instance f:min_val_bound f:max_val_bound s:valstyle i:min_data i:max_data
+	snprintf(buf, sizeof(buf), "%d %s %d  %s %s %d  %.9g %.9g  %s %d %d",
 		 channel, type.c_str(), param, command.c_str(),
-		 control.c_str(), instance, lbound, ubound, stylebuf);
+		 control.c_str(), instance, lbound, ubound, stylebuf, data_min, data_max);
 	
 	return string(buf);
 }
@@ -317,14 +318,17 @@ bool MidiBindInfo::unserialize(string strval)
 	int  inst = -1;
 	float lb = 0.0f;
 	float ub = 1.0f;
+	int dmin = 0;
+	int dmax = 127;
+
 	int ret;
 
 	stylestr[0] = '\0';
 
 	if (strval.empty()) return false;
 	
-	if ((ret = sscanf(strval.c_str(), "%d %3s %d  %30s %30s %d  %g %g  %10s",
-			  &chan, tp, &parm, cmd, ctrl, &inst, &lb, &ub, stylestr)) < 5)
+	if ((ret = sscanf(strval.c_str(), "%d %3s %d  %30s %30s %d  %g %g  %10s %d %d",
+			  &chan, tp, &parm, cmd, ctrl, &inst, &lb, &ub, stylestr, &dmin, &dmax)) < 5)
 	{
 		cerr << "ret: " << ret << " invalid input line: " << strval << endl;
 		return false;
@@ -338,6 +342,8 @@ bool MidiBindInfo::unserialize(string strval)
 	instance = inst;
 	lbound = lb;
 	ubound = ub;
+	data_min = dmin;
+	data_max = dmax;
 
 	if (stylestr[0] == 'g') {
 		style = GainStyle;

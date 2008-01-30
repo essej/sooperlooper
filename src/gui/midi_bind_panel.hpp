@@ -90,6 +90,9 @@ class MidiBindPanel
 	wxPanel   *  _range_panel;
 	wxTextCtrl * _lbound_ctrl;
 	wxTextCtrl * _ubound_ctrl;
+	wxPanel   *  _data_range_panel;
+	wxTextCtrl * _data_min_ctrl;
+	wxTextCtrl * _data_max_ctrl;
 	wxChoice *   _style_combo;
 	wxCheckBox * _sus_check;
 
