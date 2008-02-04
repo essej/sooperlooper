@@ -19,13 +19,13 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.5.0</string>
+	<string>VVVVV</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.5.0</string>
+	<string>VVVVV</string>
 	<key>CFBundleGetInfoString</key>
-	<string>SooperLooper version 1.5.0, (c) 2008 Jesse Chappell</string>
+	<string>SooperLooper version VVVVV, (c) 2008 Jesse Chappell</string>
 	<key>CFBundleLongVersionString</key>
-	<string>1.5.0, (c) 2008 Jesse Chappell</string>
+	<string>VVVVV, (c) 2008 Jesse Chappell</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright 2007 Jesse Chappell</string>
 	<key>LSRequiresCarbon</key>

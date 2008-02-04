@@ -8,7 +8,8 @@ cp ../src/gui/slgui macdist/SooperLooper.app/Contents/MacOS/
 
 cp ../OSC macdist/OSC.txt
 
-cp Info.plist macdist/SooperLooper.app/Contents/
+sed -e "s/VVVVV/$version/g" Info.plist > macdist/SooperLooper.app/Contents/Info.plist
+
 
 cd macdist/SooperLooper.app/Contents/MacOS
 
