@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version="1.5.0"
+version=`grep const ../version.h | cut -d" " -f7 | sed -e 's/[";]//g'`
 
 ppc_distdir=sl_macdist_${version}_powerpc
 i386_distdir=sl_macdist_${version}_i386
