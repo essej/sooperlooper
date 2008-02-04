@@ -260,11 +260,12 @@ MidiBridge::finish_learn(MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 			//cerr << "learned new one: " << _learninfo.serialize() << endl;
 
 			BindingLearned(_learninfo); // emit
+
+			_learning = false;
 		}
 		else {
-			cerr << "invalid event to learn: " << (int) chcmd  << endl;
+			//cerr << "invalid event to learn: " << (int) chcmd  << endl;
 		}
-		_learning = false;
 	}
 	else if (_getnext) {
 
@@ -277,11 +278,13 @@ MidiBridge::finish_learn(MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 			// notify of new learn
 			//cerr << "recvd new one: " << info.serialize() << endl;
 			NextMidiReceived (info); // emit
+
+			_getnext = false;
 		}
 		else {
 			//cerr << "invalid event to get: " << (int) chcmd  << endl;
 		}
-		_getnext = false;
+
 	}
 }
 

@@ -556,6 +556,7 @@ Looper::recompute_latencies()
 				ports[OutputLatency] = _driver->get_output_port_latency(comnport);
 			}
 		}
+
 	}
 	
 	if (_disable_latency) {
@@ -563,6 +564,13 @@ Looper::recompute_latencies()
 		ports[InputLatency] = 0;
 		ports[OutputLatency] = 0;
 	}
+
+	// add any latency due to timestretch
+	if (_stretch_ratio != 1.0) {
+		//ports[OutputLatency] += _out_stretcher->getLatency();
+		ports[SyncOffsetSamples] = _out_stretcher->getLatency();
+	}
+		
 
 	//cerr << "input lat: " << ports[InputLatency] << endl;
 	//cerr << "output lat: " << ports[OutputLatency] << endl;
@@ -926,6 +934,7 @@ Looper::run (nframes_t offset, nframes_t nframes)
 		_in_stretcher->setTimeRatio(1.0/_stretch_ratio);
 		_out_stretcher->setTimeRatio(_stretch_ratio);
 		_pending_stretch = false;
+		recompute_latencies();
 	}
 
 	LADSPA_Data oldsync = ports[Sync];

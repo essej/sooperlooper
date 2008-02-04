@@ -52,12 +52,13 @@ enum ControlPort {
 	TriggerLatency,
 	MuteQuantized,
 	OverdubQuantized,
+	SyncOffsetSamples,
 	LASTCONTROLPORT,
 	RelativeSync // not an enum
 };
 
 enum OutputPort {
-	State = 24,
+	State = 25,
 	LoopLength,
 	LoopPosition,
 	CycleLength,
@@ -70,7 +71,7 @@ enum OutputPort {
 };
 
 enum AudioPort {
-	AudioInputPort=33,
+	AudioInputPort=34,
 	AudioOutputPort,
 	SyncInputPort,
 	SyncOutputPort,
@@ -331,6 +332,7 @@ typedef struct {
 	LADSPA_Data *pfRateCtrlActive;
 	LADSPA_Data *pfMuteQuantized;
 	LADSPA_Data *pfOverdubQuantized;
+	LADSPA_Data *pfSyncOffsetSamples;
 
 	LADSPA_Data *pfXfadeSamples;
 
@@ -378,5 +380,6 @@ typedef struct {
 // reads loop audio into buffer, up to frames length, starting from loop_offset.  if fewer frames are
 // available returns amount read.  if 0 is returned loop is done.
 extern unsigned long sl_read_current_loop_audio (LADSPA_Handle instance, float * buf, unsigned long frames, unsigned long loop_offset);
+
 
 #endif

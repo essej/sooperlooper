@@ -1206,6 +1206,14 @@ Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 	// not really anymore, this is only called from the nonrt work thread
 	// that does the allocating of instances
 	
+	if (instance == -3) {
+		instance = _selected_loop;
+	}
+	if (instance == -1) {
+		// just use the first
+		instance = 0;
+	}
+
 	if (instance >= 0 && instance < (int) _instances.size()) {
 
 		return _instances[instance]->get_control_value (ctrl);
@@ -1416,6 +1424,11 @@ Engine::mainloop()
 		if (wait_ret == ETIMEDOUT || timercmp (&now, &timeoutv, >=)) {
 			//cerr << "timed out, sending updates" << endl;
 			_osc->send_auto_updates();
+
+			// emit a parameter changed for state 
+			for (unsigned int n=0; n < _instances.size(); ++n) {
+				ParamChanged(Event::State, n); // emit
+			}
 
 			// wake up every 100 ms for servicing auto-update parameters
 			// TODO: make it more flexible

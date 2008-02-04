@@ -176,6 +176,9 @@ protected:
 	
 	void setup_params();
 	void parameter_changed(int ctrl_id, int instance);
+	void loops_changed();
+	void loop_added(int, bool);
+	void loop_removed();
 	
 	// SL stuff
 	SooperLooper::Engine *     _engine;
@@ -193,6 +196,7 @@ protected:
 	UInt32    _chancnt;
 	AudioBufferList * _out_buflist[SL_MAXLOOPS];
 	AudioBufferList * _in_buflist[SL_MAXLOOPS];
+	int               _currStates[SL_MAXLOOPS];
 	AudioTimeStamp  _curr_stamp;
 	UInt32       _last_framepos;
 	UInt32       _last_rendered_frames;

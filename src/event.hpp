@@ -148,6 +148,7 @@ namespace SooperLooper {
 		    TriggerLatency,
 		    MuteQuantized,
 		    OverdubQuantized,
+		    SyncOffsetSamples,
 		    // read only
 		    State,
 		    LoopLength,

@@ -18,6 +18,7 @@
 #include "midi_bridge.hpp"
 #include "control_osc.hpp"
 #include "command_map.hpp"
+#include "plugin.hpp"
 
 #include <pbd/transmitter.h>
 using namespace PBD;
@@ -75,6 +76,10 @@ SooperLooperAU::SooperLooperAU(AudioUnit component)
 	_engine->set_midi_bridge (_midi_bridge);
 	_engine->set_ignore_quit (true);
 	_engine->ParamChanged.connect(slot(*this, &SooperLooperAU::parameter_changed));
+	_engine->LoopAdded.connect(slot(*this, &SooperLooperAU::loop_added));
+	_engine->LoopRemoved.connect(slot(*this, &SooperLooperAU::loop_removed));	
+	
+	memset(_currStates, 0, sizeof(int) * SL_MAXLOOPS);
 }
 
 SooperLooperAU::~SooperLooperAU () 
@@ -121,8 +126,13 @@ void SooperLooperAU::setup_params()
 	
 	// our convention here will be
 	// global controls are left alone
-	// (i+1)*1000 is added to all control #s where i is the loop index
+	// (i+1)*10000 is added to all control #s where i is the loop index
+	// (i+1)*10000 + 500 is added to all command #s where i is the loop index
 	
+	// for SELECTED loop, the offset will be 1000
+	
+	int loopcount = (int) _engine->loop_count();
+
 	list<string> ctrls;
 	SooperLooper::CommandMap & cmdmap = SooperLooper::CommandMap::instance();
 	cmdmap.get_controls(ctrls);
@@ -133,11 +143,28 @@ void SooperLooperAU::setup_params()
 			Globals()->SetParameter(ctrl, _engine->get_control_value(ctrl, -2));
 		}
 		else {
-		
-			for (int i=0; i < SL_MAXLOOPS; ++i) {
-				Globals()->SetParameter(ctrl + ((i+1)*1000), _engine->get_control_value(ctrl, i));
+
+			Globals()->SetParameter(ctrl + (1000), _engine->get_control_value(ctrl, -3)); // SEL
+					
+			for (int i=0; i < loopcount; ++i) {
+				Globals()->SetParameter(ctrl + ((i+1)*10000), _engine->get_control_value(ctrl, i));
 			}
+			
 		}
+	}
+	
+	list<string> cmds;	
+    cmdmap.get_commands(cmds);
+	
+	for (list<string>::iterator iter = cmds.begin(); iter != cmds.end(); ++iter) {
+		Event::command_t cmd = cmdmap.to_command_t(*iter);
+
+		Globals()->SetParameter(cmd + (1000) + 500, 0); // selected
+			
+		for (int i=0; i < loopcount; ++i) {
+			Globals()->SetParameter(cmd + ((i+1)*10000) + 500, 0);
+		}
+		
 	}
 	
 }
@@ -155,7 +182,8 @@ ComponentResult		SooperLooperAU::GetParameterInfo(AudioUnitScope		inScope,
 	int ctrl;
 	string ctrlstr;
 	int flags;
-	char numbuf[6];
+	char prebuf[12];
+	char postbuf[12];	
 
 	SooperLooper::CommandMap::ControlInfo ctrlinfo;
 	SooperLooper::CommandMap & cmdmap = SooperLooper::CommandMap::instance();
@@ -195,26 +223,53 @@ ComponentResult		SooperLooperAU::GetParameterInfo(AudioUnitScope		inScope,
 
 				// anything else is either a global control, or a loop instance control
 					
-				if (inParameterID >= 1000) {
-					instance = (inParameterID / 1000) - 1;
-					ctrl = inParameterID % 1000;
-					snprintf(numbuf, sizeof(numbuf), "%d-", instance+1);
+		
+				
+				if (inParameterID >= 10000) {
+					// instance
+					instance = (inParameterID / 10000) - 1;
+					ctrl = inParameterID % 10000;
+					snprintf(prebuf, sizeof(prebuf), "%d-", instance+1);
+					strncpy(postbuf, "", sizeof(postbuf));					
+				}
+				else if (inParameterID >= 1000) {
+					// selected
+					instance = -3;
+					ctrl = inParameterID - 1000;
+					strncpy(prebuf, "", sizeof(prebuf));
+					snprintf(postbuf, sizeof(postbuf), " (sel)");
+				}
+				else {
+					// global
+					instance = -2;
+					ctrl = inParameterID;
+					strncpy(prebuf, "", sizeof(prebuf));
+					strncpy(postbuf, "", sizeof(postbuf));					
+				}
+				
+				if (ctrl >= 500) {
+					// command acting as a control
+					ctrl -= 500;
+					ctrlstr = cmdmap.to_command_str((SooperLooper::Event::command_t)ctrl);
+					flags = kAudioUnitParameterFlag_IsReadable|kAudioUnitParameterFlag_IsWritable;
+					ctrlinfo.unit = SooperLooper::CommandMap::UnitBoolean;
+					ctrlinfo.minValue = 0;
+					ctrlinfo.maxValue = 1;
+					ctrlinfo.defaultValue = 0;
+					ctrlstr = prebuf + ctrlstr + postbuf + " [cmd]";
+				}
+				else {
+					// normal control
 					ctrlstr = cmdmap.to_control_str((SooperLooper::Event::control_t)ctrl);
 					flags = cmdmap.is_output_control(ctrlstr) ? kAudioUnitParameterFlag_IsReadable : kAudioUnitParameterFlag_IsReadable|kAudioUnitParameterFlag_IsWritable;
 
 					if (cmdmap.get_control_info(ctrlstr, ctrlinfo)) {
 						//cerr << "control info: " << ctrlstr << "  minval: " << ctrlinfo.minValue << "  maxval: " << ctrlinfo.maxValue << endl;
 					}
-					ctrlstr = numbuf + ctrlstr;
-					
+					ctrlstr = prebuf + ctrlstr + postbuf;
 				}
-				else {
-					instance = -2;
-					ctrl = inParameterID;
-					ctrlstr = cmdmap.to_control_str((SooperLooper::Event::control_t)ctrl);
-					cmdmap.get_control_info(ctrlstr, ctrlinfo);
-					flags = kAudioUnitParameterFlag_IsReadable|kAudioUnitParameterFlag_IsWritable;
-				}
+				
+				
 				
 				CFStringRef statstr = CFStringCreateWithCString(0, ctrlstr.c_str(), CFStringGetSystemEncoding());
 				AUBase::FillInParameterName (outParameterInfo, statstr, false);
@@ -605,8 +660,60 @@ ComponentResult 	SooperLooperAU::GetParameter(	AudioUnitParameterID			inID,
 
 	if (inID >= 1000) {
 		// loop specific
-		instance = (inID / 1000) - 1;
-		ctrl = inID % 1000;
+		
+		if (inID >= 10000) {
+			// normal instance
+			instance = (inID / 10000) - 1;
+			ctrl = inID % 10000;
+		}
+		else {
+			instance = -3; // selected
+			ctrl = inID - 1000;
+		}
+		
+		if (ctrl >= 500) {
+			// command acting as control, treat specially
+			// by converting the current state into the value here
+			
+			SooperLooper::Event::command_t cmd = (SooperLooper::Event::command_t) (ctrl - 500);
+			int state = (int) _engine->get_control_value(SooperLooper::Event::State, instance);
+			switch(cmd) {
+				case SooperLooper::Event::RECORD:
+					outValue = (state == LooperStateRecording);
+					break;
+				case SooperLooper::Event::OVERDUB:
+					outValue = (state == LooperStateOverdubbing);
+					break;
+				case SooperLooper::Event::MULTIPLY:
+					outValue = (state == LooperStateMultiplying);
+					break;	
+				case SooperLooper::Event::INSERT:
+					outValue = (state == LooperStateInserting);
+					break;	
+				case SooperLooper::Event::SUBSTITUTE:
+					outValue = (state == LooperStateSubstitute);
+					break;	
+				case SooperLooper::Event::REPLACE:
+					outValue = (state == LooperStateReplacing);
+					break;	
+				case SooperLooper::Event::MUTE:
+					outValue = (state == LooperStateMuted);
+					break;	
+				case SooperLooper::Event::DELAY:
+					outValue = (state == LooperStateDelay);
+					break;	
+				case SooperLooper::Event::ONESHOT:
+					outValue = (state == LooperStateOneShot);
+					break;				
+				case SooperLooper::Event::REVERSE:
+					outValue = (_engine->get_control_value(SooperLooper::Event::TrueRate, instance) < 0);
+					break;		
+				default:
+					outValue = 0.0f;
+			}
+			
+			return noErr;
+		}
 	}
 	else {
 		// global
@@ -640,8 +747,25 @@ ComponentResult  SooperLooperAU::SetParameter(			AudioUnitParameterID			inID,
 
 	if (inID >= 1000) {
 		// loop specific
-		instance = (inID / 1000) - 1;
-		ctrl = inID % 1000;
+		if (inID >= 10000) {
+			instance = (inID / 10000) - 1;
+			ctrl = inID % 10000;
+		}
+		else {
+			// selected
+			instance = -3;
+			ctrl = inID - 1000;
+		}
+		
+		if (ctrl >= 500) {
+			// command acting as control, treat specially
+			// current logic is that any change will trigger a hit command for now
+			SooperLooper::Event::command_t cmd = (SooperLooper::Event::command_t) (ctrl - 500);
+			
+			_engine->push_command_event(SooperLooper::Event::type_cmd_hit, cmd, instance);
+			
+			return noErr;
+		}
 	}
 	else {
 		// global
@@ -658,26 +782,94 @@ ComponentResult  SooperLooperAU::SetParameter(			AudioUnitParameterID			inID,
 void SooperLooperAU::parameter_changed(int ctrl_id, int instance)
 {
 	int paramid;
+	int selected_loop = (int) _engine->get_control_value(SooperLooper::Event::SelectedLoopNum, -2);
+	bool selected = (selected_loop == instance || selected_loop == -1 || _engine->loop_count()==1);
 	
-	if (instance < 0) {
-			paramid = ctrl_id;
-	} else {
-		paramid = (instance+1)*1000 + ctrl_id;
+	if (instance == -3) {
+		// selected
+		paramid = ctrl_id + 1000;
 	}
-   //cerr << "notifying for change on: " << ctrl_id << "  inst: " << instance << endl;
+	else if (instance < 0) {
+		// global
+		paramid = ctrl_id;
+	} else {
+		// instance
+		paramid = (instance+1)*10000 + ctrl_id;
+	}
+   
+
 	AudioUnitParameter changedUnit;	
 	changedUnit.mAudioUnit = GetComponentInstance();
 	//changedUnit.mParameterID = kAUParameterListener_AnyParameter;
 	changedUnit.mScope = kAudioUnitScope_Global;
 	changedUnit.mElement = 0;
-	changedUnit.mParameterID = paramid;
-	AUParameterListenerNotify (NULL, NULL, &changedUnit);
+	
+	if (ctrl_id == SooperLooper::Event::State)
+	{
+		if (instance < 0) {
+			instance = 0;
+		}
+		// update state of command controls
+		int currstate = (int) _engine->get_control_value(SooperLooper::Event::State, instance);
+		int cmdid = (instance+1)*10000 + 500;
+		if (_currStates[instance] != currstate) {
+			// just notify them all, what the hell
+			for (int i=0; i < SooperLooper::Event::LAST_COMMAND; ++i) {
+				changedUnit.mParameterID = cmdid + i;	
+				AUParameterListenerNotify (NULL, NULL, &changedUnit);
+				if (selected) {
+					changedUnit.mParameterID = 1500 + i;	
+					AUParameterListenerNotify (NULL, NULL, &changedUnit);
+				}		
+			}
+			_currStates[instance] = currstate;
+	
+			//cerr << "notifying for state change on: " << ctrl_id << "  inst: " << instance << " selloop: " << selected_loop << " sel: " << selected << endl;
+		}
+	
+	}
+	else {
+	
+		if (instance == -1) {
+			// all loops
+			for (size_t i=0; i < _engine->loop_count(); ++i) {
+				paramid = (i+1)*10000 + ctrl_id;
+				changedUnit.mParameterID = paramid;
+				AUParameterListenerNotify (NULL, NULL, &changedUnit);
+			}
+			changedUnit.mParameterID = 1000 + ctrl_id;	
+			AUParameterListenerNotify (NULL, NULL, &changedUnit);
+		}
+		else {
+			// normal control
+			changedUnit.mParameterID = paramid;
+			AUParameterListenerNotify (NULL, NULL, &changedUnit);
+			if (selected) {
+				changedUnit.mParameterID = 1000 + ctrl_id;	
+				AUParameterListenerNotify (NULL, NULL, &changedUnit);
+			}
+		}
+		//cerr << "notifying for param change on: " << ctrl_id << "  inst: " << instance << endl;
+	}
+
 }
 
-#if 0
+void SooperLooperAU::loop_added(int index, bool huh)
+{
+	loops_changed();
+}
+
+void SooperLooperAU::loop_removed()
+{
+	loops_changed();
+}
+
+
 // just leave this in for reference in case I need it
 void SooperLooperAU::loops_changed()
 {
+	setup_params();
+
 	AudioUnitEvent myEvent;
     myEvent.mEventType = kAudioUnitEvent_PropertyChange;
     myEvent.mArgument.mProperty.mAudioUnit = GetComponentInstance();
@@ -686,7 +878,7 @@ void SooperLooperAU::loops_changed()
     myEvent.mArgument.mProperty.mElement = 0;
     AUEventListenerNotify(NULL, NULL, &myEvent);
 }
-#endif
+
 
 // SL audio driver stuff
 

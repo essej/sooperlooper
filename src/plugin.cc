@@ -719,6 +719,9 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
       case OverdubQuantized:
 	 pLS->pfOverdubQuantized = DataLocation;
 	 break;
+      case SyncOffsetSamples:
+	 pLS->pfSyncOffsetSamples = DataLocation;
+	 break;
 	 
       case AudioInputPort:
 	 pLS->pfInput = DataLocation;
@@ -1494,9 +1497,14 @@ static LoopChunk * transitionToNext(SooperLooperI *pLS, LoopChunk *loop, int nex
 		      DBG(fprintf(stderr,"Starting ONESHOT state\n"));
 		      pLS->state = STATE_ONESHOT;
 		      if (pLS->fCurrRate > 0)
-			      loop->dCurrPos = loop->lLoopLength - loop->lSyncPos;
+			      loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) + *pLS->pfSyncOffsetSamples;
 		      else
 			      loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) - 1;
+
+		      // wrap
+		      loop->dCurrPos = fmod(loop->dCurrPos, loop->lLoopLength);
+
+		      DBG(fprintf(stderr,"Starting ONESHOT state, currpos now: %g\n", loop->dCurrPos));
 	      }
 	      break;
    }
@@ -1580,6 +1588,7 @@ runSooperLooper(LADSPA_Handle Instance,
   LADSPA_Data fPlaybackSyncMode = 0.0f;
   LADSPA_Data fMuteQuantized = 0.0f;
   LADSPA_Data fOverdubQuantized = 0.0f;
+  LADSPA_Data fSyncOffsetSamples = 0.0f;
 
   unsigned long lSampleIndex;
 
@@ -1614,7 +1623,8 @@ runSooperLooper(LADSPA_Handle Instance,
 
   fMuteQuantized = *pLS->pfMuteQuantized;
   fOverdubQuantized = *pLS->pfOverdubQuantized;
-  
+  fSyncOffsetSamples = *pLS->pfSyncOffsetSamples;
+
   eighthPerCycle = (unsigned int) *pLS->pfEighthPerCycle;
 
   fSafetyFeedback = (*pLS->pfUseSafetyFeedback != 0.0f) ? SAFETY_FEEDBACK : 1.0f;
@@ -2093,9 +2103,13 @@ runSooperLooper(LADSPA_Handle Instance,
 		    DBG(fprintf(stderr,"Starting ONESHOT state\n"));
 		    pLS->state = STATE_ONESHOT;
 		    if (pLS->fCurrRate > 0)
-			    loop->dCurrPos = loop->lLoopLength - loop->lSyncPos;
+			    loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) ;
 		    else
 			    loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) - 1;
+
+		    // wrap
+		    loop->dCurrPos = fmod(loop->dCurrPos, loop->lLoopLength);
+
 		 }
 		 break;
 	      case STATE_MULTIPLY:
@@ -2489,7 +2503,9 @@ runSooperLooper(LADSPA_Handle Instance,
 		 pLS->state = STATE_PLAY;
 		 pLS->wasMuted = false;
 		 if (loop) {
-		    loop->dCurrPos = loop->lLoopLength - loop->lSyncPos;
+			 loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) + fSyncOffsetSamples;
+			 // wrap
+			 loop->dCurrPos = fmod(loop->dCurrPos, loop->lLoopLength);
 		 }
 		 DBG(fprintf(stderr,"Entering PLAY state from top\n"));
 		 break;
@@ -2514,15 +2530,18 @@ runSooperLooper(LADSPA_Handle Instance,
 		    pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 		    pLS->state = STATE_ONESHOT;
 		    if (pLS->fCurrRate > 0)
-			    loop->dCurrPos = loop->lLoopLength -  loop->lSyncPos;
+			    loop->dCurrPos = (loop->lLoopLength -  loop->lSyncPos) + fSyncOffsetSamples;
 		    else
-			    loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) - 1;
+			    loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) - 1 - fSyncOffsetSamples;
 
 		    // we need to increment loop position by output latency (+ IL ?)
 		    loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency) * fRate;
 		    DBG(fprintf(stderr,"from rec Entering REV ONCE state at %g\n", loop->dCurrPos));
 		    pLS->lFramesUntilFilled = lOutputLatency + lInputLatency;
 		    
+		    // wrap
+		    loop->dCurrPos = fmod(loop->dCurrPos, loop->lLoopLength);
+
 		    DBG(fprintf(stderr,"Enter reversed ONESHOT state\n"));
 		 }
 		 break;
@@ -2748,10 +2767,14 @@ runSooperLooper(LADSPA_Handle Instance,
 				      pLS->state = STATE_ONESHOT;
 
 				      if (pLS->fCurrRate > 0)
-					      loop->dCurrPos = loop->lLoopLength - loop->lSyncPos;
+					      loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos)  + fSyncOffsetSamples;
 				      else
-					      loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) - 1;
+					      loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) - 1 - fSyncOffsetSamples;
+				      
+				      // wrap
+				      loop->dCurrPos = fmod(loop->dCurrPos, loop->lLoopLength);
 
+				      DBG(fprintf(stderr,"Starting ONESHOT state at   %g\n", loop->dCurrPos));
 
 				      if (prevstate == STATE_RECORD || prevstate == STATE_TRIG_STOP) {
 					      // we need to increment loop position by output latency (+ IL ?)
@@ -3969,9 +3992,9 @@ runSooperLooper(LADSPA_Handle Instance,
 			 pLS->donePlaySync = true;
 
 			 if (pLS->fCurrRate > 0)
-				 loop->dCurrPos = (double) loop->lLoopLength - loop->lSyncPos;
+				 loop->dCurrPos = (double) (loop->lLoopLength - loop->lSyncPos) + fSyncOffsetSamples;
 			 else
-				 loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) - 1;
+				 loop->dCurrPos = (loop->lLoopLength - loop->lSyncPos) - 1 - fSyncOffsetSamples;
 
 			 pfSyncOutput[lSampleIndex] = 1.0f;
 		 }
@@ -4070,7 +4093,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 if (loop->dCurrPos >= loop->lLoopLength) {
 		    if (pLS->state == STATE_ONESHOT) {
 		       // done with one shot
-		       DBG(fprintf(stderr, "finished ONESHOT\n"));
+			    DBG(fprintf(stderr, "finished ONESHOT  lcurrPos=%d\n", lCurrPos));
 		       pLS->state = STATE_MUTE;
 		       pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 
