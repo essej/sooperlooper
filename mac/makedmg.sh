@@ -1,4 +1,5 @@
-version=1.5.0
+version=`grep const ../version.h | cut -d" " -f7 | sed -e 's/[";]//g'`     
+echo Version is $version
 
 ./lipo.sh
 
