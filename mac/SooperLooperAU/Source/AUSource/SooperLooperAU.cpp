@@ -344,7 +344,7 @@ ComponentResult		SooperLooperAU::Initialize()
 	
 	_chancnt = auNumInputs;
 		
-	cerr << "Initializing engine with " << auNumInputs << " inputs and " << auNumOutputs << " outputs" << endl;
+	//cerr << "Initializing engine with " << auNumInputs << " inputs and " << auNumOutputs << " outputs" << endl;
 	
 	_engine->initialize (this, auNumInputs, 10051);
 
@@ -353,7 +353,7 @@ ComponentResult		SooperLooperAU::Initialize()
 	if (_pending_restore.empty()) {
 		int numloops = 1;
 		float loopsecs = 40.0f;
-
+	    //cerr << "NOT PENDING restore" << endl;
 		//numloops = GetParameter(kParam_LoopCount);
 		//loopsecs = GetParameter(kParam_LoopSecs);
 		// allocate separate buses for each loop
@@ -364,7 +364,7 @@ ComponentResult		SooperLooperAU::Initialize()
 	}
 	else {
 			// do a state restore
-		cerr << "doing state restore with: " << _pending_restore << endl;
+		//cerr << "doing state restore with: " << _pending_restore << endl;
 		_engine->load_session ("", &_pending_restore);
 	}
 	
@@ -1117,12 +1117,12 @@ ComponentResult SooperLooperAU::SaveState(CFPropertyListRef *outData)
 	
 	// save session state as string
 	string sess_str;
-	if (_engine->save_session("", &sess_str)) { 
+	if (_engine->save_session("", false, &sess_str)) { 
 		CFMutableDataRef cfdata = CFDataCreateMutable(NULL, 0);	
 		unsigned long plaindatasize;
 		const UInt8 * plaindata = (const UInt8 *) sess_str.c_str();
 		plaindatasize = sess_str.size();
-
+		//cerr << "returning state as: " << sess_str << endl;
 		CFDataAppendBytes(cfdata, plaindata, plaindatasize);
 		CFDictionarySetValue(dict, CFSTR("SLSessionXML"), cfdata);
 		CFRelease(cfdata);
@@ -1188,10 +1188,11 @@ ComponentResult SooperLooperAU::RestoreState(CFPropertyListRef inData)
 		string sess_str((const char *)plaindata, plaindatasize);
 
 		if (_engine && _engine->is_ok()) {
+			//cerr << "RestoreState: " << sess_str << endl;
 			_engine->load_session ("", &sess_str);
 		}
 		else {
-			//cerr << "doing pending restore" << endl;
+			//cerr << "pending restore, will use: " << sess_str << endl;
 			_pending_restore = sess_str;
 		}
 	}
