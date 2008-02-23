@@ -1871,7 +1871,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 				
 				if (curr >= _tempo_frames) {
 					// cerr << "tempo hit" << endl;
-					_internal_sync_buf[npos++] = 1.0f;
+					_internal_sync_buf[npos++] = 2.0f;
 					// reset curr counter
 					curr = ((curr - _tempo_frames) - truncf(curr - _tempo_frames)) + 1.0;
 				}
@@ -1967,7 +1967,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 					memset (&(_internal_sync_buf[usedframes]), 0, doframes * sizeof(float));
 
 					// mark it high
-					_internal_sync_buf[fragpos] = 1.0f;
+					_internal_sync_buf[fragpos] = 2.0f;
 
 					doframes += 1;
 					
@@ -2027,7 +2027,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 				
 				if ((thisval == 0 || nextval <= thisval) && diff < nframes) {
 					//cerr << "got tempo frame in this cycle: diff: " << diff << endl;
-					_internal_sync_buf[offset + diff]  = 1.0;
+					_internal_sync_buf[offset + diff]  = 2.0;
 				}
 			}
 

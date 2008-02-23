@@ -201,7 +201,7 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	ports[TriggerLatency] = 0;
 	ports[MuteQuantized] = 0;
 
-	_slave_sync_port = 1.0f;
+	_slave_sync_port = (_relative_sync && ports[Sync]) ? 2.0f : 1.0f;
 
 	// TODO: fix hack to specify loop length
 	char looptimestr[20];
@@ -941,12 +941,17 @@ Looper::run (nframes_t offset, nframes_t nframes)
 	// ignore sync if we are using our own syncin/outbuf
 	if (_use_sync_buf == _our_syncin_buf || _use_sync_buf == _our_syncout_buf) {
 		ports[Sync] = 0.0f;
+		_slave_sync_port = 1.0f;
 	}
 	else if (_relative_sync && ports[Sync] > 0.0f) {
 		// used for recSync relative mode
 		ports[Sync] = 2.0f;
+		_slave_sync_port = 2.0;
 	}
-	
+	else {
+		_slave_sync_port = 1.0;
+	}
+
 	// do fixed peak meter falloff
 	_input_peak = flush_to_zero (f_clamp (DB_CO (CO_DB(_input_peak) - nframes * _falloff_per_sample), 0.0f, 20.0f));
 	_output_peak = flush_to_zero (f_clamp (DB_CO (CO_DB(_output_peak) - nframes * _falloff_per_sample), 0.0f, 20.0f));
@@ -1371,7 +1376,7 @@ Looper::load_loop (string fname)
 	ports[InputLatency] = 0.0f;
 	ports[OutputLatency] = 0.0f;
 	ports[TriggerLatency] = 0.0f;
-	_slave_sync_port = 0.0;
+	_slave_sync_port = 0.0f;
 	
 	// now set it to mute just to make sure we weren't already recording
 	for (unsigned int i=0; i < _chan_count; ++i)
@@ -1455,7 +1460,7 @@ Looper::load_loop (string fname)
 	ports[InputLatency] = old_in_latency;
 	ports[OutputLatency] = old_out_latency;
 	ports[TriggerLatency] = old_trig_latency;
-	_slave_sync_port = 1.0;
+	_slave_sync_port = _relative_sync ? 2.0f: 1.0f;
 	
 	ret = true;
 
