@@ -37,6 +37,10 @@ MIDITimeStamp CoreMidi_MidiPort::MIDIGetCurrentHostTime()
 CoreMidi_MidiPort::CoreMidi_MidiPort (PortRequest &req) : Port (req)
 {
 	int err;
+	midi_client = 0;
+	midi_source = 0;
+	midi_destination = 0;
+
 	if (0 == (err = Open(req))) {
 		_ok = true;
 		req.status = PortRequest::OK;
@@ -55,10 +59,15 @@ void CoreMidi_MidiPort::Close ()
 
 int CoreMidi_MidiPort::write (byte *msg, size_t msglen)	
 {
+	return write_at(msg, msglen, MIDIGetCurrentHostTime());
+}
+
+int CoreMidi_MidiPort::write_at (byte *msg, size_t msglen, timestamp_t at_time)
+{
 	OSStatus err;
-    MIDIPacketList* pktlist = (MIDIPacketList*)midi_buffer;
+	MIDIPacketList* pktlist = (MIDIPacketList*)midi_buffer;
 	MIDIPacket* packet = MIDIPacketListInit(pktlist);
-	packet = MIDIPacketListAdd(pktlist,sizeof(midi_buffer),packet,MIDIGetCurrentHostTime(),msglen,msg);
+	packet = MIDIPacketListAdd(pktlist,sizeof(midi_buffer),packet, secs_to_host_time(at_time),msglen,msg);
 	
 	if (packet) {
 		
@@ -83,17 +92,17 @@ int CoreMidi_MidiPort::Open (PortRequest &req)
 	coutputStr = CFStringCreateWithCString(0, req.devname, CFStringGetSystemEncoding());
 	err = MIDIClientCreate(coutputStr, 0, 0, &midi_client);
 	CFRelease(coutputStr);
-    if (!midi_client) {
-		//error << "Cannot open CoreMidi client : " << err << endmsg.
-        goto error;
-    }
+	if (err != noErr) {
+		cerr << "Cannot open CoreMidi client : " << err << endl;
+		goto error;
+	}
   	
 	str = req.tagname + string("_in");
 	coutputStr = CFStringCreateWithCString(0, str.c_str(), CFStringGetSystemEncoding());
 	err = MIDIDestinationCreate(midi_client, coutputStr, read_proc, this, &midi_destination);
 	CFRelease(coutputStr);
-	if (!midi_destination) {
-		//error << "Cannot create CoreMidi destination : " << err << endmsg.
+	if (err != noErr) {
+		cerr << "Cannot create CoreMidi destination : " << err << endl;
 		goto error;
 	}
 	
@@ -101,8 +110,8 @@ int CoreMidi_MidiPort::Open (PortRequest &req)
 	coutputStr = CFStringCreateWithCString(0, str.c_str(), CFStringGetSystemEncoding());
 	err = MIDISourceCreate(midi_client, coutputStr, &midi_source);
 	CFRelease(coutputStr);
-	if (!midi_source) {
-		//error << "Cannot create CoreMidi source : " << err << endmsg.
+	if (err != noErr) {
+		cerr << "Cannot create CoreMidi source : " << err << endl;
 		goto error;
 	}	
    
@@ -134,3 +143,36 @@ void CoreMidi_MidiPort::read_proc (const MIDIPacketList *pktlist, void *refCon, 
     }
 }
 
+timestamp_t CoreMidi_MidiPort::get_current_host_time()
+{
+	static double conversion = 0.0;
+	
+	if( conversion == 0.0 )
+	{
+		mach_timebase_info_data_t info;
+		kern_return_t err = mach_timebase_info( &info );
+		
+		//Convert the timebase into seconds
+		if( err == 0  )
+			conversion = 1e-9 * (double) info.numer / (double) info.denom;
+	}
+
+	return (MIDIGetCurrentHostTime() * conversion);
+}
+
+MIDITimeStamp CoreMidi_MidiPort::secs_to_host_time(timestamp_t secs)
+{
+	static double conversion = 0.0;
+	
+	if( conversion == 0.0 )
+	{
+		mach_timebase_info_data_t info;
+		kern_return_t err = mach_timebase_info( &info );
+		
+		//Convert the timebase from seconds to timestamp
+		if( err == 0  )
+			conversion = 1e9 * (double) info.denom / (double) info.numer;
+	}
+
+	return (MIDITimeStamp) (secs * conversion);
+}

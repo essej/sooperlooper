@@ -1232,6 +1232,7 @@
 					"-DHAVE_STRCASECMP_IN_STRING_H",
 					"-DHAVE_SAMPLERATE",
 					"-DHAVE_SNDFILE",
+					"-DWITH_COREMIDI",
 				);
 				OTHER_LDFLAGS = "-bundle";
 				OTHER_REZFLAGS = "-d ppc_YES -d i386_$(i386) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Developer/Examples/CoreAudio/AudioUnits/AUPublic/AUBase";
@@ -1299,6 +1300,7 @@
 					"-DHAVE_STRCASECMP_IN_STRING_H",
 					"-DHAVE_SAMPLERATE",
 					"-DHAVE_SNDFILE",
+					"-DWITH_COREMIDI",
 				);
 				OTHER_LDFLAGS = "-bundle";
 				OTHER_REZFLAGS = "-d ppc_YES -d i386_$(i386) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Developer/Examples/CoreAudio/AudioUnits/AUPublic/AUBase";
@@ -1364,6 +1366,7 @@
 					"-DHAVE_STRCASECMP_IN_STRING_H",
 					"-DHAVE_SAMPLERATE",
 					"-DHAVE_SNDFILE",
+					"-DWITH_COREMIDI",
 				);
 				OTHER_LDFLAGS = "-bundle";
 				OTHER_REZFLAGS = "-d ppc_YES -d i386_$(i386) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Developer/Examples/CoreAudio/AudioUnits/AUPublic/AUBase";

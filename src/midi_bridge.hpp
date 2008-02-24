@@ -74,7 +74,11 @@ class MidiBridge
 
 	void inject_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long framepos=-1);
 
-	
+	// the tempo updated on a beat starting at timestamp
+	void tempo_clock_update(double tempo, MIDI::timestamp_t timestamp, bool forcestart=false);
+
+	MIDI::timestamp_t get_current_host_time();
+
   protected:
 	bool init_thread();
 	void terminate_midi_thread();
@@ -91,7 +95,13 @@ class MidiBridge
 
 	void finish_learn(MIDI::byte chcmd, MIDI::byte param, MIDI::byte val);
 	
-	
+
+	bool init_clock_thread();
+	void terminate_clock_thread();
+	static void * _clock_thread_entry (void * arg);
+	void * clock_thread_entry();
+	void poke_clock_thread();
+
 	std::string _name;
 	std::string _oscurl;
 
@@ -109,10 +119,20 @@ class MidiBridge
 	int                _midi_request_pipe[2];
 	pthread_t          _midi_thread;
 
+	int                _clock_request_pipe[2];
+	pthread_t          _clock_thread;
+
 	PBD::NonBlockingLock _bindings_lock;
 
 	bool _use_osc;
-	bool _done;
+	volatile bool _done;
+	volatile bool _clockdone;
+
+	volatile bool _tempo_updated;
+	volatile double _tempo;
+	volatile MIDI::timestamp_t _beatstamp;
+	volatile bool _pending_start;
+
 	bool _learning;
 	bool _getnext;
 	MidiBindInfo _learninfo;

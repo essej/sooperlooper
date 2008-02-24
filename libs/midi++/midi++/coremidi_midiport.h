@@ -39,9 +39,14 @@ namespace MIDI {
 	virtual int selectable() const {
 	    return -1;
 	}
+
+	timestamp_t get_current_host_time();
+
       protected:
 	/* Direct I/O */
 	int write(byte * msg, size_t msglen);
+	int write_at (byte *msg, size_t msglen, timestamp_t at_time);
+
 	int read(byte * buf, size_t max) {
 	    return 0;
 	} /* CoreMidi callback */
@@ -57,6 +62,8 @@ namespace MIDI {
 	int Open(PortRequest & req);
 	void Close();
 	static MIDITimeStamp MIDIGetCurrentHostTime();
+	static MIDITimeStamp secs_to_host_time(timestamp_t secs);
+
     };
 
 }; /* namespace MIDI */

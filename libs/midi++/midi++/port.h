@@ -52,6 +52,8 @@ class Port : public SigC::Object {
 	virtual int write (byte *msg, size_t msglen) = 0;	
 	virtual int read (byte *buf, size_t max) = 0;
 
+	virtual int write_at (byte *msg, size_t msglen, timestamp_t at_time) { return write(msg, msglen); }
+
 	/* slowdown i/o to a loop of single byte emissions
 	   interspersed with a busy loop of 10000 * this value.
 
@@ -114,6 +116,8 @@ class Port : public SigC::Object {
 	
 	int clock ();
 	
+	virtual timestamp_t get_current_host_time() { return 0; }
+
 	const char *device () const { return _devname.c_str(); }
 	const char *name () const   { return _tagname.c_str(); }
 	Type   type () const        { return _type; }

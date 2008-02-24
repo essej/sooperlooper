@@ -86,6 +86,7 @@ Engine::Engine ()
 	_tempo_changed = false;
 	_beat_occurred = false;
 	_conns_changed = false;
+	_beatstamp = 0.0;
 	
 	_loop_manage_to_rt_queue = 0;
 	_loop_manage_to_main_queue = 0;
@@ -1734,6 +1735,38 @@ Engine::set_tempo (double tempo, bool rt)
 	_quarter_counter = 0;
 	_tempo_counter = 0;
 
+	// adjust eigths per cycle if tempo is > 240 or < 60
+	if (_tempo > 0.0 && (_tempo > 240.0 || _tempo < 60.0)) {
+		cerr << "tempo is " << _tempo << endl;
+		if (_tempo > 240.0) {
+			_eighth_cycle *= 0.5;
+			_eighth_cycle = max(1.0f, _eighth_cycle);
+			cerr << "halving 8ths to : " << _eighth_cycle << endl;
+			//_tempo *= 0.5;
+		}
+		else if (_tempo < 60.0) {
+			_eighth_cycle *= 2;
+			cerr << "doubl 8ths to : " << _eighth_cycle << endl;
+			//_tempo *= 2.0;
+		}
+
+		// update all loops
+		if (rt) {
+			for (unsigned int n=0; n < _rt_instances.size(); ++n) {
+				_rt_instances[n]->set_port(EighthPerCycleLoop, _eighth_cycle);
+			}
+		}
+		else {
+			for (unsigned int n=0; n < _instances.size(); ++n) {
+				_instances[n]->set_port(EighthPerCycleLoop, _eighth_cycle);
+			}
+		}
+		calculate_midi_tick(rt);		
+		
+		// is this safe?  hard to say :)
+		do_push_control_event (_nonrt_update_event_queue, Event::type_control_change, Event::EighthPerCycle, _eighth_cycle, -2, 0);
+	}
+
 	if (_sync_source == NoSync) {
 		// we set tempo to zero as far as the loop is concerned
 		tempo = 0.0;
@@ -1751,6 +1784,18 @@ Engine::set_tempo (double tempo, bool rt)
 		{
 			(*i)->set_port(TempoInput, tempo);
 		}
+	}
+
+	if (_midi_bridge)
+	{
+		// update midi clock output
+		// TODO: make now time be the time of the actual beat
+		//struct timeval tval;
+		//double nowtime;
+		//gettimeofday(&tval, NULL);
+		//nowtime = tval.tv_sec + tval.tv_usec / 1000000.0;
+		
+		_midi_bridge->tempo_clock_update(tempo, _beatstamp, true);
 	}
 }
 
@@ -1951,6 +1996,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 
 					if (ntempo != _tempo) {
 						//cerr << "new tempo is: " << ntempo << "   tcount = " << tcount << "  used: " << usedframes << endl;
+
 						set_tempo(ntempo, true);
 						_tempo_changed = true;
 						// wake up mainloop safely
@@ -2088,8 +2134,12 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 		}
 	}
 		
-	if (hit_at >= 0 && _tempo < 400.0) {
+	if (hit_at >= 0 && _tempo < 240.0) {
 		_beat_occurred = true;
+		
+		// this is close enough for now, really it should be a bit into the future since this is yet to be output
+		_beatstamp = _midi_bridge->get_current_host_time();
+
 		// wake up mainloop safely
 		//TentativeLockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
 		//if (mon.locked()) {

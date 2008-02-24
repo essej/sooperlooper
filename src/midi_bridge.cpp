@@ -79,6 +79,7 @@ MidiBridge::MidiBridge (string name, string oscurl, PortRequest & req)
 	_use_osc = true;
 	_addr = 0;
 	_midi_thread = 0;
+	_clock_thread = 0;
 	
 	_addr = lo_address_new_from_url (_oscurl.c_str());
 	if (lo_address_errno (_addr) < 0) {
@@ -97,6 +98,7 @@ MidiBridge::MidiBridge (string name, string oscurl, PortRequest & req)
 	_port->input()->any.connect (slot (*this, &MidiBridge::incoming_midi));
 
 	init_thread();
+	init_clock_thread();
 
 	_ok = true;
 }
@@ -112,10 +114,12 @@ MidiBridge::MidiBridge (string name,  PortRequest & req)
 	_use_osc = false;
 	_addr = 0;
 	_midi_thread = 0;
+	_clock_thread = 0;
 
 	PortFactory factory;
 	
 	if ((_port = factory.create_port (req)) == 0) {
+		cerr << "failed to create port" << endl;
 		return;
 	}
 
@@ -123,7 +127,7 @@ MidiBridge::MidiBridge (string name,  PortRequest & req)
 	_port->input()->any.connect (slot (*this, &MidiBridge::incoming_midi));
 
 	init_thread();
-
+	init_clock_thread();
 	_ok = true;
 	
 }
@@ -140,7 +144,10 @@ MidiBridge::MidiBridge (string name)
 	_use_osc = false;
 	_addr = 0;
 	_midi_thread = 0;
+	_clock_thread = 0;
 	_ok = true;	
+
+	init_clock_thread();
 }
 
 
@@ -150,10 +157,16 @@ MidiBridge::~MidiBridge()
 		lo_address_free (_addr);
 	}
 
-	// the port will be freed by the work thread
-
 	if (_midi_thread) {
 		terminate_midi_thread();
+	}
+	if (_clock_thread) {
+		terminate_clock_thread();
+	}
+
+	if (_port) {
+		delete _port;
+		_port = 0;
 	}
 }
 
@@ -202,12 +215,69 @@ MidiBridge::terminate_midi_thread ()
 void
 MidiBridge::poke_midi_thread ()
 {
-	char c;
+	char c = 0;
 
 	if (write (_midi_request_pipe[1], &c, 1) != 1) {
 		cerr << "cannot send signal to midi thread! " <<  strerror (errno) << endl;
 	}
 }
+
+bool MidiBridge::init_clock_thread()
+{
+	_clock_thread = 0;
+
+	if (pipe (_clock_request_pipe)) {
+		cerr << "Cannot create midi request signal pipe" <<  strerror (errno) << endl;
+		return false;
+	}
+	if (fcntl (_clock_request_pipe[0], F_SETFL, O_NONBLOCK)) {
+		cerr << "UI: cannot set O_NONBLOCK on clock signal read pipe " << strerror (errno) << endl;
+		return false;
+	}
+	if (fcntl (_clock_request_pipe[1], F_SETFL, O_NONBLOCK)) {
+		cerr << "UI: cannot set O_NONBLOCK on clock signal write pipe " << strerror (errno) << endl;
+		return false;
+	}
+
+	_tempo_updated = false;
+	_tempo = 0.0;
+	_beatstamp = 0.0;
+	_pending_start = false;
+
+	pthread_create (&_clock_thread, NULL, &MidiBridge::_clock_thread_entry, this);
+	if (!_clock_thread) {
+		return false;
+	}
+
+	return true;
+}
+
+void * MidiBridge::_clock_thread_entry (void * arg)
+{
+	return ((MidiBridge *)arg)->clock_thread_entry();
+}
+
+void MidiBridge::terminate_clock_thread()
+{
+	void* status;
+
+	if (_clock_thread) {
+		_clockdone = true;
+		
+		poke_clock_thread ();
+		pthread_join (_clock_thread, &status);
+	}
+}
+
+void MidiBridge::poke_clock_thread()
+{
+	char c = 0;
+
+	if (write (_clock_request_pipe[1], &c, 1) != 1) {
+		cerr << "cannot send signal to midi clock thread! " <<  strerror (errno) << endl;
+	}
+}
+
 
 void
 MidiBridge::start_learn (MidiBindInfo & info, bool exclus)
@@ -615,9 +685,198 @@ void  MidiBridge::midi_receiver()
 			
 		}
 	}
+}
 
-	delete _port;
-	_port = 0;
+void * MidiBridge::clock_thread_entry()
+{
+	//struct pollfd pfd[3];
+	int nfds = 0;
+	double actual_timeout = -1;
+	double steady_timeout = -1;
+	int ret;
+	MIDI::byte clockmsg = MIDI::timing;
+	MIDI::byte startmsg = MIDI::start;
+	MIDI::byte stopmsg = MIDI::stop;
+	MIDI::byte contmsg = MIDI::contineu;
+
+	struct timeval timeoutval = {1, 0};
+	struct timeval steady_timeout_val = { 1, 0 };
+	struct timeval * timeoutp = 0;
+	MIDI::timestamp_t nextstamp = 0;
+	double nowtime;
+	fd_set pfd;
+	char buf[10];
+	unsigned long ticks = 0;
+
+	if (!_port) return 0;
+
+
+	while (!_clockdone) {
+		nfds = 0;
+
+		/*
+		if (_port && _port->selectable() >= 0) {
+			pfd[nfds].fd = _port->selectable();
+			pfd[nfds].events = POLLIN|POLLHUP|POLLERR;
+			nfds++;
+		}
+		*/
+		
+
+	again:
+		FD_SET(_clock_request_pipe[0], &pfd);
+		nfds = _clock_request_pipe[0] + 1;
+
+		//cerr << "select on " << nfds << " for " << timeout << endl;
+
+		if ((ret = select (nfds, &pfd, NULL, NULL, timeoutp)) < 0) {
+			if (errno == EINTR) {
+				/* gdb at work, perhaps */
+				goto again;
+			}
+			
+			cerr << "MIDI thread select failed: " <<  strerror (errno) << endl;
+			
+			//break;
+		}
+
+		if (_clockdone) {
+			break;
+		}
+		
+		/*
+		if ((pfd[0].revents & ~POLLIN)) {
+			cerr << "Transport: error polling extra MIDI port" << endl;
+			break;
+		}
+		*/
+		// time to write out a clock message, the timer expired
+		
+		if (ret == 1) {
+			::read(_clock_request_pipe[0], &buf, 1);
+			//cerr << "poke event read" << endl;
+		}
+		else if (ret == 0) {
+			if (_pending_start) {
+				_port->write(&startmsg, 1);
+				_pending_start = false;
+			}
+
+			_port->write_at(&clockmsg, 1, nextstamp);
+
+			//cerr << "CLOCK output" << endl;
+		}
+		else {
+			cerr << "ret was : " << ret << endl;
+		}
+
+		// recalculate timeout
+		if (_tempo_updated) 
+		{
+			// Example: At a tempo of 120 BPM, there are 120 quarter notes per minute.
+			// There are 24 MIDI clocks in each quarter note.
+			// Therefore, there should be 24 * 120 MIDI Clocks per minute. 
+			// So, each MIDI Clock is sent at a rate of 60/(24 * 120) seconds)
+			// timeout interval = 60/(24 * bpm);
+
+			if (_tempo > 0.0) {
+				steady_timeout = (60.0/(24 * _tempo));
+				actual_timeout = steady_timeout;
+				double fracpart=0.0, intpart = 0.0;
+				fracpart = modf(actual_timeout, &intpart);
+				steady_timeout_val.tv_sec = (long) intpart;
+				steady_timeout_val.tv_usec = (long) (fracpart * 1000000);
+				//cerr << "steady sec: " << steady_timeout_val.tv_sec << "  usec: " << steady_timeout_val.tv_usec << endl;
+
+				// first timeout will sync us up to the correct beat timestamp, 
+				// then the steady state one will be used
+				nowtime = _port->get_current_host_time();
+				
+				// wait just enough to get us to the next multiple of the beat stamp
+				nextstamp = _beatstamp;
+				ticks = 0;
+				while (nextstamp < nowtime) {
+					nextstamp += steady_timeout;
+					++ticks;
+				}
+
+				double delta =  fabs(nextstamp - nowtime);
+				fracpart = modf(delta, &intpart);
+				timeoutval.tv_sec = (long) intpart;
+				timeoutval.tv_usec = (long) (fracpart * 1000000);
+				//cerr << "waiting initial " << delta << " for beat sync" << endl;
+				//cerr << " steady timeout: " << steady_timeout << "  for tempo: " << _tempo << endl;
+				timeoutp = &timeoutval;
+
+			}
+			else {
+				timeoutp = NULL;
+				_port->write(&stopmsg, 1);
+			}
+
+			_tempo_updated = false;
+		}
+		else if (_tempo > 0) {
+			nowtime = _port->get_current_host_time();	
+			if (nowtime > nextstamp + 2*steady_timeout) {
+				//cerr << "aaagh, nowtime is greater than nextstamp, drifted!! " << nowtime-nextstamp << endl;
+				//actual_timeout -= (nowtime - nextstamp);
+				//actual_timeout -= 0.001;
+				actual_timeout = 0.8 * actual_timeout + 0.2 * (actual_timeout - 0.001);
+				actual_timeout = max(actual_timeout, 0.01);
+
+				double fracpart=0.0, intpart = 0.0;
+				fracpart = modf(actual_timeout, &intpart);
+				steady_timeout_val.tv_sec = (long) intpart;
+				steady_timeout_val.tv_usec = (long) (fracpart * 1e6);
+				//cerr << " timeout set to: " << actual_timeout << endl;
+			}
+			else if (nowtime + 2*steady_timeout < nextstamp) {
+				//cerr << "aaagh, nowtime is too much earlier than nextstamp, drifted!! " << nextstamp-nowtime << endl;
+				//actual_timeout += 0.001;
+				actual_timeout = 0.9 * actual_timeout + 0.1 * (actual_timeout + 0.001);
+				
+				double fracpart=0.0, intpart = 0.0;
+				fracpart = modf(actual_timeout, &intpart);
+				steady_timeout_val.tv_sec = (long) intpart;
+				steady_timeout_val.tv_usec = (long) (fracpart * 1e6);
+				//cerr << " timeout set to: " << actual_timeout << endl;
+			}
+
+			nextstamp = _beatstamp + ticks * steady_timeout;
+
+			timeoutval = steady_timeout_val;
+			timeoutp = &timeoutval;
+
+			++ticks;
+		}
+	}
+
+	return 0;
+}
+
+void MidiBridge::tempo_clock_update(double tempo, MIDI::timestamp_t timestamp, bool forcestart)
+{
+	//cerr << "set tempo to: " << tempo << "  at: " << timestamp << endl;
+	while (tempo > 240.0) {
+		tempo *= 0.5;
+	}
+	
+	if (forcestart || (_tempo == 0.0 && tempo > 0.0)) {
+		_pending_start = true;
+	}
+	_tempo = tempo;
+	_beatstamp = timestamp;
+	_tempo_updated = true;
+	poke_clock_thread();
+}
+
+MIDI::timestamp_t MidiBridge::get_current_host_time()
+{
+	if (_port) {
+		return _port->get_current_host_time();
+	}
+	else return 0;
 }
 
 

@@ -226,6 +226,8 @@ class Engine
 	int _sync_source;
 
 	double    _tempo;        // bpm
+	MIDI::timestamp_t _beatstamp; // timestamp at the beat of the last tempo change
+
 	float    _eighth_cycle; // eighth notes per loop cycle
 
 	std::vector<port_id_t>  _common_inputs;

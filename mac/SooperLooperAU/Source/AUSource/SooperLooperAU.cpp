@@ -71,7 +71,10 @@ SooperLooperAU::SooperLooperAU(AudioUnit component)
 	//sl_init();
 	
 	_engine = new SooperLooper::Engine();
-	_midi_bridge = new SooperLooper::MidiBridge("AUmidi");
+	
+	MIDI::PortRequest portreq ("SooperLooperAU", "SooperLooperAU",  "duplex", "coremidi");
+	//_midi_bridge = new SooperLooper::MidiBridge("AUmidi");
+	_midi_bridge = new SooperLooper::MidiBridge("AUmidi", portreq);
 	
 	_engine->set_midi_bridge (_midi_bridge);
 	_engine->set_ignore_quit (true);
