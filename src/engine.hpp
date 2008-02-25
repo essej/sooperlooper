@@ -227,6 +227,7 @@ class Engine
 
 	volatile double    _tempo;        // bpm
 	volatile MIDI::timestamp_t _beatstamp; // timestamp at the beat of the last tempo change
+	bool _force_next_clock_start;
 
 	float    _eighth_cycle; // eighth notes per loop cycle
 

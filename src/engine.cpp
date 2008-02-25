@@ -82,6 +82,7 @@ Engine::Engine ()
 	_selected_loop = -1; // all
 	_output_midi_clock = false;
 	_smart_eighths = true;
+	_force_next_clock_start = false;
 	
 	_running_frames = 0;
 	_last_tempo_frame = 0;
@@ -1846,7 +1847,8 @@ Engine::set_tempo (double tempo, bool rt)
 		//gettimeofday(&tval, NULL);
 		//nowtime = tval.tv_sec + tval.tv_usec / 1000000.0;
 		
-		_midi_bridge->tempo_clock_update(tempo, _beatstamp, true);
+		_midi_bridge->tempo_clock_update(tempo, _beatstamp, _force_next_clock_start);
+		_force_next_clock_start = false;
 	}
 }
 
@@ -2161,6 +2163,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 				cerr << "new tempo is: " << ntempo << "  oldtempo: " << _tempo << endl;
 				
 				_beatstamp = _midi_bridge->get_current_host_time();
+				_force_next_clock_start = true;
 				set_tempo(ntempo, true);
 			   
 				calculate_tempo_frames ();
