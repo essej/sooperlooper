@@ -165,7 +165,7 @@ AppFrame::init()
 	wxMenu *menuFile = new wxMenu(wxT(""));
 
 	menuFile->Append(ID_LoadSession, wxT("Load Session\tCtrl-L"), wxT("Load session"));
-	menuFile->Append(ID_SaveSession, wxT("Save Session\tCtrl-P"), wxT("Save session"));
+	menuFile->Append(ID_SaveSession, wxT("Save Session\tCtrl-E"), wxT("Save session"));
 	menuFile->Append(ID_SaveSessionAudio, wxT("Save Session with Audio\tCtrl-Shift-P"), wxT("Save session with Audio"));
 
 	menuFile->AppendSeparator();

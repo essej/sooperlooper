@@ -168,6 +168,8 @@ namespace SooperLooper {
 		    MidiStop,
 		    MidiTick,
 		    AutoDisableLatency,
+		    SmartEighths,
+		    OutputMidiClock,
 		    SelectNextLoop,
 		    SelectPrevLoop,
 		    SelectAllLoops,

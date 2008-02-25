@@ -49,6 +49,8 @@ class FD_MidiPort : public Port
 	virtual int selectable() const;
 	static std::vector<std::string *> *list_devices ();
 
+	virtual timestamp_t get_current_host_time();
+
   protected:
 	int _fd;
 	virtual void open (PortRequest &req);

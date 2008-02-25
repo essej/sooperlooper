@@ -42,6 +42,8 @@ class ALSA_SequencerMidiPort : public Port
 
 	virtual int selectable() const;
 
+	virtual timestamp_t get_current_host_time();
+
   protected:
 	/* Direct I/O */
 	

@@ -20,6 +20,7 @@
 
 #include <fcntl.h>
 #include <cerrno>
+#include <sys/time.h>
 
 #include <pbd/error.h>
 #include <pbd/pathscanner.h>
@@ -178,4 +179,13 @@ FD_MidiPort::read (byte* buf, size_t max)
 	}
 	
 	return nread;
+}
+
+
+timestamp_t FD_MidiPort::get_current_host_time()
+{
+   struct timeval tv;
+   gettimeofday(&tv, NULL);
+
+   return (timestamp_t)(tv.tv_usec * 1e-6) + (timestamp_t)(tv.tv_sec);
 }

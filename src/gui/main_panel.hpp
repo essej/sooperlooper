@@ -124,6 +124,7 @@ protected:
 	void on_relsync_check (bool val);
 	void on_mute_quant_check (bool val);
 	void on_odub_quant_check (bool val);
+	void on_smart_eighths_check (bool val);
 
 	void on_bind_request (wxString val);
 	
@@ -171,6 +172,7 @@ protected:
 	PixButton * _taptempo_button;
 	CheckBox *  _mute_quant_check;
 	CheckBox *  _odub_quant_check;
+	CheckBox *  _smart_eighths_check;
 	float _tapdelay_val;
 
 	// keybindings

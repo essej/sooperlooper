@@ -80,6 +80,8 @@ MidiBridge::MidiBridge (string name, string oscurl, PortRequest & req)
 	_addr = 0;
 	_midi_thread = 0;
 	_clock_thread = 0;
+	_clockdone = false;
+	_output_clock = false;
 	
 	_addr = lo_address_new_from_url (_oscurl.c_str());
 	if (lo_address_errno (_addr) < 0) {
@@ -111,10 +113,12 @@ MidiBridge::MidiBridge (string name,  PortRequest & req)
 	_port = 0;
 	_done = false;
 	_learning = false;
+	_clockdone = false;
 	_use_osc = false;
 	_addr = 0;
 	_midi_thread = 0;
 	_clock_thread = 0;
+	_output_clock = false;
 
 	PortFactory factory;
 	
@@ -140,12 +144,14 @@ MidiBridge::MidiBridge (string name)
 	
 	_port = 0;
 	_done = false;
+	_clockdone = false;
 	_learning = false;
 	_use_osc = false;
 	_addr = 0;
 	_midi_thread = 0;
 	_clock_thread = 0;
 	_ok = true;	
+	_output_clock = false;
 
 	init_clock_thread();
 }
@@ -701,6 +707,7 @@ void * MidiBridge::clock_thread_entry()
 
 	struct timeval timeoutval = {1, 0};
 	struct timeval steady_timeout_val = { 1, 0 };
+	struct timeval noout_timeoutval = {1, 0};
 	struct timeval * timeoutp = 0;
 	MIDI::timestamp_t nextstamp = 0;
 	double nowtime;
@@ -710,7 +717,8 @@ void * MidiBridge::clock_thread_entry()
 
 	if (!_port) return 0;
 
-
+	//cerr << "entering clock thread" << endl;
+	
 	while (!_clockdone) {
 		nfds = 0;
 
@@ -727,7 +735,8 @@ void * MidiBridge::clock_thread_entry()
 		FD_SET(_clock_request_pipe[0], &pfd);
 		nfds = _clock_request_pipe[0] + 1;
 
-		//cerr << "select on " << nfds << " for " << timeout << endl;
+		//cerr << "select on " << nfds << " for " << steady_timeout << endl;
+
 
 		if ((ret = select (nfds, &pfd, NULL, NULL, timeoutp)) < 0) {
 			if (errno == EINTR) {
@@ -737,7 +746,7 @@ void * MidiBridge::clock_thread_entry()
 			
 			cerr << "MIDI thread select failed: " <<  strerror (errno) << endl;
 			
-			//break;
+			break;
 		}
 
 		if (_clockdone) {
@@ -756,7 +765,8 @@ void * MidiBridge::clock_thread_entry()
 			::read(_clock_request_pipe[0], &buf, 1);
 			//cerr << "poke event read" << endl;
 		}
-		else if (ret == 0) {
+		else if (_output_clock && ret == 0) {
+
 			if (_pending_start) {
 				_port->write(&startmsg, 1);
 				_pending_start = false;
@@ -767,8 +777,17 @@ void * MidiBridge::clock_thread_entry()
 			//cerr << "CLOCK output" << endl;
 		}
 		else {
-			cerr << "ret was : " << ret << endl;
+			//cerr << "ret was : " << ret << " timeoutp: " << timeoutp << endl;
 		}
+
+		if (!_output_clock) {
+			//cerr << "no clock output" << endl;
+			noout_timeoutval.tv_sec = 1;
+			noout_timeoutval.tv_usec = 0;
+			timeoutp = &noout_timeoutval;
+			continue;
+		}
+
 
 		// recalculate timeout
 		if (_tempo_updated) 
@@ -795,9 +814,17 @@ void * MidiBridge::clock_thread_entry()
 				// wait just enough to get us to the next multiple of the beat stamp
 				nextstamp = _beatstamp;
 				ticks = 0;
-				while (nextstamp < nowtime) {
-					nextstamp += steady_timeout;
-					++ticks;
+				//fprintf(stderr, "beatstamp: %.14g  nowtime: %.14g\n", _beatstamp, nowtime);
+
+				if (nextstamp + 5 < nowtime) {
+					nextstamp = nowtime + steady_timeout;
+					ticks = 1;
+				}
+				else {
+					while (nextstamp < nowtime) {
+						nextstamp += steady_timeout;
+						++ticks;
+					}
 				}
 
 				double delta =  fabs(nextstamp - nowtime);
@@ -850,8 +877,13 @@ void * MidiBridge::clock_thread_entry()
 
 			++ticks;
 		}
+		else {
+			// tempo is 0
+			timeoutp = NULL;
+		}
 	}
 
+	//cerr << "clock thread ending" << endl;
 	return 0;
 }
 

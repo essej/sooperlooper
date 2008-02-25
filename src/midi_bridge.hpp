@@ -79,6 +79,8 @@ class MidiBridge
 
 	MIDI::timestamp_t get_current_host_time();
 
+	void set_output_midi_clock(bool flag) { _output_clock = flag; }
+
   protected:
 	bool init_thread();
 	void terminate_midi_thread();
@@ -132,6 +134,7 @@ class MidiBridge
 	volatile double _tempo;
 	volatile MIDI::timestamp_t _beatstamp;
 	volatile bool _pending_start;
+	volatile bool _output_clock;
 
 	bool _learning;
 	bool _getnext;

@@ -20,6 +20,7 @@
 
 #include <fcntl.h>
 #include <cerrno>
+#include <sys/time.h>
 
 #include <midi++/types.h>
 #include <midi++/alsa_sequencer.h>
@@ -166,3 +167,10 @@ int ALSA_SequencerMidiPort::CreatePorts (PortRequest &req)
 	return err;
 }
 
+timestamp_t ALSA_SequencerMidiPort::get_current_host_time()
+{
+   struct timeval tv;
+   gettimeofday(&tv, NULL);
+
+   return (timestamp_t)(tv.tv_usec * 1e-6) + (timestamp_t)(tv.tv_sec);
+}

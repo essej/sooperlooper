@@ -149,7 +149,8 @@ CommandMap::CommandMap()
 	add_global_control("select_prev_loop", Event::SelectPrevLoop);
 	add_global_control("select_all_loops", Event::SelectAllLoops);
 	add_global_control("selected_loop_num", Event::SelectedLoopNum, UnitIndexed, -1.0f, 32.0f);
-
+	add_global_control("output_midi_clock", Event::OutputMidiClock, UnitBoolean, 0.0f, 1.0f, 1.0f);
+	add_global_control("smart_eighths", Event::SmartEighths, UnitBoolean, 0.0f, 1.0f, 1.0f);
 	_str_ctrl_map.insert (_global_controls.begin(), _global_controls.end());
 
 	// reverse it

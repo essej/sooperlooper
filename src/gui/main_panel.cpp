@@ -90,7 +90,8 @@ enum {
 	ID_WetControl,
 	ID_InGainControl,
 	ID_MuteQuantCheck,
-	ID_OdubQuantCheck
+	ID_OdubQuantCheck,
+	ID_SmartEighthCheck
 };
 
 
@@ -246,6 +247,14 @@ MainPanel::init()
 	_odub_quant_check->value_changed.connect (slot (*this, &MainPanel::on_odub_quant_check));
 	_odub_quant_check->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("overdub_quantized")));
 	rowsizer->Add (_odub_quant_check, 0, wxALL|wxEXPAND, 2);
+
+	_smart_eighths_check = new CheckBox(this, ID_SmartEighthCheck, wxT("auto 8th"), true, wxDefaultPosition, wxSize(80, 18));
+	_smart_eighths_check->SetFont(sliderFont);
+	_smart_eighths_check->SetToolTip(wxT("auto adjust 8ths per cycle with tempo"));
+	_smart_eighths_check->value_changed.connect (slot (*this, &MainPanel::on_smart_eighths_check));
+	_smart_eighths_check->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("smart_eighths")));
+	rowsizer->Add (_smart_eighths_check, 0, wxALL|wxEXPAND, 2);
+
 
 	rowsizer->Add (1, 1, 1);
 
@@ -619,6 +628,12 @@ MainPanel::update_controls()
 		_loop_control->get_value(0, wxT("overdub_quantized"), val);
  		_odub_quant_check->set_value (val > 0.0);
 	}
+
+ 	if (_loop_control->is_global_updated(wxT("smart_eighths"))) {
+		_loop_control->get_global_value(wxT("smart_eighths"), val);
+ 		_smart_eighths_check->set_value (val > 0.0);
+	}
+	
 	
 	if (_loop_control->is_updated(0, wxT("fade_samples"))) {
 		_loop_control->get_value(0, wxT("fade_samples"), val);
@@ -847,6 +862,10 @@ MainPanel::on_bind_request (wxString val)
 		info.control = "overdub_quantized";
 		info.instance = -1;
 	}
+	else if (val == wxT("smart_eighths")) {
+		info.control = "smart_eighths";
+		info.instance = -1;
+	}
 	else {
 		donothing = true;
 	}
@@ -940,6 +959,14 @@ MainPanel::on_odub_quant_check (bool val)
 {
 	// send for all loops
 	_loop_control->post_ctrl_change (-1, wxT("overdub_quantized"), val ? 1.0f: 0.0f);
+}
+
+void
+MainPanel::on_smart_eighths_check (bool val)
+{
+	// send for all loops
+	cerr << "on smart: " << endl;
+	_loop_control->post_global_ctrl_change (wxT("smart_eighths"), val ? 1.0f: 0.0f);
 }
 
 void

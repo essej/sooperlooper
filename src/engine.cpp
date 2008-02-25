@@ -80,6 +80,8 @@ Engine::Engine ()
 	_use_temp_input = true; // all the time for now
 	_ignore_quit = false;
 	_selected_loop = -1; // all
+	_output_midi_clock = false;
+	_smart_eighths = true;
 	
 	_running_frames = 0;
 	_last_tempo_frame = 0;
@@ -285,6 +287,8 @@ void Engine::set_midi_bridge (MidiBridge * bridge)
 		_midi_bridge->MidiCommandEvent.connect (slot(*this, &Engine::push_midi_command_event));
 		_midi_bridge->MidiControlEvent.connect (slot(*this, &Engine::push_midi_control_event));
 		_midi_bridge->MidiSyncEvent.connect (slot(*this, &Engine::push_sync_event));
+
+		_midi_bridge->set_output_midi_clock(_output_midi_clock);
 	}
 }
 
@@ -980,6 +984,17 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 		}
 		_conns_changed = true;
 	}
+	else if (ev->Control == Event::OutputMidiClock)
+	{
+		_output_midi_clock = ev->Value;
+		if (_midi_bridge) {
+			_midi_bridge->set_output_midi_clock(_output_midi_clock);
+		}
+	}
+	else if (ev->Control == Event::SmartEighths)
+	{
+		_smart_eighths = ev->Value;
+	}
 	else if (ev->Control == Event::SelectedLoopNum)
 	{
 		_selected_loop = (int) ev->Value;
@@ -1489,6 +1504,13 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (gg_event->param == "auto_disable_latency") {
 			gg_event->ret_value =  (_auto_disable_latency) ? 1.0f: 0.0f;
 		}
+		else if (gg_event->param == "output_midi_clock") {
+			gg_event->ret_value =  (_output_midi_clock) ? 1.0f: 0.0f;
+		}
+		else if (gg_event->param == "smart_eighths") {
+			cerr << "get smart eith" << endl;
+			gg_event->ret_value =  (_smart_eighths) ? 1.0f: 0.0f;
+		}
 		else if (gg_event->param == "selected_loop_num") {
 			gg_event->ret_value = (float) _selected_loop;
 		}
@@ -1518,6 +1540,15 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (gs_event->param == "auto_disable_latency") {
 			_auto_disable_latency = gs_event->value;
 			//cerr << "NEED TO setting disable_compensation " << endl;
+		}
+		else if (gs_event->param == "output_midi_clock") {
+			_output_midi_clock = gs_event->value;
+			if (_midi_bridge) {
+				_midi_bridge->set_output_midi_clock(_output_midi_clock);
+			}
+		}
+		else if (gs_event->param == "smart_eighths") {
+			_smart_eighths = gs_event->value;
 		}
 		else if (gs_event->param == "selected_loop_num") {
 			_selected_loop = (int) gs_event->value;
@@ -1735,18 +1766,20 @@ Engine::set_tempo (double tempo, bool rt)
 	_quarter_counter = 0;
 	_tempo_counter = 0;
 
+
 	// adjust eigths per cycle if tempo is > 240 or < 60
-	if (_tempo > 0.0 && (_tempo > 240.0 || _tempo < 60.0)) {
-		cerr << "tempo is " << _tempo << endl;
+	if (_smart_eighths &&
+	    _tempo > 1.0 && (_tempo > 240.0 || _tempo < 60.0)) {
+		//cerr << "tempo is " << _tempo << endl;
 		if (_tempo > 240.0) {
 			_eighth_cycle *= 0.5;
 			_eighth_cycle = max(1.0f, _eighth_cycle);
-			cerr << "halving 8ths to : " << _eighth_cycle << endl;
+			//cerr << "halving 8ths to : " << _eighth_cycle << endl;
 			//_tempo *= 0.5;
 		}
 		else if (_tempo < 60.0) {
 			_eighth_cycle *= 2;
-			cerr << "doubl 8ths to : " << _eighth_cycle << endl;
+			//cerr << "doubl 8ths to : " << _eighth_cycle << endl;
 			//_tempo *= 2.0;
 		}
 
@@ -1771,6 +1804,11 @@ Engine::set_tempo (double tempo, bool rt)
 		// we set tempo to zero as far as the loop is concerned
 		tempo = 0.0;
 	}
+
+	if (_tempo <= 1.0) {
+		tempo = 0.0;
+	}
+
 	
 	// update all loops
 	if (rt) {
@@ -2107,10 +2145,11 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			}
 			
 			if (ntempo != _tempo) {
-				//cerr << "new tempo is: " << ntempo << endl;
-
+				cerr << "new tempo is: " << ntempo << "  oldtempo: " << _tempo << endl;
+				
+				_beatstamp = _midi_bridge->get_current_host_time();
 				set_tempo(ntempo, true);
-
+			   
 				calculate_tempo_frames ();
 				_tempo_changed = true;
 				// wake up mainloop safely
@@ -2139,6 +2178,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 		
 		// this is close enough for now, really it should be a bit into the future since this is yet to be output
 		_beatstamp = _midi_bridge->get_current_host_time();
+		//fprintf(stderr, "beat occurred: at %.13g\n", _beatstamp);
 
 		// wake up mainloop safely
 		//TentativeLockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
@@ -2201,6 +2241,19 @@ Engine::load_session (std::string fname, string * readstr)
 			int temp = 0;
 			sscanf (prop->value().c_str(), "%d", &temp);
 			_auto_disable_latency = temp ? true: false;
+		}
+		if ((prop = globals_node->property ("output_midi_clock")) != 0) {
+			int temp = 0;
+			sscanf (prop->value().c_str(), "%d", &temp);
+			_output_midi_clock = temp ? true: false;
+			if (_midi_bridge) {
+				_midi_bridge->set_output_midi_clock(_output_midi_clock);
+			}
+		}
+		if ((prop = globals_node->property ("smart_eighths")) != 0) {
+			int temp = 0;
+			sscanf (prop->value().c_str(), "%d", &temp);
+			_smart_eighths = temp ? true: false;
 		}
 		if ((prop = globals_node->property ("sync_source")) != 0) {
 			sscanf (prop->value().c_str(), "%d", (int *) (&_sync_source));
@@ -2278,7 +2331,13 @@ Engine::save_session (std::string fname, bool write_audio, string * writestr)
 
 	snprintf(buf, sizeof(buf), "%d", (int)_auto_disable_latency ? 1 : 0);
 	globals_node->add_property ("auto_disable_latency", buf);
+
+	snprintf(buf, sizeof(buf), "%d", (int)_output_midi_clock ? 1 : 0);
+	globals_node->add_property ("output_midi_clock", buf);
 	
+	snprintf(buf, sizeof(buf), "%d", (int)_smart_eighths ? 1 : 0);
+	globals_node->add_property ("smart_eighths", buf);
+
 	
 	XMLNode * loopers_node = root_node->add_child ("Loopers");
 

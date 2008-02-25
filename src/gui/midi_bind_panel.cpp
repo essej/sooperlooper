@@ -59,7 +59,8 @@ enum {
 	ID_SusCheck,
 	ID_AppendCheck,
 	ID_DataMinCtrl,
-	ID_DataMaxCtrl
+	ID_DataMaxCtrl,
+	ID_OutputClockCheck
 
 };
 
@@ -77,6 +78,8 @@ BEGIN_EVENT_TABLE(SooperLooperGui::MidiBindPanel, wxPanel)
 	EVT_BUTTON (ID_SaveButton, SooperLooperGui::MidiBindPanel::on_button)
 	
 	EVT_CHOICE(ID_ControlCombo, SooperLooperGui::MidiBindPanel::on_combo)
+
+   EVT_CHECKBOX(ID_OutputClockCheck, SooperLooperGui::MidiBindPanel::on_check)
 	
 	EVT_SIZE (SooperLooperGui::MidiBindPanel::onSize)
 	EVT_PAINT (SooperLooperGui::MidiBindPanel::onPaint)
@@ -341,6 +344,16 @@ void MidiBindPanel::init()
 	
 	topsizer->Add (_edit_panel, 0, wxEXPAND|wxALL, 1);
 
+
+	wxBoxSizer * othersizer = new wxBoxSizer(wxHORIZONTAL);
+
+	_output_clock_check = new wxCheckBox(this, ID_OutputClockCheck, wxT("Output MIDI Clock"));
+	othersizer->Add(_output_clock_check, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 3);
+
+	topsizer->Add (othersizer, 0, wxEXPAND|wxALL, 1);
+
+
+
 	buttsizer = new wxBoxSizer(wxHORIZONTAL);
 	buttsizer->Add (1,1, 1, wxALL, 0);
 
@@ -530,6 +543,9 @@ void MidiBindPanel::refresh_state()
 		}
 	}
 	
+	float retval = 0.0;
+	_parent->get_loop_control().get_global_value(wxT("output_midi_clock"), retval);
+	_output_clock_check->SetValue(retval > 0.0f ? true : false);
 
 // 	if (selexists) {
 // 		_edit_panel->Enable(true);
@@ -899,3 +915,9 @@ void MidiBindPanel::learning_stopped ()
 }
 	
 	
+void MidiBindPanel::on_check (wxCommandEvent &ev)
+{
+
+   _parent->get_loop_control().post_global_ctrl_change(wxT("output_midi_clock"), _output_clock_check->GetValue() ? 1.0f : 0.0f);
+   
+}

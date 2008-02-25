@@ -225,8 +225,8 @@ class Engine
 	float  *       _internal_sync_buf;
 	int _sync_source;
 
-	double    _tempo;        // bpm
-	MIDI::timestamp_t _beatstamp; // timestamp at the beat of the last tempo change
+	volatile double    _tempo;        // bpm
+	volatile MIDI::timestamp_t _beatstamp; // timestamp at the beat of the last tempo change
 
 	float    _eighth_cycle; // eighth notes per loop cycle
 
@@ -254,6 +254,9 @@ class Engine
 	
 	bool               _auto_disable_latency;
 	int                _selected_loop;
+
+	bool               _output_midi_clock;
+	bool               _smart_eighths;
 
    private:
 
