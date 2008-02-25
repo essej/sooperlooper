@@ -75,7 +75,8 @@ Looper::Looper (AudioDriver * driver, XMLNode & node)
 	_chan_count = 1; // set from state
 	_loopsecs = 40.0f;
 	_have_discrete_io = false;
-	
+	_is_soloed = false;
+
 	if (set_state (node) < 0) {
 		cerr << "Set state errored" << endl;
 		initialize (_index, _chan_count); // default backup
@@ -583,7 +584,8 @@ Looper::get_control_value (Event::control_t ctrl)
 	float pan_pos;
 	
 	if (ctrl == Event::DryLevel) {
-		return _curr_dry;
+		//return _curr_dry;
+		return _target_dry;
 	}
 	else if (index >= 0 && index < LASTPORT) {
 		return ports[index];

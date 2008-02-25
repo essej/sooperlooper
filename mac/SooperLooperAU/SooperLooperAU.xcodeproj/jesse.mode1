@@ -190,46 +190,6 @@
 			<key>Content</key>
 			<dict>
 				<key>PBXProjectModuleGUID</key>
-				<string>8827C7D00D6BD4750066040D</string>
-				<key>PBXProjectModuleLabel</key>
-				<string>engine.cpp</string>
-				<key>PBXSplitModuleInNavigatorKey</key>
-				<dict>
-					<key>Split0</key>
-					<dict>
-						<key>PBXProjectModuleGUID</key>
-						<string>8827C7D10D6BD4750066040D</string>
-						<key>PBXProjectModuleLabel</key>
-						<string>engine.cpp</string>
-						<key>_historyCapacity</key>
-						<integer>0</integer>
-						<key>bookmark</key>
-						<string>883461680D7149EC00B57111</string>
-						<key>history</key>
-						<array>
-							<string>8827C7D30D6BD4750066040D</string>
-						</array>
-					</dict>
-					<key>SplitCount</key>
-					<string>1</string>
-				</dict>
-				<key>StatusBarVisibility</key>
-				<true/>
-			</dict>
-			<key>Geometry</key>
-			<dict>
-				<key>Frame</key>
-				<string>{{0, 20}, {775, 654}}</string>
-				<key>PBXModuleWindowStatusBarHidden2</key>
-				<false/>
-				<key>RubberWindowFrame</key>
-				<string>51 78 775 695 0 0 1280 778 </string>
-			</dict>
-		</dict>
-		<dict>
-			<key>Content</key>
-			<dict>
-				<key>PBXProjectModuleGUID</key>
 				<string>883461280D713EDA00B57111</string>
 				<key>PBXProjectModuleLabel</key>
 				<string>midi_bridge.cpp</string>
@@ -244,10 +204,10 @@
 						<key>_historyCapacity</key>
 						<integer>0</integer>
 						<key>bookmark</key>
-						<string>883461690D7149EC00B57111</string>
+						<string>88E6CC170D728F0400AB0362</string>
 						<key>history</key>
 						<array>
-							<string>883461190D713EC500B57111</string>
+							<string>8834616F0D714E9800B57111</string>
 						</array>
 					</dict>
 					<key>SplitCount</key>
@@ -353,11 +313,14 @@
 							<key>PBXSmartGroupTreeModuleOutlineStateSelectionKey</key>
 							<array>
 								<array>
-									<integer>113</integer>
+									<integer>40</integer>
+									<integer>37</integer>
+									<integer>1</integer>
+									<integer>0</integer>
 								</array>
 							</array>
 							<key>PBXSmartGroupTreeModuleOutlineStateVisibleRectKey</key>
-							<string>{{0, 1376}, {262, 664}}</string>
+							<string>{{0, 389}, {262, 664}}</string>
 						</dict>
 						<key>PBXTopSmartGroupGIDs</key>
 						<array/>
@@ -406,7 +369,7 @@
 										<key>_historyCapacity</key>
 										<integer>0</integer>
 										<key>bookmark</key>
-										<string>883461670D7149EC00B57111</string>
+										<string>88E6CC160D728F0400AB0362</string>
 										<key>history</key>
 										<array>
 											<string>885F13A20BD26C400069E7EC</string>
@@ -441,11 +404,11 @@
 											<string>88951DF70D56EE230080781B</string>
 											<string>88951DF80D56EE230080781B</string>
 											<string>88951DF90D56EE230080781B</string>
-											<string>8827C7C70D6BD4750066040D</string>
-											<string>8834611D0D713EDA00B57111</string>
-											<string>8834611E0D713EDA00B57111</string>
 											<string>883461410D71416400B57111</string>
-											<string>883461310D7140AB00B57111</string>
+											<string>88E6CBFC0D728C0E00AB0362</string>
+											<string>88E6CC0A0D728EB400AB0362</string>
+											<string>88E6CC0B0D728EB400AB0362</string>
+											<string>88E6CC0C0D728EB400AB0362</string>
 										</array>
 										<key>prevStack</key>
 										<array>
@@ -485,12 +448,13 @@
 											<string>88F2E24C0D4D7ED000333570</string>
 											<string>88F2E2510D4D7ED000333570</string>
 											<string>88F2E2520D4D7ED000333570</string>
-											<string>883461210D713EDA00B57111</string>
-											<string>883461220D713EDA00B57111</string>
-											<string>883461230D713EDA00B57111</string>
 											<string>883461240D713EDA00B57111</string>
-											<string>883461320D7140AB00B57111</string>
-											<string>883461420D71416400B57111</string>
+											<string>88E6CBFE0D728C0E00AB0362</string>
+											<string>88E6CBFF0D728C0E00AB0362</string>
+											<string>88E6CC0D0D728EB400AB0362</string>
+											<string>88E6CC0E0D728EB400AB0362</string>
+											<string>88E6CC0F0D728EB400AB0362</string>
+											<string>88E6CC100D728EB400AB0362</string>
 										</array>
 									</dict>
 									<key>SplitCount</key>
@@ -548,9 +512,9 @@
 			</array>
 			<key>TableOfContents</key>
 			<array>
-				<string>883461260D713EDA00B57111</string>
+				<string>88E6CC010D728C0E00AB0362</string>
 				<string>1CE0B1FE06471DED0097A5F4</string>
-				<string>883461270D713EDA00B57111</string>
+				<string>88E6CC020D728C0E00AB0362</string>
 				<string>1CE0B20306471E060097A5F4</string>
 				<string>1CE0B20506471E060097A5F4</string>
 			</array>
@@ -684,10 +648,9 @@
 	<integer>5</integer>
 	<key>WindowOrderList</key>
 	<array>
+		<string>885F13710BD2630F0069E7EC</string>
 		<string>883461280D713EDA00B57111</string>
 		<string>/Users/jesse/src/sooperlooper_cvs/mac/SooperLooperAU/SooperLooperAU.xcodeproj</string>
-		<string>885F13710BD2630F0069E7EC</string>
-		<string>8827C7D00D6BD4750066040D</string>
 	</array>
 	<key>WindowString</key>
 	<string>36 55 1244 723 0 0 1280 778 </string>
@@ -711,7 +674,7 @@
 								<key>PBXProjectModuleGUID</key>
 								<string>1CD0528F0623707200166675</string>
 								<key>PBXProjectModuleLabel</key>
-								<string>midi_bridge.cpp</string>
+								<string></string>
 								<key>StatusBarVisibility</key>
 								<true/>
 							</dict>
@@ -728,12 +691,10 @@
 							<string>280pt</string>
 						</dict>
 						<dict>
-							<key>BecomeActive</key>
-							<true/>
 							<key>ContentConfiguration</key>
 							<dict>
 								<key>PBXBuildLogShowsTranscriptDefaultKey</key>
-								<string>{{0, 191}, {992, 133}}</string>
+								<string>{{0, 146}, {992, 178}}</string>
 								<key>PBXProjectModuleGUID</key>
 								<string>XCMainBuildResultsModuleGUID</string>
 								<key>PBXProjectModuleLabel</key>
@@ -771,7 +732,7 @@
 			<key>TableOfContents</key>
 			<array>
 				<string>885F13710BD2630F0069E7EC</string>
-				<string>8834612D0D713EDA00B57111</string>
+				<string>88E6CC040D728C0E00AB0362</string>
 				<string>1CD0528F0623707200166675</string>
 				<string>XCMainBuildResultsModuleGUID</string>
 			</array>
@@ -782,7 +743,7 @@
 			<key>WindowToolGUID</key>
 			<string>885F13710BD2630F0069E7EC</string>
 			<key>WindowToolIsVisible</key>
-			<true/>
+			<false/>
 		</dict>
 		<dict>
 			<key>Identifier</key>

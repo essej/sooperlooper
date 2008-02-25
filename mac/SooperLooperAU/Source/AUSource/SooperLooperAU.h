@@ -204,6 +204,8 @@ protected:
 	SInt16		 _stay_on_top;
 	
 	std::string  _guiapp_path;
+	
+	static int _plugin_count;
 protected:
 		
 		/*

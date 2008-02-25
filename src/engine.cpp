@@ -1259,6 +1259,19 @@ Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 		else if (ctrl == Event::EighthPerCycle) {
 			return _eighth_cycle;
 		}
+		else if (ctrl == Event::SelectedLoopNum) {
+			return _selected_loop;
+		}
+		else if (ctrl == Event::SmartEighths) {
+			return _smart_eighths ? 1.0f: 0.0f;
+		}
+		else if (ctrl == Event::OutputMidiClock) {
+			return _output_midi_clock ? 1.0f: 0.0f;
+		}
+		else if (ctrl == Event::AutoDisableLatency) {
+			return _auto_disable_latency ? 1.0f: 0.0f;
+		}
+
 	}
 
 	return 0.0f;

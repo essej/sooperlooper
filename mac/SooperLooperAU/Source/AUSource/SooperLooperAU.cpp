@@ -41,6 +41,7 @@ Transmitter  warning (Transmitter::Warning);
 
 COMPONENT_ENTRY(SooperLooperAU)
 
+int SooperLooperAU::_plugin_count = 0;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //	SooperLooperAU::SooperLooperAU
@@ -68,11 +69,20 @@ SooperLooperAU::SooperLooperAU(AudioUnit component)
 	_last_rendered_frames = 0;
 	_stay_on_top = 0;
 	
+	_plugin_count++;
+	
 	//sl_init();
 	
 	_engine = new SooperLooper::Engine();
 	
-	MIDI::PortRequest portreq ("SooperLooperAU", "SooperLooperAU",  "duplex", "coremidi");
+	char portname[30];
+	if (_plugin_count == 1) {
+		snprintf(portname, sizeof(portname), "SooperLooperAU");
+	} else {
+		snprintf(portname, sizeof(portname), "SooperLooperAU_%d", _plugin_count);	
+	}
+	
+	MIDI::PortRequest portreq (portname, portname,  "duplex", "coremidi");
 	//_midi_bridge = new SooperLooper::MidiBridge("AUmidi");
 	_midi_bridge = new SooperLooper::MidiBridge("AUmidi", portreq);
 	
@@ -106,6 +116,7 @@ SooperLooperAU::~SooperLooperAU ()
 	delete _engine;
 	delete _midi_bridge;
 	
+	--_plugin_count;
 	//sl_fini();
 }
 
