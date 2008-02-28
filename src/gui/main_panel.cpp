@@ -157,6 +157,9 @@ MainPanel::~MainPanel()
 	delete _loop_control;
 
 	delete _keyboard;
+
+	delete _update_timer;
+	delete _taptempo_button_timer;
 }
 
 void
