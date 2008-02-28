@@ -72,8 +72,13 @@ class Engine
 	bool add_loop (Looper * instance);
 	bool remove_loop (Looper * loop);
 	
+	void set_force_discrete(bool flag) { _force_discrete = flag; }
+	bool get_force_discrete() const { return _force_discrete; }
+	
 	size_t loop_count() { return _instances.size(); }
 
+	size_t get_loop_channel_count(size_t instance, bool realtime);
+	
 	int process (nframes_t);
 
 	void buffersize_changed (nframes_t);
@@ -258,7 +263,8 @@ class Engine
 
 	bool               _output_midi_clock;
 	bool               _smart_eighths;
-
+	bool               _force_discrete;
+	
    private:
 
 	double _tempo_counter;

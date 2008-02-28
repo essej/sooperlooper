@@ -76,6 +76,8 @@ SooperLooperAU::SooperLooperAU(AudioUnit component)
 	
 	_engine = new SooperLooper::Engine();
 	
+	_engine->set_force_discrete(true); // to avoid confusion
+	
 	char portname[30];
 	if (_plugin_count == 1) {
 		snprintf(portname, sizeof(portname), "SooperLooperAU");
@@ -552,10 +554,16 @@ OSStatus			SooperLooperAU::ProcessBufferLists(
 				if (n > _engine->loop_count()) {
 					// zero the buffer
 					AUBufferList::ZeroBuffer(theOutput->GetBufferList());
+				} else if (_engine->get_loop_channel_count(n-1, true) == 1) {
+					// for the sidechain outputs that are mono, set the 2nd channel to be == to the first					
+					//theOutput->SetBuffer(1, theOutput->GetBufferList().mBuffers[0]);
 				}
 				
+								
 				_out_buflist[n] = &theOutput->GetBufferList();
 				//cerr << "got bus output: " << n <<  "  " << _out_buflist[n] << " count: " << theOutput->GetBufferList().mNumberBuffers << endl;
+
+								
 			}
 			else {
 				//cerr << "don't have both in and out for: " << n << endl;
@@ -570,10 +578,17 @@ OSStatus			SooperLooperAU::ProcessBufferLists(
 
 	_engine->process (inFramesToProcess);
 	
+	
+
 	_in_buflist[0] = 0;
 	_out_buflist[0] = 0;
 	
-	for (size_t n=1; n < _engine->loop_count() && n < SL_MAXLOOPS; ++n) {
+	for (size_t n=1; n <= _engine->loop_count() && n < SL_MAXLOOPS; ++n) {
+		if (_engine->get_loop_channel_count(n-1, true) == 1) {
+			memcpy(_out_buflist[n]->mBuffers[1].mData, _out_buflist[n]->mBuffers[0].mData, sizeof(float) * inFramesToProcess);
+		}
+		
+		
 		_in_buflist[n] = 0;	
 		_out_buflist[n] = 0;			
 	}

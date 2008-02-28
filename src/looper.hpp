@@ -81,21 +81,22 @@ class Looper
 
 	void use_sync_buf(sample_t * buf);
 
-	unsigned int get_index() { return _index; }
+	unsigned int get_index() const { return _index; }
+	unsigned int get_channel_count() const { return _chan_count; }
 	
 	void set_use_common_ins (bool val);
-	bool get_use_common_ins () { return _use_common_ins; }
+	bool get_use_common_ins () const { return _use_common_ins; }
 	void set_use_common_outs (bool val);
-	bool get_use_common_outs () { return _use_common_outs; }
+	bool get_use_common_outs () const { return _use_common_outs; }
 
-	bool get_have_discrete_io () { return _have_discrete_io; }
+	bool get_have_discrete_io () const { return _have_discrete_io; }
 
 	void set_auto_latency (bool val) { _auto_latency = val; }
-	bool get_auto_latency () { return _auto_latency; }
+	bool get_auto_latency () const { return _auto_latency; }
 
 	// disables any compensation but maintains the current values
 	void set_disable_latency_compensation (bool val);
-	bool get_disable_latency_compensation () { return _disable_latency; }
+	bool get_disable_latency_compensation () const { return _disable_latency; }
 
 	// called when some loop instance is being soloed, index says which instance (may not be us)
 	void set_soloed (int index, bool value);

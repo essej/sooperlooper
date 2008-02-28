@@ -83,6 +83,7 @@ Engine::Engine ()
 	_output_midi_clock = false;
 	_smart_eighths = true;
 	_force_next_clock_start = false;
+	_force_discrete = false;
 	
 	_running_frames = 0;
 	_last_tempo_frame = 0;
@@ -516,7 +517,7 @@ Engine::add_loop (unsigned int chans, float loopsecs, bool discrete)
 	
 	Looper * instance;
 	
-	instance = new Looper (_driver, (unsigned int) n, chans, loopsecs, discrete);
+	instance = new Looper (_driver, (unsigned int) n, chans, loopsecs, discrete || _force_discrete);
 	
 	if (!(*instance)()) {
 		cerr << "can't create a new loop!\n";
@@ -594,6 +595,20 @@ Engine::remove_loop (Looper * looper)
 
 	
 	return true;
+}
+
+size_t 
+Engine::get_loop_channel_count (size_t instance, bool realtime)
+{
+	if (realtime) {
+		if (instance < _rt_instances.size()) 
+			return _rt_instances[instance]->get_channel_count();
+	} else {
+		if (instance < _instances.size()) 
+			return _instances[instance]->get_channel_count();
+	}
+	
+	return 0;
 }
 
 
@@ -1608,7 +1623,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 				cl_event->secs = _def_loop_secs;
 			}
 			
-			add_loop (cl_event->channels, cl_event->secs, cl_event->discrete);
+			add_loop (cl_event->channels, cl_event->secs, cl_event->discrete || _force_discrete);
 		}
 		else if (cl_event->type == ConfigLoopEvent::Remove)
 		{
