@@ -57,6 +57,7 @@ SooperLooperAU::SooperLooperAU(AudioUnit component)
 	SetBusCount (kAudioUnitScope_Input, SL_MAXLOOPS);
 	SetBusCount (kAudioUnitScope_Output, SL_MAXLOOPS);		
 	
+		
 #if AU_DEBUG_DISPATCHER
 	mDebugDispatcher = new AUDebugDispatcher (this);
 #endif
@@ -351,6 +352,8 @@ ComponentResult		SooperLooperAU::Initialize()
 		return kAudioUnitErr_FormatNotSupported;
 	}
 
+	//ReallocateBuffers();
+
 	// start thread for main loop
 	_alive = true;
 	pthread_create (&_engine_thread, NULL, &SooperLooperAU::_engine_mainloop, this);
@@ -429,14 +432,16 @@ ComponentResult		SooperLooperAU::RenderBus(				AudioUnitRenderActionFlags &	ioAc
 													UInt32							inBusNumber,
 													UInt32							inNumberFrames)
 {
+
 	if (NeedsToRender(inTimeStamp.mSampleTime)) {
-		_mainbus_called = true;
+		//_mainbus_called = true;
+		cerr << "renderbus called with : " << inBusNumber << endl;
 		return Render(ioActionFlags, inTimeStamp, inNumberFrames);
 	}
 	else {
-		_mainbus_called = false;
+		//_mainbus_called = false;
 		cerr << "renderbus: " << inBusNumber << endl;
-		return Render(ioActionFlags, inTimeStamp, inNumberFrames);		
+		//return Render(ioActionFlags, inTimeStamp, inNumberFrames);		
 	}
 	return noErr;	// was presumably already rendered via another bus
 }
@@ -458,11 +463,11 @@ ComponentResult 	SooperLooperAU::Render(	AudioUnitRenderActionFlags &ioActionFla
 	if (ShouldBypassEffect())
 	{
 		
-		for (size_t n=0; n < SL_MAXLOOPS; ++n) 
+		for (size_t n=1; n < SL_MAXLOOPS; ++n) 
 		{
 			try {
-				AUOutputElement *theOutput = GetOutput(n+1);	// throws if error
-				AUInputElement *theInput = GetInput(n+1);
+				AUOutputElement *theOutput = GetOutput(n);	// throws if error
+				AUInputElement *theInput = GetInput(n);
 				if (theOutput && theInput) {
 					OSStatus result = theInput->PullInput(ioActionFlags, _curr_stamp, 0 /* element */, nFrames);
 					
@@ -515,15 +520,17 @@ OSStatus			SooperLooperAU::ProcessBufferLists(
 	_in_buflist[0] = (AudioBufferList *) &inBuffer;
 	_out_buflist[0] = &outBuffer;
 
+//cerr << "main bus:  " << _out_buflist[0] << " count: " << outBuffer.mNumberBuffers << endl;
+
 	// this is called with the main bus (0) buffers
 	// we really should subclass Render here, but instead
 	// we'll just get the other busses data too
 
-	for (size_t n=0;  n < SL_MAXLOOPS; ++n) 
+	for (size_t n=1;  n < SL_MAXLOOPS; ++n) 
 	{
 		try {
-			AUOutputElement *theOutput = GetOutput(n+1);	// throws if error
-			AUInputElement *theInput = GetInput(n+1);
+			AUOutputElement *theOutput = GetOutput(n);	// throws if error
+			AUInputElement *theInput = GetInput(n);
 			if (theOutput && theInput) {
 				OSStatus result = theInput->PullInput(ioActionFlags, _curr_stamp, 0 /* element */, inFramesToProcess);
 			
@@ -534,19 +541,27 @@ OSStatus			SooperLooperAU::ProcessBufferLists(
 					}
 					else {
 						theOutput->PrepareBuffer(inFramesToProcess);
-						if (n > _engine->loop_count()) {
-							// zero the buffer
-							AUBufferList::ZeroBuffer(theOutput->GetBufferList());
-						}
 					}
-
-					_in_buflist[n+1] = &theInput->GetBufferList();
-					_out_buflist[n+1] = &theOutput->GetBufferList();
-					//cerr << "got bus input: " << n+1 <<  "  " << _out_buflist[n+1] << endl;
+					_in_buflist[n] = &theInput->GetBufferList();
 				}
+				else {
+					// no input, just do output
+					theOutput->PrepareBuffer(inFramesToProcess);
+				}
+				
+				if (n > _engine->loop_count()) {
+					// zero the buffer
+					AUBufferList::ZeroBuffer(theOutput->GetBufferList());
+				}
+				
+				_out_buflist[n] = &theOutput->GetBufferList();
+				//cerr << "got bus output: " << n <<  "  " << _out_buflist[n] << " count: " << theOutput->GetBufferList().mNumberBuffers << endl;
+			}
+			else {
+				//cerr << "don't have both in and out for: " << n << endl;
 			}
 		} catch (...) {
-				//cerr << "got exception: " << endl;	
+				//cerr << "got exception: with bus " << n <<  endl;	
 		}
 	}
 		
@@ -558,9 +573,9 @@ OSStatus			SooperLooperAU::ProcessBufferLists(
 	_in_buflist[0] = 0;
 	_out_buflist[0] = 0;
 	
-	for (size_t n=0; n < _engine->loop_count() && n < SL_MAXLOOPS; ++n) {
-		_in_buflist[n+1] = 0;	
-		_out_buflist[n+1] = 0;			
+	for (size_t n=1; n < _engine->loop_count() && n < SL_MAXLOOPS; ++n) {
+		_in_buflist[n] = 0;	
+		_out_buflist[n] = 0;			
 	}
 	
 	return noErr;
@@ -1031,7 +1046,7 @@ sample_t * SooperLooperAU::get_output_port_buffer (port_id_t port, nframes_t nfr
 		return (sample_t *) _out_buflist[bus]->mBuffers[chan].mData;
 	}
 	
-	//cerr << "null output for " << port << endl;
+	//cerr << "null output for " << port << " with bus: " << bus << "  chan: " << chan << endl;
 /*	
 	if (!_out_buflist) return 0;
 	

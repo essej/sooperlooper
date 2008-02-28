@@ -965,7 +965,6 @@ void
 MainPanel::on_smart_eighths_check (bool val)
 {
 	// send for all loops
-	cerr << "on smart: " << endl;
 	_loop_control->post_global_ctrl_change (wxT("smart_eighths"), val ? 1.0f: 0.0f);
 }
 

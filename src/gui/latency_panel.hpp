@@ -45,7 +45,7 @@ class LatencyPanel
 		   const wxPoint& pos = wxDefaultPosition,
 		   const wxSize& size = wxSize(400,600),
 		   long style = wxDEFAULT_FRAME_STYLE,
-		   const wxString& name = wxT("LatencyPanel"));
+		   const wxString& name = wxT("LatencyMiscPanel"));
 
 	virtual ~LatencyPanel();
 
@@ -72,6 +72,8 @@ class LatencyPanel
 	SpinBox     * _input_spin;
 	SpinBox     * _output_spin;
 	
+	wxCheckBox  * _round_tempo_integer_check;
+
 	MainPanel * _parent;
 	bool       _justResized;
 

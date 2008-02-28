@@ -722,6 +722,9 @@ connectPortToSooperLooper(LADSPA_Handle Instance,
       case SyncOffsetSamples:
 	 pLS->pfSyncOffsetSamples = DataLocation;
 	 break;
+      case RoundIntegerTempo:
+	 pLS->pfRoundIntegerTempo = DataLocation;
+	 break;
 	 
       case AudioInputPort:
 	 pLS->pfInput = DataLocation;
@@ -1596,6 +1599,7 @@ runSooperLooper(LADSPA_Handle Instance,
   LADSPA_Data fMuteQuantized = 0.0f;
   LADSPA_Data fOverdubQuantized = 0.0f;
   LADSPA_Data fSyncOffsetSamples = 0.0f;
+  bool bRoundIntegerTempo = false;
 
   unsigned long lSampleIndex;
 
@@ -1631,6 +1635,8 @@ runSooperLooper(LADSPA_Handle Instance,
   fMuteQuantized = *pLS->pfMuteQuantized;
   fOverdubQuantized = *pLS->pfOverdubQuantized;
   fSyncOffsetSamples = *pLS->pfSyncOffsetSamples;
+
+  bRoundIntegerTempo = *pLS->pfRoundIntegerTempo;
 
   eighthPerCycle = (unsigned int) *pLS->pfEighthPerCycle;
 
@@ -1792,7 +1798,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	   switch(pLS->state) {
 	      case STATE_RECORD:
 		      
-		      if (fSyncMode == 0.0f && (fTrigThresh==0.0f)) {
+		      if (fSyncMode == 0.0f && (fTrigThresh==0.0f) && !bRoundIntegerTempo) {
 			      // skip trig stop
 			      pLS->state = STATE_PLAY;
 			      pLS->wasMuted = false;
@@ -1933,7 +1939,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	   case STATE_RECORD:
 	   case STATE_TRIG_STOP:
 		   // lets sync on ending record with overdub
-		   if (fSyncMode == 0.0f) {
+		   if (fSyncMode == 0.0f && !bRoundIntegerTempo) {
 			   if (loop) {
 
 				   loop = beginOverdub(pLS, loop);
@@ -2056,7 +2062,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // continue through to default
 
 	      default:
-		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
+		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF
+			  && !(pLS->state == STATE_RECORD && bRoundIntegerTempo)) {
 			      if (loop) {
 				      prevstate = pLS->state;
 
@@ -2136,7 +2143,9 @@ runSooperLooper(LADSPA_Handle Instance,
 
 	      default:
 		 // make new loop chunk
-		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
+		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF
+			  && !(pLS->state == STATE_RECORD && bRoundIntegerTempo)) 
+		      {
 			      if (loop)
 			      {
 				      prevstate = pLS->state;
@@ -2214,7 +2223,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		 break;
 		 
 	      default:
-		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
+		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF
+			  && !(pLS->state == STATE_RECORD && bRoundIntegerTempo)) {
 			      if (loop)
 			      {
 				      prevstate = pLS->state;
@@ -2287,7 +2297,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		 break;
 		 
 	      default:
-		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
+		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF
+			  && !(pLS->state == STATE_RECORD && bRoundIntegerTempo)) {
 			      if (loop)
 			      {
 				      prevstate = pLS->state;
@@ -2388,7 +2399,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // continue through to default
 
 	      default:
-		   if ((fMuteQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF)) 
+		   if (((fMuteQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF))
+			  && !(pLS->state == STATE_RECORD && bRoundIntegerTempo))
 		   {
 		     if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
 			 // we need to increment loop position by output latency (+ IL ?)
@@ -2763,7 +2775,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		default:
 			// play the loop one_shot mode
 			if (loop) {
-				if (fSyncMode == 0.0f) {
+				if (fSyncMode == 0.0f
+				    && !(pLS->state == STATE_RECORD && bRoundIntegerTempo)) {
 					DBG(fprintf(stderr,"Starting ONESHOT state\n"));
 					pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 					pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
@@ -2825,7 +2838,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		default:
 			// play the loop from the start
 			if (loop) {
-				if (fSyncMode == 0.0f) {
+				if (fSyncMode == 0.0f && !(pLS->state == STATE_RECORD && bRoundIntegerTempo)) {
 
 					prevstate = pLS->state;
 					
@@ -3093,6 +3106,26 @@ runSooperLooper(LADSPA_Handle Instance,
 	   // above the threshold, then go into next state.
 
 	   loop = ensureLoopSpace (pLS, loop, SampleCount - lSampleIndex, NULL);
+
+	   bool roundTempoDone  = false;
+	   unsigned int roundedSamples = 0;
+
+	   if (bRoundIntegerTempo) {
+		   // logic to figure out if it is time to stop with a rounded tempo
+		   float eighths = *pLS->pfEighthPerCycle;
+		   double tempo = (30.0 * eighths * pLS->fSampleRate / loop->dCurrPos);
+		   while (tempo > 1.0f && (tempo < 60.0f || tempo > 240.0f)) {
+			   eighths *= (tempo < 60.0f) ? 2.0f : 0.5f;
+			   eighths = max(1.0f, eighths);
+			   tempo = (30.0 * eighths * pLS->fSampleRate / loop->dCurrPos);
+			   DBG(cerr << "eights adjusted to: " << eighths << "  tempo: " << tempo << endl;)
+			   if (eighths == 1.0f) break;
+		   } 
+		   
+		   roundedSamples = (unsigned int) (pLS->fSampleRate * 30.0 * eighths/ floor(tempo));
+		   //bool roundTempoDone = bRoundIntegerTempo && abs((long)lCurrPos - (long)roundedSamples) < 1;
+		   DBG(cerr << "rounded samples now: " << roundedSamples << "  eighths: " << eighths << " tempo: " << tempo << " currpos: " << loop->dCurrPos << endl;)
+	   }
 		
 	   for (;lSampleIndex < SampleCount;
 		lSampleIndex++)
@@ -3115,10 +3148,11 @@ runSooperLooper(LADSPA_Handle Instance,
 // 	      if ((fSyncMode == 0.0f && ((fInputSample > fTrigThresh) || (fTrigThresh==0.0)))
 // 		  || (fSyncMode > 0.0f && pfSyncInput[lSampleIndex] != 0.0))
 
+	      roundTempoDone = bRoundIntegerTempo && lCurrPos == roundedSamples;
 	      
 	      // exit immediately if syncmode is off, or we have a sync
-	      if ((fSyncMode == 0.0f)
- 		  || (fSyncMode == 1.0f && pfSyncInput[lSampleIndex] != 0.0f) // jlc START HERE!  REL SYNC NOT RIGHT
+	      if ((fSyncMode == 0.0f && (!bRoundIntegerTempo || roundTempoDone))
+ 		  || (fSyncMode == 1.0f && pfSyncInput[lSampleIndex] != 0.0f)
 		  || (fSyncMode == 2.0f && pLS->lSamplesSinceSync == loop->lSyncOffset))
 	      {
 		      DBG(fprintf(stderr,"Entering %d state at %u\n", pLS->nextState, lCurrPos));
@@ -3126,6 +3160,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // reset for audio ramp
 		 //pLS->lRampSamples = xfadeSamples;
 		 //loop->dCurrPos = 0.0f;
+		      DBG(cerr << "Round tempo: " << bRoundIntegerTempo << "  roundedSamples: " << roundedSamples << endl);
 
 		      if (fSyncMode == 2.0f) {
 			      //cerr << "ending recstop sync2d: " << lCurrPos << endl;
@@ -3135,7 +3170,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			      //cerr << "ending recstop sync1: " << lCurrPos << endl;
 		      }
 
-		      DBG(fprintf(stderr,"0x%08x: transitioning to %d  at %g with length: %d\n", (unsigned) pLS, pLS->nextState, loop->dCurrPos, loop->lLoopLength));
+		      DBG(fprintf(stderr,"0x%08x: transitioning to %d  at %g with length: %lu\n", (unsigned) pLS, pLS->nextState, loop->dCurrPos, loop->lLoopLength));
 
 		      loop = transitionToNext (pLS, loop, pLS->nextState);
 		      pLS->waitingForSync = 0;

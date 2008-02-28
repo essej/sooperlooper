@@ -96,7 +96,7 @@ void PrefsDialog::init()
 	_notebook->AddPage (_midi_panel, wxT("MIDI Bindings"), false);
 
 	_latency_panel = new LatencyPanel(_parent, _notebook, -1);
-	_notebook->AddPage (_latency_panel, wxT("Latency"), false);
+	_notebook->AddPage (_latency_panel, wxT("Latency/Misc"), false);
 	
 #if wxCHECK_VERSION(2,6,0)
 	topsizer->Add (_notebook, 1, wxEXPAND|wxALL, 6);

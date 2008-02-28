@@ -130,6 +130,7 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_tempo_stretch = false;
 	_pending_stretch = false;
 	_pending_stretch_ratio = 0.0;
+	_is_soloed = false;
 
 	if (!descriptor) {
 		descriptor = create_sl_descriptor ();
@@ -201,6 +202,8 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	ports[UseSafetyFeedback] = 1.0f;
 	ports[TriggerLatency] = 0;
 	ports[MuteQuantized] = 0;
+	
+	ports[RoundIntegerTempo] = 0;
 
 	_slave_sync_port = (_relative_sync && ports[Sync]) ? 2.0f : 1.0f;
 
@@ -1371,6 +1374,7 @@ Looper::load_loop (string fname)
 	float old_in_latency = ports[InputLatency];
 	float old_out_latency = ports[OutputLatency];
 	float old_trig_latency = ports[TriggerLatency];
+	float old_round_tempo = ports[RoundIntegerTempo];
 
 	ports[TriggerThreshold] = 0.0f;
 	ports[Sync] = 0.0f;
@@ -1378,6 +1382,7 @@ Looper::load_loop (string fname)
 	ports[InputLatency] = 0.0f;
 	ports[OutputLatency] = 0.0f;
 	ports[TriggerLatency] = 0.0f;
+	ports[RoundIntegerTempo] = 0.0f;
 	_slave_sync_port = 0.0f;
 	
 	// now set it to mute just to make sure we weren't already recording
@@ -1462,6 +1467,7 @@ Looper::load_loop (string fname)
 	ports[InputLatency] = old_in_latency;
 	ports[OutputLatency] = old_out_latency;
 	ports[TriggerLatency] = old_trig_latency;
+	ports[RoundIntegerTempo] = old_round_tempo;
 	_slave_sync_port = _relative_sync ? 2.0f: 1.0f;
 	
 	ret = true;

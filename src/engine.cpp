@@ -1522,7 +1522,6 @@ Engine::process_nonrt_event (EventNonRT * event)
 			gg_event->ret_value =  (_output_midi_clock) ? 1.0f: 0.0f;
 		}
 		else if (gg_event->param == "smart_eighths") {
-			cerr << "get smart eith" << endl;
 			gg_event->ret_value =  (_smart_eighths) ? 1.0f: 0.0f;
 		}
 		else if (gg_event->param == "selected_loop_num") {
@@ -2160,7 +2159,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			}
 			
 			if (ntempo != _tempo) {
-				cerr << "new tempo is: " << ntempo << "  oldtempo: " << _tempo << endl;
+				//cerr << "new tempo is: " << ntempo << "  oldtempo: " << _tempo << endl;
 				
 				_beatstamp = _midi_bridge->get_current_host_time();
 				_force_next_clock_start = true;

@@ -53,12 +53,13 @@ enum ControlPort {
 	MuteQuantized,
 	OverdubQuantized,
 	SyncOffsetSamples,
+	RoundIntegerTempo,
 	LASTCONTROLPORT,
 	RelativeSync // not an enum
 };
 
 enum OutputPort {
-	State = 25,
+	State = 26,
 	LoopLength,
 	LoopPosition,
 	CycleLength,
@@ -71,7 +72,7 @@ enum OutputPort {
 };
 
 enum AudioPort {
-	AudioInputPort=34,
+	AudioInputPort=35,
 	AudioOutputPort,
 	SyncInputPort,
 	SyncOutputPort,
@@ -333,6 +334,7 @@ typedef struct {
 	LADSPA_Data *pfMuteQuantized;
 	LADSPA_Data *pfOverdubQuantized;
 	LADSPA_Data *pfSyncOffsetSamples;
+	LADSPA_Data *pfRoundIntegerTempo;
 
 	LADSPA_Data *pfXfadeSamples;
 

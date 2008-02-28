@@ -149,6 +149,7 @@ namespace SooperLooper {
 		    MuteQuantized,
 		    OverdubQuantized,
 		    SyncOffsetSamples,
+		    RoundIntegerTempo,
 		    // read only
 		    State,
 		    LoopLength,
