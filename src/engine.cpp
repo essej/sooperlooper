@@ -1208,7 +1208,7 @@ Engine::push_sync_event (Event::control_t ctrl, long framepos)
 	if (_sync_source != MidiClockSync) {
 		return;
 	}
-
+	
 	RingBuffer<Event>::rw_vector vec;
 
 	_sync_queue->get_write_vector (&vec);
@@ -2030,9 +2030,9 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 				
 				if (fragpos < usedframes || fragpos >= nframes) {
 					// bad fragment pos
-//#ifdef DEBUG
+#ifdef DEBUG
 					cerr << "BAD SYNC FRAGMENT POS: " << fragpos << endl;
-//#endif
+#endif
 					continue;
 				}
 				
@@ -2062,7 +2062,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 					ntempo = avg_tempo(ntempo);
 
 					if (ntempo != _tempo) {
-						cerr << "new tempo is: " << ntempo << "   tcount = " << tcount << "  secs: " << tcount / (double) _driver->get_samplerate() << "  used: " << usedframes << endl;
+						//cerr << "new tempo is: " << ntempo << "   tcount = " << tcount << "  used: " << usedframes << endl;
 
 						set_tempo(ntempo, true);
 						_tempo_changed = true;
