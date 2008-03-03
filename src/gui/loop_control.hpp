@@ -215,6 +215,8 @@ class LoopControl
 	wxString _exec_name;
 	wxString _rcdir;
 	
+	int _our_port;
+
 	LoopUpdateTimer * _updatetimer;
 	bool _pingack;
 	int  _waiting;

@@ -414,7 +414,7 @@ void SooperLooperAUView::create_slgui()
 
 	vector<string> args;
 	args.push_back("-H");
-	args.push_back("localhost");
+	args.push_back("127.0.0.1");
 	args.push_back("-P");
 	args.push_back(portbuf);
 	args.push_back("-N");

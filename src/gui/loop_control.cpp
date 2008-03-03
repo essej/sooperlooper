@@ -172,6 +172,8 @@ LoopControl::LoopControl (const wxString & rcdir)
 	tmpstr = lo_server_get_url (_osc_server);
 	_our_url = tmpstr;
 	free (tmpstr);
+	
+	_our_port = lo_server_get_port(_osc_server);
 
 	cerr << "slgui: our URL is " << _our_url << endl;
 	
@@ -297,6 +299,14 @@ LoopControl::connect()
 		_osc_addr = lo_address_new((const char *)_spawn_config.host.c_str(), (const char *) wxString::Format(wxT("%ld"), _spawn_config.port).ToAscii());
 	}
 	//cerr << "osc errstr: " << lo_address_errstr(_osc_addr) << endl;
+
+	// if the spawn_config host string is 127.0.0.1 or localhost, make our_url match it
+	if (_spawn_config.host == "127.0.0.1" || _spawn_config.host == "localhost") {
+		char tmpbuf[100];
+		snprintf (tmpbuf, sizeof(tmpbuf), "osc.udp://127.0.0.1:%d/", _our_port);
+		_our_url = tmpbuf;
+		cerr << "Changing our url to be : " << _our_url << endl;
+	}
 
 	_pingack = false;
 	
@@ -625,8 +635,19 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 	}
 	
 	char * remhost = lo_url_get_hostname(_osc_url.c_str());
-	_host = wxString::FromAscii(remhost);
-	_spawn_config.host = remhost;
+	if (_spawn_config.host.empty() && !_lastchance) {
+		// only if the spawn config host was empty do we use what is returned
+		_host = wxString::FromAscii(remhost);
+		_spawn_config.host = remhost;
+	}
+	else {
+		// use the one given
+		_host = wxString::FromAscii(_spawn_config.host.c_str());
+		snprintf(tmpbuf, sizeof(tmpbuf), "osc.udp://%s:%ld/", _spawn_config.host.c_str(), _spawn_config.port);
+		_osc_url = tmpbuf;
+		cerr << "  but treating the engine URL as " << _osc_url << endl;
+	}
+
 	free(remhost);
 
 

@@ -293,13 +293,18 @@ class Engine
 	bool _loading;
 };
 
+
+
 inline double Engine::avg_tempo(double tempo)
 {
+	//double alpha = 0.8;
+	//tempo =  (_tempo*alpha + tempo*(1-alpha));
 	_running_tempo_sum += tempo;
 	_running_tempo_sum -= _tempo_averages[_avgindex];
 	_tempo_averages[_avgindex] = tempo;
 	_avgindex = (_avgindex + 1) & TEMPO_WINDOW_SIZE_MASK;
 	return _running_tempo_sum / (double) TEMPO_WINDOW_SIZE;
+
 }
 
 inline void Engine::reset_avg_tempo(double tempo)
