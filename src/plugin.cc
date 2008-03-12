@@ -52,12 +52,12 @@ using namespace SooperLooper;
 #define DBG(x)
 #endif
 
-#define VERSION "1.0"
+#define VERSION "1.6"
 
 /* The maximum sample memory  (in seconds). */
 
 #ifndef SAMPLE_MEMORY
-#define SAMPLE_MEMORY 40.0
+#define SAMPLE_MEMORY 80.0
 #endif
 
 #define XFADE_SAMPLES 128
@@ -1279,7 +1279,8 @@ static LoopChunk * beginOverdub(SooperLooperI *pLS, LoopChunk *loop)
    if (xfadeSamples < 1) xfadeSamples = 1;
 
    // make new loop chunk
-   loop = pushNewLoopChunk(pLS, loop->lLoopLength, loop);
+   //loop = pushNewLoopChunk(pLS, loop->lLoopLength, loop);
+   loop = pushNewLoopChunk(pLS, 0, loop);
    if (loop) {
       pLS->state = STATE_OVERDUB;
       // always the same length as previous loop
@@ -1308,6 +1309,9 @@ static LoopChunk * beginOverdub(SooperLooperI *pLS, LoopChunk *loop)
 	      loop->next = NULL;
 	      loop->prev = NULL;
 	      loop->valid = 1;
+	      loop->srcloop = loop; // !!!
+
+	      pLS->nextState = -1;
 
 	      return loop;
 	      // this is already set if we have no srcloop anymore
@@ -2647,6 +2651,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 
+		pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
 	} break;
 
         case MULTI_REDO_ALL:

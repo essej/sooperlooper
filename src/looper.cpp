@@ -73,7 +73,7 @@ Looper::Looper (AudioDriver * driver, XMLNode & node)
 {
 	_index = 0; // set from state
 	_chan_count = 1; // set from state
-	_loopsecs = 40.0f;
+	_loopsecs = 80.0f;
 	_have_discrete_io = false;
 	_is_soloed = false;
 

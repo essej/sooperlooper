@@ -345,15 +345,6 @@ void MidiBindPanel::init()
 	topsizer->Add (_edit_panel, 0, wxEXPAND|wxALL, 1);
 
 
-	wxBoxSizer * othersizer = new wxBoxSizer(wxHORIZONTAL);
-
-	_output_clock_check = new wxCheckBox(this, ID_OutputClockCheck, wxT("Output MIDI Clock"));
-	othersizer->Add(_output_clock_check, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 3);
-
-	topsizer->Add (othersizer, 0, wxEXPAND|wxALL, 1);
-
-
-
 	buttsizer = new wxBoxSizer(wxHORIZONTAL);
 	buttsizer->Add (1,1, 1, wxALL, 0);
 
@@ -377,6 +368,15 @@ void MidiBindPanel::init()
 
 
 	topsizer->Add (buttsizer, 0, wxALL|wxEXPAND|wxALIGN_RIGHT, 4);
+
+
+	wxBoxSizer * othersizer = new wxBoxSizer(wxHORIZONTAL);
+
+	_output_clock_check = new wxCheckBox(this, ID_OutputClockCheck, wxT("Output MIDI Clock"));
+	othersizer->Add(_output_clock_check, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 3);
+
+	topsizer->Add (othersizer, 0, wxEXPAND|wxALL, 1);
+
 
 
 
@@ -719,7 +719,7 @@ void MidiBindPanel::update_curr_binding()
 	}
 
 	if (_data_min_ctrl->GetValue().ToLong(&lval)) {
-		cerr << "data minis: " << (const char *) _data_min_ctrl->GetValue().ToAscii() << endl;
+		//cerr << "data minis: " << (const char *) _data_min_ctrl->GetValue().ToAscii() << endl;
 		_currinfo.data_min = (int) lval;
 	}
 	else {
@@ -727,7 +727,7 @@ void MidiBindPanel::update_curr_binding()
 	}
 
 	if (_data_max_ctrl->GetValue().ToLong(&lval)) {
-		cerr << "data max is: " << (const char *) _data_max_ctrl->GetValue().ToAscii() << endl;
+		//cerr << "data max is: " << (const char *) _data_max_ctrl->GetValue().ToAscii() << endl;
 		_currinfo.data_max = (int) lval;
 	}
 	else {

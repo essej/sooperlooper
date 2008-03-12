@@ -225,7 +225,7 @@ bool GuiApp::OnInit()
 
 
 	// Create the main application window
-	_frame = new AppFrame (wxT("SooperLooper"), wxPoint(100, 100), wxDefaultSize, _stay_on_top);
+	_frame = new AppFrame (wxString::Format(wxT("SooperLooper v %s"), wxString::FromAscii(sooperlooper_version).c_str()), wxPoint(100, 100), wxDefaultSize, _stay_on_top);
 
 #ifdef __WXMAC__
 	if (_exec_name.empty()) {

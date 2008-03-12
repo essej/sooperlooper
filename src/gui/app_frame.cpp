@@ -319,12 +319,12 @@ void AppFrame::on_about (wxCommandEvent &ev)
 	wxMemoryDC mdc;
 	mdc.SelectObject(bitmap);
 	int w,h;
-	wxString vstr = wxString::Format(wxT("v %s"), sooperlooper_version);
+	wxString vstr = wxString::Format(wxT("v %s"), wxString::FromAscii(sooperlooper_version).c_str());
 	mdc.SetFont(*wxSWISS_FONT);
 	mdc.SetTextForeground(*wxWHITE);
+	mdc.SetTextBackground(*wxBLACK);
 	mdc.GetTextExtent(vstr, &w, &h);
 	mdc.DrawText(vstr, bitmap.GetWidth() / 2 - (w/2), 148);
-	
 	
 	wxSplashScreen* splash = new wxSplashScreen(bitmap,
 						    wxSPLASH_CENTRE_ON_PARENT|wxSPLASH_NO_TIMEOUT,
