@@ -160,9 +160,13 @@ void SooperLooperAU::setup_params()
 			Globals()->SetParameter(ctrl, _engine->get_control_value(ctrl, -2));
 		}
 		else {
-
+			// selected
 			Globals()->SetParameter(ctrl + (1000), _engine->get_control_value(ctrl, -3)); // SEL
 					
+			// All
+			Globals()->SetParameter(ctrl + (5000), _engine->get_control_value(ctrl, -1)); // ALL
+								
+			// loop instance
 			for (int i=0; i < loopcount; ++i) {
 				Globals()->SetParameter(ctrl + ((i+1)*10000), _engine->get_control_value(ctrl, i));
 			}
@@ -177,6 +181,7 @@ void SooperLooperAU::setup_params()
 		Event::command_t cmd = cmdmap.to_command_t(*iter);
 
 		Globals()->SetParameter(cmd + (1000) + 500, 0); // selected
+		Globals()->SetParameter(cmd + (5000) + 500, 0); // All		
 			
 		for (int i=0; i < loopcount; ++i) {
 			Globals()->SetParameter(cmd + ((i+1)*10000) + 500, 0);
@@ -241,13 +246,19 @@ ComponentResult		SooperLooperAU::GetParameterInfo(AudioUnitScope		inScope,
 				// anything else is either a global control, or a loop instance control
 					
 		
-				
 				if (inParameterID >= 10000) {
 					// instance
 					instance = (inParameterID / 10000) - 1;
 					ctrl = inParameterID % 10000;
 					snprintf(prebuf, sizeof(prebuf), "%d-", instance+1);
 					strncpy(postbuf, "", sizeof(postbuf));					
+				}
+				else if (inParameterID >= 5000) {
+					// all 
+					instance = -1;
+					ctrl = inParameterID - 5000;
+					strncpy(prebuf, "", sizeof(prebuf));
+					snprintf(postbuf, sizeof(postbuf), " (all)");
 				}
 				else if (inParameterID >= 1000) {
 					// selected
@@ -710,6 +721,11 @@ ComponentResult 	SooperLooperAU::GetParameter(	AudioUnitParameterID			inID,
 			instance = (inID / 10000) - 1;
 			ctrl = inID % 10000;
 		}
+		else if (inID >= 5000) {
+			// all instance
+			instance = -1;
+			ctrl = inID % 5000;
+		}
 		else {
 			instance = -3; // selected
 			ctrl = inID - 1000;
@@ -795,6 +811,11 @@ ComponentResult  SooperLooperAU::SetParameter(			AudioUnitParameterID			inID,
 			instance = (inID / 10000) - 1;
 			ctrl = inID % 10000;
 		}
+		else if (inID >= 5000) {
+			// all loops
+			instance = -1;
+			ctrl = inID % 5000;
+		}
 		else {
 			// selected
 			instance = -3;
@@ -832,6 +853,10 @@ void SooperLooperAU::parameter_changed(int ctrl_id, int instance)
 	if (instance == -3) {
 		// selected
 		paramid = ctrl_id + 1000;
+	}
+	else if (instance == -1) {
+		// all
+		paramid = ctrl_id + 5000;
 	}
 	else if (instance < 0) {
 		// global
