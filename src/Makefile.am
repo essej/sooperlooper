@@ -40,7 +40,7 @@ libsldrivers_a_SOURCES      = \
 sooperlooper_SOURCES = \
 	sooperlooper.cpp
 
-sooperlooper_LDADD =  libsldrivers.a libslcore.a @JACK_LIBS@ @LOSC_LIBS@ @SIGCPP_LIBS@ @RUBBERBAND_LIBS@ @FFTW_LIBS@ @SNDFILE_LIBS@ @SAMPLERATE_LIBS@ @AUDIO_LIBS@ @XML_LIBS@
+sooperlooper_LDADD =  libsldrivers.a libslcore.a @BASE_LIBS@ @JACK_LIBS@ @LOSC_LIBS@ @SIGCPP_LIBS@ @RUBBERBAND_LIBS@ @FFTW_LIBS@ @SNDFILE_LIBS@ @SAMPLERATE_LIBS@ @AUDIO_LIBS@ @XML_LIBS@
 sooperlooper_LDFLAGS = 
 
 slconsole_SOURCES = slconsole.cpp
