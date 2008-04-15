@@ -21,6 +21,7 @@
 #include <midi++/types.h>
 #include <midi++/port.h>
 #include <midi++/channel.h>
+#include <cstring>
 
 using namespace SigC;
 using namespace MIDI;

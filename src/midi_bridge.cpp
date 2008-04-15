@@ -28,6 +28,7 @@
 #include <cstdio>
 #include <cmath>
 #include <cerrno>
+#include <cstring>
 
 #include <midi++/parser.h>
 #include <midi++/factory.h>

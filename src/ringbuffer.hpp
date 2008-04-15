@@ -22,6 +22,7 @@
 #define ringbuffer_h
 
 #include <sys/mman.h>
+#include <cstring>
 #include "atomic.h"
 
 template<class T>

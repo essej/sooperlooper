@@ -29,6 +29,7 @@
 */
 
 #include <string>
+#include <cstring>
 #include <sys/types.h> /* Because fts(3) says so */
 #include <sys/stat.h>
 #include <fts.h>

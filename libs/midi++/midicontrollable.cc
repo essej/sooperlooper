@@ -18,6 +18,7 @@
     $Id$
 */
 
+#include <limits.h>
 #include <cstdio> /* for sprintf, sigh */
 #include <pbd/error.h>
 #include <midi++/port.h>

@@ -23,6 +23,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdio>
+#include <cstring>
 #include <cmath>
 
 #include <midi++/parser.h>

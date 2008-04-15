@@ -17,6 +17,7 @@
     $Id$
 */
 
+#include <cstring>
 #include <fcntl.h>
 #include <pbd/error.h>
 #include <pbd/basename.h>

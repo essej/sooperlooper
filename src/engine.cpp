@@ -19,12 +19,14 @@
 #include <iostream>
 
 #include <cmath>
+#include <cstring>
 #include <unistd.h>
 #include <sys/time.h>
 #include <pthread.h>
 #include <cerrno>
 
 #include <vector>
+#include <algorithm>
 
 #include <pbd/xml++.h>
 

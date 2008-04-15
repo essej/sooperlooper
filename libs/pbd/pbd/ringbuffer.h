@@ -23,6 +23,7 @@
 
 #include <sys/mman.h>
 #include <pbd/atomic.h>
+#include <cstring>
 
 template<class T>
 class RingBuffer 
