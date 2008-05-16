@@ -63,7 +63,7 @@ public:
 	virtual ~SooperLooperAUView();
 	
 	virtual OSStatus CreateUI (Float32	inXOffset, Float32 	inYOffset);
-	virtual bool				HandleEvent(EventRef event);
+	//virtual bool				HandleEvent(EventRef event);
 	
 	void create_slgui();
 	void update_stay_on_top();

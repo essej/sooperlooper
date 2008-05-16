@@ -32,6 +32,7 @@ using namespace std;
 	[searchTask release];
 	searchTask=nil;
 	//cerr << "launch dealloc" << endl;	
+	[super dealloc];
 }
 
 - (void)runGui:(NSArray *)args

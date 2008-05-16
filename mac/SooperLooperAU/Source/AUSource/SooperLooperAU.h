@@ -5,7 +5,7 @@
 * 
 *	Created:	7/2/05
 *	
-*	Copyright:  Copyright © 2005 Jesse Chappell, All Rights Reserved
+*	Copyright:  Copyright ï¿½ 2005 Jesse Chappell, All Rights Reserved
 * 
 */
 #include "AUMIDIEffectBase.h"
@@ -13,6 +13,8 @@
 #if AU_DEBUG_DISPATCHER
 #include "AUDebugDispatcher.h"
 #endif
+
+#include <AudioUnit/AudioUnitCarbonView.h>
 
 #include "audio_driver.hpp"
 #include <string>

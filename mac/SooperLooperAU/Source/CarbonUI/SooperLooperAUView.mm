@@ -497,6 +497,7 @@ pascal OSStatus SooperLooperAUView::winEventHandler (EventHandlerCallRef myHandl
     return result;
 }
 
+#if 0
 bool  SooperLooperAUView::HandleEvent(EventRef event)
 {
 	//UInt32 eclass = GetEventClass(event);
@@ -536,6 +537,7 @@ bool  SooperLooperAUView::HandleEvent(EventRef event)
 	
 	//return true;
 }
+#endif
 
 NavEventUPP  gNavEventHandlerPtr;
 
