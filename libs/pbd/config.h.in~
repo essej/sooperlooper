@@ -114,7 +114,7 @@
 /* Version number of package */
 #undef VERSION
 
-/* Define to `long int' if <sys/types.h> does not define. */
+/* Define to `long' if <sys/types.h> does not define. */
 #undef off_t
 
 /* Define to `int' if <sys/types.h> does not define. */

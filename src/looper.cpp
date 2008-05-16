@@ -1311,6 +1311,13 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		// force to == target
 		_curr_input_gain = _targ_input_gain;
 	}
+
+	_curr_dry = flush_to_zero (currdry);
+	if (dry_delta <= 0.00003f) {
+		// force to == target
+		_curr_dry = _target_dry;
+	}
+
 }
 
 
