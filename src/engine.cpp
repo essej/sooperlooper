@@ -1450,7 +1450,7 @@ Engine::mainloop()
 		}
 		
 		// handle learning done from the midi thread
-		if (_learn_done) {
+		if (_learn_done && _midi_bridge) {
 			LockMonitor lm (_midi_bridge->bindings_lock(), __LINE__, __FILE__);
 			_midi_bridge->bindings().add_binding (_learninfo, _learn_event.options == "exclusive");
 
@@ -2177,8 +2177,11 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			
 			if (ntempo != _tempo) {
 				//cerr << "new tempo is: " << ntempo << "  oldtempo: " << _tempo << endl;
-				
-				_beatstamp = _midi_bridge->get_current_host_time();
+
+                                if (_midi_bridge) {
+                                        _beatstamp = _midi_bridge->get_current_host_time();
+                                }
+                                
 				_force_next_clock_start = true;
 				set_tempo(ntempo, true);
 			   
@@ -2209,7 +2212,9 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 		_beat_occurred = true;
 		
 		// this is close enough for now, really it should be a bit into the future since this is yet to be output
-		_beatstamp = _midi_bridge->get_current_host_time();
+                if (_midi_bridge) {
+                        _beatstamp = _midi_bridge->get_current_host_time();
+                }
 		//fprintf(stderr, "beat occurred: at %.13g\n", _beatstamp);
 
 		// wake up mainloop safely
