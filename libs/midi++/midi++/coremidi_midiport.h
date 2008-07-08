@@ -63,6 +63,7 @@ namespace MIDI {
 	void Close();
 	static MIDITimeStamp MIDIGetCurrentHostTime();
 	static MIDITimeStamp secs_to_host_time(timestamp_t secs);
+	static timestamp_t CoreMidi_MidiPort::host_time_to_secs(MIDITimeStamp mts);
 
     };
 

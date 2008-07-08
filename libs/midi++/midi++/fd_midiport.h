@@ -71,7 +71,7 @@ class FD_MidiPort : public Port
 			
 			if (output_parser) {
 				output_parser->raw_preparse 
-					(*output_parser, msg, nwritten);
+					(*output_parser, msg, nwritten, get_current_host_time());
 				for (int i = 0; i < nwritten; i++) {
 					output_parser->scanner (msg[i]);
 				}

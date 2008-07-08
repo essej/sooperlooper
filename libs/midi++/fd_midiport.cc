@@ -142,7 +142,7 @@ FD_MidiPort::do_slow_write (byte *msg, unsigned int msglen)
 
 
 	if (n && output_parser) {
-		output_parser->raw_preparse (*output_parser, msg, n);
+		output_parser->raw_preparse (*output_parser, msg, n, get_current_host_time());
 		for (unsigned int i = 0; i < n; i++) {
 			output_parser->scanner (msg[i]);
 		}
@@ -170,7 +170,7 @@ FD_MidiPort::read (byte* buf, size_t max)
 
 		if (input_parser) {
 			input_parser->raw_preparse 
-				(*input_parser, buf, nread);
+				(*input_parser, buf, nread, get_current_host_time());
 			for (int i = 0; i < nread; i++) {
 				input_parser->scanner (buf[i]);
 			}	

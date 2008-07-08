@@ -59,7 +59,7 @@ void CoreMidi_MidiPort::Close ()
 
 int CoreMidi_MidiPort::write (byte *msg, size_t msglen)	
 {
-	return write_at(msg, msglen, MIDIGetCurrentHostTime());
+	return write_at(msg, msglen, get_current_host_time());
 }
 
 int CoreMidi_MidiPort::write_at (byte *msg, size_t msglen, timestamp_t at_time)
@@ -130,11 +130,11 @@ void CoreMidi_MidiPort::read_proc (const MIDIPacketList *pktlist, void *refCon, 
     for (unsigned int i = 0; i < pktlist->numPackets; ++i) {
     
         driver->bytes_read += packet->length;
-		
+
 	    if (driver->input_parser) {
-			driver->input_parser->raw_preparse (*driver->input_parser, packet->data, packet->length);
-			for (int i = 0; i < packet->length; i++) {
-				driver->input_parser->scanner (packet->data[i]);
+		    driver->input_parser->raw_preparse (*driver->input_parser, packet->data, packet->length, host_time_to_secs(packet->timeStamp));
+			for (int j = 0; j < packet->length; ++j) {
+				driver->input_parser->scanner (packet->data[j]);
 			}	
 			driver->input_parser->raw_postparse (*driver->input_parser, packet->data, packet->length);
 		}
@@ -160,6 +160,22 @@ timestamp_t CoreMidi_MidiPort::get_current_host_time()
 	return (MIDIGetCurrentHostTime() * conversion);
 }
 
+timestamp_t CoreMidi_MidiPort::host_time_to_secs(MIDITimeStamp mts)
+{
+	static double conversion = 0.0;
+	
+	if( conversion == 0.0 )
+	{
+		mach_timebase_info_data_t info;
+		kern_return_t err = mach_timebase_info( &info );
+		
+		//Convert the timebase into seconds
+		if( err == 0  )
+			conversion = 1e-9 * (double) info.numer / (double) info.denom;
+	}
+
+	return (mts * conversion);
+}
 MIDITimeStamp CoreMidi_MidiPort::secs_to_host_time(timestamp_t secs)
 {
 	static double conversion = 0.0;

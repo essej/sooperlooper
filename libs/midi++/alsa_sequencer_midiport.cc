@@ -94,7 +94,7 @@ int ALSA_SequencerMidiPort::write (byte *msg, size_t msglen)
 			bytes_written += nwritten;
 			totwritten += nwritten;
 			if (output_parser) {
-				output_parser->raw_preparse (*output_parser, msg, nwritten);
+				output_parser->raw_preparse (*output_parser, msg, nwritten, get_current_host_time());
 				for (int i = 0; i < nwritten; i++) {
 					output_parser->scanner (msg[i]);
 				}
@@ -133,7 +133,7 @@ int ALSA_SequencerMidiPort::read (byte *buf, size_t max)
 		bytes_read += err;
 
 		if (input_parser) {
-			input_parser->raw_preparse (*input_parser, buf, err);
+			input_parser->raw_preparse (*input_parser, buf, err, get_current_host_time());
 			for (int i = 0; i < err; i++) {
 				input_parser->scanner (buf[i]);
 			}	

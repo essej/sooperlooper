@@ -47,6 +47,7 @@ using namespace SigC;
 #define MAX_EVENTS 1024
 #define MAX_SYNC_EVENTS 1024
 
+//#define DEBUG 1
 
 Engine::Engine ()
 {
@@ -93,7 +94,8 @@ Engine::Engine ()
 	_beat_occurred = false;
 	_conns_changed = false;
 	_beatstamp = 0.0;
-	
+	_prev_beatstamp = 0.0;
+
 	_loop_manage_to_rt_queue = 0;
 	_loop_manage_to_main_queue = 0;
 
@@ -1125,7 +1127,7 @@ Engine::do_push_command_event (RingBuffer<Event> * evqueue, Event::type_t type, 
 
 	if (vec.len[0] == 0) {
 #ifdef DEBUG
-		cerr << "event queue full, dropping event" << endl;
+		cerr << "cmd event queue full, dropping event" << endl;
 #endif
 		return false;
 	}
@@ -1154,7 +1156,7 @@ Engine::do_push_control_event (RingBuffer<Event> * evqueue, Event::type_t type, 
 
 	if (vec.len[0] == 0) {
 #ifdef DEBUG
-		cerr << "event queue full, dropping event" << endl;
+		cerr << "ctrl event queue full, dropping event" << endl;
 #endif
 		return false;
 	}
@@ -1203,7 +1205,7 @@ Engine::push_midi_control_event (Event::type_t type, Event::control_t ctrl, floa
 }
 
 void
-Engine::push_sync_event (Event::control_t ctrl, long framepos)
+Engine::push_sync_event (Event::control_t ctrl, long framepos, MIDI::timestamp_t timestamp)
 {
 	// todo support more than one simulataneous pusher safely
 
@@ -1223,7 +1225,13 @@ Engine::push_sync_event (Event::control_t ctrl, long framepos)
 	}
 	
 	Event * evt = vec.buf[0];
-	*evt = get_event_generator().createEvent(framepos);
+	if (timestamp == 0) {
+		//fprintf(stderr, "creating sync event at frame %ld\n", framepos);
+		*evt = get_event_generator().createEvent(framepos);
+	} else {
+		//fprintf(stderr, "creating sync event at time %.14g\n", timestamp);
+		*evt = get_event_generator().createTimestampedEvent(timestamp);
+	}
 
 	evt->Type = Event::type_sync;
 	evt->Control = ctrl;
@@ -2010,7 +2018,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 		size_t n = 0;
 		size_t vecn = 0;
 		nframes_t fragpos;
-		
+		MIDI::timestamp_t timestamp = 0;
 
 		
 		if (num > 0) {
@@ -2018,8 +2026,9 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			while (n < num)
 			{ 
 				evt = vec.buf[vecn] + n;
-				fragpos = (nframes_t) evt->FragmentPos();
-				
+				fragpos = (nframes_t) (evt->FragmentPos() % nframes);
+				timestamp = evt->getTimestamp();
+
 				++n;
 				// to avoid code copying
 				if (n == num) {
@@ -2035,7 +2044,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 #ifdef DEBUG
 					cerr << "BAD SYNC FRAGMENT POS: " << fragpos << endl;
 #endif
-					continue;
+					//	continue;
 				}
 				
 				doframes = fragpos - usedframes;
@@ -2052,19 +2061,21 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 				else if (evt->Control == Event::MidiStop) {
 					// stop playing?
 					//cerr << "got stop at " << fragpos << endl;
+					_prev_beatstamp = 0;
 				}
 
-				if ((_midi_ticks % 24) == 0) {
+				if ((_midi_ticks % 24) == 0 && timestamp != _prev_beatstamp) {
 					// every quarter note
-					hit_at = (int) usedframes;
-					double tcount = _quarter_counter + (double) usedframes;
+					hit_at = (int) fragpos;
+					double tcount = _quarter_counter + (double) fragpos;
 
 					// calc new tempo
-					double ntempo = (_driver->get_samplerate() * 60.0 / tcount);
+					//double ntempo = (_driver->get_samplerate() * 60.0 / tcount);
+					double ntempo = 60 / (timestamp - _prev_beatstamp);
 					ntempo = avg_tempo(ntempo);
 
 					if (ntempo != _tempo) {
-						//cerr << "new tempo is: " << ntempo << "   tcount = " << tcount << "  used: " << usedframes << endl;
+						//cerr << "new tempo is: " << ntempo << "   tcount = " << tcount << " frag: " << fragpos << "  used: " << usedframes << " delta: " << (timestamp - _prev_beatstamp) << endl;
 
 						set_tempo(ntempo, true);
 						_tempo_changed = true;
@@ -2073,6 +2084,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 					}
 
 					_quarter_counter = - ((double)usedframes);
+					_prev_beatstamp = timestamp;
 				}
 				
 				if ((_midi_ticks % _midi_loop_tick) == 0) {

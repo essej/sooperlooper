@@ -73,7 +73,7 @@ class Controllable : public SigC::Object
 	std::string     _control_description;
 	bool             feedback;
 	
-	void midi_receiver (Parser &p, byte *, size_t);
+	void midi_receiver (Parser &p, byte *, size_t, timestamp_t);
 	void midi_sense_note (Parser &, EventTwoBytes *, bool is_on);
 	void midi_sense_note_on (Parser &p, EventTwoBytes *tb);
 	void midi_sense_note_off (Parser &p, EventTwoBytes *tb);

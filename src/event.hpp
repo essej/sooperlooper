@@ -35,12 +35,14 @@ namespace SooperLooper {
 	 */
 	class EventGenerator {
         public:
+		typedef double time_stamp_t; 
+
 		EventGenerator(uint32_t sampleRate);
 		void updateFragmentTime(uint32_t samplesToProcess);
 		Event createEvent(long fragTime=-1);
+		Event createTimestampedEvent(time_stamp_t timeStamp);
 		
 	protected:
-		typedef double time_stamp_t; 
 
 		inline uint32_t toFragmentPos(time_stamp_t timeStamp) {
 			return uint32_t ((timeStamp - fragmentTime.begin) * fragmentTime.sample_ratio);
@@ -205,6 +207,9 @@ namespace SooperLooper {
                 if (iFragmentPos >= 0) return (int) iFragmentPos;
                 return (int) (iFragmentPos = pEventGenerator->toFragmentPos(TimeStamp));
             }
+
+	    typedef EventGenerator::time_stamp_t timestamp_t;
+	    EventGenerator::time_stamp_t getTimestamp() const { return TimeStamp; }
 
 	    int source;
 

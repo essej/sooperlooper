@@ -74,6 +74,11 @@ namespace SooperLooper {
 		}
 	}
 
+	Event EventGenerator::createTimestampedEvent(time_stamp_t timeStamp)
+	{
+		return Event(this, timeStamp);
+	}
+
 	
 // 	Event EventGenerator::createEvent()
 //     {

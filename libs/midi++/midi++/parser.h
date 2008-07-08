@@ -36,6 +36,7 @@ typedef SigC::Signal2<void, Parser &, byte>                 OneByteSignal;
 typedef SigC::Signal2<void, Parser &, EventTwoBytes *>      TwoByteSignal;
 typedef SigC::Signal2<void, Parser &, pitchbend_t>          PitchBendSignal;
 typedef SigC::Signal3<void, Parser &, byte *, size_t> Signal;
+typedef SigC::Signal4<void, Parser &, byte *, size_t, timestamp_t> TimestampedSignal;
 
 class Parser : public SigC::Object {
  public:
@@ -66,9 +67,9 @@ class Parser : public SigC::Object {
 
 	OneByteSignal         mtc_quarter_frame;
 
-	Signal                raw_preparse;
+	TimestampedSignal     raw_preparse;
 	Signal                raw_postparse;
-	Signal                any;
+	TimestampedSignal     any;
 	Signal                sysex;
 	Signal                mmc;
 	Signal                mtc;
@@ -131,7 +132,7 @@ class Parser : public SigC::Object {
 
 	std::ostream *trace_stream;
 	std::string trace_prefix;
-	void trace_event (Parser &p, byte *msg, size_t len);
+	void trace_event (Parser &p, byte *msg, size_t len, timestamp_t ts);
 	SigC::Connection trace_connection;
 
 	size_t message_counter[256];
@@ -167,6 +168,9 @@ class Parser : public SigC::Object {
 	bool possible_mmc (byte *msg, size_t msglen);
 	bool possible_mtc (byte *msg, size_t msglen);
 	void process_mtc_quarter_frame (byte *msg);
+
+	void handle_preparse(Parser &, byte *, size_t, timestamp_t);
+	timestamp_t _timestamp;
 };
 
 }; /* namespace MIDI */

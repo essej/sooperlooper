@@ -119,6 +119,8 @@ Parser::Parser (Port &p)
 	_mmc_forward = false;
 	reset_mtc_state ();
 
+	raw_preparse.connect(slot(*this, &Parser::handle_preparse));
+
 	/* this hack deals with the possibility of our first MIDI
 	   bytes being running status messages.
 	*/
@@ -133,8 +135,15 @@ Parser::~Parser ()
 	delete msgbuf;
 }
 
+void Parser::handle_preparse(Parser & p, byte * buf, size_t len, timestamp_t ts)
+{
+	// just update timestamp
+	_timestamp = ts;
+}
+
+
 void
-Parser::trace_event (Parser &p, byte *msg, size_t len)
+Parser::trace_event (Parser &p, byte *msg, size_t len, timestamp_t ts)
 
 {
 	eventType type;
@@ -421,7 +430,7 @@ Parser::scanner (unsigned char inbyte)
 					sysex (*this, msgbuf, msgindex);
 				}
 			}
-			any (*this, msgbuf, msgindex);
+			any (*this, msgbuf, (size_t)msgindex, _timestamp);
 		}
 		
 		state = NEEDSTATUS;
@@ -543,7 +552,7 @@ Parser::realtime_msg(unsigned char inbyte)
 		break;
 	}
 
-	any (*this, &inbyte, 1);
+	any (*this, &inbyte, 1, _timestamp);
 }
 
 /*
@@ -736,7 +745,7 @@ Parser::signal (byte *msg, size_t len)
 		break;
 	}
 	
-	any (*this, msg, len);
+	any (*this, msg, len, _timestamp);
 }
 
 bool

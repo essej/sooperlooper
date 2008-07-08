@@ -165,7 +165,7 @@ Controllable::midi_sense_pitchbend (Parser &p, pitchbend_t pb)
 }			
 
 void
-Controllable::midi_receiver (Parser &p, byte *msg, size_t len)
+Controllable::midi_receiver (Parser &p, byte *msg, size_t len, timestamp_t ts)
 {
 	/* we only respond to channel messages */
 

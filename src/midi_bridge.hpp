@@ -69,7 +69,7 @@ class MidiBridge
 	SigC::Signal4<void, Event::type_t, Event::command_t, int8_t, long> MidiCommandEvent;
 	SigC::Signal5<void, Event::type_t, Event::control_t, float, int8_t, long> MidiControlEvent;
 
-	SigC::Signal2<void, Event::control_t, long> MidiSyncEvent;
+	SigC::Signal3<void, Event::control_t, long, MIDI::timestamp_t> MidiSyncEvent;
 	
 
 	void inject_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long framepos=-1);
@@ -86,9 +86,9 @@ class MidiBridge
 	void terminate_midi_thread();
 	void poke_midi_thread();
 	
-	void incoming_midi (MIDI::Parser &p, MIDI::byte *msg, size_t len);
+	void incoming_midi (MIDI::Parser &p, MIDI::byte *msg, size_t len, MIDI::timestamp_t timestamp);
 	
-	void queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long framepos=-1);
+	void queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long framepos=-1, MIDI::timestamp_t timestamp=0);
 
 
 	static void * _midi_receiver (void * arg);

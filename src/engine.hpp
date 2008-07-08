@@ -101,7 +101,7 @@ class Engine
 	void push_midi_command_event (Event::type_t type, Event::command_t cmd, int8_t instance, long framepos=-1);
 	void push_midi_control_event (Event::type_t type, Event::control_t ctrl, float val, int8_t instance, long framepos=-1);
 	
-	void push_sync_event (Event::control_t ctrl, long framepos=-1);
+	void push_sync_event (Event::control_t ctrl, long framepos=-1, MIDI::timestamp_t timestamp=0);
 	
 	std::string get_osc_url (bool udp=true);
 	int get_osc_port ();
@@ -232,6 +232,7 @@ class Engine
 
 	volatile double    _tempo;        // bpm
 	volatile MIDI::timestamp_t _beatstamp; // timestamp at the beat of the last tempo change
+	volatile MIDI::timestamp_t _prev_beatstamp; 
 	bool _force_next_clock_start;
 
 	float    _eighth_cycle; // eighth notes per loop cycle
