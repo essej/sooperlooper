@@ -120,6 +120,7 @@ namespace SooperLooper {
 		    RECORD_SOLO_PREV,
 		    SET_SYNC_POS,
 		    RESET_SYNC_POS,
+                    MUTE_TRIGGER,
 		    LAST_COMMAND
 	    } Command;
 

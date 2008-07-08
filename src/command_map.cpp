@@ -59,6 +59,7 @@ CommandMap::CommandMap()
 	_str_cmd_map["redo_all"]  = Event::REDO_ALL;
 	_str_cmd_map["mute_on"]  = Event::MUTE_ON;
 	_str_cmd_map["mute_off"]  = Event::MUTE_OFF;
+	_str_cmd_map["mute_trigger"]  = Event::MUTE_TRIGGER;
 	_str_cmd_map["pause"]  = Event::PAUSE;
 	_str_cmd_map["solo"]  = Event::SOLO;
 	_str_cmd_map["solo_next"]  = Event::SOLO_NEXT;

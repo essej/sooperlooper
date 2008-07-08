@@ -132,6 +132,7 @@ using namespace SooperLooper;
 
 #define MULTI_SET_SYNC_POS 28
 #define MULTI_RESET_SYNC_POS 29
+#define MULTI_MUTE_TRIGGER 30
 
 
 /*****************************************************************************/
@@ -1697,6 +1698,15 @@ runSooperLooper(LADSPA_Handle Instance,
 	  } else {
 		  // already not muted, do nothing
 		  lMultiCtrl = -1;
+	  }
+  }
+  else if (lMultiCtrl == MULTI_MUTE_TRIGGER) {
+	  if (pLS->state != STATE_MUTE) {
+		  // lets mute it
+		  lMultiCtrl = MULTI_MUTE;
+	  } else {
+		  // already muted, Trigger
+		  lMultiCtrl = MULTI_TRIGGER;
 	  }
   }
   
