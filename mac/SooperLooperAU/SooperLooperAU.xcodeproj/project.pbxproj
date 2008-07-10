@@ -12,13 +12,13 @@
 		880FCF2F0878CA09004384B4 /* AUMIDIBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 880FCF2B0878CA09004384B4 /* AUMIDIBase.h */; };
 		880FCF300878CA09004384B4 /* AUMIDIEffectBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 880FCF2C0878CA09004384B4 /* AUMIDIEffectBase.cpp */; };
 		880FCF310878CA09004384B4 /* AUMIDIEffectBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 880FCF2D0878CA09004384B4 /* AUMIDIEffectBase.h */; };
+		8810CF690E247C10002155C4 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8810CF680E247C10002155C4 /* ApplicationServices.framework */; };
 		881934F30878E48B008C28C2 /* liblo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 881934F20878E48B008C28C2 /* liblo.a */; };
 		881934F90878E4F4008C28C2 /* libsndfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 881934F80878E4F4008C28C2 /* libsndfile.a */; };
 		881935010878E55F008C28C2 /* libsamplerate.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935000878E55F008C28C2 /* libsamplerate.a */; };
 		881935030878E594008C28C2 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935020878E594008C28C2 /* CoreMIDI.framework */; };
 		881935070878E5D0008C28C2 /* libsigc-1.2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935060878E5D0008C28C2 /* libsigc-1.2.a */; };
 		881935130878E75A008C28C2 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935120878E75A008C28C2 /* libz.dylib */; };
-		881935150878E77D008C28C2 /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935140878E77D008C28C2 /* libiconv.dylib */; };
 		881935190878E7A0008C28C2 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935180878E7A0008C28C2 /* CoreFoundation.framework */; };
 		8819351B0878E7CA008C28C2 /* libm.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8819351A0878E7CA008C28C2 /* libm.dylib */; };
 		883ECF110D4C57850047B14B /* CADebugMacros.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 883ECF0F0D4C57840047B14B /* CADebugMacros.cpp */; };
@@ -221,13 +221,13 @@
 		880FCF2B0878CA09004384B4 /* AUMIDIBase.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AUMIDIBase.h; sourceTree = "<group>"; };
 		880FCF2C0878CA09004384B4 /* AUMIDIEffectBase.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = AUMIDIEffectBase.cpp; sourceTree = "<group>"; };
 		880FCF2D0878CA09004384B4 /* AUMIDIEffectBase.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AUMIDIEffectBase.h; sourceTree = "<group>"; };
+		8810CF680E247C10002155C4 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		881934F20878E48B008C28C2 /* liblo.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblo.a; path = /usr/local/lib/liblo.a; sourceTree = "<absolute>"; };
 		881934F80878E4F4008C28C2 /* libsndfile.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsndfile.a; path = /usr/local/lib/libsndfile.a; sourceTree = "<absolute>"; };
 		881935000878E55F008C28C2 /* libsamplerate.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsamplerate.a; path = /usr/local/lib/libsamplerate.a; sourceTree = "<absolute>"; };
 		881935020878E594008C28C2 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = /System/Library/Frameworks/CoreMIDI.framework; sourceTree = "<absolute>"; };
 		881935060878E5D0008C28C2 /* libsigc-1.2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libsigc-1.2.a"; path = "/usr/local/lib/libsigc-1.2.a"; sourceTree = "<absolute>"; };
 		881935120878E75A008C28C2 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
-		881935140878E77D008C28C2 /* libiconv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libiconv.dylib; path = /usr/lib/libiconv.dylib; sourceTree = "<absolute>"; };
 		881935180878E7A0008C28C2 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 		8819351A0878E7CA008C28C2 /* libm.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libm.dylib; path = /usr/lib/libm.dylib; sourceTree = "<absolute>"; };
 		883ECF0F0D4C57840047B14B /* CADebugMacros.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = CADebugMacros.cpp; path = /Developer/Examples/CoreAudio/PublicUtility/CADebugMacros.cpp; sourceTree = "<absolute>"; };
@@ -438,7 +438,6 @@
 				881935030878E594008C28C2 /* CoreMIDI.framework in Frameworks */,
 				881935070878E5D0008C28C2 /* libsigc-1.2.a in Frameworks */,
 				881935130878E75A008C28C2 /* libz.dylib in Frameworks */,
-				881935150878E77D008C28C2 /* libiconv.dylib in Frameworks */,
 				881935190878E7A0008C28C2 /* CoreFoundation.framework in Frameworks */,
 				8819351B0878E7CA008C28C2 /* libm.dylib in Frameworks */,
 				888AC6DB087E2C7C001F80AD /* Cocoa.framework in Frameworks */,
@@ -446,6 +445,7 @@
 				886245A508B8E4F3003959C6 /* AppKit.framework in Frameworks */,
 				884365080D464EBF00E6C1F9 /* librubberband.a in Frameworks */,
 				8843650A0D464EDA00E6C1F9 /* libfftw3.a in Frameworks */,
+				8810CF690E247C10002155C4 /* ApplicationServices.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -466,6 +466,7 @@
 		089C1671FE841209C02AAC07 /* External Frameworks and Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				8810CF680E247C10002155C4 /* ApplicationServices.framework */,
 				884365090D464EDA00E6C1F9 /* libfftw3.a */,
 				884365070D464EBF00E6C1F9 /* librubberband.a */,
 				886245A408B8E4F3003959C6 /* AppKit.framework */,
@@ -473,7 +474,6 @@
 				888AC6DA087E2C7C001F80AD /* Cocoa.framework */,
 				8819351A0878E7CA008C28C2 /* libm.dylib */,
 				881935180878E7A0008C28C2 /* CoreFoundation.framework */,
-				881935140878E77D008C28C2 /* libiconv.dylib */,
 				881935120878E75A008C28C2 /* libz.dylib */,
 				881935060878E5D0008C28C2 /* libsigc-1.2.a */,
 				881935020878E594008C28C2 /* CoreMIDI.framework */,
@@ -1203,7 +1203,7 @@
 					/opt/local/lib,
 				);
 				LIBRARY_STYLE = Bundle;
-				MACOSX_DEPLOYMENT_TARGET = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = (
 					"-D_FILE_OFFSET_BITS=64",
 					"-D_LARGE_FILES",
@@ -1220,7 +1220,7 @@
 					/System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers,
 					/Developer/Examples/CoreAudio/AudioUnits/AUPublic/AUBase,
 				);
-				SDKROOT = "";
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",

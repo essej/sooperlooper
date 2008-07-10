@@ -47,12 +47,13 @@ To connect your MIDI device, you need to use a MIDI patchbay such as
 the one found <a href="http://pete.yandell.com/software/">here</a>.
 </p>
 
+  <b> AudioUnit Plugin </b>
 <p>
 The AudioUnit plugin SooperLooperAU is a Music Effect type plugin, which means that
 	it accepts both audio and midi input and output.  Some plugin hosts do not handle this
 	properly.  For instance Garageband does not allow you to send midi events into the plugin for control.
-	Ableton Live does, but requires you to insert it into a MIDI Track, and patch the audio inputs as sidechains
-	from other Audio Tracks and choose In monitoring on that audio track.  Other hosts such as Rax and AULab handle it more easily.
+	Ableton Live does, and allows you to patch the audio inputs as sidechains
+	from other Audio Tracks and choose In monitoring on that audio track.  You can route MIDI to the SL plugin on an audio track from a separate MIDI Track (be sure to use In monitoring for midi too). 
 	</p><p>
 	<b>IMPORTANT NOTE:</b> You do <i>not</i> need to run JACK when using the AU plugin in a host.
 	You still can, however, to take advantage of JACK's
