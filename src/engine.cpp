@@ -543,8 +543,6 @@ Engine::add_loop (unsigned int chans, float loopsecs, bool discrete)
 	instance->set_port (Quantize, quantize_value);
 	instance->set_port (Round, round_value);
 	instance->set_port (RelativeSync, relative_sync);
-	instance->set_port (EighthPerCycleLoop, _eighth_cycle);
-	instance->set_port (TempoInput, _tempo);
 	
 	return add_loop (instance);
 }
@@ -556,7 +554,8 @@ Engine::add_loop (Looper * instance)
 	
 	bool val = _auto_disable_latency && _target_common_dry > 0.0f;
 	instance->set_disable_latency_compensation (val);
-
+	instance->set_port (EighthPerCycleLoop, _eighth_cycle);
+	instance->set_port (TempoInput, _tempo);
 
 	update_sync_source();
 
