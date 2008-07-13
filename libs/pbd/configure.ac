@@ -52,16 +52,16 @@ AC_MSG_CHECKING([for --with-macosx-sdk])
 AC_ARG_WITH(macosx-sdk,    [  --with-macosx-sdk=PATH  use an OS X SDK at PATH], [
         wxUSE_MACOSX_SDK=$withval
         wx_cv_use_macosx_sdk="wxUSE_MACOSX_SDK=$withval"
-        echo "wxUSE_MACOSX_SDK=$wxUSE_MACOSX_SDK" >> ${wx_arg_cache_file}.tmp
+        #echo "wxUSE_MACOSX_SDK=$wxUSE_MACOSX_SDK" >> ${wx_arg_cache_file}.tmp
     ], [
         # NOTE: Empty string on purpose so that --without-macosx-sdk (thus no)
         # will override --enable-universal_binary's automatic SDK usage.
         wxUSE_MACOSX_SDK=
-        LINE=`grep "^wxUSE_MACOSX_SDK=" ${wx_arg_cache_file}`
-        if test "x$LINE" != x ; then
-            eval "$LINE"
-            echo "$LINE" >> ${wx_arg_cache_file}.tmp
-        fi
+        #LINE=`grep "^wxUSE_MACOSX_SDK=" ${wx_arg_cache_file}`
+        #if test "x$LINE" != x ; then
+        #    eval "$LINE"
+        #    echo "$LINE" >> ${wx_arg_cache_file}.tmp
+        #fi
     ])
 AC_MSG_RESULT([$wxUSE_MACOSX_SDK])
 
@@ -69,17 +69,17 @@ AC_MSG_CHECKING([for --with-macosx-version-min])
 AC_ARG_WITH(macosx-version-min,    [  --with-macosx-version-min=VER   build binaries which require at least this OS X version], [
         wxUSE_MACOSX_VERSION_MIN=$withval
         wx_cv_use_macosx_version_min="wxUSE_MACOSX_VERSION_MIN=$withval"
-        echo "wxUSE_MACOSX_VERSION_MIN=$wxUSE_MACOSX_VERSION_MIN" >> ${wx_arg_cache_file}.tmp
+        #echo "wxUSE_MACOSX_VERSION_MIN=$wxUSE_MACOSX_VERSION_MIN" >> ${wx_arg_cache_file}.tmp
     ], [
         # default "yes" because when not using an SDK it means the same as no
         # but when using an SDK it means to use the SDK version
         wxUSE_MACOSX_VERSION_MIN=yes
         # See if there is a value in the cache
-        LINE=`grep "^wxUSE_MACOSX_VERSION_MIN=" ${wx_arg_cache_file}`
-        if test "x$LINE" != x ; then
-            eval "$LINE"
-            echo "$LINE" >> ${wx_arg_cache_file}.tmp
-        fi
+        #LINE=`grep "^wxUSE_MACOSX_VERSION_MIN=" ${wx_arg_cache_file}`
+        #if test "x$LINE" != x ; then
+        #    eval "$LINE"
+        #    echo "$LINE" >> ${wx_arg_cache_file}.tmp
+        #fi
     ])
 AC_MSG_RESULT([$wxUSE_MACOSX_VERSION_MIN])
 
