@@ -167,9 +167,9 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	
 	// rubberband stretch stuff
 	_in_stretcher = new RubberBandStretcher(srate, _chan_count, 
-					     RubberBandStretcher::OptionProcessRealTime | RubberBandStretcher::OptionTransientsCrisp | RubberBandStretcher::OptionPhaseAdaptive);
+					     RubberBandStretcher::OptionProcessRealTime | RubberBandStretcher::OptionTransientsCrisp);
 	_out_stretcher = new RubberBandStretcher(srate, _chan_count, 
-					     RubberBandStretcher::OptionProcessRealTime | RubberBandStretcher::OptionTransientsCrisp | RubberBandStretcher::OptionPhaseAdaptive);
+					     RubberBandStretcher::OptionProcessRealTime | RubberBandStretcher::OptionTransientsCrisp);
 
 	
 	set_buffer_size(_driver->get_buffersize());
