@@ -37,11 +37,12 @@ using namespace MIDI;
 
 MidiBindings::MidiBindings()
 {
-	_typemap["cc"] = 0xb0;
-	_typemap["n"] = 0x90;
-	_typemap["pc"] = 0xc0;
-	_typemap["on"] = 0x90;
-	_typemap["off"] = 0x90;
+	_typemap["cc"] = MIDI::controller;
+	_typemap["n"] = MIDI::on;
+	_typemap["pc"] = MIDI::program;
+	_typemap["on"] = MIDI::on;
+	_typemap["off"] = MIDI::on;
+	_typemap["pb"] = MIDI::pitchbend;
 
 	// temp bindings
 // 	_bindings[0x9000 | 48] = MidiBindInfo("note", "record", -1);
@@ -122,7 +123,7 @@ MidiBindings::binding_key (const MidiBindInfo & info) const
 bool
 MidiBindings::add_binding (const MidiBindInfo & info, bool exclusive)
 {
-	///  type->typei is { pc = 0xc0 , cc = 0xb0 , on = 0x80 , n = 0x90  }
+	///  type->typei is { pc = 0xc0 , cc = 0xb0 , on = 0x80 , n = 0x90 , pb = 0xe0 }
 	// chcmd = cmd + ch
 	// lookup key = (chcmd << 8) | param
 
@@ -276,7 +277,7 @@ string MidiBindInfo::serialize() const
 	//
 	//    ch = midi channel starting from 0
 	//    type is one of:  'pc' = program change  'cc' = control change  'n' = note on/off
-	//           'on' = note on  'off' = note off
+	//           'on' = note on  'off' = note off  'pb' = pitch bend
 	//    param = # of midi parameter
 	//
 	//    cmd is one of ( note, down, up, set )

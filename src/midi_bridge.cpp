@@ -402,7 +402,7 @@ MidiBridge::incoming_midi (Parser &p, byte *msg, size_t len, timestamp_t timesta
 		b3 = 0;
 	}
 	
-	//fprintf(stderr, "incmoing: %02x  %02x  %02x\n", (int) b1,(int) b2, (int) b3);
+	// fprintf(stderr, "incmoing: %02x  %02x  %02x\n", (int) b1,(int) b2, (int) b3);
 	
 	if (_learning || _getnext) {
 		finish_learn(b1, b2, b3);
@@ -446,6 +446,10 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long
 
 	int key = (chcmd << 8) | param;
 
+	if ((chcmd & 0xF0) == MIDI::pitchbend) {
+		key = chcmd << 8;
+	}
+
 	MidiBindings::BindingsMap::iterator iter = _midi_bindings.bindings_map().find(key);
 
 	if (iter != _midi_bindings.bindings_map().end())
@@ -459,7 +463,13 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long
 			int clamped_val;
 
 			// clamp it
-			clamped_val = min((MIDI::byte) info.data_max, max((MIDI::byte) info.data_min, val));
+			if ((chcmd & 0xF0) == MIDI::pitchbend) {
+				clamped_val = min( info.data_max, max(info.data_min, (param | (val << 7))));
+				// cerr << "Pitchbend: " << (int) (param | (val << 7)) << "  clamped: " << clamped_val << endl;
+			}
+			else {
+				clamped_val = min((MIDI::byte) info.data_max, max((MIDI::byte) info.data_min, val));
+			}
 
 			if (info.data_min == info.data_max) {
 				val_ratio = 0.0f;
@@ -707,7 +717,7 @@ void * MidiBridge::clock_thread_entry()
 	MIDI::byte clockmsg = MIDI::timing;
 	MIDI::byte startmsg = MIDI::start;
 	MIDI::byte stopmsg = MIDI::stop;
-	MIDI::byte contmsg = MIDI::contineu;
+	//MIDI::byte contmsg = MIDI::contineu;
 
 	struct timeval timeoutval = {1, 0};
 	double steady_timeout = 0.03333333333;

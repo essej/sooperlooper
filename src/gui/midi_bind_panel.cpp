@@ -91,6 +91,7 @@ static const wxString NoteString(wxT("Note"));
 static const wxString NoteOnString(wxT("Note On"));
 static const wxString NoteOffString(wxT("Note Off"));
 static const wxString PcString(wxT("PC"));
+static const wxString PitchBendString(wxT("Pitch Bend"));
 	
 static int wxCALLBACK list_sort_callback (long item1, long item2, long sortData)
 {
@@ -257,6 +258,7 @@ void MidiBindPanel::init()
 	_type_combo->Append (NoteOffString);
 	_type_combo->Append (CcString);
 	_type_combo->Append (PcString);
+	_type_combo->Append (PitchBendString);
 	_type_combo->SetSelection(0);
 	rowsizer->Add (_type_combo, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
@@ -600,6 +602,9 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 	else if (info->type == "pc") {
 		_type_combo->SetStringSelection(PcString);
 	}
+	else if (info->type == "pb") {
+		_type_combo->SetStringSelection(PitchBendString);
+	}
 
 	if (info->command == "set") {
 		_range_panel->Enable(true);
@@ -678,6 +683,9 @@ void MidiBindPanel::update_curr_binding()
 	else if (tsel == PcString) {
 		_currinfo.type = "pc";
 	}
+	else if (tsel == PitchBendString) {
+		_currinfo.type = "pb";
+	}
 
 	if (cmap.is_command(_currinfo.control)) {
 		if (_currinfo.type == "pc") {
@@ -704,6 +712,10 @@ void MidiBindPanel::update_curr_binding()
 	
 	_currinfo.param = _param_spin->GetValue();
 
+	if (tsel == PitchBendString) {
+		_currinfo.param = 0;
+	}
+
 	if (_lbound_ctrl->GetValue().ToDouble(&fval)) {
 		_currinfo.lbound = (float) fval;
 	}
@@ -729,6 +741,9 @@ void MidiBindPanel::update_curr_binding()
 	if (_data_max_ctrl->GetValue().ToLong(&lval)) {
 		//cerr << "data max is: " << (const char *) _data_max_ctrl->GetValue().ToAscii() << endl;
 		_currinfo.data_max = (int) lval;
+	}
+	else if (tsel == PitchBendString) {
+		_currinfo.data_max = 16383;
 	}
 	else {
 		_currinfo.data_max = 127;
