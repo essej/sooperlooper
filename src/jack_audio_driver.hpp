@@ -59,6 +59,10 @@ class JackAudioDriver
 	nframes_t get_output_port_latency (port_id_t portid);
 	
 	bool get_transport_info (TransportInfo &info);
+	void set_transport_info (const TransportInfo &info);
+
+	bool set_timebase_master(bool flag);
+	bool get_timebase_master() { return _timebase_master; }
 
 	
   protected:
@@ -69,6 +73,17 @@ class JackAudioDriver
 	static int _process_callback (jack_nframes_t, void*);
 	static int _xrun_callback (void*);
 	static void _shutdown_callback (void*);
+	static void _timebase_callback(jack_transport_state_t state,
+				       jack_nframes_t nframes, 
+				       jack_position_t *pos,
+				       int new_pos,
+				       void *arg);
+
+	void timebase_callback(jack_transport_state_t state,
+			       jack_nframes_t nframes, 
+			       jack_position_t *pos,
+			       int new_pos);
+
 
 	int buffersize_callback (jack_nframes_t);
 	static int _buffersize_callback (jack_nframes_t, void*);
@@ -80,6 +95,9 @@ class JackAudioDriver
 
 	std::vector<jack_port_t *> _input_ports;
 	std::vector<jack_port_t *> _output_ports;
+
+	bool _timebase_master;
+	TransportInfo _transport_info;
 
 	PBD::Lock  _port_lock;
 };

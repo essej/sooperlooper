@@ -43,6 +43,8 @@ MidiBindings::MidiBindings()
 	_typemap["on"] = MIDI::on;
 	_typemap["off"] = MIDI::on;
 	_typemap["pb"] = MIDI::pitchbend;
+	_typemap["kp"] = MIDI::polypress;
+	_typemap["cp"] = MIDI::chanpress;
 
 	// temp bindings
 // 	_bindings[0x9000 | 48] = MidiBindInfo("note", "record", -1);

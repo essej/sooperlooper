@@ -206,7 +206,8 @@ MidiBridge::init_thread()
 	}
 	
 	//pthread_detach(_midi_thread);
-
+	//_port->input()->trace(true, &cerr);
+	
 	return true;
 }
 
@@ -446,8 +447,15 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long
 
 	int key = (chcmd << 8) | param;
 
-	if ((chcmd & 0xF0) == MIDI::pitchbend) {
+	switch(chcmd & 0xF0) 
+	{
+	case MIDI::chanpress:
+		val = param;
+		// fallthrough intentional
+	case MIDI::pitchbend:
 		key = chcmd << 8;
+		break;
+	default: break;// nothing
 	}
 
 	MidiBindings::BindingsMap::iterator iter = _midi_bindings.bindings_map().find(key);

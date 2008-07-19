@@ -48,6 +48,17 @@ struct TransportInfo
 	nframes_t framepos;
 	double bpm;
 	State state;
+// future items
+// 	int32_t		bar;		/**< current bar */
+// 	int32_t		beat;		/**< current beat-within-bar */
+// 	int32_t		tick;		/**< current tick-within-beat */
+// 	double		bar_start_tick;            
+	
+ 	float		beats_per_bar;	/**< time signature "numerator" */
+ 	float		beat_type;	/**< time signature "denominator" */
+// 	double		ticks_per_beat;
+//      nframes_t	bbt_offset;	/**< frame offset for the BBT fields */
+
 };
 	
 class AudioDriver
@@ -81,6 +92,10 @@ class AudioDriver
 	virtual Engine * get_engine () { return _engine; }
 
 	virtual bool get_transport_info (TransportInfo &info) { return false; }
+	virtual void set_transport_info (const TransportInfo &info) {}
+
+	virtual bool set_timebase_master(bool flag) { return false; }
+	virtual bool get_timebase_master() { return false; }
 
 	
 	virtual nframes_t get_samplerate() { return _samplerate; }

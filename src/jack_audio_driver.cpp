@@ -32,7 +32,7 @@ using namespace std;
 JackAudioDriver::JackAudioDriver(string client_name, string serv_name)
 	: AudioDriver(client_name, serv_name)
 {
-
+	_timebase_master = false;
 }
 
 JackAudioDriver::~JackAudioDriver()
@@ -103,7 +103,7 @@ JackAudioDriver::deactivate()
 static void
 our_jack_error(const char * err)
 {
-
+	// cerr << "Jack error: " << err << endl;
 }
 
 int
@@ -176,6 +176,8 @@ JackAudioDriver::connect_to_jack ()
 	jack_set_xrun_callback (_jack, _xrun_callback, this);
 	jack_on_shutdown (_jack, _shutdown_callback, this);
 	jack_set_graph_order_callback (_jack, _conn_changed_callback, this);
+
+	set_timebase_master(_timebase_master);
 	
 	return 0;
 }
@@ -352,6 +354,38 @@ JackAudioDriver::get_output_port_latency (port_id_t port)
 	return jack_port_get_total_latency (_jack, _output_ports[port-1]);
 }
 
+void
+JackAudioDriver::set_transport_info (const TransportInfo &info)
+{
+	_transport_info = info;
+}
+
+bool
+JackAudioDriver::set_timebase_master(bool flag)
+{
+	bool ret = true;
+	
+	if (_jack) {
+		if (flag) {
+			ret = (jack_set_timebase_callback (_jack, 0, _timebase_callback, this) == 0);
+			if (!ret) {
+				_timebase_master = false;
+			}
+			//cerr << "sett jack timebase to " << _timebase_master << "  ret is: " << ret << endl;
+		}
+		else if (_timebase_master) {
+			ret = (jack_release_timebase(_jack) == 0);
+			_timebase_master = false;
+		}
+	}
+
+	if (ret) {
+		_timebase_master = flag;
+	}
+
+	return ret;
+}
+
 bool
 JackAudioDriver::get_transport_info (TransportInfo &info)
 {
@@ -385,4 +419,71 @@ JackAudioDriver::get_transport_info (TransportInfo &info)
 	info.framepos = tpos.frame;
 
 	return true;
+}
+
+
+void JackAudioDriver::_timebase_callback(jack_transport_state_t state,
+					 jack_nframes_t nframes, 
+					 jack_position_t *pos,
+					 int new_pos,
+					 void *arg)
+{
+	static_cast<JackAudioDriver*> (arg)->timebase_callback (state, nframes, pos, new_pos);
+}
+
+void JackAudioDriver::timebase_callback(jack_transport_state_t state,
+					jack_nframes_t nframes, 
+					jack_position_t *pos,
+					int new_pos)
+{
+	pos->valid = JackPositionBBT;
+	pos->beats_per_minute = _transport_info.bpm;
+	//cerr << "timebase callback  bpm: " << _transport_info.bpm << endl;
+
+	// we got nothin' special for the other stuff yet, so use example
+
+	if (new_pos) {
+		// FIXME!
+		static const double time_ticks_per_beat = 1920.0;
+		
+		pos->beats_per_bar = _transport_info.beats_per_bar;
+		pos->beat_type = _transport_info.beat_type;
+		pos->ticks_per_beat = time_ticks_per_beat;
+
+		/* Compute BBT info from frame number.  This is relatively
+		 * simple here, but would become complex if we supported tempo
+		 * or time signature changes at specific locations in the
+		 * transport timeline. 
+		 */
+
+		double minute = pos->frame / ((double) pos->frame_rate * 60.0);
+		long abs_tick = (long) (minute * pos->beats_per_minute * pos->ticks_per_beat);
+		long abs_beat = (long) (abs_tick / pos->ticks_per_beat);
+
+		pos->bar = (int) (abs_beat / pos->beats_per_bar);
+		pos->beat = (int) (abs_beat - (pos->bar * pos->beats_per_bar) + 1);
+		pos->tick = (int) (abs_tick - (abs_beat * pos->ticks_per_beat));
+		pos->bar_start_tick = (int) (pos->bar * pos->beats_per_bar *
+					     pos->ticks_per_beat);
+		pos->bar++;		/* adjust start to bar 1 */
+
+	} else {
+
+		/* Compute BBT info based on previous period. */
+		pos->tick += (int) (
+			nframes * pos->ticks_per_beat * pos->beats_per_minute
+			/ (pos->frame_rate * 60));
+
+		while (pos->tick >= pos->ticks_per_beat) {
+			pos->tick -= (int) pos->ticks_per_beat;
+			if (++pos->beat > pos->beats_per_bar) {
+				pos->beat = 1;
+				++pos->bar;
+				pos->bar_start_tick +=
+					pos->beats_per_bar
+					* pos->ticks_per_beat;
+			}
+		}
+	}
+
 }

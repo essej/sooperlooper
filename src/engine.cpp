@@ -79,6 +79,7 @@ Engine::Engine ()
 	_common_input_peak = 0.0f;
 	_common_output_peak = 0.0f;
 	_auto_disable_latency = true;
+	_jack_timebase_master = false;
 	_loading = false;
 	_use_temp_input = true; // all the time for now
 	_ignore_quit = false;
@@ -87,7 +88,9 @@ Engine::Engine ()
 	_smart_eighths = true;
 	_force_next_clock_start = false;
 	_force_discrete = false;
-	
+	_sel_loop_changed = false;
+	_timebase_changed = false;
+
 	_running_frames = 0;
 	_last_tempo_frame = 0;
 	_tempo_changed = false;
@@ -1059,7 +1062,14 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 		}
 		calculate_midi_tick(true);
 	}
+	else if (ev->Control == Event::JackTimebaseMaster)
+	{
+		bool flag = ev->Value > 0.0f;
+		_jack_timebase_master = flag;
+		_timebase_changed = true;
 
+		// apparently can only call the jack_timebase master from main thread
+	}
 }
 	
 bool Engine::push_loop_manage_to_rt (LoopManageEvent & lme)
@@ -1296,6 +1306,9 @@ Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 		else if (ctrl == Event::AutoDisableLatency) {
 			return _auto_disable_latency ? 1.0f: 0.0f;
 		}
+		else if (ctrl == Event::JackTimebaseMaster) {
+			return _jack_timebase_master ? 1.0f: 0.0f;
+		}
 
 	}
 
@@ -1441,6 +1454,13 @@ Engine::mainloop()
 			_beat_occurred = false;
 		}
 
+		if (_timebase_changed) {
+			if (!_driver->set_timebase_master(_jack_timebase_master)) {
+				_jack_timebase_master = false;
+			}
+			_timebase_changed = false;
+		}
+
 		if (_conns_changed)
 		{
 			// send latency updates
@@ -1542,6 +1562,9 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (gg_event->param == "auto_disable_latency") {
 			gg_event->ret_value =  (_auto_disable_latency) ? 1.0f: 0.0f;
 		}
+		else if (gg_event->param == "jack_timebase_master") {
+			gg_event->ret_value =  (_jack_timebase_master) ? 1.0f: 0.0f;
+		}
 		else if (gg_event->param == "output_midi_clock") {
 			gg_event->ret_value =  (_output_midi_clock) ? 1.0f: 0.0f;
 		}
@@ -1577,6 +1600,15 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (gs_event->param == "auto_disable_latency") {
 			_auto_disable_latency = gs_event->value;
 			//cerr << "NEED TO setting disable_compensation " << endl;
+		}
+		else if (gs_event->param == "jack_timebase_master") {
+			bool flag = gs_event->value > 0.0f;
+
+			if (_driver->set_timebase_master(flag)) {
+				_jack_timebase_master = flag;
+			} else {
+				_jack_timebase_master = false;
+			}
 		}
 		else if (gs_event->param == "output_midi_clock") {
 			_output_midi_clock = gs_event->value;
@@ -1846,7 +1878,6 @@ Engine::set_tempo (double tempo, bool rt)
 		tempo = 0.0;
 	}
 
-	
 	// update all loops
 	if (rt) {
 		for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i)
@@ -1859,6 +1890,14 @@ Engine::set_tempo (double tempo, bool rt)
 		{
 			(*i)->set_port(TempoInput, tempo);
 		}
+	}
+
+	if (_jack_timebase_master) {
+		TransportInfo tinfo;
+		tinfo.bpm = tempo;
+		tinfo.beats_per_bar = _eighth_cycle / 2; // arbitrary
+		tinfo.beat_type = 4.0;
+		_driver->set_transport_info(tinfo);
 	}
 
 	if (_midi_bridge)
@@ -2066,7 +2105,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 				if ((_midi_ticks % 24) == 0 && timestamp != _prev_beatstamp) {
 					// every quarter note
 					hit_at = (int) fragpos;
-					double tcount = _quarter_counter + (double) fragpos;
+					//double tcount = _quarter_counter + (double) fragpos;
 
 					// calc new tempo
 					//double ntempo = (_driver->get_samplerate() * 60.0 / tcount);
@@ -2290,6 +2329,11 @@ Engine::load_session (std::string fname, string * readstr)
 			sscanf (prop->value().c_str(), "%d", &temp);
 			_auto_disable_latency = temp ? true: false;
 		}
+		if ((prop = globals_node->property ("jack_timebase_master")) != 0) {
+			int temp = 0;
+			sscanf (prop->value().c_str(), "%d", &temp);
+			_jack_timebase_master = temp ? true: false;
+		}
 		if ((prop = globals_node->property ("output_midi_clock")) != 0) {
 			int temp = 0;
 			sscanf (prop->value().c_str(), "%d", &temp);
@@ -2339,6 +2383,8 @@ Engine::load_session (std::string fname, string * readstr)
 
 	_loading = false;
 
+	_driver->set_timebase_master(_jack_timebase_master);
+	
 	_osc->send_all_config();
 	
 	return true;
@@ -2379,6 +2425,9 @@ Engine::save_session (std::string fname, bool write_audio, string * writestr)
 
 	snprintf(buf, sizeof(buf), "%d", (int)_auto_disable_latency ? 1 : 0);
 	globals_node->add_property ("auto_disable_latency", buf);
+
+	snprintf(buf, sizeof(buf), "%d", (int)_jack_timebase_master ? 1 : 0);
+	globals_node->add_property ("jack_timebase_master", buf);
 
 	snprintf(buf, sizeof(buf), "%d", (int)_output_midi_clock ? 1 : 0);
 	globals_node->add_property ("output_midi_clock", buf);

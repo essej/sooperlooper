@@ -261,6 +261,7 @@ class Engine
 	
 	bool               _auto_disable_latency;
 	int                _selected_loop;
+	bool               _jack_timebase_master;
 
 	bool               _output_midi_clock;
 	bool               _smart_eighths;
@@ -282,6 +283,7 @@ class Engine
 	volatile bool _beat_occurred;
 	volatile bool _conns_changed;
 	volatile bool _sel_loop_changed;
+	volatile bool _timebase_changed;
 
 	double _tempo_averages[TEMPO_WINDOW_SIZE];
 	double _running_tempo_sum;

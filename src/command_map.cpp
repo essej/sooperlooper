@@ -111,6 +111,7 @@ CommandMap::CommandMap()
 	add_input_control("pitch_shift", Event::PitchShift, UnitSemitones, -12.0f, 12.0f, 0.0f); 
 	add_input_control("tempo_stretch", Event::TempoStretch, UnitBoolean);
 	add_input_control("round_integer_tempo", Event::RoundIntegerTempo, UnitBoolean);
+	add_input_control("jack_timebase_master", Event::JackTimebaseMaster, UnitBoolean);
 
 	_str_ctrl_map.insert (_input_controls.begin(), _input_controls.end());
 

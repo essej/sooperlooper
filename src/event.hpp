@@ -73,7 +73,7 @@ namespace SooperLooper {
     class Event {
         public:
 	    
-            Event(){}
+            Event() : Type(type_cmd_down),Command(UNKNOWN),Control(Unknown),Instance(0), Value(0) {}
 
             enum type_t {
 		    type_cmd_down,
@@ -178,6 +178,7 @@ namespace SooperLooper {
 		    SelectPrevLoop,
 		    SelectAllLoops,
 		    SelectedLoopNum,
+		    JackTimebaseMaster,
 		    // these are per-loop, but not used in the old plugin part
 		    SaveLoop,
 		    UseCommonIns,

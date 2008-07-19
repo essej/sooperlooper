@@ -73,6 +73,7 @@ class LatencyPanel
 	SpinBox     * _output_spin;
 	
 	wxCheckBox  * _round_tempo_integer_check;
+	wxCheckBox  * _jack_timebase_master_check;
 
 	MainPanel * _parent;
 	bool       _justResized;

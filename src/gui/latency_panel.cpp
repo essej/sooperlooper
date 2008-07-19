@@ -38,7 +38,8 @@ enum {
 	ID_OutputLatency,
 	ID_UpdateTimer,
 	ID_AutoDisableCheck,
-	ID_RoundTempoInteger
+	ID_RoundTempoInteger,
+	ID_JackTimebaseMaster
 
 };
 
@@ -46,6 +47,7 @@ BEGIN_EVENT_TABLE(SooperLooperGui::LatencyPanel, wxPanel)
 	EVT_CHECKBOX (ID_AutoCheck, SooperLooperGui::LatencyPanel::on_check)
 	EVT_CHECKBOX (ID_AutoDisableCheck, SooperLooperGui::LatencyPanel::on_check)
 	EVT_CHECKBOX (ID_RoundTempoInteger, SooperLooperGui::LatencyPanel::on_check)
+	EVT_CHECKBOX (ID_JackTimebaseMaster, SooperLooperGui::LatencyPanel::on_check)
 	EVT_TIMER(ID_UpdateTimer, SooperLooperGui::LatencyPanel::OnUpdateTimer)
 
 	EVT_SIZE (SooperLooperGui::LatencyPanel::onSize)
@@ -103,6 +105,7 @@ LatencyPanel::OnUpdateTimer(wxTimerEvent &ev)
 		lcontrol.request_control_value(0, wxT("output_latency"));
 		lcontrol.request_control_value(0, wxT("autoset_latency"));
 		lcontrol.request_global_control_value(wxT("auto_disable_latency"));
+		lcontrol.request_global_control_value(wxT("jack_timebase_master"));
 		_do_request = false;
 		_update_timer->Start(200, true);
 		return;
@@ -164,6 +167,9 @@ void LatencyPanel::init()
 	_round_tempo_integer_check = new wxCheckBox(this, ID_RoundTempoInteger, wxT("Round tempo to integer values on Record"));
 	topsizer->Add (_round_tempo_integer_check, 0, wxEXPAND|wxALL, 12);
 
+	_jack_timebase_master_check = new wxCheckBox(this, ID_JackTimebaseMaster, wxT("Become JACK Timebase Master (for tempo)"));
+	topsizer->Add (_jack_timebase_master_check, 0, wxEXPAND|wxALL, 12);
+
 
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
 	_update_timer->Start(5000, true);
@@ -207,6 +213,10 @@ void LatencyPanel::refresh_state()
 		_round_tempo_integer_check->SetValue(retval > 0.0f);
 	}
 
+	if (lcontrol.get_global_value (wxT("jack_timebase_master"), retval)) {
+		_jack_timebase_master_check->SetValue(retval > 0.0f);
+	}
+
 	if (_auto_check->GetValue()) {
 		_input_spin->Enable(false);
 		_output_spin->Enable(false);
@@ -228,6 +238,9 @@ void LatencyPanel::on_check (wxCommandEvent &ev)
 	}
 	else if (ev.GetId() == ID_RoundTempoInteger) {
 		lcontrol.post_ctrl_change (-1, wxT("round_integer_tempo"), _round_tempo_integer_check->GetValue() ? 1.0f : 0.0f);
+	}
+	else if (ev.GetId() == ID_JackTimebaseMaster) {
+		lcontrol.post_ctrl_change (-2, wxT("jack_timebase_master"), _jack_timebase_master_check->GetValue() ? 1.0f : 0.0f);
 	}
 	else {
 		lcontrol.post_ctrl_change (-2, wxT("auto_disable_latency"), _auto_disable_check->GetValue() ? 1.0f : 0.0f);

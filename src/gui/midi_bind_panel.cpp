@@ -92,6 +92,8 @@ static const wxString NoteOnString(wxT("Note On"));
 static const wxString NoteOffString(wxT("Note Off"));
 static const wxString PcString(wxT("PC"));
 static const wxString PitchBendString(wxT("Pitch Bend"));
+static const wxString KeyPressureString(wxT("Key Pressure"));
+static const wxString ChannelPressureString(wxT("Channel Pressure"));
 	
 static int wxCALLBACK list_sort_callback (long item1, long item2, long sortData)
 {
@@ -258,6 +260,8 @@ void MidiBindPanel::init()
 	_type_combo->Append (NoteOffString);
 	_type_combo->Append (CcString);
 	_type_combo->Append (PcString);
+	_type_combo->Append (KeyPressureString);
+	_type_combo->Append (ChannelPressureString);
 	_type_combo->Append (PitchBendString);
 	_type_combo->SetSelection(0);
 	rowsizer->Add (_type_combo, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
@@ -605,6 +609,12 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 	else if (info->type == "pb") {
 		_type_combo->SetStringSelection(PitchBendString);
 	}
+	else if (info->type == "kp") {
+		_type_combo->SetStringSelection(KeyPressureString);
+	}
+	else if (info->type == "cp") {
+		_type_combo->SetStringSelection(ChannelPressureString);
+	}
 
 	if (info->command == "set") {
 		_range_panel->Enable(true);
@@ -686,6 +696,12 @@ void MidiBindPanel::update_curr_binding()
 	else if (tsel == PitchBendString) {
 		_currinfo.type = "pb";
 	}
+	else if (tsel == KeyPressureString) {
+		_currinfo.type = "kp";
+	}
+	else if (tsel == ChannelPressureString) {
+		_currinfo.type = "cp";
+	}
 
 	if (cmap.is_command(_currinfo.control)) {
 		if (_currinfo.type == "pc") {
@@ -712,7 +728,7 @@ void MidiBindPanel::update_curr_binding()
 	
 	_currinfo.param = _param_spin->GetValue();
 
-	if (tsel == PitchBendString) {
+	if (tsel == PitchBendString || tsel == ChannelPressureString) {
 		_currinfo.param = 0;
 	}
 

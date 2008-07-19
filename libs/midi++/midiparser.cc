@@ -221,7 +221,7 @@ Parser::trace_event (Parser &p, byte *msg, size_t len, timestamp_t ts)
 		   << "Channel "
 		   << (msg[0]&0xF)+1
 		   << " Pitch Bend "
-		   << ((msg[1]<<7)|msg[2])
+		   << ((msg[2]<<7)|msg[1])
 		   << endmsg;
 		break;
 	    
@@ -715,8 +715,8 @@ Parser::signal (byte *msg, size_t len)
 		
 	case MIDI::pitchbend:
 		channel_active_preparse[chan_i] (*this);
-		pitchbend (*this, (msg[1]<<7)|msg[2]);
-		channel_pitchbend[chan_i] (*this, (msg[1]<<7)|msg[2]);
+		pitchbend (*this, (msg[2]<<7)|msg[1]);
+		channel_pitchbend[chan_i] (*this, (msg[2]<<7)|msg[1]);
 		channel_active_postparse[chan_i] (*this);
 		break;
 		
