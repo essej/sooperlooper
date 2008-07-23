@@ -489,3 +489,11 @@ void JackAudioDriver::timebase_callback(jack_transport_state_t state,
 	pos->valid = JackPositionBBT;
 
 }
+
+void JackAudioDriver::reposition_transport(nframes_t framepos)
+{
+	if (_jack) {
+		// this will take effect in two cycles, so lets add two cycles to the time ? (cheating, wrong?)
+		jack_transport_locate(_jack, framepos + 2*_buffersize);
+	}
+}

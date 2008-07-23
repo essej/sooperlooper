@@ -64,6 +64,7 @@ class JackAudioDriver
 	bool set_timebase_master(bool flag);
 	bool get_timebase_master() { return _timebase_master; }
 
+	void reposition_transport(nframes_t framepos);
 	
   protected:
 

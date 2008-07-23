@@ -97,6 +97,7 @@ class AudioDriver
 	virtual bool set_timebase_master(bool flag) { return false; }
 	virtual bool get_timebase_master() { return false; }
 
+	virtual void reposition_transport(nframes_t framepos) {}
 	
 	virtual nframes_t get_samplerate() { return _samplerate; }
 	virtual nframes_t get_buffersize() { return _buffersize; }

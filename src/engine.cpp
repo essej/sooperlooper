@@ -47,6 +47,8 @@ using namespace SigC;
 #define MAX_EVENTS 1024
 #define MAX_SYNC_EVENTS 1024
 
+#define TEMPO_DIFF(t1, t2) (fabs(t1-t2) > 0.000001)
+
 //#define DEBUG 1
 
 Engine::Engine ()
@@ -1912,10 +1914,38 @@ Engine::set_tempo (double tempo, bool rt)
 
 	if (_jack_timebase_master) {
 		TransportInfo tinfo;
+		_driver->get_transport_info(tinfo);
 		tinfo.bpm = tempo;
 		tinfo.beats_per_bar = _eighth_cycle / 2; // arbitrary
 		tinfo.beat_type = 4.0;
 		_driver->set_transport_info(tinfo);
+
+		if (_force_next_clock_start && tempo > 0.0) {
+			// calculate nearest bar boundary pos and set to there
+			nframes_t srate = _driver->get_samplerate();
+			nframes_t frames_per_bar = (nframes_t) lrint(srate * 60 * tinfo.beats_per_bar / tinfo.bpm);
+			nframes_t cycleframes = (nframes_t) _tempo_frames;
+			nframes_t currpos = 0;
+			if (_sync_source > 0) {
+				if (rt) {
+					cycleframes = (nframes_t) (_rt_instances[_sync_source-1]->get_control_value(Event::CycleLength) * srate);
+					currpos  = (nframes_t) (_rt_instances[_sync_source-1]->get_control_value(Event::LoopPosition) * srate);
+				}
+				else {
+					cycleframes = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::CycleLength) * srate);
+					currpos  = (nframes_t) (_instances[_sync_source-1]->get_control_value(Event::LoopPosition) * srate);
+				}
+			}
+			else {
+				// XXX - only works for internal/midi  (doesn't really work at all)
+				cycleframes = (nframes_t) _tempo_frames; // XXX - only right when quantize is cycle!
+				currpos = (nframes_t) _quarter_counter;
+			}
+
+			nframes_t target_frame = ((tinfo.framepos / frames_per_bar) * frames_per_bar) + (currpos % cycleframes);
+			_driver->reposition_transport(target_frame);
+			//cerr << "repos to " << target_frame << "  framepos was: " << tinfo.framepos << endl;
+		}
 	}
 
 	if (_midi_bridge)
@@ -1928,8 +1958,10 @@ Engine::set_tempo (double tempo, bool rt)
 		//nowtime = tval.tv_sec + tval.tv_usec / 1000000.0;
 		
 		_midi_bridge->tempo_clock_update(tempo, _beatstamp, _force_next_clock_start);
-		_force_next_clock_start = false;
 	}
+
+	_force_next_clock_start = false;
+
 }
 
 void
@@ -2120,7 +2152,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 					_prev_beatstamp = 0;
 				}
 
-				if ((_midi_ticks % 24) == 0 && timestamp != _prev_beatstamp) {
+				if ((_midi_ticks % 24) == 0 && TEMPO_DIFF(timestamp,_prev_beatstamp)) {
 					// every quarter note
 					hit_at = (int) fragpos;
 					//double tcount = _quarter_counter + (double) fragpos;
@@ -2130,7 +2162,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 					double ntempo = 60 / (timestamp - _prev_beatstamp);
 					ntempo = avg_tempo(ntempo);
 
-					if (ntempo != _tempo) {
+					if (TEMPO_DIFF(ntempo, _tempo)) {
 						//cerr << "new tempo is: " << ntempo << "   tcount = " << tcount << " frag: " << fragpos << "  used: " << usedframes << " delta: " << (timestamp - _prev_beatstamp) << endl;
 
 						set_tempo(ntempo, true);
@@ -2192,7 +2224,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 		if (_driver->get_transport_info(info)) {
 
 			
-			if (_tempo != info.bpm) {
+			if (TEMPO_DIFF(_tempo,info.bpm)) {
 				set_tempo(info.bpm, true);
 				calculate_tempo_frames ();
 				_tempo_changed = true;
@@ -2243,7 +2275,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 				ntempo = (_driver->get_samplerate() * 30.0 * _eighth_cycle / cycleframes);
 			}
 			
-			if (ntempo != _tempo) {
+			if (TEMPO_DIFF(ntempo, _tempo)) {
 				//cerr << "new tempo is: " << ntempo << "  oldtempo: " << _tempo << endl;
 
                                 if (_midi_bridge) {
@@ -2251,8 +2283,8 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
                                 }
                                 
 				_force_next_clock_start = true;
+
 				set_tempo(ntempo, true);
-			   
 				calculate_tempo_frames ();
 				_tempo_changed = true;
 				// wake up mainloop safely
