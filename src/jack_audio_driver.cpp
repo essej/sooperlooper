@@ -436,19 +436,19 @@ void JackAudioDriver::timebase_callback(jack_transport_state_t state,
 					jack_position_t *pos,
 					int new_pos)
 {
-	pos->valid = JackPositionBBT;
+	// FIXME!
+	static const double time_ticks_per_beat = 1920.0;
+
 	pos->beats_per_minute = _transport_info.bpm;
 	//cerr << "timebase callback  bpm: " << _transport_info.bpm << endl;
+	
+	pos->beats_per_bar = _transport_info.beats_per_bar > 0 ? _transport_info.beats_per_bar : 4.0;
+	pos->beat_type = _transport_info.beat_type;
+	pos->ticks_per_beat = time_ticks_per_beat;
 
 	// we got nothin' special for the other stuff yet, so use example
 
-	if (new_pos) {
-		// FIXME!
-		static const double time_ticks_per_beat = 1920.0;
-		
-		pos->beats_per_bar = _transport_info.beats_per_bar;
-		pos->beat_type = _transport_info.beat_type;
-		pos->ticks_per_beat = time_ticks_per_beat;
+	if (new_pos || !(pos->valid & JackPositionBBT)) {
 
 		/* Compute BBT info from frame number.  This is relatively
 		 * simple here, but would become complex if we supported tempo
@@ -485,5 +485,7 @@ void JackAudioDriver::timebase_callback(jack_transport_state_t state,
 			}
 		}
 	}
+
+	pos->valid = JackPositionBBT;
 
 }

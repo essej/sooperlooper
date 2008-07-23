@@ -1059,6 +1059,15 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			for (unsigned int n=0; n < _rt_instances.size(); ++n) {
 				_rt_instances[n]->set_port(EighthPerCycleLoop, _eighth_cycle);
 			}
+
+			if (_jack_timebase_master) {
+				TransportInfo tinfo;
+				tinfo.bpm = _tempo;
+				tinfo.beats_per_bar = _eighth_cycle / 2; // arbitrary
+				tinfo.beat_type = 4.0;
+				_driver->set_transport_info(tinfo);
+			}
+
 		}
 		calculate_midi_tick(true);
 	}
@@ -1643,6 +1652,15 @@ Engine::process_nonrt_event (EventNonRT * event)
 				for (unsigned int n=0; n < _instances.size(); ++n) {
 					_instances[n]->set_port(EighthPerCycleLoop, _eighth_cycle);
 				}
+
+				if (_jack_timebase_master) {
+					TransportInfo tinfo;
+					tinfo.bpm = _tempo;
+					tinfo.beats_per_bar = _eighth_cycle / 2; // arbitrary
+					tinfo.beat_type = 4.0;
+					_driver->set_transport_info(tinfo);
+				}
+
 			}
 			calculate_midi_tick();
 		}
