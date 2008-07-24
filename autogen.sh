@@ -74,43 +74,44 @@ done
 #
 # Correct. time for #ifdef AUTO_ME_HARDER ... ?
 #
+# [The above was written by Paul Davis a long time ago]
+#  lets just get rid of these checks shall we? 
+#autoconf --version | perl -e '
+#while(<>) { 
+#    @x=split(/[ \t\n]+/,$_); 
+#    $version=$x[3]; $v =~ s/[a-z]+$//; 
+#    if($version >= 2.52){
+#        exit 0;
+#    }else{
+#        print "\n\tversion $version of autoconf found: sooperlooper requires 2.52 or above.\n";
+#        exit 1;
+#    }
+#}
+#'      
 
-autoconf --version | perl -e '
-while(<>) { 
-    @x=split(/[ \t\n]+/,$_); 
-    $version=$x[3]; $v =~ s/[a-z]+$//; 
-    if($version >= 2.52){
-        exit 0;
-    }else{
-        print "\n\tversion $version of autoconf found: sooperlooper requires 2.52 or above.\n";
-        exit 1;
-    }
-}
-'      
-
-if [ $? != 0 ] ; then
-    exit 1
-fi
+#if [ $? != 0 ] ; then
+#    exit 1
+#fi
 
 # Check version of automake.  Equally frustrating as checking 
 # the version for autoconf.
 
-automake --version | perl -e '
-while(<>) { 
-    @x=split(/[ \t\n]+/,$_); 
-    $version=$x[3]; $v =~ s/[a-z]+$//; 
-    if($version >= 1.7){
-        exit 0;
-    }else{
-        print "\n\tversion $version of automake found: sooperlooper requires 1.7 or above.\n";
-        exit 1;
-    }
-}
-'      
+#automake --version | perl -e '
+#while(<>) { 
+#    @x=split(/[ \t\n]+/,$_); 
+#    $version=$x[3]; $v =~ s/[a-z]+$//; 
+#    if($version >= 1.7){
+#        exit 0;
+#    }else{
+#        print "\n\tversion $version of automake found: sooperlooper requires 1.7 or above.\n";
+#        exit 1;
+#    }
+#}
+#'      
 
-if [ $? != 0 ] ; then
-    exit 1
-fi
+#if [ $? != 0 ] ; then
+#    exit 1
+#fi
 
 echo "
 ----------------------------------------------------------------------
@@ -196,12 +197,13 @@ if test "\$target_cpu" = "powerpc"; then
     AC_DEFINE(HAVE_ALTIVEC_LINUX, 1, "Is there Altivec Support ?")
     if test "\$gcc_major_version" = "3"; then
 dnl -mcpu=7450 does not reliably work with gcc 3.*
-      OPT_FLAGS="-D_REENTRANT -O3 -mcpu=7400 -maltivec -mabi=altivec"
+      #OPT_FLAGS="-D_REENTRANT -O3 -mcpu=7400 -maltivec -mabi=altivec"
+      OPT_FLAGS="-D_REENTRANT -O3 -mcpu=7400 -mtune=7450"
     else
-      OPT_FLAGS="-D_REENTRANT -O3 -mcpu=7400"
+      OPT_FLAGS="-D_REENTRANT -Os"
     fi
   else
-    OPT_FLAGS="-D_REENTRANT -O3 -mcpu=750 -mmultiple"
+    OPT_FLAGS="-D_REENTRANT -Os "
   fi
   OPT_FLAGS="\$OPT_FLAGS -mhard-float -mpowerpc-gfxopt"
 elif echo \$target_cpu | grep "i*86" >/dev/null; then
