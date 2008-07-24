@@ -441,12 +441,17 @@ LoopControl::is_engine_local()
 
 	// cerr << "osc: " << _osc_url << "  remhost: " << remhost << "  lochost: " << lochost << endl;
 	
-	if (remhost && lochost && (strncmp(remhost, lochost, 30) == 0)) {
+	if (_host == wxT("0.0.0.0") || // special case ridiculous mac-ness
+	    (remhost && lochost && (strncmp(remhost, lochost, 30) == 0))) {
 		ret = true;
 	}
 
-	free(remhost);
-	free(lochost);
+	if (remhost) {
+		free(remhost);
+	}
+	if (lochost) {
+		free(lochost);
+	}
 
 	return ret;
 }
