@@ -350,10 +350,11 @@ static void popHeadLoop(SooperLooperI *pLS)
 	 pLS->tailLoopChunk = pLS->headLoopChunk; 
       }
    }
-   else {
-      pLS->headLoopChunk = NULL;
-      // pLS->tailLoopChunk is still valid to support redo
-      // from nothing
+   else if (dead && !dead->next) {
+	   // only clear the loop if this was the only loop in history
+	   pLS->headLoopChunk = NULL;
+	   // pLS->tailLoopChunk is still valid to support redo
+	   // from nothing
    }
 }
 
@@ -1092,13 +1093,12 @@ static LoopChunk * endMultiply(SooperLooperI *pLS, LoopChunk *loop, int nextstat
 		 loop->lLoopLength, loop->lCycles)); 
 	 DBG(fprintf(stderr,"EndMark at L:%lu  h:%lu\n",loop->lMarkEndL, loop->lMarkEndH));
 
-	 
-	 loop = transitionToNext(pLS, loop, nextstate);
-
    
 	 pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 	 pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 	 
+	 loop = transitionToNext(pLS, loop, nextstate);
+
       }
       else {
 	 // in round mode we need to wait it out
@@ -2635,7 +2635,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 
 		      if (pLS->state == STATE_PLAY) {
-			      pLS->fPlayFadeAtten = 0.0f;
+			      pLS->fPlayFadeAtten = 0.0f; // this is half-ass
 			      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 		      }
 		      else {
@@ -2714,7 +2714,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 DBG(fprintf(stderr,"Entering PLAY state from REDO\n"));
 
 		 if (pLS->state == STATE_PLAY) {
-			 pLS->fPlayFadeAtten = 0.0f;
+			 pLS->fPlayFadeAtten = 0.0f; // this is half-ass
 			 pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
 		 }
 		 else {
