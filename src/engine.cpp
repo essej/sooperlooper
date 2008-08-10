@@ -106,8 +106,8 @@ Engine::Engine ()
 
 	_solo_down_stamp = 1 << 31;
 	
-	_use_sync_start = true;
-	_use_sync_stop = true;
+	_use_sync_start = false;
+	_use_sync_stop = false;
 
 	pthread_cond_init (&_event_cond, NULL);
 
