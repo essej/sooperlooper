@@ -39,7 +39,9 @@ enum {
 	ID_UpdateTimer,
 	ID_AutoDisableCheck,
 	ID_RoundTempoInteger,
-	ID_JackTimebaseMaster
+	ID_JackTimebaseMaster,
+	ID_UseMidiStart,
+	ID_UseMidiStop
 
 };
 
@@ -48,6 +50,8 @@ BEGIN_EVENT_TABLE(SooperLooperGui::LatencyPanel, wxPanel)
 	EVT_CHECKBOX (ID_AutoDisableCheck, SooperLooperGui::LatencyPanel::on_check)
 	EVT_CHECKBOX (ID_RoundTempoInteger, SooperLooperGui::LatencyPanel::on_check)
 	EVT_CHECKBOX (ID_JackTimebaseMaster, SooperLooperGui::LatencyPanel::on_check)
+	EVT_CHECKBOX (ID_UseMidiStart, SooperLooperGui::LatencyPanel::on_check)
+	EVT_CHECKBOX (ID_UseMidiStop, SooperLooperGui::LatencyPanel::on_check)
 	EVT_TIMER(ID_UpdateTimer, SooperLooperGui::LatencyPanel::OnUpdateTimer)
 
 	EVT_SIZE (SooperLooperGui::LatencyPanel::onSize)
@@ -106,6 +110,8 @@ LatencyPanel::OnUpdateTimer(wxTimerEvent &ev)
 		lcontrol.request_control_value(0, wxT("autoset_latency"));
 		lcontrol.request_global_control_value(wxT("auto_disable_latency"));
 		lcontrol.request_global_control_value(wxT("jack_timebase_master"));
+		//lcontrol.request_global_control_value(wxT("use_midi_start"));
+		//lcontrol.request_global_control_value(wxT("use_midi_stop"));
 		_do_request = false;
 		_update_timer->Start(200, true);
 		return;
@@ -158,18 +164,22 @@ void LatencyPanel::init()
 	colsizer->Add (rowsizer, 0, wxEXPAND|wxALL, 6);
 
 	_auto_disable_check = new wxCheckBox(this, ID_AutoDisableCheck, wxT("Automatically Disable Compensation when Monitoring Input"));
-	colsizer->Add (_auto_disable_check, 0, wxEXPAND|wxALL, 12);
+	colsizer->Add (_auto_disable_check, 0, wxEXPAND|wxALL, 10);
 
 	topsizer->Add(colsizer, 0, wxALL|wxEXPAND, 3);
 
 	topsizer->Add(1,15, 0);
 
 	_round_tempo_integer_check = new wxCheckBox(this, ID_RoundTempoInteger, wxT("Round tempo to integer values on Record"));
-	topsizer->Add (_round_tempo_integer_check, 0, wxEXPAND|wxALL, 12);
+	topsizer->Add (_round_tempo_integer_check, 0, wxEXPAND|wxALL, 4);
 
 	_jack_timebase_master_check = new wxCheckBox(this, ID_JackTimebaseMaster, wxT("Become JACK Timebase Master (for tempo)"));
-	topsizer->Add (_jack_timebase_master_check, 0, wxEXPAND|wxALL, 12);
+	topsizer->Add (_jack_timebase_master_check, 0, wxEXPAND|wxALL, 4);
 
+	_use_midi_start_check = new wxCheckBox(this, ID_UseMidiStart, wxT("Trigger all loops on incoming MIDI Start Events"));
+	topsizer->Add (_use_midi_start_check, 0, wxEXPAND|wxALL, 4);
+	_use_midi_stop_check = new wxCheckBox(this, ID_UseMidiStop, wxT("Pause all loops on incoming MIDI Stop Events"));
+	topsizer->Add (_use_midi_stop_check, 0, wxEXPAND|wxALL, 4);
 
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
 	_update_timer->Start(5000, true);
@@ -217,6 +227,14 @@ void LatencyPanel::refresh_state()
 		_jack_timebase_master_check->SetValue(retval > 0.0f);
 	}
 
+	if (lcontrol.get_global_value (wxT("use_midi_start"), retval)) {
+		_use_midi_start_check->SetValue(retval > 0.0f);
+	}
+	if (lcontrol.get_global_value (wxT("use_midi_stop"), retval)) {
+		_use_midi_stop_check->SetValue(retval > 0.0f);
+	}
+
+
 	if (_auto_check->GetValue()) {
 		_input_spin->Enable(false);
 		_output_spin->Enable(false);
@@ -241,6 +259,12 @@ void LatencyPanel::on_check (wxCommandEvent &ev)
 	}
 	else if (ev.GetId() == ID_JackTimebaseMaster) {
 		lcontrol.post_ctrl_change (-2, wxT("jack_timebase_master"), _jack_timebase_master_check->GetValue() ? 1.0f : 0.0f);
+	}
+	else if (ev.GetId() == ID_UseMidiStart) {
+		lcontrol.post_global_ctrl_change (wxT("use_midi_start"), _use_midi_start_check->GetValue() ? 1.0f : 0.0f);
+	}
+	else if (ev.GetId() == ID_UseMidiStop) {
+		lcontrol.post_global_ctrl_change (wxT("use_midi_stop"), _use_midi_stop_check->GetValue() ? 1.0f : 0.0f);
 	}
 	else {
 		lcontrol.post_ctrl_change (-2, wxT("auto_disable_latency"), _auto_disable_check->GetValue() ? 1.0f : 0.0f);

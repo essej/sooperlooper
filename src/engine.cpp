@@ -106,6 +106,9 @@ Engine::Engine ()
 
 	_solo_down_stamp = 1 << 31;
 	
+	_use_sync_start = true;
+	_use_sync_stop = true;
+
 	pthread_cond_init (&_event_cond, NULL);
 
 	reset_avg_tempo();
@@ -298,6 +301,8 @@ void Engine::set_midi_bridge (MidiBridge * bridge)
 		_midi_bridge->MidiCommandEvent.connect (slot(*this, &Engine::push_midi_command_event));
 		_midi_bridge->MidiControlEvent.connect (slot(*this, &Engine::push_midi_control_event));
 		_midi_bridge->MidiSyncEvent.connect (slot(*this, &Engine::push_sync_event));
+
+		ParamChanged.connect(bind (slot(*_midi_bridge, &MidiBridge::parameter_changed), this));
 
 		_midi_bridge->set_output_midi_clock(_output_midi_clock);
 	}
@@ -1015,6 +1020,14 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			_midi_bridge->set_output_midi_clock(_output_midi_clock);
 		}
 	}
+	else if (ev->Control == Event::UseMidiStart)
+	{
+		_use_sync_start = ev->Value;
+	}
+	else if (ev->Control == Event::UseMidiStop)
+	{
+		_use_sync_stop = ev->Value;
+	}
 	else if (ev->Control == Event::SmartEighths)
 	{
 		_smart_eighths = ev->Value;
@@ -1229,7 +1242,9 @@ Engine::push_sync_event (Event::control_t ctrl, long framepos, MIDI::timestamp_t
 {
 	// todo support more than one simulataneous pusher safely
 
-	if (_sync_source != MidiClockSync) {
+	if (_sync_source != MidiClockSync 
+	    && (!_use_sync_stop || ctrl != Event::MidiStop)
+	    && (!_use_sync_start || ctrl != Event::MidiStart)) {
 		return;
 	}
 	
@@ -1313,6 +1328,12 @@ Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 		}
 		else if (ctrl == Event::OutputMidiClock) {
 			return _output_midi_clock ? 1.0f: 0.0f;
+		}
+		else if (ctrl == Event::UseMidiStart) {
+			return _use_sync_start ? 1.0f: 0.0f;
+		}
+		else if (ctrl == Event::UseMidiStop) {
+			return _use_sync_stop ? 1.0f: 0.0f;
 		}
 		else if (ctrl == Event::AutoDisableLatency) {
 			return _auto_disable_latency ? 1.0f: 0.0f;
@@ -1579,6 +1600,12 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (gg_event->param == "output_midi_clock") {
 			gg_event->ret_value =  (_output_midi_clock) ? 1.0f: 0.0f;
 		}
+		else if (gg_event->param == "use_midi_start") {
+			gg_event->ret_value =  (_use_sync_start) ? 1.0f: 0.0f;
+		}
+		else if (gg_event->param == "use_midi_stop") {
+			gg_event->ret_value =  (_use_sync_stop) ? 1.0f: 0.0f;
+		}
 		else if (gg_event->param == "smart_eighths") {
 			gg_event->ret_value =  (_smart_eighths) ? 1.0f: 0.0f;
 		}
@@ -1627,8 +1654,14 @@ Engine::process_nonrt_event (EventNonRT * event)
 				_midi_bridge->set_output_midi_clock(_output_midi_clock);
 			}
 		}
+		else if (gs_event->param == "use_midi_start") {
+			_use_sync_start = gs_event->value > 0.0f;
+		}
+		else if (gs_event->param == "use_midi_stop") {
+			_use_sync_stop = gs_event->value > 0.0f;
+		}
 		else if (gs_event->param == "smart_eighths") {
-			_smart_eighths = gs_event->value;
+			_smart_eighths = gs_event->value > 0.0f;
 		}
 		else if (gs_event->param == "selected_loop_num") {
 			_selected_loop = (int) gs_event->value;
@@ -2119,12 +2152,10 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 
 				++n;
 				// to avoid code copying
-				if (n == num) {
-					if (vecn == 0) {
-						++vecn;
-						n = 0;
-						num = vec.len[1];
-					}
+				if (n == num && vecn == 0) {
+					++vecn;
+					n = 0;
+					num = vec.len[1];
 				}
 				
 				if (fragpos < usedframes || fragpos >= nframes) {
@@ -2145,11 +2176,29 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 					_midi_ticks = 0;
 					//cerr << "got start at " << fragpos << endl;
 					//calculate_midi_tick();
+					if (_use_sync_start) {
+						// trigger all loops right now
+						evt->Type = Event::type_cmd_hit;
+						evt->Command = Event::TRIGGER;
+						for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i) {
+							(*i)->do_event(evt);
+							(*i)->run (0, 0);
+						}
+					}
 				}
 				else if (evt->Control == Event::MidiStop) {
 					// stop playing?
 					//cerr << "got stop at " << fragpos << endl;
 					_prev_beatstamp = 0;
+					if (_use_sync_stop) {
+						// pause all loops right now
+						evt->Type = Event::type_cmd_hit;
+						evt->Command = Event::PAUSE_ON;
+						for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i) {
+							(*i)->do_event(evt);
+							(*i)->run (0, 0);
+						}
+					}
 				}
 
 				if ((_midi_ticks % 24) == 0 && TEMPO_DIFF(timestamp,_prev_beatstamp)) {
@@ -2176,7 +2225,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 				}
 				
 				if ((_midi_ticks % _midi_loop_tick) == 0) {
-					// cerr << "GOT SYNC TICK at " << fragpos << endl;
+					//cerr << "GOT SYNC TICK at " << fragpos << endl;
 
 					// zero sync before this event
 					memset (&(_internal_sync_buf[usedframes]), 0, doframes * sizeof(float));
@@ -2307,6 +2356,68 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			}
 		}
 	}
+
+	// handle (midi) sync start and stop events when enabled, even when syncing to something else
+	if ((_use_sync_stop || _use_sync_start) && _sync_source != MidiClockSync)
+	{
+		RingBuffer<Event>::rw_vector vec;
+		Event *evt;
+		// get available events
+		_sync_queue->get_read_vector (&vec);
+
+		size_t num = vec.len[0];
+		size_t n = 0;
+		size_t vecn = 0;
+		nframes_t fragpos;
+		MIDI::timestamp_t timestamp = 0;
+		
+		while (n < num)
+		{ 
+			evt = vec.buf[vecn] + n;
+			fragpos = (nframes_t) (evt->FragmentPos() % nframes);
+			timestamp = evt->getTimestamp();
+			
+			if (evt->Control == Event::MidiStart) {
+				//_midi_ticks = 0;
+				//cerr << "got start at " << fragpos << endl;
+
+				if (_use_sync_start) {
+					// trigger all loops right now
+					evt->Type = Event::type_cmd_hit;
+					evt->Command = Event::TRIGGER;
+					for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i) {
+						(*i)->do_event(evt);
+						(*i)->run (0, 0);
+					}
+				}
+			}
+			else if (evt->Control == Event::MidiStop) {
+				// stop playing?
+				//cerr << "got stop at " << fragpos << endl;
+				//_prev_beatstamp = 0;
+				if (_use_sync_stop) {
+					// pause all loops right now
+					evt->Type = Event::type_cmd_hit;
+					evt->Command = Event::PAUSE_ON;
+					for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i) {
+						(*i)->do_event(evt);
+						(*i)->run (0, 0);
+					}
+				}
+			}
+			
+			++n;
+			// to avoid code copying
+			if (n == num && vecn == 0) {
+				++vecn;
+				n = 0;
+				num = vec.len[1];
+			}
+		}
+
+		// advance events
+		_sync_queue->increment_read_ptr (vec.len[0] + vec.len[1]);
+	}
 		
 	if (hit_at >= 0 && _tempo < 240.0) {
 		_beat_occurred = true;
@@ -2391,6 +2502,16 @@ Engine::load_session (std::string fname, string * readstr)
 			if (_midi_bridge) {
 				_midi_bridge->set_output_midi_clock(_output_midi_clock);
 			}
+		}
+		if ((prop = globals_node->property ("use_midi_start")) != 0) {
+			int temp = 0;
+			sscanf (prop->value().c_str(), "%d", &temp);
+			_use_sync_start = temp ? true: false;
+		}
+		if ((prop = globals_node->property ("use_midi_stop")) != 0) {
+			int temp = 0;
+			sscanf (prop->value().c_str(), "%d", &temp);
+			_use_sync_stop = temp ? true: false;
 		}
 		if ((prop = globals_node->property ("smart_eighths")) != 0) {
 			int temp = 0;
@@ -2481,6 +2602,11 @@ Engine::save_session (std::string fname, bool write_audio, string * writestr)
 
 	snprintf(buf, sizeof(buf), "%d", (int)_output_midi_clock ? 1 : 0);
 	globals_node->add_property ("output_midi_clock", buf);
+
+	snprintf(buf, sizeof(buf), "%d", (int)_use_sync_start ? 1 : 0);
+	globals_node->add_property ("use_midi_start", buf);
+	snprintf(buf, sizeof(buf), "%d", (int)_use_sync_stop ? 1 : 0);
+	globals_node->add_property ("use_midi_stop", buf);
 	
 	snprintf(buf, sizeof(buf), "%d", (int)_smart_eighths ? 1 : 0);
 	globals_node->add_property ("smart_eighths", buf);

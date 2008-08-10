@@ -61,6 +61,8 @@ CommandMap::CommandMap()
 	_str_cmd_map["mute_off"]  = Event::MUTE_OFF;
 	_str_cmd_map["mute_trigger"]  = Event::MUTE_TRIGGER;
 	_str_cmd_map["pause"]  = Event::PAUSE;
+	_str_cmd_map["pause_on"]  = Event::PAUSE_ON;
+	_str_cmd_map["pause_off"]  = Event::PAUSE_OFF;
 	_str_cmd_map["solo"]  = Event::SOLO;
 	_str_cmd_map["solo_next"]  = Event::SOLO_NEXT;
 	_str_cmd_map["solo_prev"]  = Event::SOLO_PREV;
@@ -154,6 +156,8 @@ CommandMap::CommandMap()
 	add_global_control("selected_loop_num", Event::SelectedLoopNum, UnitIndexed, -1.0f, 32.0f);
 	add_global_control("output_midi_clock", Event::OutputMidiClock, UnitBoolean, 0.0f, 1.0f, 1.0f);
 	add_global_control("smart_eighths", Event::SmartEighths, UnitBoolean, 0.0f, 1.0f, 1.0f);
+	add_global_control("use_midi_start", Event::UseMidiStart, UnitBoolean, 0.0f, 1.0f, 1.0f);
+	add_global_control("use_midi_stop", Event::UseMidiStop, UnitBoolean, 0.0f, 1.0f, 1.0f);
 	_str_ctrl_map.insert (_global_controls.begin(), _global_controls.end());
 
 	// reverse it

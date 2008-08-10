@@ -41,6 +41,8 @@
 
 namespace SooperLooper {
 
+	class Engine;
+
 class MidiBridge
 	: public SigC::Object
 {
@@ -80,6 +82,11 @@ class MidiBridge
 	MIDI::timestamp_t get_current_host_time();
 
 	void set_output_midi_clock(bool flag) { _output_clock = flag; }
+	
+	void set_feedback_out(bool flag) { _feedback_out = flag; }
+	bool get_feedback_out() const { return _feedback_out; }
+
+	void parameter_changed(int ctrl_id, int instance, Engine *engine);
 
   protected:
 	bool init_thread();
@@ -140,6 +147,7 @@ class MidiBridge
 	bool _getnext;
 	MidiBindInfo _learninfo;
 	bool _ok;
+	bool _feedback_out;
 	
 };
 

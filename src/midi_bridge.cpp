@@ -35,6 +35,7 @@
 
 #include "command_map.hpp"
 #include "utils.hpp"
+#include "engine.hpp";
 
 using namespace SooperLooper;
 using namespace std;
@@ -84,6 +85,7 @@ MidiBridge::MidiBridge (string name, string oscurl, PortRequest & req)
 	_clockdone = false;
 	_output_clock = false;
 	_getnext = false;
+	_feedback_out = false;
 
 	_addr = lo_address_new_from_url (_oscurl.c_str());
 	if (lo_address_errno (_addr) < 0) {
@@ -122,6 +124,7 @@ MidiBridge::MidiBridge (string name,  PortRequest & req)
 	_clock_thread = 0;
 	_output_clock = false;
 	_getnext = false;
+	_feedback_out = false;
 
 	PortFactory factory;
 	
@@ -156,6 +159,7 @@ MidiBridge::MidiBridge (string name)
 	_ok = true;	
 	_output_clock = false;
 	_getnext = false;
+	_feedback_out = false;
 
 	init_clock_thread();
 }
@@ -466,9 +470,14 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long
 
 		for (MidiBindings::BindingList::iterator eiter = elist.begin(); eiter != elist.end(); ++eiter) {
 			MidiBindInfo & info = (*eiter);
-			float scaled_val;
+			float scaled_val = 0.0;
 			float val_ratio;
 			int clamped_val;
+
+			if ((info.type == "off" && val > 0) || (info.type == "on" && val == 0)) {
+				// binding was for note off or on only, skip this
+				continue;
+			}
 
 			// clamp it
 			if ((chcmd & 0xF0) == MIDI::pitchbend) {
@@ -509,24 +518,25 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long
 				info.last_toggle_val = scaled_val;
 			}
 
-			//fprintf(stderr, "found binding: key: %x  val: %02x  scaled: %g  type: %s\n", (int) key, (int) val, scaled_val, info.type.c_str());
+			fprintf(stderr, "found binding: key: %x  val: %02x  scaled: %g  type: %s\n", (int) key, (int) val, scaled_val, info.type.c_str());
 			//cerr << "ctrl: " << info.control << "  cmd: " << info.command << endl;
 
-			
 			send_event (info, scaled_val, framepos);
 		}
 	}
-	else if (chcmd == MIDI::start) {  // MIDI start
+	else if (chcmd == MIDI::start || chcmd == MIDI::contineu) {  // MIDI start
 		if (_use_osc) {
 			lo_send(_addr, "/sl/midi_start", "");
 		}
 		MidiSyncEvent (Event::MidiStart, framepos, timestamp); // emit
+		//cerr << "got start" << endl;
 	}
 	else if (chcmd == MIDI::stop) { // MIDI stop
 		if (_use_osc) {
 			lo_send(_addr, "/sl/midi_stop", "");
 		}
 		MidiSyncEvent (Event::MidiStop, framepos, timestamp); // emit
+		//cerr << "got stop" << endl;
 	}
 	else if (chcmd == MIDI::timing) {  // MIDI clock tick
 		if (_use_osc) {
@@ -553,53 +563,26 @@ MidiBridge::send_event (const MidiBindInfo & info, float val, long framepos)
 	Event::command_t cmdtype = cmdmap.to_command_t (info.control);
 	
 	if (cmd == "set") {
-		bool sendit = true;
-
-		if (info.type == "cc") {
-			// nothing, just saves some compares for the common case
-		}
-		else if (info.type == "off" && val > 0.0f) {
-			// binding was for note off only, skip this
-			sendit = false;
-		}
-		else if (info.type == "on" && val == 0.0f) {
-			// binding was for note on only, skip this
-			sendit = false;
-		}
-
-		if (sendit) {
-			if (_use_osc) {
-				snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, cmd.c_str());
-				
-				if (lo_send(_addr, tmpbuf, "sf", info.control.c_str(), val) < 0) {
-					fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
-				}
-			}
+		if (_use_osc) {
+			snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, cmd.c_str());
 			
-			MidiControlEvent (optype, ctrltype, val, (int8_t) info.instance, framepos); // emit
+			if (lo_send(_addr, tmpbuf, "sf", info.control.c_str(), val) < 0) {
+				fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
+			}
 		}
 		
+		MidiControlEvent (optype, ctrltype, val, (int8_t) info.instance, framepos); // emit
 	}
 	else {
-		bool sendit = true;
-
 		if (cmd == "note") {
 			if (val > 0.0f) {
 				//cerr << "val is " << val << "  type is: " << info.type << endl;
 				cmd = "down";
 				optype = Event::type_cmd_down;
-				if (info.type == "off") {
-					// binding was for note off only, skip this
-					sendit = false;
-				}
 			}
 			else {
 				cmd = "up";
 				optype = Event::type_cmd_up;
-				if (info.type == "on") {
-					// binding was for note on only, skip this
-					sendit = false;
-				}
 			}
 		}
 		else if (cmd == "susnote") {
@@ -613,17 +596,15 @@ MidiBridge::send_event (const MidiBindInfo & info, float val, long framepos)
 			}
 		}
 
-		if (sendit) {
-			if (_use_osc) {
-				snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, cmd.c_str());
-				
-				if (lo_send(_addr, tmpbuf, "s", info.control.c_str()) < 0) {
-					fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
-				}
+		if (_use_osc) {
+			snprintf (tmpbuf, sizeof(tmpbuf)-1, "/sl/%d/%s", info.instance, cmd.c_str());
+			
+			if (lo_send(_addr, tmpbuf, "s", info.control.c_str()) < 0) {
+				fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(_addr), lo_address_errstr(_addr));
 			}
-
-			MidiCommandEvent (optype, cmdtype, (int8_t) info.instance, framepos); // emit
 		}
+		
+		MidiCommandEvent (optype, cmdtype, (int8_t) info.instance, framepos); // emit
 	}
 }
 
@@ -891,7 +872,26 @@ MIDI::timestamp_t MidiBridge::get_current_host_time()
 }
 
 
+void MidiBridge::parameter_changed(int ctrl_id, int instance, Engine *engine)
+{
+	if (!_feedback_out) return;
 
+	int selected_loop = (int) engine->get_control_value(Event::SelectedLoopNum, -2);
+	bool selected = (selected_loop == instance || selected_loop == -1 || engine->loop_count()==1);
 
+	if (ctrl_id == SooperLooper::Event::State)
+	{
+		int currstate = (int) engine->get_control_value(Event::State, instance);
+	}
+	else {
+		float value = engine->get_control_value((Event::control_t)ctrl_id, instance);
+	
+		if (instance == -1) {
+			// all loops
+		}
+		else {
+			// normal control
 
-
+		}
+	}
+}

@@ -129,6 +129,8 @@ using namespace SooperLooper;
 #define MULTI_MUTE_ON    19
 #define MULTI_MUTE_OFF   20
 #define MULTI_PAUSE      21
+#define MULTI_PAUSE_ON      22
+#define MULTI_PAUSE_OFF      23
 
 #define MULTI_SET_SYNC_POS 28
 #define MULTI_RESET_SYNC_POS 29
@@ -1709,6 +1711,24 @@ runSooperLooper(LADSPA_Handle Instance,
 		  lMultiCtrl = MULTI_TRIGGER;
 	  }
   }
+  else if (lMultiCtrl == MULTI_PAUSE_ON) {
+	  if (pLS->state != STATE_PAUSED) {
+		  // lets pause it
+		  lMultiCtrl = MULTI_PAUSE;
+	  } else {
+		  // already paused, do nothing
+		  lMultiCtrl = -1;
+	  }
+  }
+  else if (lMultiCtrl == MULTI_PAUSE_OFF) {
+	  if (pLS->state == STATE_PAUSED) {
+		  // lets unpause it
+		  lMultiCtrl = MULTI_PAUSE;
+	  } else {
+		  // already not paused, do nothing
+		  lMultiCtrl = -1;
+	  }
+  }
   
   if (fTapTrig == pLS->fLastTapCtrl) {
      // ignore it, we must have a change to trigger a tap
@@ -2364,19 +2384,27 @@ runSooperLooper(LADSPA_Handle Instance,
 	       case STATE_PAUSED:
 	       // this enters play mode but from the continuous position
 		       if ((fMuteQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) || pLS->state == STATE_PAUSED) {
-			       pLS->state = STATE_PLAY;
-			       pLS->wasMuted = false;
-			       DBG(fprintf(stderr,"Entering PLAY state continuous\n"));
-			       pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
-			       
-			       if (lMultiCtrl == MULTI_PAUSE && loop) {
-				       // set current loop position to paused position
-				       loop->dCurrPos = pLS->dPausedPos;
-				       DBG(fprintf(stderr, "setting loop pos to pause pos: %g\n", pLS->dPausedPos));
+			       if (pLS->state == STATE_MUTE && lMultiCtrl == MULTI_PAUSE) {
+				       pLS->state = STATE_PAUSED;
+				       pLS->wasMuted = true;
+				       DBG(fprintf(stderr,"Entering PAUSED state from mute\n"));
+				       pLS->dPausedPos = loop->dCurrPos;
 			       }
-
-			       // then send out a sync here for any slaves
-			       pfSyncOutput[0] = 1.0f;
+			       else {
+				       pLS->state = STATE_PLAY;
+				       pLS->wasMuted = false;
+				       DBG(fprintf(stderr,"Entering PLAY state continuous\n"));
+				       pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+				       
+				       if (lMultiCtrl == MULTI_PAUSE && loop) {
+					       // set current loop position to paused position
+					       loop->dCurrPos = pLS->dPausedPos;
+					       DBG(fprintf(stderr, "setting loop pos to pause pos: %g\n", pLS->dPausedPos));
+				       }
+				       
+				       // then send out a sync here for any slaves
+				       pfSyncOutput[0] = 1.0f;
+			       }
 		       }
 		       else {
 			       // wait for sync
@@ -3928,6 +3956,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	case STATE_ONESHOT:
 	case STATE_SCRATCH:
 	case STATE_MUTE:
+     case STATE_PAUSED:
 	{
 	   //fprintf(stderr,"in play begin\n");	   
 	   // play  the input out mixed with the recorded loop.

@@ -292,6 +292,8 @@ class Engine
 	nframes_t       _longpress_frames;
 	nframes_t       _solo_down_stamp;
 
+	bool _use_sync_start;
+	bool _use_sync_stop;
 
 	bool _loading;
 };

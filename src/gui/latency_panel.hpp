@@ -75,6 +75,9 @@ class LatencyPanel
 	wxCheckBox  * _round_tempo_integer_check;
 	wxCheckBox  * _jack_timebase_master_check;
 
+	wxCheckBox  * _use_midi_start_check;
+	wxCheckBox  * _use_midi_stop_check;
+
 	MainPanel * _parent;
 	bool       _justResized;
 
