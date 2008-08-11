@@ -1654,11 +1654,12 @@ runSooperLooper(LADSPA_Handle Instance,
 	  eighthSamples = (unsigned int) (pLS->fSampleRate * 30.0 / fTempo);
 
 	  if (fQuantizeMode == QUANT_CYCLE || fQuantizeMode == QUANT_LOOP) {
-		  syncSamples = (unsigned int) eighthSamples * eighthPerCycle / 2;
+		  syncSamples = (unsigned int) (eighthSamples * eighthPerCycle / 2);
 	  }
 	  else if (fQuantizeMode == QUANT_8TH) {
-		  syncSamples = eighthSamples / 2;
+		  syncSamples = (eighthSamples / 2);
 	  }
+
   }
   
   
@@ -4089,8 +4090,8 @@ runSooperLooper(LADSPA_Handle Instance,
 
 		 if (syncSamples && fPlaybackSyncMode != 0.0f && fQuantizeMode != QUANT_OFF && !pLS->donePlaySync
 		     && ( pfSyncInput[lSampleIndex] > 1.5f)
-		     && ((lCurrPos + syncSamples) >= (loop->lLoopLength - loop->lSyncPos)
-			 || (lCurrPos > loop->lSyncPos && lCurrPos < (unsigned int) loop->lSyncPos + lrintf(syncSamples) )))
+		     && (labs((long)(loop->lLoopLength - loop->lSyncPos) - lCurrPos) < syncSamples
+		     	 || (lCurrPos + loop->lSyncPos) < syncSamples))
 		 {
 			 DBG(cerr << "PLAYBACK SYNC " << (unsigned) pLS << "  hit at " << lCurrPos << endl);
 			 //pLS->waitingForSync = 1;
