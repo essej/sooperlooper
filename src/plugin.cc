@@ -132,9 +132,9 @@ using namespace SooperLooper;
 #define MULTI_PAUSE_ON      22
 #define MULTI_PAUSE_OFF      23
 
-#define MULTI_SET_SYNC_POS 28
-#define MULTI_RESET_SYNC_POS 29
-#define MULTI_MUTE_TRIGGER 30
+#define MULTI_SET_SYNC_POS 30
+#define MULTI_RESET_SYNC_POS 31
+#define MULTI_MUTE_TRIGGER 32
 
 
 /*****************************************************************************/
@@ -2384,7 +2384,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	       case STATE_ONESHOT:
 	       case STATE_PAUSED:
 	       // this enters play mode but from the continuous position
-		       if ((fMuteQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) || pLS->state == STATE_PAUSED) {
+		       if (loop && ((fMuteQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) || pLS->state == STATE_PAUSED)) {
 			       if (pLS->state == STATE_MUTE && lMultiCtrl == MULTI_PAUSE) {
 				       pLS->state = STATE_PAUSED;
 				       pLS->wasMuted = true;
@@ -2407,7 +2407,7 @@ runSooperLooper(LADSPA_Handle Instance,
 				       pfSyncOutput[0] = 1.0f;
 			       }
 		       }
-		       else {
+		       else if (loop) {
 			       // wait for sync
 			       if (pLS->state == STATE_RECORD) {
 				       pLS->state = STATE_TRIG_STOP;
@@ -2442,7 +2442,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // continue through to default
 
 	      default:
-		   if (((fMuteQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF))
+		   if (loop && ((fMuteQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF))
 			  && !(pLS->state == STATE_RECORD && bRoundIntegerTempo))
 		   {
 		     if (pLS->state == STATE_RECORD || pLS->state == STATE_TRIG_STOP) {
@@ -2470,7 +2470,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		      // then send out a sync here for any slaves
 		      pfSyncOutput[0] = 1.0f;
 		 }
-		 else {
+		   else if (loop) {
 			 // wait for sync
 			 if (pLS->state == STATE_RECORD) {
 				 pLS->state = STATE_TRIG_STOP;
