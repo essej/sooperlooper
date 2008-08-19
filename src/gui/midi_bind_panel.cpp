@@ -619,26 +619,32 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 	if (info->command == "set") {
 		_range_panel->Enable(true);
 		_data_range_panel->Enable(true);
+
+		_lbound_ctrl->SetValue (wxString::Format(wxT("%g"), info->lbound));
+		_ubound_ctrl->SetValue (wxString::Format(wxT("%g"), info->ubound));
+		
+		_data_min_ctrl->SetValue (wxString::Format(wxT("%d"), info->data_min));
+		_data_max_ctrl->SetValue (wxString::Format(wxT("%d"), info->data_max));
 	}
 	else {
-		_range_panel->Enable(false);
-		_data_range_panel->Enable(false);
+		_range_panel->Enable(false); 
+		_data_range_panel->Enable(false); 
 		if (info->command == "susnote") {
 			_sus_check->SetValue(true);
 		}
 		else {
 			_sus_check->SetValue(false);
 		}
+
+		_lbound_ctrl->SetValue (wxT(""));
+		_ubound_ctrl->SetValue (wxT(""));
+		
+		_data_min_ctrl->SetValue (wxT(""));
+		_data_max_ctrl->SetValue (wxT(""));
 	}
 	
 	_param_spin->SetValue(info->param);
 
-
-	_lbound_ctrl->SetValue (wxString::Format(wxT("%g"), info->lbound));
-	_ubound_ctrl->SetValue (wxString::Format(wxT("%g"), info->ubound));
-
-	_data_min_ctrl->SetValue (wxString::Format(wxT("%d"), info->data_min));
-	_data_max_ctrl->SetValue (wxString::Format(wxT("%d"), info->data_max));
 
 	if (info->style == MidiBindInfo::GainStyle) {
 		_style_combo->SetSelection(1);
@@ -791,6 +797,10 @@ void MidiBindPanel::on_combo (wxCommandEvent &ev)
  	if (CommandMap::instance().is_command(control)) {
  		_range_panel->Enable(false);
  		_data_range_panel->Enable(false);
+		_lbound_ctrl->SetValue(wxT(""));
+		_ubound_ctrl->SetValue(wxT(""));
+		_data_min_ctrl->SetValue(wxT(""));
+		_data_max_ctrl->SetValue(wxT(""));
  	}
  	else {
  		_range_panel->Enable(true);
@@ -801,6 +811,8 @@ void MidiBindPanel::on_combo (wxCommandEvent &ev)
 		CommandMap::instance().get_control_info(control, info);
 		_lbound_ctrl->SetValue(wxString::Format(wxT("%g"), info.minValue));
 		_ubound_ctrl->SetValue(wxString::Format(wxT("%g"), info.maxValue));
+		_data_min_ctrl->SetValue (wxT(""));
+		_data_max_ctrl->SetValue (wxT(""));
  	}
 }
 
