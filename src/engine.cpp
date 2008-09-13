@@ -24,6 +24,7 @@
 #include <sys/time.h>
 #include <pthread.h>
 #include <cerrno>
+#include <time.h>
 
 #include <vector>
 #include <algorithm>
@@ -108,6 +109,9 @@ Engine::Engine ()
 	
 	_use_sync_start = false;
 	_use_sync_stop = false;
+
+	// for now just use the current time!
+	_unique_id = (int) ::time(NULL);
 
 	pthread_cond_init (&_event_cond, NULL);
 
@@ -1807,7 +1811,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 	}
 	else if ((ping_event = dynamic_cast<PingEvent*> (event)) != 0)
 	{
-		_osc->send_pingack(true, ping_event->ret_url, ping_event->ret_path);
+		_osc->send_pingack(true, ping_event->use_id, ping_event->ret_url, ping_event->ret_path);
 	}
 	else if ((rc_event = dynamic_cast<RegisterConfigEvent*> (event)) != 0)
 	{

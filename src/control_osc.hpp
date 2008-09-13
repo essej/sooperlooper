@@ -54,7 +54,7 @@ class ControlOSC
 	bool is_ok() { return _ok; }
 
 	void send_all_config ();
-	void send_pingack (bool useudp, std::string returl, std::string retpath="/pingack");
+	void send_pingack (bool useudp, bool use_id, std::string returl, std::string retpath="/pingack");
 	
 	void send_all_midi_bindings (MidiBindings * bind, std::string returl, std::string retpath);
 

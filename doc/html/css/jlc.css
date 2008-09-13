@@ -122,7 +122,7 @@ HR {
 	margin:0px 0px 5px 0px;
 	padding:2px 0px 0px 0px;
 	/* For IE5/Win's benefit height = [correct height] + [top padding] + [top and bottom border widths] */
-	height:79px; /* 75px + 5px + 2px = 82px */
+	height:73px; /* 75px + 5px + 2px = 82px */
 	border-style:solid;
 	border-color:black;
 	border-width:1px 0px; /* top and bottom borders: 1px; left and right borders: 0px */
@@ -130,7 +130,7 @@ HR {
 	background-color:#000;
 	color: #fff;
 
-  	background-image: url('head_gradient_bg.png');
+  	/* background-image: url('head_gradient_bg.png'); */
 	background-repeat: repeat-y;
 	background-position: top left;
 
@@ -141,13 +141,13 @@ declaration. The incorrect IE5/Win value is above, while the correct value is
 below. See http://glish.com/css/hacks.asp for details. */
 	voice-family: "\"}\"";
 	voice-family:inherit;
-	height:72px; /* the correct height */
+	height:66px; /* the correct height */
 	}
 /* I've heard this called the "be nice to Opera 5" rule. Basically, it feeds correct 
 length values to user agents that exhibit the parsing error exploited above yet get 
 the CSS box model right and understand the CSS2 parent-child selector. ALWAYS include
 a "be nice to Opera 5" rule every time you use the Tantek Celik hack (above). */
-body>#Header {height:72px;}
+body>#Header {height:66px;}
 
 #Content {
   margin:0px 171px 6px 5px;

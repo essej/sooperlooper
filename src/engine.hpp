@@ -125,6 +125,8 @@ class Engine
 	bool load_session (std::string fname, std::string * readstr=0);
 	bool save_session (std::string fname, bool write_audio = false, std::string * writestr=0);
 	
+	int get_id() const { return _unique_id; }
+
   protected:	
 
 	struct LoopManageEvent
@@ -267,6 +269,7 @@ class Engine
 	bool               _smart_eighths;
 	bool               _force_discrete;
 	
+	int                _unique_id;
    private:
 
 	double _tempo_counter;

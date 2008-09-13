@@ -68,6 +68,7 @@ class GuiApp : public wxApp
 	wxString _exec_name;
 	bool  _force_spawn;
 	bool  _never_spawn;
+	bool  _never_timeout;
 	int  _loop_count;
 	int  _channels;
 	float _mem_secs;

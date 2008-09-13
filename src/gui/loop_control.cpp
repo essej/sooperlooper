@@ -41,6 +41,7 @@ using namespace SooperLooper;
 LoopControl::SpawnConfig::SpawnConfig(const wxString & nm)
 	: name(nm), host(""), port(DEFAULT_OSC_PORT), num_loops(1), num_channels(2),
 	  mem_secs(40.0f), discrete_io(true), exec_name("sooperlooper"), midi_bind_path(""), force_spawn(false), never_spawn(false),
+	  never_timeout(false),
 	  jack_name("")
 {
 }
@@ -76,6 +77,7 @@ XMLNode& LoopControl::SpawnConfig::get_state () const
 	node->add_property ("session_path", session_path);
 
 	node->add_property ("force_spawn", force_spawn ? "yes": "no");
+	node->add_property ("never_timeout", never_timeout ? "yes": "no");
 	
 	return *node;
 }
@@ -143,7 +145,16 @@ int LoopControl::SpawnConfig::set_state (const XMLNode& node)
 					force_spawn = false;
 				}
 			}
-
+			/*
+			if ((prop = child_node->property ("never_timeout")) != 0) {
+				if (prop->value() == "yes") {
+					never_timeout = true;
+				}
+				else {
+					never_timeout = false;
+				}
+			}
+			*/
 			break;
 		}
 	}
@@ -162,7 +173,8 @@ LoopControl::LoopControl (const wxString & rcdir)
 	_sentinel = true;
 	_lastchance = false;
 	_we_spawned = false;
-	
+	_engine_id = 0;
+
 	setup_param_map();
 	
 	_osc_server = lo_server_new(NULL, NULL);
@@ -182,8 +194,10 @@ LoopControl::LoopControl (const wxString & rcdir)
 
 	// pingack expects: s:engine_url s:version i:loopcount
 	lo_server_add_method(_osc_server, "/pingack", "ssi", LoopControl::_pingack_handler, this);
+	lo_server_add_method(_osc_server, "/pingack", "ssii", LoopControl::_pingack_handler, this);
 
 	lo_server_add_method(_osc_server, "/alive_resp", "ssi", LoopControl::_alive_handler, this);
+	lo_server_add_method(_osc_server, "/alive_resp", "ssii", LoopControl::_alive_handler, this);
 
 	lo_server_add_method(_osc_server, "/error", "ss", LoopControl::_error_handler, this);
 	
@@ -313,7 +327,7 @@ LoopControl::connect()
 	if (!_spawn_config.force_spawn) {
 		// send off a ping.  set a timer, if we don't have a response, we'll start our own locally
 		_waiting = 0;
-		lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
+		lo_send(_osc_addr, "/ping", "ssi", _our_url.c_str(), "/pingack", 1);
 		//cerr << "sending ping" << endl;
 		_updatetimer->Start(700, true);
 	}
@@ -330,28 +344,48 @@ LoopControl::connect()
 	return true;
 }
 
+void
+LoopControl::register_global_updates(bool unreg)
+{
+	char buf[50];
+
+	if (!_osc_addr) return;
+	
+	if (unreg) {
+		snprintf(buf, sizeof(buf), "/unregister_update");
+
+	} else {
+		snprintf(buf, sizeof(buf), "/register_update");
+	}
+
+	// results will come back with instance = -2
+	lo_send(_osc_addr, buf, "sss", "tempo", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "sync_source", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "tap_tempo", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "wet", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "dry", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "input_gain", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "auto_disable_latency", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "output_midi_clock", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "use_midi_stop", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "use_midi_start", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "smart_eighths", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "selected_loop_num", _our_url.c_str(), "/ctrl");
+	
+	lo_send(_osc_addr, "/register_auto_update", "siss", "in_peak_meter", 100, _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, "/register_auto_update", "siss", "out_peak_meter", 100, _our_url.c_str(), "/ctrl");
+	
+	lo_send(_osc_addr, "/get_all_midi_bindings", "ss", _our_url.c_str(), "/recv_midi_bindings");
+	
+}
+
 bool
 LoopControl::disconnect (bool killit)
 {
 
 	if (_osc_addr) {
-		lo_send(_osc_addr, "/unregister", "ss", _our_url.c_str(), "/pingack");
-		lo_send(_osc_addr, "/unregister_update", "sss", "tempo", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/unregister_update", "sss", "sync_source", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/unregister_update", "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/unregister_update", "sss", "tap_tempo", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/unregister_update", "sss", "wet", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/unregister_update", "sss", "dry", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/unregister_update", "sss", "input_gain", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/unregister_update", "sss", "auto_disable_latency", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/unregister_update", "sss", "output_midi_clock", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/unregister_update", "sss", "use_midi_stop", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/unregister_update", "sss", "use_midi_start", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/unregister_update", "sss", "smart_eighths", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/unregister_update", "sss", "selected_loop_num", _our_url.c_str(), "/ctrl");
-
-		lo_send(_osc_addr, "/unregister_auto_update", "sss",  "in_peak_meter", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/unregister_auto_update", "sss",  "out_peak_meter", _our_url.c_str(), "/ctrl");
+		register_global_updates(true); // unregister
 		
 		if (killit) {
 			send_quit();
@@ -496,7 +530,7 @@ LoopControl::pingtimer_expired()
 				// send off a ping.  
 				_pingack = false;
 				_waiting = 60;
-				lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
+				lo_send(_osc_addr, "/ping", "ssi", _our_url.c_str(), "/pingack", 1);
 				_lastchance = 1;
 				_updatetimer->Start(100, true);
 			}
@@ -516,7 +550,8 @@ LoopControl::pingtimer_expired()
 			_updatetimer->Start(100, true);
 			_waiting = 1;
 		}
-		else {
+		else if (!_spawn_config.never_timeout)
+		{
 			//cerr << "execute failed" << endl;
 			if (_osc_addr) {
 				lo_address_free(_osc_addr);
@@ -622,9 +657,14 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 	string hosturl(&argv[0]->s);
 	string version(&argv[1]->s);
 	int loopcount = argv[2]->i;
+	int uid = 0;
 	char tmpbuf[100];
 	
-	cerr << "slgui: remote looper is at " << hosturl << " version=" << version << "   loopcount=" << loopcount << endl;
+	if (argc > 3) {
+		uid = argv[3]->i;
+	}
+
+	cerr << "slgui: remote looper is at " << hosturl << " version=" << version << "   loopcount=" << loopcount << "  id=" << uid << endl;
 
 	char * remport = lo_url_get_port(hosturl.c_str());
 	wxString tmpstr = wxString::FromAscii(remport);
@@ -666,30 +706,21 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 	}
 	_osc_addr = lo_address_new_from_url (hosturl.c_str());
 
+	if (_engine_id != 0 && _engine_id != uid) {
+		cerr << "new engine ID pingacked us!, re-registering" << endl;
+		_pingack = false;
+	}
+	_engine_id = uid;
+
 	if (!_pingack) {
 		// register future configs with it once
 		lo_send(_osc_addr, "/register", "ss", _our_url.c_str(), "/pingack");
 
-		// results will come back with instance = -2
-		lo_send(_osc_addr, "/register_update", "sss", "tempo", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/register_update", "sss", "sync_source", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/register_update", "sss", "eighth_per_cycle", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/register_update", "sss", "tap_tempo", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/register_update", "sss", "wet", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/register_update", "sss", "dry", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/register_update", "sss", "input_gain", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/register_update", "sss", "auto_disable_latency", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/register_update", "sss", "output_midi_clock", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/register_update", "sss", "use_midi_stop", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/register_update", "sss", "use_midi_start", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/register_update", "sss", "smart_eighths", _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/register_update", "sss", "selected_loop_num", _our_url.c_str(), "/ctrl");
+		register_global_updates();		
 
-		lo_send(_osc_addr, "/register_auto_update", "siss", "in_peak_meter", 100, _our_url.c_str(), "/ctrl");
-		lo_send(_osc_addr, "/register_auto_update", "siss", "out_peak_meter", 100, _our_url.c_str(), "/ctrl");
-		
 		lo_send(_osc_addr, "/get_all_midi_bindings", "ss", _our_url.c_str(), "/recv_midi_bindings");
-		
+
+
 		_pingack = true;
 	}
 
@@ -710,7 +741,14 @@ LoopControl::_alive_handler(const char *path, const char *types, lo_arg **argv, 
 int
 LoopControl::alive_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
 {
-	// s:hosturl  s:version  i:loopcount
+	// s:hosturl  s:version  i:loopcount [i:id]
+	if (argc > 3) {
+		int uid = argv[3]->i;
+		if (uid != _engine_id) {
+			cerr << "engine changed on us, redoing connections" << endl;
+			return pingack_handler(path, types, argv, argc, data);
+		}
+	}
 
 	IsAlive(); // emit
 	return 0;
@@ -1085,7 +1123,7 @@ void
 LoopControl::register_input_controls(int index, bool unreg)
 {
 	if (!_osc_addr) return;
-	char buf[30];
+	char buf[50];
 
 	if ((int)_params_val_map.size() > index) {
 		_params_val_map[index].clear();
@@ -1164,7 +1202,7 @@ LoopControl::register_auto_update(int index, wxString ctrl, bool unreg)
 {
 	if (!_osc_addr) return;
 
-	char buf[30];
+	char buf[50];
 
 	if (unreg) {
 		snprintf(buf, sizeof(buf), "/sl/%d/unregister_auto_update", index);
@@ -1184,7 +1222,7 @@ bool
 LoopControl::post_down_event(int index, wxString cmd)
 {
 	if (!_osc_addr) return false;
-	char buf[30];
+	char buf[50];
 
 	snprintf(buf, sizeof(buf), "/sl/%d/down", index);
 	
@@ -1199,7 +1237,7 @@ bool
 LoopControl::post_up_event(int index, wxString cmd, bool force)
 {
 	if (!_osc_addr) return false;
-	char buf[30];
+	char buf[50];
 
 	if (force) {
 		snprintf(buf, sizeof(buf), "/sl/%d/upforce", index);
@@ -1219,7 +1257,7 @@ bool
 LoopControl::post_ctrl_change (int index, wxString ctrl, float val)
 {
 	if (!_osc_addr) return false;
-	char buf[30];
+	char buf[50];
 
 	// go ahead and update our local copy
 	if (index >= 0 && index < (int) _params_val_map.size()) {
@@ -1254,7 +1292,7 @@ bool
 LoopControl::post_save_loop(int index, wxString fname, wxString format, wxString endian)
 {
 	if (!_osc_addr) return false;
-	char buf[30];
+	char buf[50];
 
 	snprintf(buf, sizeof(buf), "/sl/%d/save_loop", index);
 
@@ -1335,7 +1373,7 @@ void
 LoopControl::send_alive_ping()
 {
 	if (!_osc_addr) return;
-	lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/alive_resp");
+	lo_send(_osc_addr, "/ping", "ssi", _our_url.c_str(), "/alive_resp", 1);
 }
 
 void

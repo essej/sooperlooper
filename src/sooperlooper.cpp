@@ -354,7 +354,7 @@ int main(int argc, char** argv)
 
 	if (!option_info.pingurl.empty()) {
 		// notify whoever asked as to which will be the spawner
-		engine->get_control_osc()->send_pingack (true, option_info.pingurl);
+		engine->get_control_osc()->send_pingack (true, true, option_info.pingurl);
 	}
 
 	MidiBridge * midibridge = 0;

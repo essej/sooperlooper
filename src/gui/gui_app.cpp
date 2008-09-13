@@ -100,6 +100,7 @@ static const wxCmdLineEntryDesc cmdLineDesc[] =
 	{ wxCMD_LINE_OPTION, wxT("J"), wxT("jack-name"), wxT("jack client name, default is sooperlooper_1")},
 	{ wxCMD_LINE_OPTION, wxT("S"), wxT("jack-server-name"), wxT("specify JACK server name")},
 	{ wxCMD_LINE_SWITCH, wxT("T"), wxT("stay-on-top"), wxT("keep main window on top of other applications")},
+	{ wxCMD_LINE_SWITCH, wxT("n"), wxT("never-timeout"), wxT("Never timeout if an engine stops responding")},
 	{ wxCMD_LINE_NONE }
 };
 	
@@ -112,7 +113,7 @@ GuiApp::parse_options (int argc, wxChar **argv)
 
 	wxString logotext = wxT("SooperLooper ") +
 		wxString::FromAscii (sooperlooper_version) +
-		wxT("\nCopyright 2007 Jesse Chappell\n")
+		wxT("\nCopyright 2008 Jesse Chappell\n")
 		wxT("SooperLooper comes with ABSOLUTELY NO WARRANTY\n")
 		wxT("This is free software, and you are welcome to redistribute it\n")
 		wxT("under certain conditions; see the file COPYING for details\n");
@@ -172,6 +173,8 @@ GuiApp::parse_options (int argc, wxChar **argv)
 	_never_spawn = parser.Found (wxT("N"));
 	parser.Found (wxT("E"), &_exec_name);
 
+	_never_timeout = parser.Found (wxT("n"));
+
 	parser.Found (wxT("S"), &_server_name);
 	parser.Found (wxT("J"), &_client_name);
 
@@ -192,6 +195,7 @@ GuiApp::GuiApp()
 	_channels = 0;
 	_mem_secs = 0.0f;
 	_stay_on_top = false;
+	_never_timeout = false;
 }
 
 GuiApp::~GuiApp()
@@ -271,6 +275,9 @@ bool GuiApp::OnInit()
 	if (_mem_secs != 0) {
 		loopctrl.get_spawn_config().mem_secs = _mem_secs;
 	}
+	
+	loopctrl.get_spawn_config().never_timeout = _never_timeout;
+	_frame->get_main_panel()->set_never_timeout(_never_timeout);
 	
 	
 	// connect

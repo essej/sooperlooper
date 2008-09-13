@@ -120,7 +120,9 @@ END_EVENT_TABLE()
 	_got_new_data = 0;
 	_help_window = 0;
 	_engine_alive = true;
-	
+	_never_timeout = false;
+	_update_timer_time = 11000; // ms
+
 	_rcdir = wxGetHomeDir() + wxFileName::GetPathSeparator() + wxT(".sooperlooper");
 
 	_loop_control = new LoopControl(_rcdir);
@@ -133,7 +135,7 @@ END_EVENT_TABLE()
 	init();
 
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
-	_update_timer->Start(11000, true);
+	_update_timer->Start(_update_timer_time, true);
 
 	_taptempo_button_timer = new wxTimer(this, ID_TapTempoTimer);
 
@@ -511,10 +513,10 @@ MainPanel::OnUpdateTimer(wxTimerEvent &ev)
 {
 	// check to see if our connected server is still alive
 	
-	if (_loop_control->connected()) {
+	if (_loop_control->connected() || _never_timeout) {
  		_loop_control->update_values();
 
-		if (!_engine_alive) {		
+		if (!_engine_alive && !_never_timeout) {		
 			_loop_control->disconnect();
 			on_connection_lost ("Lost connection to SooperLooper engine.\nSee the Preferences->Connections tab to start a new one");
 		}
@@ -523,8 +525,18 @@ MainPanel::OnUpdateTimer(wxTimerEvent &ev)
 		_loop_control->send_alive_ping();
 	}
 
-	_update_timer->Start(11000, true);
+	_update_timer->Start(_update_timer_time, true);
 }
+
+void MainPanel::set_never_timeout(bool flag) 
+{ 
+	_never_timeout = flag; 
+	if (_never_timeout) {
+		// reduce sleep time to check more often
+		_update_timer_time = 3000;
+	}
+}
+
 
 void
 MainPanel::do_close(bool quitengine)

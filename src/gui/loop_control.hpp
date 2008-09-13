@@ -68,6 +68,7 @@ class LoopControl
 		std::string   midi_bind_path;
 		bool       force_spawn;
 		bool       never_spawn;
+		bool       never_timeout;
 		std::string   jack_name;
 		std::string   jack_serv_name;
 		std::string   session_path;
@@ -127,6 +128,7 @@ class LoopControl
 	
 	void update_values();
 
+	void register_global_updates(bool unreg=false);
 	void register_auto_updates(int index, bool unreg=false);
 	void register_input_controls(int index, bool unreg=false);
 	void register_control (int index, wxString ctrl, bool unreg=false);
@@ -225,6 +227,8 @@ class LoopControl
 	bool _we_spawned;
 	
 	long _engine_pid;
+
+	int  _engine_id;
 
 	bool init_traffic_thread();
 	void terminate_traffic_thread();

@@ -145,8 +145,9 @@ ControlOSC::register_callbacks()
 		/* add method that will match the path /quit with no args */
 		lo_server_add_method(serv, "/quit", "", ControlOSC::_quit_handler, this);
 
-		// add ping handler:  s:returl s:retpath
+		// add ping handler:  s:returl s:retpath [useid]
 		lo_server_add_method(serv, "/ping", "ss", ControlOSC::_ping_handler, this);
+		lo_server_add_method(serv, "/ping", "ssi", ControlOSC::_ping_handler, this);
 
 		// add loop add handler:  i:channels  i:bytes_per_channel
 		lo_server_add_method(serv, "/loop_add", "if", ControlOSC::_loop_add_handler, this);
@@ -710,6 +711,10 @@ int ControlOSC::ping_handler(const char *path, const char *types, lo_arg **argv,
 {
 	string returl (&argv[0]->s);
 	string retpath (&argv[1]->s);
+	bool useid = false;
+	if (argc > 2) {
+		useid = true;
+	}
 
 	//lo_message msg = (lo_message) data;
 	//lo_address srcaddr = lo_message_get_source (msg);
@@ -717,7 +722,7 @@ int ControlOSC::ping_handler(const char *path, const char *types, lo_arg **argv,
 	//int srcport = atoi(sport);
 	//cerr << "got ping from " <<  srcport << endl;
 
-	_engine->push_nonrt_event ( new PingEvent (returl, retpath));
+	_engine->push_nonrt_event ( new PingEvent (returl, retpath, useid));
 	
 	return 0;
 }
@@ -1495,7 +1500,7 @@ void ControlOSC::send_all_config ()
 	// for now just send pingacks to all registered addresses
 	for (AddressList::iterator iter = _config_registrations.begin(); iter != _config_registrations.end(); ++iter)
 	{
-		send_pingack (true, (*iter).first, (*iter).second);
+		send_pingack (true, false, (*iter).first, (*iter).second);
 	}
 }
 
@@ -1515,7 +1520,7 @@ void ControlOSC::send_error (std::string returl, std::string retpath, std::strin
 	}
 }
 
-void ControlOSC::send_pingack (bool useudp, string returl, string retpath)
+void ControlOSC::send_pingack (bool useudp, bool use_id, string returl, string retpath)
 {
 	lo_address addr;
 
@@ -1536,8 +1541,17 @@ void ControlOSC::send_pingack (bool useudp, string returl, string retpath)
 	}
 	
 	//cerr << "sooperlooper: sending ping response to " << returl << endl;
-	if (lo_send(addr, retpath.c_str(), "ssi", oururl.c_str(), sooperlooper_version, _engine->loop_count()) < 0) {
-		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
+	// sends our server URL, the SL version, the loop count, and a unique id for continuity checking
+	if (use_id)
+	{
+		if (lo_send(addr, retpath.c_str(), "ssii", oururl.c_str(), sooperlooper_version, _engine->loop_count(), _engine->get_id()) < 0) {
+			fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
+		}
+	}
+	else {
+		if (lo_send(addr, retpath.c_str(), "ssi", oururl.c_str(), sooperlooper_version, _engine->loop_count()) < 0) {
+			fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
+		}
 	}
 }
 

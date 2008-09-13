@@ -137,8 +137,8 @@ typedef struct _LoopChunk {
 	unsigned long lMarkEndH;        
 
 	unsigned long lSyncOffset; // used for rel sync
-	unsigned long lSyncPos; // used for retriggering
-	unsigned long lOrigSyncPos;
+	long lSyncPos; // used for retriggering
+	long lOrigSyncPos;
 	
 	int firsttime;
 	int frontfill;

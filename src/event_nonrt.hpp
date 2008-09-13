@@ -164,13 +164,14 @@ namespace SooperLooper {
 	class PingEvent : public EventNonRT
 	{
 	public:
-		PingEvent(std::string returl, std::string retpath)
-			: ret_url(returl), ret_path(retpath) {}
+		PingEvent(std::string returl, std::string retpath, bool useid)
+			: ret_url(returl), ret_path(retpath), use_id(useid) {}
 
 		virtual ~PingEvent() {}
 
 		std::string  ret_url;
 		std::string  ret_path;
+		bool         use_id;
 	};
 
 	class RegisterConfigEvent : public EventNonRT

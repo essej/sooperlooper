@@ -93,6 +93,9 @@ public:
 	bool load_rc();
 	bool save_rc();
 
+	void set_never_timeout(bool flag);
+	bool get_never_timeout() const { return _never_timeout; }
+
 	void save_default_midibindings ();
 
 	wxString do_file_selector(const wxString & message, const wxString & ext, const wxString & wc, int style);
@@ -185,8 +188,10 @@ protected:
 	
 	int     _got_new_data;
 	wxString  _rcdir;
-	bool _engine_alive;
-	
+	volatile bool _engine_alive;
+	bool          _never_timeout;
+	int           _update_timer_time;
+
 private:
     // any class wishing to process wxWindows events must use this macro
     DECLARE_EVENT_TABLE()
