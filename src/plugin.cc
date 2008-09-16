@@ -201,6 +201,15 @@ sl_read_current_loop_audio (LADSPA_Handle instance, float * buf, unsigned long f
 	return frames;
 }
 
+void
+sl_set_samples_since_sync (LADSPA_Handle instance, unsigned long frames)
+{
+	SooperLooperI * pLS = (SooperLooperI *)instance;
+
+	if (!pLS) return;
+
+	pLS->lSamplesSinceSync = frames;
+}
 
 static bool invalidateTails (SooperLooperI * pLS, unsigned long bufstart, unsigned long buflen, LoopChunk * currloop)
 {
@@ -4185,7 +4194,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 if (pLS->waitingForSync && 
 		     ((fSyncMode == 0.0f && pfSyncOutput[lSampleIndex] != 0.0f) 
-		      || pfSyncInput[lSampleIndex] != 0.0f))
+		      || pfSyncInput[lSampleIndex] != 0.0f
+		      ||  (pLS->nextState == STATE_TRIGGER_PLAY && fSyncMode >= 1.0f && pLS->lSamplesSinceSync < eighthSamples))) // some slack
 		 {
 			 loop->dCurrPos = lCurrPos + modf(loop->dCurrPos, &dDummy);
 				 

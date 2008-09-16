@@ -416,6 +416,7 @@ JackAudioDriver::get_transport_info (TransportInfo &info)
 		info.bpm = tpos.beats_per_minute;
 	}
 
+	info.last_framepos = info.framepos;
 	info.framepos = tpos.frame;
 
 	return true;

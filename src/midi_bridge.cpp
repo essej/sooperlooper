@@ -518,7 +518,7 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long
 				info.last_toggle_val = scaled_val;
 			}
 
-			fprintf(stderr, "found binding: key: %x  val: %02x  scaled: %g  type: %s\n", (int) key, (int) val, scaled_val, info.type.c_str());
+			//fprintf(stderr, "found binding: key: %x  val: %02x  scaled: %g  type: %s\n", (int) key, (int) val, scaled_val, info.type.c_str());
 			//cerr << "ctrl: " << info.control << "  cmd: " << info.command << endl;
 
 			send_event (info, scaled_val, framepos);

@@ -127,6 +127,9 @@ class Engine
 	
 	int get_id() const { return _unique_id; }
 
+	bool get_transport_always_rolls() const { return _transport_always_rolls; }
+	void set_transport_always_rolls();
+
   protected:	
 
 	struct LoopManageEvent
@@ -270,6 +273,8 @@ class Engine
 	bool               _force_discrete;
 	
 	int                _unique_id;
+	bool               _transport_always_rolls;
+
    private:
 
 	double _tempo_counter;

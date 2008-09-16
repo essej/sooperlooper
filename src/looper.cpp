@@ -423,6 +423,16 @@ Looper::use_sync_buf(sample_t * buf)
 }
 
 void 
+Looper::set_samples_since_sync(nframes_t ssync)
+{
+	// this is a bit of a hack
+	for (unsigned int i=0; i < _chan_count; ++i)
+	{
+		sl_set_samples_since_sync(_instances[i], ssync);
+	}
+}
+
+void 
 Looper::set_soloed (int index, bool value)
 {
 	if (index != (int) _index) {

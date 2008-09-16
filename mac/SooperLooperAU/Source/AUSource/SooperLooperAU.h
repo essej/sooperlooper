@@ -201,6 +201,7 @@ protected:
 	int               _currStates[SL_MAXLOOPS];
 	AudioTimeStamp  _curr_stamp;
 	UInt32       _last_framepos;
+	UInt32       _last_fake_framepos;
 	UInt32       _last_rendered_frames;
 
 	SInt16		 _stay_on_top;

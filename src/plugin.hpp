@@ -383,5 +383,7 @@ typedef struct {
 // available returns amount read.  if 0 is returned loop is done.
 extern unsigned long sl_read_current_loop_audio (LADSPA_Handle instance, float * buf, unsigned long frames, unsigned long loop_offset);
 
+// override current samples since sync
+extern void sl_set_samples_since_sync (LADSPA_Handle instance, unsigned long frames);
 
 #endif

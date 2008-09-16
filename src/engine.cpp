@@ -113,6 +113,8 @@ Engine::Engine ()
 	// for now just use the current time!
 	_unique_id = (int) ::time(NULL);
 
+	_transport_always_rolls = false; // this only applies for the AU plugin right now
+
 	pthread_cond_init (&_event_cond, NULL);
 
 	reset_avg_tempo();
@@ -2267,8 +2269,8 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 		//memset (_internal_sync_buf, 0, nframes * sizeof(float));
 
 	}
-	else if (_sync_source == JackSync) {
-
+	else if (_sync_source == JackSync) 
+	{
 		for (nframes_t n=offset; n < nframes; ++n) {
 			_internal_sync_buf[n]  = 0.0;
 		}
@@ -2291,8 +2293,16 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 				nframes_t diff = lrint(_tempo_frames - thisval);
 				diff = (thisval == 0) ? 0 : diff;
 				
-				//cerr << "pos: " << info.framepos << "  tempoframes: " << _tempo_frames << "  this: " << thisval << "  next: " << nextval << endl;
+				//fprintf(stderr, "pos: %lu   lastpos: %lu  tempoframe: %g  thisval: %lu  nextval: %lu\n", info.framepos , info.last_framepos, _tempo_frames, thisval, nextval);
 				
+				if (info.framepos < info.last_framepos) {
+					//fprintf(stderr,"framepos discontinuity!  setting samples since sync to : %lu   last: %lu \n",info.framepos + offset, info.last_framepos);
+					for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i) {
+						(*i)->set_samples_since_sync(info.framepos + offset);
+					}
+ 
+				}
+
 				if ((thisval == 0 || nextval <= thisval) && diff < nframes) {
 					//cerr << "got tempo frame in this cycle: diff: " << diff << endl;
 					_internal_sync_buf[offset + diff]  = 2.0;
@@ -2308,7 +2318,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 				//cerr << "pos: " << info.framepos << "  qframes: " << _quarter_note_frames << "  this: " << thisval << "  next: " << nextval << endl;
 				
 				if ((thisval == 0 || nextval <= thisval) && diff < nframes) {
-					//cerr << "got quarter frame in this cycle: diff: " << diff << endl;
+					cerr << "got quarter frame in this cycle: diff: " << diff << endl;
 					hit_at = (int) diff;
 				}
 			}

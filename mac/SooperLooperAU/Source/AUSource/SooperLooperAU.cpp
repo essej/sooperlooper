@@ -1160,15 +1160,26 @@ SooperLooperAU::get_transport_info (TransportInfo &info)
 			}
 	}
 	
-	if (currpos != _last_framepos) {
+	if (currpos == 0 || currpos != _last_framepos) {
 		info.framepos = currpos;
+		info.last_framepos = _last_framepos;
 		_last_framepos = currpos;
+		info.state = TransportInfo::ROLLING;
+	}
+	else if (_engine->get_transport_always_rolls())
+	{
+		info.last_framepos = _last_fake_framepos;
+		info.framepos = (nframes_t) _curr_stamp.mSampleTime;					
+		_last_fake_framepos = info.framepos;
+		info.state = TransportInfo::ROLLING;
 	}
 	else {
-		info.framepos = (nframes_t) _curr_stamp.mSampleTime;					
+		info.state = TransportInfo::STOPPED;
+		info.framepos = currpos;
+		info.last_framepos = _last_framepos;
 	}
 				
-	info.state = TransportInfo::ROLLING;
+
 
 	
 	return true;

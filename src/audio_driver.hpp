@@ -46,6 +46,7 @@ struct TransportInfo
 	};
        
 	nframes_t framepos;
+	nframes_t last_framepos;
 	double bpm;
 	State state;
 // future items
