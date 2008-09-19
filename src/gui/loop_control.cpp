@@ -373,11 +373,14 @@ LoopControl::register_global_updates(bool unreg)
 	lo_send(_osc_addr, buf, "sss", "smart_eighths", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "selected_loop_num", _our_url.c_str(), "/ctrl");
 	
-	lo_send(_osc_addr, "/register_auto_update", "siss", "in_peak_meter", 100, _our_url.c_str(), "/ctrl");
-	lo_send(_osc_addr, "/register_auto_update", "siss", "out_peak_meter", 100, _our_url.c_str(), "/ctrl");
-	
-	lo_send(_osc_addr, "/get_all_midi_bindings", "ss", _our_url.c_str(), "/recv_midi_bindings");
-	
+	if (unreg) {
+		lo_send(_osc_addr, "/unregister_auto_update", "siss", "in_peak_meter", 100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/unregister_auto_update", "siss", "out_peak_meter", 100, _our_url.c_str(), "/ctrl");
+	}
+	else {
+		lo_send(_osc_addr, "/register_auto_update", "siss", "in_peak_meter", 100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/register_auto_update", "siss", "out_peak_meter", 100, _our_url.c_str(), "/ctrl");
+	}
 }
 
 bool
@@ -718,8 +721,7 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 
 		register_global_updates();		
 
-		lo_send(_osc_addr, "/get_all_midi_bindings", "ss", _our_url.c_str(), "/recv_midi_bindings");
-
+		request_all_midi_bindings();
 
 		_pingack = true;
 	}

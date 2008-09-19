@@ -934,7 +934,16 @@ static LoopChunk* beginMultiply(SooperLooperI *pLS, LoopChunk *loop)
 	      loop->srcloop = srcloop = loop->prev;
       }
 
+      int prevstate = pLS->state;
+
       pLS->state = STATE_MULTIPLY;
+
+      if (prevstate == STATE_TRIG_STOP) {
+	      // coming out of record we can actually 
+	      // set the loopfadeatten to 0 without harm
+	      // since we're fading out the loopsrcfade
+	      pLS->fLoopFadeAtten = 0.0f;
+      }
 
 //      if (*pLS->pfQuantMode == 0.0f) {
 	      // we'll do this later if we are quantizing
@@ -1294,8 +1303,17 @@ static LoopChunk * beginOverdub(SooperLooperI *pLS, LoopChunk *loop)
    //loop = pushNewLoopChunk(pLS, loop->lLoopLength, loop);
    loop = pushNewLoopChunk(pLS, 0, loop);
    if (loop) {
+	   int prevstate = pLS->state;
+
       pLS->state = STATE_OVERDUB;
       // always the same length as previous loop
+
+      if (prevstate == STATE_TRIG_STOP) {
+	      // coming out of record we can actually 
+	      // set the loopfadeatten to 0 without harm
+	      // since we're fading out the loopsrcfade
+	      pLS->fLoopFadeAtten = 0.0f;
+      }
 
       pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
       long lInputLatency = (long) (*pLS->pfInputLatency);
@@ -3296,11 +3314,17 @@ runSooperLooper(LADSPA_Handle Instance,
 			      //cerr << "ending recstop sync1: " << lCurrPos << endl;
 		      }
 
+		      // update current info before transition
+		      loop->lLoopLength = (unsigned long) lCurrPos;
+		      loop->lCycleLength = loop->lLoopLength;
+		      loop->lCycles = 1;
+
 		      DBG(fprintf(stderr,"0x%08x: transitioning to %d  at %g with length: %lu\n", (unsigned) pLS, pLS->nextState, loop->dCurrPos, loop->lLoopLength));
+		      
 
 		      loop = transitionToNext (pLS, loop, pLS->nextState);
 		      pLS->waitingForSync = 0;
-
+		      //jlc trig
 		      // we need to increment loop position by output latency (+ IL ?)
 		      loop->dCurrPos = loop->dCurrPos + ( lOutputLatency + lInputLatency ) * fRate;
 		      pLS->lFramesUntilFilled = lOutputLatency + lInputLatency;
@@ -3406,7 +3430,8 @@ runSooperLooper(LADSPA_Handle Instance,
 				 : (pLS->lInputBufSize - (lInputReadPos - pLS->lInputBufWritePos)) ;
 
 		 }
-		 else {
+		 else { // jlc over
+			 DBG(fprintf(stderr, "overdub frames until input: %ld\n", pLS->lFramesUntilInput));
 			 rLoopSample = 0;
 			 rpLoopSample = 0;
 			 pLS->lFramesUntilInput--;
@@ -3465,6 +3490,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
 		 if (pLS->lFramesUntilFilled > 0) {
 			 // fill from the record position * and for the play pos !!?
+			 //DBG(fprintf(stderr, "filling rcurrpos=%u  pppos %d\n", (unsigned int) rCurrPos, lCurrPos));
 			 fillLoops(pLS, loop, (unsigned int) rCurrPos, true);
 			 pLS->lFramesUntilFilled--;
 		 }
@@ -4259,7 +4285,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 fOutputSample =   tmpWet *  (*pLoopSample)
 		    + fDry * fInputSample;
 
-
+		 // jlc play
 		 // we might add a bit from the input still during xfadeout
 		 *(rLoopSample) = ((*rLoopSample) * pLS->fFeedFadeAtten) +  pLS->fLoopFadeAtten * fInputSample;
 
