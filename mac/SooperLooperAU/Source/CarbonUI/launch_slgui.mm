@@ -27,10 +27,12 @@ using namespace std;
 
 - (void)dealloc
 {
-	[searchTask stopProcess];
 	// Release the memory for this wrapper object
-	[searchTask release];
-	searchTask=nil;
+	if (searchTask!=nil) {
+		[searchTask stopProcess];
+		[searchTask release];
+		searchTask=nil;
+	}
 	//cerr << "launch dealloc" << endl;	
 	[super dealloc];
 }
@@ -58,7 +60,7 @@ using namespace std;
 
 - (void)terminate
 {
-	if (findRunning)
+	if (findRunning && searchTask != nil)
 	{
 		// This stops the task and calls our callback (-processFinished)
 		[searchTask stopProcess];
