@@ -2633,7 +2633,7 @@ Engine::save_session (std::string fname, bool write_audio, string * writestr)
 	{
 		XMLNode * node = & ((*i)->get_state());
 
-		if (write_audio && !fname.empty()) {
+		if (write_audio && !fname.empty() && (*i)->get_control_value(Event::LoopLength) > 0.0f ) {
 			// add property with audio_pathname and write it out
 			char pathstr[512];
 			snprintf(pathstr, sizeof(pathstr), "%s_loop_%02d.wav", fname.c_str(), n);

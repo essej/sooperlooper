@@ -1470,7 +1470,10 @@ Looper::load_loop (string fname)
 		descriptor->run (_instances[i], 0);
 
 		if ((int)old_state == LooperStateMuted) {
-			ports[Multi] = Event::MUTE;
+			ports[Multi] = Event::MUTE_ON;
+		}
+		else if ((int)old_state == LooperStatePaused) {
+			ports[Multi] = Event::PAUSE_ON;
 		}
 		else {
 			ports[Multi] = Event::RECORD;
@@ -1827,7 +1830,8 @@ Looper::set_state (const XMLNode& node)
 
 	// load audio if we should
 	if ((prop = node.property ("loop_audio")) != 0) {
-		load_loop(prop->value());
+	   ports[State] = LooperStatePaused; // force this
+	   load_loop(prop->value());
 	}
 
 	return 0;
