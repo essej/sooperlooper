@@ -71,6 +71,7 @@ CommandMap::CommandMap()
 	_str_cmd_map["record_solo_prev"]  = Event::RECORD_SOLO_PREV;	
 	_str_cmd_map["set_sync_pos"]  = Event::SET_SYNC_POS;
 	_str_cmd_map["reset_sync_pos"]  = Event::RESET_SYNC_POS;
+	_str_cmd_map["record_or_overdub"]  = Event::RECORD_OR_OVERDUB;
 
 
 	for (StringCommandMap::iterator iter = _str_cmd_map.begin(); iter != _str_cmd_map.end(); ++iter) {
@@ -100,6 +101,7 @@ CommandMap::CommandMap()
 	add_input_control("autoset_latency", Event::AutosetLatency, UnitBoolean, 0.0f, 1.0f, 1.0f);
 	add_input_control("mute_quantized", Event::MuteQuantized, UnitBoolean);
 	add_input_control("overdub_quantized", Event::OverdubQuantized, UnitBoolean);
+	add_input_control("replace_quantized", Event::ReplaceQuantized, UnitBoolean);
 	//_input_controls["eighth_per_cycle_loop"] = Event::EighthPerCycleLoop;
 	//_input_controls["tempo_input"] = Event::TempoInput;
 	add_input_control("input_gain", Event::InputGain, UnitGain, 0.0f, 1.0f, 1.0f);
@@ -158,6 +160,7 @@ CommandMap::CommandMap()
 	add_global_control("smart_eighths", Event::SmartEighths, UnitBoolean, 0.0f, 1.0f, 1.0f);
 	add_global_control("use_midi_start", Event::UseMidiStart, UnitBoolean, 0.0f, 1.0f, 1.0f);
 	add_global_control("use_midi_stop", Event::UseMidiStop, UnitBoolean, 0.0f, 1.0f, 1.0f);
+	add_global_control("send_midi_start_on_trigger", Event::SendMidiStartOnTrigger, UnitBoolean, 0.0f, 1.0f, 1.0f);
 	_str_ctrl_map.insert (_global_controls.begin(), _global_controls.end());
 
 	// reverse it

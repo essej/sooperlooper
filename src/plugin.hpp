@@ -214,6 +214,8 @@ typedef struct {
 	LADSPA_Data fSyncMode;
 	LADSPA_Data fMuteQuantized;
 	LADSPA_Data fOverdubQuantized;
+	
+	bool bReplaceQuantized;
     
 	// used only when in DELAY mode
 	int bHoldMode;
@@ -385,5 +387,8 @@ extern unsigned long sl_read_current_loop_audio (LADSPA_Handle instance, float *
 
 // override current samples since sync
 extern void sl_set_samples_since_sync (LADSPA_Handle instance, unsigned long frames);
+
+extern void sl_set_replace_quantized (LADSPA_Handle instance, bool value);
+extern bool sl_get_replace_quantized (LADSPA_Handle instance);
 
 #endif

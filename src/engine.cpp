@@ -109,6 +109,8 @@ Engine::Engine ()
 	
 	_use_sync_start = false;
 	_use_sync_stop = false;
+	_send_midi_start_on_trigger = false;
+	_send_midi_start_after_next_hit = false;
 
 	// for now just use the current time!
 	_unique_id = (int) ::time(NULL);
@@ -823,6 +825,19 @@ Engine::process (nframes_t nframes)
 				if (evt->Instance == -1 || evt->Instance == syncm ||
 				    (evt->Instance == -3 && (_selected_loop == syncm || _selected_loop == -1))) {
 					_rt_instances[syncm]->do_event (evt);
+
+					// if event command is trigger and send_midi_start_on_trigger is enabled, do so
+					if (evt->Command == Event::TRIGGER
+					    && (evt->Type == Event::type_cmd_down || evt->Type == Event::type_cmd_hit)) 
+					{
+						//cerr << "YES, send now" << endl;
+						if (_midi_bridge) {
+							_beatstamp = _midi_bridge->get_current_host_time();
+							_midi_bridge->tempo_clock_update(_tempo, _beatstamp, _send_midi_start_on_trigger);
+						}
+
+						//_send_midi_start_after_next_hit = true;
+					}
 				}
 			}
 
@@ -1033,6 +1048,10 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 	else if (ev->Control == Event::UseMidiStop)
 	{
 		_use_sync_stop = ev->Value;
+	}
+	else if (ev->Control == Event::SendMidiStartOnTrigger)
+	{
+		_send_midi_start_on_trigger = ev->Value;
 	}
 	else if (ev->Control == Event::SmartEighths)
 	{
@@ -1341,6 +1360,9 @@ Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 		else if (ctrl == Event::UseMidiStop) {
 			return _use_sync_stop ? 1.0f: 0.0f;
 		}
+		else if (ctrl == Event::SendMidiStartOnTrigger) {
+			return _send_midi_start_on_trigger ? 1.0f: 0.0f;
+		}
 		else if (ctrl == Event::AutoDisableLatency) {
 			return _auto_disable_latency ? 1.0f: 0.0f;
 		}
@@ -1612,6 +1634,9 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (gg_event->param == "use_midi_stop") {
 			gg_event->ret_value =  (_use_sync_stop) ? 1.0f: 0.0f;
 		}
+		else if (gg_event->param == "send_midi_start_on_trigger") {
+			gg_event->ret_value =  (_send_midi_start_on_trigger) ? 1.0f: 0.0f;
+		}
 		else if (gg_event->param == "smart_eighths") {
 			gg_event->ret_value =  (_smart_eighths) ? 1.0f: 0.0f;
 		}
@@ -1665,6 +1690,9 @@ Engine::process_nonrt_event (EventNonRT * event)
 		}
 		else if (gs_event->param == "use_midi_stop") {
 			_use_sync_stop = gs_event->value > 0.0f;
+		}
+		else if (gs_event->param == "send_midi_start_on_trigger") {
+			_send_midi_start_on_trigger = gs_event->value > 0.0f;
 		}
 		else if (gs_event->param == "smart_eighths") {
 			_smart_eighths = gs_event->value > 0.0f;
@@ -2318,7 +2346,7 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 				//cerr << "pos: " << info.framepos << "  qframes: " << _quarter_note_frames << "  this: " << thisval << "  next: " << nextval << endl;
 				
 				if ((thisval == 0 || nextval <= thisval) && diff < nframes) {
-					cerr << "got quarter frame in this cycle: diff: " << diff << endl;
+				//	cerr << "got quarter frame in this cycle: diff: " << diff << endl;
 					hit_at = (int) diff;
 				}
 			}
@@ -2390,7 +2418,8 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			evt = vec.buf[vecn] + n;
 			fragpos = (nframes_t) (evt->FragmentPos() % nframes);
 			timestamp = evt->getTimestamp();
-			
+			Event tmpevt;
+
 			if (evt->Control == Event::MidiStart) {
 				//_midi_ticks = 0;
 				//cerr << "got start at " << fragpos << endl;
@@ -2411,11 +2440,20 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 				//_prev_beatstamp = 0;
 				if (_use_sync_stop) {
 					// pause all loops right now
+					tmpevt.Type = Event::type_control_change;
+					tmpevt.Control = Event::Quantize;
+
 					evt->Type = Event::type_cmd_hit;
 					evt->Command = Event::PAUSE_ON;
 					for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i) {
+						float prevquant = (*i)->get_control_value(Event::Quantize);
+						tmpevt.Value = QUANT_OFF;						
+						(*i)->do_event(&tmpevt); // force off quantize for this pause action
 						(*i)->do_event(evt);
 						(*i)->run (0, 0);
+						// now turn quantize back to previous value
+						tmpevt.Value = prevquant;						
+						(*i)->do_event(&tmpevt);
 					}
 				}
 			}
@@ -2441,6 +2479,14 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
                         _beatstamp = _midi_bridge->get_current_host_time();
                 }
 		//fprintf(stderr, "beat occurred: at %.13g\n", _beatstamp);
+		
+		if (_send_midi_start_after_next_hit && _midi_bridge) {
+			// force a send now
+			//cerr << "force a send now" << endl;
+			_midi_bridge->tempo_clock_update(_tempo, _beatstamp, true);
+			_send_midi_start_after_next_hit = false;
+		}
+		
 
 		// wake up mainloop safely
 		//TentativeLockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
@@ -2526,6 +2572,11 @@ Engine::load_session (std::string fname, string * readstr)
 			int temp = 0;
 			sscanf (prop->value().c_str(), "%d", &temp);
 			_use_sync_stop = temp ? true: false;
+		}
+		if ((prop = globals_node->property ("send_midi_start_on_trigger")) != 0) {
+			int temp = 0;
+			sscanf (prop->value().c_str(), "%d", &temp);
+			_send_midi_start_on_trigger = temp ? true: false;
 		}
 		if ((prop = globals_node->property ("smart_eighths")) != 0) {
 			int temp = 0;
@@ -2620,8 +2671,10 @@ Engine::save_session (std::string fname, bool write_audio, string * writestr)
 	snprintf(buf, sizeof(buf), "%d", (int)_use_sync_start ? 1 : 0);
 	globals_node->add_property ("use_midi_start", buf);
 	snprintf(buf, sizeof(buf), "%d", (int)_use_sync_stop ? 1 : 0);
-	globals_node->add_property ("use_midi_stop", buf);
-	
+	globals_node->add_property ("use_midi_stop", buf);	
+	snprintf(buf, sizeof(buf), "%d", (int)_send_midi_start_on_trigger ? 1 : 0);
+	globals_node->add_property ("send_midi_start_on_trigger", buf);
+
 	snprintf(buf, sizeof(buf), "%d", (int)_smart_eighths ? 1 : 0);
 	globals_node->add_property ("smart_eighths", buf);
 

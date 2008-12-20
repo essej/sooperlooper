@@ -135,6 +135,7 @@ using namespace SooperLooper;
 #define MULTI_SET_SYNC_POS 30
 #define MULTI_RESET_SYNC_POS 31
 #define MULTI_MUTE_TRIGGER 32
+#define MULTI_RECORD_OR_OVERDUB 33
 
 
 /*****************************************************************************/
@@ -210,6 +211,24 @@ sl_set_samples_since_sync (LADSPA_Handle instance, unsigned long frames)
 
 	pLS->lSamplesSinceSync = frames;
 }
+
+void
+sl_set_replace_quantized (LADSPA_Handle instance, bool value)
+{
+	SooperLooperI * pLS = (SooperLooperI *)instance;
+
+	if (!pLS) return;
+	pLS->bReplaceQuantized = value;
+}
+
+bool
+sl_get_replace_quantized (LADSPA_Handle instance)
+{
+	SooperLooperI * pLS = (SooperLooperI *)instance;
+	if (!pLS) return 0.0f;
+	return pLS->bReplaceQuantized;
+}
+
 
 static bool invalidateTails (SooperLooperI * pLS, unsigned long bufstart, unsigned long buflen, LoopChunk * currloop)
 {
@@ -510,7 +529,7 @@ instantiateSooperLooper(const LADSPA_Descriptor * Descriptor,
    //pLS->lLoopStop = 0;   
    //pLS->lCurrPos = 0;
 
-   pLS->state = STATE_PLAY;
+   pLS->state = STATE_OFF;
    pLS->wasMuted = false;
    pLS->recSyncEnded = false;
    
@@ -589,6 +608,7 @@ activateSooperLooper(LADSPA_Handle Instance) {
   pLS->fSyncMode = 0;
   pLS->fMuteQuantized = 0;
   pLS->fOverdubQuantized = 0;
+  pLS->bReplaceQuantized = true;
   pLS->fRedoTapMode = 1;
   pLS->bRateCtrlActive = (int) *pLS->pfRateCtrlActive;
 
@@ -617,7 +637,7 @@ activateSooperLooper(LADSPA_Handle Instance) {
   // todo make this a port, for now 2ms
   //pLS->fLoopXfadeSamples = 0.002 * pLS->fSampleRate;
   
-  pLS->state = STATE_PLAY;
+  pLS->state = STATE_OFF;
   pLS->nextState = -1;
   pLS->wasMuted = false;
   pLS->recSyncEnded = false;
@@ -1681,6 +1701,7 @@ runSooperLooper(LADSPA_Handle Instance,
   LADSPA_Data fPlaybackSyncMode = 0.0f;
   LADSPA_Data fMuteQuantized = 0.0f;
   LADSPA_Data fOverdubQuantized = 0.0f;
+  bool        bReplaceQuantized = true;
   LADSPA_Data fSyncOffsetSamples = 0.0f;
   bool bRoundIntegerTempo = false;
 
@@ -1717,6 +1738,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
   fMuteQuantized = *pLS->pfMuteQuantized;
   fOverdubQuantized = *pLS->pfOverdubQuantized;
+  bReplaceQuantized = pLS->bReplaceQuantized;
   fSyncOffsetSamples = *pLS->pfSyncOffsetSamples;
 
   bRoundIntegerTempo = *pLS->pfRoundIntegerTempo;
@@ -1786,6 +1808,17 @@ runSooperLooper(LADSPA_Handle Instance,
 	  } else {
 		  // already muted, Trigger
 		  lMultiCtrl = MULTI_TRIGGER;
+	  }
+  }
+  else if (lMultiCtrl == MULTI_RECORD_OR_OVERDUB) {
+	  if (!pLS->headLoopChunk || pLS->state == STATE_OFF || pLS->state == STATE_RECORD 
+	      || pLS->state == STATE_TRIG_START || pLS->state == STATE_TRIG_STOP 
+	      || pLS->state == STATE_DELAY) {
+		  // we record
+		  lMultiCtrl = MULTI_RECORD;
+	  } else {
+		  // otherwise overdub
+		  lMultiCtrl = MULTI_OVERDUB;
 	  }
   }
   else if (lMultiCtrl == MULTI_PAUSE_ON) {
@@ -2298,7 +2331,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	   
 	   switch(pLS->state) {
 	      case STATE_REPLACE:
-		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
+		      if ((bReplaceQuantized == 0.0f) || fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
 			      pLS->state = STATE_PLAY;
 			      pLS->wasMuted = false;
 			      DBG(fprintf(stderr,"Entering PLAY state\n"));
@@ -2334,7 +2367,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 break;
 		 
 	      default:
-		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF
+		      if ((bReplaceQuantized == 0.0f) || fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF
 			  && !(pLS->state == STATE_RECORD && bRoundIntegerTempo)) {
 			      if (loop)
 			      {
@@ -2377,7 +2410,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	   
 	   switch(pLS->state) {
 	      case STATE_SUBSTITUTE:
-		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
+		      if ((bReplaceQuantized == 0.0f) || fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
 			      pLS->state = STATE_PLAY;
 			      pLS->wasMuted = false;
 			      DBG(fprintf(stderr,"Entering PLAY state\n"));
@@ -2408,7 +2441,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 break;
 		 
 	      default:
-		      if (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF
+		      if ((bReplaceQuantized == 0.0f) || fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF
 			  && !(pLS->state == STATE_RECORD && bRoundIntegerTempo)) {
 			      if (loop)
 			      {

@@ -44,6 +44,7 @@ class GuiApp : public wxApp
 	// initialization (doing it here and not in the ctor allows to have an error
 	// return: if OnInit() returns false, the application terminates)
 	virtual bool OnInit();
+	virtual int OnRun();
 	
 	wxString get_host() { return _host; }
 	int get_port() { return _port; }
@@ -52,6 +53,11 @@ class GuiApp : public wxApp
 	wxString get_exec_name() { return _exec_name; }
 	wxChar ** get_engine_args () { return _engine_argv; }
 	
+
+
+
+	virtual void MacOpenFile(const wxString &fileName);
+
   protected:
 	
 	bool  parse_options (int argc, wxChar **argv);
@@ -76,6 +82,8 @@ class GuiApp : public wxApp
 	wxString _server_name;
 	wxString _client_name;
 	bool  _stay_on_top;
+	wxString _load_session;
+	bool _inited;
 	
 	wxChar ** _engine_argv;
 

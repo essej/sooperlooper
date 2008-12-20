@@ -91,7 +91,8 @@ enum {
 	ID_InGainControl,
 	ID_MuteQuantCheck,
 	ID_OdubQuantCheck,
-	ID_SmartEighthCheck
+	ID_SmartEighthCheck,
+	ID_ReplQuantCheck
 };
 
 
@@ -239,26 +240,26 @@ MainPanel::init()
 	_quantize_choice->append_choice (wxT("loop"), 3);
 	rowsizer->Add (_quantize_choice, 0, wxALL|wxEXPAND, 2);
 
-	_mute_quant_check = new CheckBox(this, ID_MuteQuantCheck, wxT("mute quant"), true, wxDefaultPosition, wxSize(90, 18));
+	_mute_quant_check = new CheckBox(_top_panel, ID_MuteQuantCheck, wxT("mute quant"), true, wxDefaultPosition, wxSize(90, 18));
 	_mute_quant_check->SetFont(sliderFont);
 	_mute_quant_check->SetToolTip(wxT("quantize mute operations"));
 	_mute_quant_check->value_changed.connect (slot (*this, &MainPanel::on_mute_quant_check));
 	_mute_quant_check->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("mute_quantized")));
 	rowsizer->Add (_mute_quant_check, 0, wxALL|wxEXPAND, 2);
 
-	_odub_quant_check = new CheckBox(this, ID_OdubQuantCheck, wxT("odub quant"), true, wxDefaultPosition, wxSize(90, 18));
+	_odub_quant_check = new CheckBox(_top_panel, ID_OdubQuantCheck, wxT("odub quant"), true, wxDefaultPosition, wxSize(90, 18));
 	_odub_quant_check->SetFont(sliderFont);
 	_odub_quant_check->SetToolTip(wxT("quantize overdub operations"));
 	_odub_quant_check->value_changed.connect (slot (*this, &MainPanel::on_odub_quant_check));
 	_odub_quant_check->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("overdub_quantized")));
 	rowsizer->Add (_odub_quant_check, 0, wxALL|wxEXPAND, 2);
 
-	_smart_eighths_check = new CheckBox(this, ID_SmartEighthCheck, wxT("auto 8th"), true, wxDefaultPosition, wxSize(80, 18));
-	_smart_eighths_check->SetFont(sliderFont);
-	_smart_eighths_check->SetToolTip(wxT("auto adjust 8ths per cycle with tempo"));
-	_smart_eighths_check->value_changed.connect (slot (*this, &MainPanel::on_smart_eighths_check));
-	_smart_eighths_check->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("smart_eighths")));
-	rowsizer->Add (_smart_eighths_check, 0, wxALL|wxEXPAND, 2);
+	_repl_quant_check = new CheckBox(_top_panel, ID_ReplQuantCheck, wxT("repl quant"), true, wxDefaultPosition, wxSize(90, 18));
+	_repl_quant_check->SetFont(sliderFont);
+	_repl_quant_check->SetToolTip(wxT("quantize replace and substitute operations"));
+	_repl_quant_check->value_changed.connect (slot (*this, &MainPanel::on_repl_quant_check));
+	_repl_quant_check->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("replace_quantized")));
+	rowsizer->Add (_repl_quant_check, 0, wxALL|wxEXPAND, 2);
 
 
 	rowsizer->Add (1, 1, 1);
@@ -326,6 +327,15 @@ MainPanel::init()
 	_relsync_check->bind_request.connect (bind (slot (*this,  &MainPanel::on_bind_request), wxT("relative_sync")));
 	rowsizer->Add (_relsync_check, 0, wxALL|wxEXPAND, 2);
 	
+
+	_smart_eighths_check = new CheckBox(_top_panel, ID_SmartEighthCheck, wxT("auto 8th"), true, wxDefaultPosition, wxSize(80, 18));
+	_smart_eighths_check->SetFont(sliderFont);
+	_smart_eighths_check->SetToolTip(wxT("auto adjust 8ths per cycle with tempo"));
+	_smart_eighths_check->value_changed.connect (slot (*this, &MainPanel::on_smart_eighths_check));
+	_smart_eighths_check->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("smart_eighths")));
+	rowsizer->Add (_smart_eighths_check, 0, wxALL|wxEXPAND, 2);
+
+
 	rowsizer->Add (1, 1, 1);
 
 	topcolsizer->Add (rowsizer, 0, wxEXPAND|wxBOTTOM, 3);
@@ -648,6 +658,11 @@ MainPanel::update_controls()
  		_odub_quant_check->set_value (val > 0.0);
 	}
 
+ 	if (_loop_control->is_updated(0, wxT("replace_quantized"))) {
+		_loop_control->get_value(0, wxT("replace_quantized"), val);
+ 		_repl_quant_check->set_value (val > 0.0);
+	}
+
  	if (_loop_control->is_global_updated(wxT("smart_eighths"))) {
 		_loop_control->get_global_value(wxT("smart_eighths"), val);
  		_smart_eighths_check->set_value (val > 0.0);
@@ -881,6 +896,10 @@ MainPanel::on_bind_request (wxString val)
 		info.control = "overdub_quantized";
 		info.instance = -1;
 	}
+	else if (val == wxT("replace_quantized")) {
+		info.control = "replace_quantized";
+		info.instance = -1;
+	}
 	else if (val == wxT("smart_eighths")) {
 		info.control = "smart_eighths";
 		info.instance = -1;
@@ -981,6 +1000,14 @@ MainPanel::on_odub_quant_check (bool val)
 }
 
 void
+MainPanel::on_repl_quant_check (bool val)
+{
+	// send for all loops
+	cerr << "on replace quan check" << endl;
+	_loop_control->post_ctrl_change (-1, wxT("replace_quantized"), val ? 1.0f: 0.0f);
+}
+
+void
 MainPanel::on_smart_eighths_check (bool val)
 {
 	// send for all loops
@@ -1046,11 +1073,18 @@ void MainPanel::intialize_keybindings ()
 	KeyboardTarget::add_action ("scratch", bind (slot (*this, &MainPanel::command_action), wxT("scratch")));
 	KeyboardTarget::add_action ("substitute", bind (slot (*this, &MainPanel::command_action), wxT("substitute")));
 	KeyboardTarget::add_action ("mute", bind (slot (*this, &MainPanel::command_action), wxT("mute")));
+	KeyboardTarget::add_action ("mute_on", bind (slot (*this, &MainPanel::command_action), wxT("mute_on")));
+	KeyboardTarget::add_action ("mute_off", bind (slot (*this, &MainPanel::command_action), wxT("mute_off")));
+	KeyboardTarget::add_action ("mute_trigger", bind (slot (*this, &MainPanel::command_action), wxT("mute_trigger")));
 	KeyboardTarget::add_action ("undo", bind (slot (*this, &MainPanel::command_action), wxT("undo")));
 	KeyboardTarget::add_action ("redo", bind (slot (*this, &MainPanel::command_action), wxT("redo")));	
+	KeyboardTarget::add_action ("undo_all", bind (slot (*this, &MainPanel::command_action), wxT("undo_all")));
+	KeyboardTarget::add_action ("redo_all", bind (slot (*this, &MainPanel::command_action), wxT("redo_all")));	
 	KeyboardTarget::add_action ("oneshot", bind (slot (*this, &MainPanel::command_action), wxT("oneshot")));
 	KeyboardTarget::add_action ("trigger", bind (slot (*this, &MainPanel::command_action), wxT("trigger")));
 	KeyboardTarget::add_action ("pause", bind (slot (*this, &MainPanel::command_action), wxT("pause")));
+	KeyboardTarget::add_action ("pause_on", bind (slot (*this, &MainPanel::command_action), wxT("pause_on")));
+	KeyboardTarget::add_action ("pause_off", bind (slot (*this, &MainPanel::command_action), wxT("pause_off")));
 	KeyboardTarget::add_action ("solo", bind (slot (*this, &MainPanel::command_action), wxT("solo")));
 	KeyboardTarget::add_action ("solo_prev", bind (slot (*this, &MainPanel::command_action), wxT("solo_prev")));
 	KeyboardTarget::add_action ("solo_next", bind (slot (*this, &MainPanel::command_action), wxT("solo_next")));
@@ -1059,7 +1093,7 @@ void MainPanel::intialize_keybindings ()
 	KeyboardTarget::add_action ("record_solo_next", bind (slot (*this, &MainPanel::command_action), wxT("record_solo_next")));
 	KeyboardTarget::add_action ("set_sync_pos", bind (slot (*this, &MainPanel::command_action), wxT("set_sync_pos")));
 	KeyboardTarget::add_action ("reset_sync_pos", bind (slot (*this, &MainPanel::command_action), wxT("reset_sync_pos")));
-
+	KeyboardTarget::add_action ("record_or_overdub", bind (slot (*this, &MainPanel::command_action), wxT("record_or_overdub")));
 
 	KeyboardTarget::add_action ("delay", bind (slot (*this, &MainPanel::misc_action), wxT("delay")));
 	KeyboardTarget::add_action ("taptempo", bind (slot (*this, &MainPanel::misc_action), wxT("taptempo")));
@@ -1067,6 +1101,8 @@ void MainPanel::intialize_keybindings ()
 	KeyboardTarget::add_action ("save", bind (slot (*this, &MainPanel::misc_action), wxT("save")));
 	KeyboardTarget::add_action ("cancel_midi_learn", bind (slot (*this, &MainPanel::misc_action), wxT("cancel_learn")));
 
+	KeyboardTarget::add_action ("select_prev_loop", bind (slot (*this, &MainPanel::select_loop_action), -2));
+	KeyboardTarget::add_action ("select_next_loop", bind (slot (*this, &MainPanel::select_loop_action), -1));
 	KeyboardTarget::add_action ("select_loop_1", bind (slot (*this, &MainPanel::select_loop_action), 1));
 	KeyboardTarget::add_action ("select_loop_2", bind (slot (*this, &MainPanel::select_loop_action), 2));
 	KeyboardTarget::add_action ("select_loop_3", bind (slot (*this, &MainPanel::select_loop_action), 3));
@@ -1132,12 +1168,23 @@ void MainPanel::select_loop_action (bool release, int index)
 {
 	if (release) return;
 
-	index--;
-	
-	if (index < (int) _looper_panels.size()) {
-		// send osc control
-		_loop_control->post_ctrl_change(-2, wxT("selected_loop_num"), (float) index);
-		set_curr_loop (index);
+	if (index == -2) {
+		// prev loop
+		_loop_control->post_ctrl_change(-2, wxT("select_prev_loop"), (float) 1.0f);
+	}
+	else if (index == -1)
+	{
+		// next loop
+		_loop_control->post_ctrl_change(-2, wxT("select_next_loop"), (float) 1.0f);
+	}
+	else {
+		index--;
+		
+		if (index < (int) _looper_panels.size()) {
+			// send osc control
+			_loop_control->post_ctrl_change(-2, wxT("selected_loop_num"), (float) index);
+			set_curr_loop (index);
+		}
 	}
 }
 

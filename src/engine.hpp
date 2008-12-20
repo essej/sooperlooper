@@ -239,6 +239,8 @@ class Engine
 	volatile MIDI::timestamp_t _beatstamp; // timestamp at the beat of the last tempo change
 	volatile MIDI::timestamp_t _prev_beatstamp; 
 	bool _force_next_clock_start;
+	volatile bool _send_midi_start_after_next_hit;
+	bool _send_midi_start_on_trigger;
 
 	float    _eighth_cycle; // eighth notes per loop cycle
 

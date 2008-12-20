@@ -77,6 +77,8 @@ class LatencyPanel
 
 	wxCheckBox  * _use_midi_start_check;
 	wxCheckBox  * _use_midi_stop_check;
+	wxCheckBox  * _send_midi_start_on_trigger_check;
+	wxCheckBox * _output_clock_check;
 
 	MainPanel * _parent;
 	bool       _justResized;

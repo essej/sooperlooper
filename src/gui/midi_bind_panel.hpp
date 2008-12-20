@@ -65,8 +65,6 @@ class MidiBindPanel
 	void on_button (wxCommandEvent &ev);
 	void on_combo (wxCommandEvent &ev);
 
-	void on_check (wxCommandEvent &ev);
-
 	void learning_stopped ();
 
 	void got_binding_changed(SooperLooper::MidiBindInfo & info);
@@ -100,7 +98,7 @@ class MidiBindPanel
 
 	wxCheckBox * _append_check;
 	
-      wxCheckBox * _output_clock_check;
+
 
 	MainPanel * _parent;
 	bool       _justResized;

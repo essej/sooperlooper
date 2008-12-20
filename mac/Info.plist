@@ -32,5 +32,21 @@
         <true/>
 	<key>CSResourcesFileMapped</key>
 	<true/>
+
+	<key>CFBundleDocumentTypes</key>
+	<array>
+	  <dict>
+	    <key>CFBundleTypeExtensions</key>
+	    <array>
+	      <string>slsess</string>
+	    </array>
+	    <key>CFBundleTypeIconFile</key>
+	    <string>SooperLooperSessionIcon.icns</string>
+	    <key>CFBundleTypeName</key>
+	    <string>SooperLooper Session</string>
+	    <key>CFBundleTypeRole</key>
+	    <string>Editor</string>
+	  </dict>
+	</array>
 </dict>
 </plist>

@@ -99,6 +99,7 @@ class Looper
 	bool get_disable_latency_compensation () const { return _disable_latency; }
 
 	void set_samples_since_sync(nframes_t ssync);
+	void set_replace_quantized(bool flag);
 
 	// called when some loop instance is being soloed, index says which instance (may not be us)
 	void set_soloed (int index, bool value);

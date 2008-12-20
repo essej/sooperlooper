@@ -94,6 +94,7 @@ static const wxCmdLineEntryDesc cmdLineDesc[] =
 	{ wxCMD_LINE_OPTION, wxT("H"), wxT("connect-host"), wxT("connect to sooperlooper engine on given host (default is localhost)")},
 	{ wxCMD_LINE_OPTION, wxT("P"), wxT("connect-port"), wxT("connect to sooperlooper engine on given port (default is 9951)"), wxCMD_LINE_VAL_NUMBER },
 	{ wxCMD_LINE_OPTION, wxT("m"), wxT("load-midi-binding"), wxT("loads midi binding from file")},
+	{ wxCMD_LINE_OPTION, wxT("L"), wxT("load-session"), wxT("load session from file")},
 	{ wxCMD_LINE_SWITCH, wxT("s"), wxT("force-spawn"), wxT("force the execution of a new engine")},
 	{ wxCMD_LINE_SWITCH, wxT("N"), wxT("never-spawn"), wxT("never start a new engine"), wxCMD_LINE_VAL_NONE },
 	{ wxCMD_LINE_OPTION, wxT("E"), wxT("exec-name"), wxT("use name as binary to execute as sooperlooper engine (default is sooperlooper)")},
@@ -168,6 +169,7 @@ GuiApp::parse_options (int argc, wxChar **argv)
 	}
 
 	parser.Found (wxT("m"), &_midi_bind_file);
+	parser.Found (wxT("L"), &_load_session);
 
 	_force_spawn = parser.Found (wxT("s"));
 	_never_spawn = parser.Found (wxT("N"));
@@ -196,6 +198,7 @@ GuiApp::GuiApp()
 	_mem_secs = 0.0f;
 	_stay_on_top = false;
 	_never_timeout = false;
+	_inited = false;
 }
 
 GuiApp::~GuiApp()
@@ -203,11 +206,26 @@ GuiApp::~GuiApp()
 }
 
 
+void GuiApp::MacOpenFile(const wxString &fileName)
+{
+	//cerr << "OPEN SESSION: " << (const char *) fileName.ToAscii() << endl;
+	_load_session = fileName;
+	
+	if (_frame) {
+		LoopControl & loopctrl = _frame->get_main_panel()->get_loop_control();
+		loopctrl.get_spawn_config().session_path = (const char *) _load_session.ToAscii();
+		if (_inited) {
+			// load session now
+			//cerr << "loading now" << endl;
+			LoopControl & loopctrl = _frame->get_main_panel()->get_loop_control();
+			loopctrl.post_load_session (_load_session);
+		}
+	}
+}
+
 // `Main program' equivalent: the program execution "starts" here
 bool GuiApp::OnInit()
 {
-
-	
 	wxString jackname;
 	wxString preset;
 	wxString rcdir;
@@ -266,6 +284,9 @@ bool GuiApp::OnInit()
 	if (!_midi_bind_file.empty()) {
 		loopctrl.get_spawn_config().midi_bind_path = _midi_bind_file.ToAscii();
 	}
+	if (!_load_session.empty()) {
+		loopctrl.get_spawn_config().session_path = (const char *) _load_session.ToAscii();
+	}
 	if (_loop_count != 0) {
 		loopctrl.get_spawn_config().num_loops = _loop_count;
 	}
@@ -279,9 +300,9 @@ bool GuiApp::OnInit()
 	loopctrl.get_spawn_config().never_timeout = _never_timeout;
 	_frame->get_main_panel()->set_never_timeout(_never_timeout);
 	
-	
+	//cerr << "OnInit" << endl;
 	// connect
-	loopctrl.connect();
+	//loopctrl.connect();
 
 	// Show it and tell the application that it's our main window
 	_frame->SetSizeHints(850, 210);
@@ -298,7 +319,19 @@ bool GuiApp::OnInit()
 	// success: wxApp::OnRun() will be called which will enter the main message
 	// loop and the application will run. If we returned FALSE here, the
 	// application would exit immediately.
+
+
 	return TRUE;
+}
+
+int GuiApp::OnRun()
+{
+	LoopControl & loopctrl = _frame->get_main_panel()->get_loop_control();
+
+	loopctrl.connect();
+	_inited = true;
+
+	return wxApp::OnRun();
 }
 
 void

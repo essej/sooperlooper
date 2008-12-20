@@ -370,6 +370,7 @@ LoopControl::register_global_updates(bool unreg)
 	lo_send(_osc_addr, buf, "sss", "output_midi_clock", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "use_midi_stop", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "use_midi_start", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "send_midi_start_on_trigger", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "smart_eighths", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "selected_loop_num", _our_url.c_str(), "/ctrl");
 	
@@ -623,6 +624,7 @@ bool LoopControl::spawn_looper()
 	
 	if (!_spawn_config.session_path.empty()) {
 		//cmdstr += wxString::Format(wxT(" -L \"%s\""), _spawn_config.session_path.c_str());
+		cerr << "session path not empty when spawning: " << _spawn_config.session_path << endl;
 		snprintf(tmpbuf, sizeof(tmpbuf), " -L \"%s\"", _spawn_config.session_path.c_str());	
 		cmdstr += tmpbuf;
 	}
@@ -915,6 +917,7 @@ LoopControl::request_global_values()
 	lo_send(_osc_addr, buf, "sss", "output_midi_clock", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "use_midi_stop", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "use_midi_start", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "send_midi_start_on_trigger", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "selected_loop_num", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "in_peak_meter", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "out_peak_meter", _our_url.c_str(), "/ctrl");
@@ -982,6 +985,7 @@ LoopControl::request_all_values(int index)
 	lo_send(_osc_addr, buf, "sss", "autoset_latency", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "mute_quantized", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "overdub_quantized", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "replace_quantized", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "round_integer_tempo", _our_url.c_str(), "/ctrl");
 	//lo_send(_osc_addr, buf, "sss", "pitch_shift", _our_url.c_str(), "/ctrl");
 	//lo_send(_osc_addr, buf, "sss", "stretch_ratio", _our_url.c_str(), "/ctrl");
@@ -1165,6 +1169,7 @@ LoopControl::register_input_controls(int index, bool unreg)
 	lo_send(_osc_addr, buf, "sss", "autoset_latency", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "mute_quantized", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "overdub_quantized", _our_url.c_str(), "/ctrl");
+	lo_send(_osc_addr, buf, "sss", "replace_quantized", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "round_integer_tempo", _our_url.c_str(), "/ctrl");
 	//lo_send(_osc_addr, buf, "sss", "pitch_shift", _our_url.c_str(), "/ctrl");
 	//lo_send(_osc_addr, buf, "sss", "stretch_ratio", _our_url.c_str(), "/ctrl");

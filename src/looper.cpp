@@ -433,6 +433,16 @@ Looper::set_samples_since_sync(nframes_t ssync)
 }
 
 void 
+Looper::set_replace_quantized(bool flag)
+{
+	// this is a bit of a hack
+	for (unsigned int i=0; i < _chan_count; ++i)
+	{
+		sl_set_replace_quantized(_instances[i], flag);
+	}
+}
+
+void 
 Looper::set_soloed (int index, bool value)
 {
 	if (index != (int) _index) {
@@ -614,6 +624,9 @@ Looper::get_control_value (Event::control_t ctrl)
 	else if (ctrl == Event::InputGain) {
 		return _curr_input_gain;
 	}
+	else if (ctrl == Event::ReplaceQuantized) {
+		return sl_get_replace_quantized(_instances[0]) ? 1.0f : 0.0f;
+	}
 	else if (ctrl == Event::RelativeSync) {
 		return _relative_sync;
 	}
@@ -682,6 +695,9 @@ void Looper::set_port (ControlPort n, float val)
 		break;
 	case RelativeSync:
 		_relative_sync = val;
+		break;
+	case Event::ReplaceQuantized:
+		set_replace_quantized(val > 0.0f ? true : false);
 		break;
 	case TempoInput:
 		if (_tempo_stretch && ports[CycleLength] != 0.0f) {
@@ -857,6 +873,9 @@ Looper::do_event (Event *ev)
 			if (_panner && _panner->size() > 3) {
 				(*_panner)[3]->set_position (ev->Value);
 			}
+		}
+		else if (ev->Control == Event::ReplaceQuantized) {
+			set_replace_quantized(ev->Value > 0.0f ? true : false);
 		}
 		else if (ev->Control == Event::PitchShift) {
 			_pitch_shift = ev->Value; // in semitones

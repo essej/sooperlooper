@@ -41,8 +41,9 @@ enum {
 	ID_RoundTempoInteger,
 	ID_JackTimebaseMaster,
 	ID_UseMidiStart,
-	ID_UseMidiStop
-
+	ID_UseMidiStop,
+	ID_SendMidiStartOnTrigger,
+	ID_OutputClockCheck
 };
 
 BEGIN_EVENT_TABLE(SooperLooperGui::LatencyPanel, wxPanel)
@@ -52,6 +53,8 @@ BEGIN_EVENT_TABLE(SooperLooperGui::LatencyPanel, wxPanel)
 	EVT_CHECKBOX (ID_JackTimebaseMaster, SooperLooperGui::LatencyPanel::on_check)
 	EVT_CHECKBOX (ID_UseMidiStart, SooperLooperGui::LatencyPanel::on_check)
 	EVT_CHECKBOX (ID_UseMidiStop, SooperLooperGui::LatencyPanel::on_check)
+	EVT_CHECKBOX (ID_SendMidiStartOnTrigger, SooperLooperGui::LatencyPanel::on_check)
+        EVT_CHECKBOX(ID_OutputClockCheck, SooperLooperGui::LatencyPanel::on_check)
 	EVT_TIMER(ID_UpdateTimer, SooperLooperGui::LatencyPanel::OnUpdateTimer)
 
 	EVT_SIZE (SooperLooperGui::LatencyPanel::onSize)
@@ -181,6 +184,12 @@ void LatencyPanel::init()
 	_use_midi_stop_check = new wxCheckBox(this, ID_UseMidiStop, wxT("Pause all loops on incoming MIDI Stop Events"));
 	topsizer->Add (_use_midi_stop_check, 0, wxEXPAND|wxALL, 4);
 
+	_output_clock_check = new wxCheckBox(this, ID_OutputClockCheck, wxT("Output MIDI Clock"));
+	topsizer->Add(_output_clock_check, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 3);
+
+	_send_midi_start_on_trigger_check = new wxCheckBox(this, ID_SendMidiStartOnTrigger, wxT("Send MIDI Start Event on Trigger"));
+	topsizer->Add (_send_midi_start_on_trigger_check, 0, wxEXPAND|wxALL, 4);
+
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
 	_update_timer->Start(5000, true);
 
@@ -233,7 +242,14 @@ void LatencyPanel::refresh_state()
 	if (lcontrol.get_global_value (wxT("use_midi_stop"), retval)) {
 		_use_midi_stop_check->SetValue(retval > 0.0f);
 	}
+	if (lcontrol.get_global_value (wxT("send_midi_start_on_trigger"), retval)) {
+		_send_midi_start_on_trigger_check->SetValue(retval > 0.0f);
+	}
 
+
+	if (_parent->get_loop_control().get_global_value(wxT("output_midi_clock"), retval)) {
+		_output_clock_check->SetValue(retval > 0.0f ? true : false);
+	}
 
 	if (_auto_check->GetValue()) {
 		_input_spin->Enable(false);
@@ -266,9 +282,17 @@ void LatencyPanel::on_check (wxCommandEvent &ev)
 	else if (ev.GetId() == ID_UseMidiStop) {
 		lcontrol.post_global_ctrl_change (wxT("use_midi_stop"), _use_midi_stop_check->GetValue() ? 1.0f : 0.0f);
 	}
+	else if (ev.GetId() == ID_SendMidiStartOnTrigger) {
+		lcontrol.post_global_ctrl_change (wxT("send_midi_start_on_trigger"), _send_midi_start_on_trigger_check->GetValue() ? 1.0f : 0.0f);
+	}
+	else if (ev.GetId() == ID_OutputClockCheck) {
+		lcontrol.post_global_ctrl_change(wxT("output_midi_clock"), _output_clock_check->GetValue() ? 1.0f : 0.0f);
+	}
 	else {
 		lcontrol.post_ctrl_change (-2, wxT("auto_disable_latency"), _auto_disable_check->GetValue() ? 1.0f : 0.0f);
 	}
+
+
 	_do_request = true;
 	_update_timer->Start(200, true);
 
