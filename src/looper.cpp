@@ -30,6 +30,7 @@
 #include <cmath>
 #include <sys/time.h>
 #include <time.h>
+#include <libgen.h>
 
 #ifdef HAVE_SNDFILE
 #include <sndfile.h>
@@ -1384,6 +1385,7 @@ Looper::load_loop (string fname)
 		return false;
 	}
 
+
 	// make some temporary input buffers
 	nframes_t bufsize = 65536;
 	sample_t ** inbufs = new float*[_chan_count];
@@ -1411,6 +1413,7 @@ Looper::load_loop (string fname)
 	float old_out_latency = ports[OutputLatency];
 	float old_trig_latency = ports[TriggerLatency];
 	float old_round_tempo = ports[RoundIntegerTempo];
+	float old_quantize = ports[Quantize];
 
 	ports[TriggerThreshold] = 0.0f;
 	ports[Sync] = 0.0f;
@@ -1419,13 +1422,14 @@ Looper::load_loop (string fname)
 	ports[OutputLatency] = 0.0f;
 	ports[TriggerLatency] = 0.0f;
 	ports[RoundIntegerTempo] = 0.0f;
+	ports[Quantize] = (float) QUANT_OFF;
 	_slave_sync_port = 0.0f;
 	
 	// now set it to mute just to make sure we weren't already recording
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
 		// run it for 0 frames just to change state
-		ports[Multi] = Event::MUTE;
+		ports[Multi] = Event::MUTE_ON;
 		descriptor->run (_instances[i], 0);
 		ports[Multi] = Event::RECORD;
 		descriptor->run (_instances[i], 0);
@@ -1444,8 +1448,6 @@ Looper::load_loop (string fname)
 		if (nframes > frames_left) {
 			nframes = frames_left;
 		}
-
-
 
 		// fill input buffers
 		nframes = sf_readf_float (sfile, bigbuf, nframes);
@@ -1481,23 +1483,30 @@ Looper::load_loop (string fname)
 		frames_left -= nframes;
 	}
 	
-
 	// change state to unknown, then the end record (with mute optionally)
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
+		// in the case of an empty file, run undo_all
+		if (sinfo.frames == 0) {
+			ports[Multi] = Event::UNDO_ALL;
+			descriptor->run (_instances[i], 0);
+			continue;
+		}
+
 		ports[Multi] = Event::UNKNOWN;
 		descriptor->run (_instances[i], 0);
 
 		if ((int)old_state == LooperStateMuted) {
 			ports[Multi] = Event::MUTE_ON;
 		}
-		else if ((int)old_state == LooperStatePaused) {
+		else if ((int)old_state == LooperStatePaused || (int)old_state == LooperStateOff) {
 			ports[Multi] = Event::PAUSE_ON;
 		}
 		else {
 			ports[Multi] = Event::RECORD;
 		}
 		descriptor->run (_instances[i], 0);
+
 	}
 
 	ports[TriggerThreshold] = old_recthresh;
@@ -1507,6 +1516,7 @@ Looper::load_loop (string fname)
 	ports[OutputLatency] = old_out_latency;
 	ports[TriggerLatency] = old_trig_latency;
 	ports[RoundIntegerTempo] = old_round_tempo;
+	ports[Quantize] = old_quantize;
 	_slave_sync_port = _relative_sync ? 2.0f: 1.0f;
 	
 	ret = true;
@@ -1850,7 +1860,17 @@ Looper::set_state (const XMLNode& node)
 	// load audio if we should
 	if ((prop = node.property ("loop_audio")) != 0) {
 	   ports[State] = LooperStatePaused; // force this
-	   load_loop(prop->value());
+	   if (!load_loop(prop->value())) {
+		   // use the basename of the filename with the path of the session file
+		   string filename = prop->value();
+
+		   if ((prop = node.property("session_filename")) != 0) {
+			   string sessfilename = prop->value();
+			   string newfilename = string(::dirname(sessfilename.c_str())) + string("/") + string(::basename(filename.c_str()));
+
+			   load_loop(newfilename);
+		   }
+	   }
 	}
 
 	return 0;

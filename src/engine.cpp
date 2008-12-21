@@ -2613,6 +2613,9 @@ Engine::load_session (std::string fname, string * readstr)
 		XMLNode *child;
 		child = (*niter);
 
+		// add temporary attribute with the pathname for the session file
+		child->add_property("session_filename", fname);
+
 		Looper * instance = new Looper (_driver, *child);
 		add_loop (instance);
 	}

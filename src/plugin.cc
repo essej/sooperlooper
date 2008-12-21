@@ -3329,7 +3329,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      
 	      // exit immediately if syncmode is off, or we have a sync
 	      if ((fSyncMode == 0.0f && (!bRoundIntegerTempo || roundTempoDone))
- 		  || (fSyncMode == 1.0f && pfSyncInput[lSampleIndex] != 0.0f)
+ 		  || (fSyncMode == 1.0f && (pfSyncInput[lSampleIndex] != 0.0f))
 		  || (fSyncMode == 2.0f && pLS->lSamplesSinceSync == loop->lSyncOffset))
 	      {
 		      DBG(fprintf(stderr,"Entering %d state at %u\n", pLS->nextState, lCurrPos));
@@ -3338,6 +3338,11 @@ runSooperLooper(LADSPA_Handle Instance,
 		 //pLS->lRampSamples = xfadeSamples;
 		 //loop->dCurrPos = 0.0f;
 		      DBG(cerr << "Round tempo: " << bRoundIntegerTempo << "  roundedSamples: " << roundedSamples << endl);
+
+		      if (roundTempoDone) {
+			      // force sync for slaves... not sure if this is good
+			      pfSyncOutput[lSampleIndex] = 2.0f;
+		      }
 
 		      if (fSyncMode == 2.0f) {
 			      //cerr << "ending recstop sync2d: " << lCurrPos << endl;
