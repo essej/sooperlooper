@@ -603,6 +603,9 @@ OSStatus			SooperLooperAU::ProcessBufferLists(
 		_in_buflist[n] = 0;	
 		_out_buflist[n] = 0;			
 	}
+
+	// force output to be something
+	ioActionFlags &= ~kAudioUnitRenderAction_OutputIsSilence;
 	
 	return noErr;
 }
