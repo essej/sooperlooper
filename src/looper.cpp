@@ -1866,7 +1866,7 @@ Looper::set_state (const XMLNode& node)
 
 		   if ((prop = node.property("session_filename")) != 0) {
 			   string sessfilename = prop->value();
-			   string newfilename = string(::dirname(sessfilename.c_str())) + string("/") + string(::basename(filename.c_str()));
+			   string newfilename = string(::dirname((char *)sessfilename.c_str())) + string("/") + string(::basename((char *)filename.c_str()));
 
 			   load_loop(newfilename);
 		   }
