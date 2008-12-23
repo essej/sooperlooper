@@ -35,7 +35,7 @@
 
 #include "command_map.hpp"
 #include "utils.hpp"
-#include "engine.hpp";
+#include "engine.hpp"
 
 using namespace SooperLooper;
 using namespace std;
