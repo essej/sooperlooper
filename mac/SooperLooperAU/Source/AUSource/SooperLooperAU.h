@@ -146,7 +146,7 @@ protected:
 													UInt8 	inChannel,
 													UInt8 	inData1,
 													UInt8 	inData2,
-													long 	inStartFrame);
+													UInt32 	inStartFrame);
 	
 public:
 	// SL AudioDriver stuff

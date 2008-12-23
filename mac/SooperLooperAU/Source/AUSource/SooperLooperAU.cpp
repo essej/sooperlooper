@@ -371,7 +371,6 @@ ComponentResult		SooperLooperAU::Initialize()
 	_alive = true;
 	pthread_create (&_engine_thread, NULL, &SooperLooperAU::_engine_mainloop, this);
 	
-	
 	_chancnt = auNumInputs;
 		
 	//cerr << "Initializing engine with " << auNumInputs << " inputs and " << auNumOutputs << " outputs" << endl;
@@ -614,7 +613,7 @@ OSStatus			SooperLooperAU::ProcessBufferLists(
 //	AUMIDIBase::HandleMidiEvent
 //
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-OSStatus 	SooperLooperAU::HandleMidiEvent(UInt8 inStatus, UInt8 inChannel, UInt8 inData1, UInt8 inData2, long inStartFrame)
+OSStatus 	SooperLooperAU::HandleMidiEvent(UInt8 inStatus, UInt8 inChannel, UInt8 inData1, UInt8 inData2, UInt32 inStartFrame)
 {
 	if (!IsInitialized()) return kAudioUnitErr_Uninitialized;
 	

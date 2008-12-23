@@ -15,11 +15,11 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersions</key>
-	<string>1.6.6</string>
+	<string>1.6.13</string>
 	<key>CFBundleSignature</key>
 	<string>Soop</string>
 	<key>CFBundleVersion</key>
-	<string>1.6.6</string>
+	<string>1.6.13</string>
 	<key>CSResourcesFileMapped</key>
 	<true/>
 </dict>
