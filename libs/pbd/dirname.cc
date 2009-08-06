@@ -9,7 +9,7 @@ char *
 PBD::dirname (const char *path)
 
 {
-	char *slash;
+	const char *slash;
 	size_t len;
 	char *ret;
 	

@@ -6,7 +6,7 @@ char *
 PBD::basename (const char *path)
 
 {
-	char *slash;
+	const char *slash;
 
 	if ((slash = strrchr (path, '/')) == 0) {
 		return strdup (path);
