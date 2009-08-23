@@ -15,6 +15,7 @@ enum {
 };
 
 enum {
+	kParam_PressReleaseCommands = 998,
 	kParam_OSCPort = 999,
 	//Add your parameters here...
 	kNumberOfParameters // bogus now

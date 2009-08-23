@@ -35,6 +35,7 @@
 #include <midi++/coremidi_midiport.h>
 #endif // WITH_COREMIDI
 
+#include <cstring>
 
 using namespace std;
 using namespace MIDI;

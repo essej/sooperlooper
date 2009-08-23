@@ -185,7 +185,8 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	  _down_stamps[i] = 1 << 31;
 	}
 
-	_longpress_frames = (nframes_t) lrint (srate * 1.0); // more than 2 secs is SUS
+	_longpress_frames = (nframes_t) lrint (srate * 1.0); // more than 1 secs is SUS
+	_doubletap_frames = (nframes_t) lrint (srate * 0.5); // less than 0.5 sec is double tap
 
 	_falloff_per_sample = 30.0f / srate; // 30db per second falloff
 	
@@ -222,6 +223,8 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 			return false;
 		}
 
+		sl_set_loop_index(_instances[i], (int)_index, i);
+		
 		if (_have_discrete_io) 
 		{
 			snprintf(tmpstr, sizeof(tmpstr), "loop%d_in_%d", _index, i+1);
@@ -265,7 +268,6 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 
 		_lp_filter[i] = new OnePoleFilter(srate);
 		
-
 		// SRC stuff
 		_in_src_states[i] = src_new (SrcAudioQuality, 1, &dummyerror);
 		_out_src_states[i] = src_new (SrcAudioQuality, 1, &dummyerror);
@@ -484,6 +486,42 @@ Looper::set_soloed (int index, bool value)
 	}
 }
 
+bool
+Looper::finish_state()
+{
+	Event ev;
+	ev.Type = Event::type_cmd_hit;
+	ev.Command = Event::UNKNOWN;
+	
+	switch ((int)ports[State]) {
+		case LooperStateRecording:
+			ev.Command = Event::RECORD; break;
+		case LooperStateOverdubbing:
+			ev.Command = Event::OVERDUB; break;
+		case LooperStateMultiplying:
+			ev.Command = Event::MULTIPLY; break;
+		case LooperStateReplacing:
+			ev.Command = Event::REPLACE; break;
+		case LooperStateSubstitute:
+			ev.Command = Event::SUBSTITUTE; break;
+		case LooperStateInserting:
+			ev.Command = Event::INSERT; break;
+		default: break;
+	}
+
+	if (ev.Command != Event::UNKNOWN) {
+		do_event(&ev);
+		/*
+		for (unsigned int i=0; i < _chan_count; ++i)
+		{
+			// run it for 0 frames just to change state
+			descriptor->run (_instances[i], 0);
+		}
+		*/
+		return true;
+	}
+	return false;
+}
 
 void
 Looper::set_buffer_size (nframes_t bufsize)
@@ -744,6 +782,15 @@ Looper::do_event (Event *ev)
 			requested_cmd = cmd;
 			request_pending = true;
 
+			// a few special commands have double-tap logic
+			if (cmd == Event::RECORD_OR_OVERDUB || cmd == Event::RECORD_OR_OVERDUB_EXCL) {
+				if (_running_frames < (_down_stamps[cmd] + _doubletap_frames))
+				{
+					// we actually need to undo twice!
+					requested_cmd = Event::UNDO_TWICE; 
+				}
+			}
+			
 			_down_stamps[cmd] = _running_frames;
 		}
 	}
@@ -789,6 +836,10 @@ Looper::do_event (Event *ev)
 					}
 					else if (cmd == Event::REDO) {
 						requested_cmd = Event::REDO_ALL;
+					}
+					else if (cmd == Event::RECORD_OR_OVERDUB) {
+						// longpress of this turns into undo all for one-button goodness
+						requested_cmd = Event::UNDO_ALL;
 					}
 				}
 			}

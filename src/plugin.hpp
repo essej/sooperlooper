@@ -173,6 +173,9 @@ typedef struct {
 	//LADSPA_Data * pfSampleBuf;
 	LADSPA_Data * pSampleBuf;
     
+	unsigned int lLoopIndex;
+	unsigned int lChannelIndex;
+	
 	/* Buffer size, IS necessarily a power of two. */
 	unsigned long lBufferSize;
 	unsigned long lBufferSizeMask;
@@ -390,5 +393,6 @@ extern void sl_set_samples_since_sync (LADSPA_Handle instance, unsigned long fra
 
 extern void sl_set_replace_quantized (LADSPA_Handle instance, bool value);
 extern bool sl_get_replace_quantized (LADSPA_Handle instance);
+extern void sl_set_loop_index (LADSPA_Handle instance, unsigned int index, unsigned int chan);
 
 #endif

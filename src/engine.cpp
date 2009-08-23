@@ -808,9 +808,17 @@ Engine::process (nframes_t nframes)
 			    || evt->Command == Event::SOLO
 			    || evt->Command == Event::SOLO_NEXT ||  evt->Command == Event::SOLO_PREV
 			    || evt->Command == Event::RECORD_SOLO_NEXT ||  evt->Command == Event::RECORD_SOLO_PREV 
-			    || evt->Command == Event::RECORD_SOLO)
+			    || evt->Command == Event::RECORD_SOLO
+				|| evt->Command == Event::RECORD_EXCLUSIVE_NEXT ||  evt->Command == Event::RECORD_EXCLUSIVE_PREV 
+			    || evt->Command == Event::RECORD_EXCLUSIVE
+				|| evt->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT ||  evt->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV || evt->Command == Event::RECORD_OR_OVERDUB_EXCL)
 			{
 				do_global_rt_event (evt, usedframes + doframes, nframes - (usedframes + doframes));
+				
+				// force the position and do frames to non-zero for these to ensure synced records
+				if (doframes == 0) {
+					doframes = 1;
+				}
 			}
 
 			m = 0;
@@ -915,6 +923,10 @@ Engine::process (nframes_t nframes)
 void
 Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 {
+	bool exclcmd = (ev->Command == Event::RECORD_EXCLUSIVE_NEXT ||  ev->Command == Event::RECORD_EXCLUSIVE_PREV || ev->Command == Event::RECORD_EXCLUSIVE);
+	bool exclocmd = (ev->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT ||  ev->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV || ev->Command == Event::RECORD_OR_OVERDUB_EXCL); 
+
+	
 	if (ev->Control == Event::TapTempo) {
 		nframes_t thisframe = _running_frames + offset;
 		if (thisframe > _last_tempo_frame) {
@@ -962,25 +974,33 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 		
 	}
 	else if (ev->Command == Event::SOLO || ev->Command == Event::SOLO_NEXT ||  ev->Command == Event::SOLO_PREV
-		 ||  ev->Command == Event::RECORD_SOLO_NEXT ||  ev->Command == Event::RECORD_SOLO_PREV || ev->Command == Event::RECORD_SOLO)
+			 ||  ev->Command == Event::RECORD_SOLO_NEXT ||  ev->Command == Event::RECORD_SOLO_PREV || ev->Command == Event::RECORD_SOLO
+			 || exclcmd || exclocmd)
 	{
 		// notify all loops they are being soloed or not (this acts as a toggle)
 		int target_instance = (ev->Instance == -3) ? _selected_loop : ev->Instance;
-
+		
 		if (ev->Type == Event::type_cmd_down || ev->Type == Event::type_cmd_hit || ev->Type == Event::type_cmd_upforce
 		    || (ev->Type == Event::type_cmd_up && _running_frames > (_solo_down_stamp + _longpress_frames)))
 		{	
-			if (ev->Command == Event::SOLO_NEXT ||  ev->Command == Event::RECORD_SOLO_NEXT) {
+			if (ev->Command == Event::SOLO_NEXT ||  ev->Command == Event::RECORD_SOLO_NEXT 
+				|| ev->Command == Event::RECORD_EXCLUSIVE_NEXT || ev->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT) {
 				// increment selected
 				_selected_loop = (_selected_loop + 1) % _rt_instances.size();
 				_sel_loop_changed = true;
 				target_instance = _selected_loop;
 			}
-			else if (ev->Command == Event::SOLO_PREV ||  ev->Command == Event::RECORD_SOLO_PREV) {
+			else if (ev->Command == Event::SOLO_PREV ||  ev->Command == Event::RECORD_SOLO_PREV 
+					 || ev->Command == Event::RECORD_EXCLUSIVE_PREV || ev->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV) {
 				// decrement selected
 				_selected_loop = _selected_loop > 0 ? _selected_loop - 1 : _rt_instances.size() - 1;
 				_sel_loop_changed = true;
 				target_instance = _selected_loop;
+			}
+			else if ( ev->Command == Event::RECORD_EXCLUSIVE || ev->Command == Event::RECORD_OR_OVERDUB_EXCL) {
+				// select the loop commanded in these cases
+				_selected_loop = target_instance;
+				_sel_loop_changed = true;
 			}
 		}
 
@@ -990,13 +1010,28 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			if (ev->Type == Event::type_cmd_down || ev->Type == Event::type_cmd_hit || ev->Type == Event::type_cmd_upforce
 			    || (ev->Type == Event::type_cmd_up && _running_frames > (_solo_down_stamp + _longpress_frames)))
 			{
-				bool target_solo_state = _rt_instances[target_instance]->is_soloed();
-				
-				for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i) 
+				if (exclcmd || exclocmd)
 				{
-					(*i)->set_soloed (target_instance, !target_solo_state);
+					int n=0;
+					for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i, ++n) 
+					{
+						if (n != target_instance) {
+							// if it is in any active state, finish that state
+							(*i)->finish_state();
+						}
+					}										
 				}
-
+				else 
+				{
+					// solo commands
+					bool target_solo_state = _rt_instances[target_instance]->is_soloed();
+					
+					for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i) 
+					{
+						(*i)->set_soloed (target_instance, !target_solo_state);
+					}
+				}
+				
 				if (ev->Type == Event::type_cmd_down) {
 					_solo_down_stamp = _running_frames;
 				} else {
@@ -1005,11 +1040,18 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			}
 		}
 		
-		if (ev->Command == Event::RECORD_SOLO_NEXT ||  ev->Command == Event::RECORD_SOLO_PREV || ev->Command == Event::RECORD_SOLO)
+		if (ev->Command == Event::RECORD_SOLO_NEXT ||  ev->Command == Event::RECORD_SOLO_PREV || ev->Command == Event::RECORD_SOLO || exclcmd)
 		{
 			// change the instance to the target we soloed, and the command to record
 			ev->Instance = target_instance;
 			ev->Command = Event::RECORD;
+		}
+		else if (exclocmd)
+		{
+			// change the instance to the target we soloed, and the command to record
+			ev->Instance = target_instance;
+			ev->Command = Event::RECORD_OR_OVERDUB;
+			//cerr << "record or overdub exclusive" << endl;
 		}
 		else {
 			// change the event's instance so it isn't used later in the process call
@@ -1559,11 +1601,15 @@ Engine::mainloop()
 			//cerr << "timed out, sending updates" << endl;
 			_osc->send_auto_updates();
 
-			// emit a parameter changed for state 
+			// emit a parameter changed for state and others
 			for (unsigned int n=0; n < _instances.size(); ++n) {
 				ParamChanged(Event::State, n); // emit
+				ParamChanged(Event::LoopPosition, n);
+				ParamChanged(Event::LoopLength, n);
+				ParamChanged(Event::CycleLength, n);				
+				ParamChanged(Event::FreeTime, n);
 			}
-
+			
 			// wake up every 100 ms for servicing auto-update parameters
 			// TODO: make it more flexible
 			const long up_interval = 100000; // 100 ms

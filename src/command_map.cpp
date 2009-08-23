@@ -72,8 +72,13 @@ CommandMap::CommandMap()
 	_str_cmd_map["set_sync_pos"]  = Event::SET_SYNC_POS;
 	_str_cmd_map["reset_sync_pos"]  = Event::RESET_SYNC_POS;
 	_str_cmd_map["record_or_overdub"]  = Event::RECORD_OR_OVERDUB;
-
-
+	_str_cmd_map["record_exclusive"]  = Event::RECORD_EXCLUSIVE;	
+	_str_cmd_map["record_exclusive_next"]  = Event::RECORD_EXCLUSIVE_NEXT;	
+	_str_cmd_map["record_exclusive_prev"]  = Event::RECORD_EXCLUSIVE_PREV;
+	_str_cmd_map["record_or_overdub_excl"]  = Event::RECORD_OR_OVERDUB_EXCL;
+	_str_cmd_map["record_or_overdub_excl_next"]  = Event::RECORD_OR_OVERDUB_EXCL_NEXT;
+	_str_cmd_map["record_or_overdub_excl_prev"]  = Event::RECORD_OR_OVERDUB_EXCL_PREV;
+	
 	for (StringCommandMap::iterator iter = _str_cmd_map.begin(); iter != _str_cmd_map.end(); ++iter) {
 		_cmd_str_map[(*iter).second] = (*iter).first;
 	}

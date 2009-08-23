@@ -1094,6 +1094,9 @@ void MainPanel::intialize_keybindings ()
 	KeyboardTarget::add_action ("set_sync_pos", bind (slot (*this, &MainPanel::command_action), wxT("set_sync_pos")));
 	KeyboardTarget::add_action ("reset_sync_pos", bind (slot (*this, &MainPanel::command_action), wxT("reset_sync_pos")));
 	KeyboardTarget::add_action ("record_or_overdub", bind (slot (*this, &MainPanel::command_action), wxT("record_or_overdub")));
+	KeyboardTarget::add_action ("record_exclusive", bind (slot (*this, &MainPanel::command_action), wxT("record_exclusive")));
+	KeyboardTarget::add_action ("record_exclusive_next", bind (slot (*this, &MainPanel::command_action), wxT("record_exclusive_next")));
+	KeyboardTarget::add_action ("record_exclusive_prev", bind (slot (*this, &MainPanel::command_action), wxT("record_exclusive_prev")));	
 
 	KeyboardTarget::add_action ("delay", bind (slot (*this, &MainPanel::misc_action), wxT("delay")));
 	KeyboardTarget::add_action ("taptempo", bind (slot (*this, &MainPanel::misc_action), wxT("taptempo")));

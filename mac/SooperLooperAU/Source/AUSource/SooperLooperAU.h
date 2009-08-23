@@ -5,7 +5,7 @@
 * 
 *	Created:	7/2/05
 *	
-*	Copyright:  Copyright � 2005 Jesse Chappell, All Rights Reserved
+*	Copyright:  Copyright ÔøΩ 2005 Jesse Chappell, All Rights Reserved
 * 
 */
 #include "AUMIDIEffectBase.h"
@@ -33,7 +33,7 @@ namespace SooperLooper {
 // parameters
 
 static CFStringRef kParameterOSCPortName = CFSTR("OSC Port");
-
+static CFStringRef kParameterPressReleaseCommandsName = CFSTR("Press/release for commands");
 
 #define SL_MAXLOOPS 9
 
@@ -176,7 +176,7 @@ public:
 
 protected:
 	
-	void setup_params();
+	void setup_params(bool initial=false);
 	void parameter_changed(int ctrl_id, int instance);
 	void loops_changed();
 	void loop_added(int, bool);
@@ -206,7 +206,15 @@ protected:
 
 	SInt16		 _stay_on_top;
 	
+	bool     _pressReleaseCommands;
+	
 	std::string  _guiapp_path;
+	
+	// instance, controlid
+	typedef std::pair<int, int> InstancePair;
+	typedef std::map<InstancePair, float> LastValueMap;
+	
+	LastValueMap _last_value_map;
 	
 	static int _plugin_count;
 protected:

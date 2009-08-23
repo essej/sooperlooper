@@ -1,6 +1,6 @@
 SUBDIRS = . gui
 
-bin_PROGRAMS =  sooperlooper slconsole
+bin_PROGRAMS =  sooperlooper slconsole slregister
 
 slpresetdir  = $(datadir)/sooperlooper/presets
 slpreset_DATA =  midiwizard.slb oxy8.slb edp4.slb bcf2000.slb
@@ -45,6 +45,9 @@ sooperlooper_LDFLAGS =
 
 slconsole_SOURCES = slconsole.cpp
 slconsole_LDADD = @LOSC_LIBS@ @NCURSES_LIBS@ -lpthread
+
+slregister_SOURCES = register_tool.cpp
+slregister_LDADD = @LOSC_LIBS@ -lpthread
 
 noinst_HEADERS = $(wildcard *.hpp *.h)
 

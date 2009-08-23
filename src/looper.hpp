@@ -105,6 +105,9 @@ class Looper
 	void set_soloed (int index, bool value);
 	bool is_soloed() const { return _is_soloed; }
 
+	// finishes any active state that may be going (rec, overdub, etc)
+	bool finish_state();
+	
 	bool is_longpress (int command);
 
 	XMLNode& get_state () const;
@@ -156,6 +159,7 @@ class Looper
 	// keeps track of down/up commands for SUS purposes
 	nframes_t          _down_stamps[Event::LAST_COMMAND+1];
 	nframes_t          _longpress_frames;
+	nframes_t          _doubletap_frames;
 	nframes_t          _running_frames;
 	
 	nframes_t          _buffersize;

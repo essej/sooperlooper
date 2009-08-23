@@ -511,6 +511,9 @@ KeyboardTarget::keycode_from_name (const wxString &keyn)
 	else if (keyname.IsSameAs (wxT("alt"), false)) {
 		keycode = WXK_ALT;
 	}
+	else if (keyname.IsSameAs (wxT("numlock"), false)) {
+		keycode = WXK_NUMLOCK;
+	}
 	else if ( keyname.Len() == 1 ) {
 		// it's a letter
                 keycode = keyname[0U];
@@ -660,7 +663,9 @@ wxString KeyboardTarget::name_from_keycode (int key)
 	case WXK_ESCAPE:
 		text += wxT("escape");
 		break;
-		
+	case WXK_NUMLOCK:
+		text += wxT("numlock");
+		break;	
 	default:
                 if ( wxIsalnum(key) )
                 {
