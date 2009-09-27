@@ -381,7 +381,7 @@ static LoopChunk * pushNewLoopChunk(SooperLooperI* pLS, unsigned long initLength
 
 
 // pop the head off and free it
-static void popHeadLoop(SooperLooperI *pLS)
+static void popHeadLoop(SooperLooperI *pLS, bool forceClear)
 {
    LoopChunk *dead;
    dead = pLS->headLoopChunk;
@@ -389,12 +389,12 @@ static void popHeadLoop(SooperLooperI *pLS)
    if (dead && dead->prev) {
       // leave the next where is is for redo
       //dead->prev->next = NULL;
-      pLS->headLoopChunk = dead->prev;
-      if (!pLS->headLoopChunk->prev) {
-	 pLS->tailLoopChunk = pLS->headLoopChunk; 
-      }
+	   pLS->headLoopChunk = dead->prev;
+	   if (!pLS->headLoopChunk->prev) {
+		   pLS->tailLoopChunk = pLS->headLoopChunk; 
+	   }
    }
-   else if (dead && !dead->next) {
+   else if (dead && (!dead->next || forceClear)) {
 	   // only clear the loop if this was the only loop in history
 	   pLS->headLoopChunk = NULL;
 	   // pLS->tailLoopChunk is still valid to support redo
@@ -409,7 +409,7 @@ static void clearLoopChunks(SooperLooperI *pLS)
    pLS->headLoopChunk = NULL;
 }
 
-static void undoLoop(SooperLooperI *pLS)
+static void undoLoop(SooperLooperI *pLS, bool forceClear)
 {
    LoopChunk *loop = pLS->headLoopChunk;
    LoopChunk *prevloop;
@@ -426,7 +426,7 @@ static void undoLoop(SooperLooperI *pLS)
 	   prevloop->dCurrPos = fmod(loop->dCurrPos+loop->lStartAdj, prevloop->lLoopLength);
    }
    
-   popHeadLoop(pLS);
+   popHeadLoop(pLS, forceClear);
    DBG(fprintf(stderr, "%u:%u  Undoing last loop %08x: new head is %08x\n" , pLS->lLoopIndex, pLS->lChannelIndex, (unsigned)loop,
 	       (unsigned)pLS->headLoopChunk);)
 }
@@ -2049,7 +2049,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // goes back to play mode
 		 // pop the delay loop off....
 		 if (loop) {
-		    undoLoop(pLS);
+		    undoLoop(pLS, false);
 		 }
 		 
 		 pLS->state = STATE_TRIG_START;
@@ -2134,7 +2134,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		   // goes back to overdub mode
 		   // pop the delay loop off....
 		   if (loop) {
-			   undoLoop(pLS);
+			   undoLoop(pLS, false);
 			   loop = pLS->headLoopChunk;
 		   }
 		   // continue through to default
@@ -2216,7 +2216,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // goes back to play mode
 		 // pop the delay loop off....
 		 if (loop) {
-		    undoLoop(pLS);
+		    undoLoop(pLS, false);
 		    loop = pLS->headLoopChunk;
 		 }
 		 // continue through to default
@@ -2296,7 +2296,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 // goes back to play mode
 		 // pop the delay loop off....
 		 if (loop) {
-		    undoLoop(pLS);
+		    undoLoop(pLS, false);
 		    loop = pLS->headLoopChunk;
 		 }
 		 // continue through to default
@@ -2572,7 +2572,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_DELAY:
 		 // pop the delay loop off....
 		 if (loop) {
-		    undoLoop(pLS);
+		    undoLoop(pLS, false);
 		    loop = pLS->headLoopChunk;
 		 }
 		 // continue through to default
@@ -2793,10 +2793,10 @@ runSooperLooper(LADSPA_Handle Instance,
 			      pLS->fNextCurrRate = 0.0f;
 		      }
 		      else if (loop) {
-			      undoLoop(pLS);
+			      undoLoop(pLS, false);
 				  
 				  if (lMultiCtrl == MULTI_UNDO_TWICE) {
-					  undoLoop(pLS);
+					  undoLoop(pLS, true);
 				  }
 		      }
 		      
@@ -3674,7 +3674,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			      pLS->rounding = false;
 			      pLS->state = STATE_PLAY;
 			      pLS->wasMuted = false;
-			      undoLoop(pLS);
+			      undoLoop(pLS, false);
 			      goto passthrough;
 		      }
 			      
@@ -3897,7 +3897,7 @@ runSooperLooper(LADSPA_Handle Instance,
 				 // undo!
 				 pLS->state = STATE_PLAY;
 				 pLS->wasMuted = false;
-				 undoLoop(pLS);
+				 undoLoop(pLS, false);
 				 DBG(fprintf(stderr,"dfMultiply Undone! Out of memory!\n"));
 				 break;
 			 }

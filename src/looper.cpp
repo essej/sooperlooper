@@ -772,8 +772,19 @@ void
 Looper::do_event (Event *ev)
 {
 	if (ev->Type == Event::type_cmd_hit) {
-		requested_cmd = ev->Command;
+		Event::command_t cmd = ev->Command;
+		requested_cmd = cmd;
 		request_pending = true;
+		
+		// a few special commands have double-tap logic
+		if (cmd == Event::RECORD_OR_OVERDUB || cmd == Event::RECORD_OR_OVERDUB_EXCL) {
+			if (_running_frames < (_down_stamps[cmd] + _doubletap_frames))
+			{
+				// we actually need to undo twice!
+				requested_cmd = Event::UNDO_TWICE; 
+			}
+			_down_stamps[cmd] = _running_frames;
+		}
 	}
 	else if (ev->Type == Event::type_cmd_down)
 	{
