@@ -14,6 +14,10 @@ if [ -f ${i386_distdir}.tgz ] ; then
 fi
 
 
+lipo -create -output macdist/slregister \
+	 ${i386_distdir}/slregister \
+	${ppc_distdir}/slregister	 
+
 
 lipo -create -output macdist/SooperLooper.app/Contents/MacOS/sooperlooper \
 	 ${i386_distdir}/SooperLooper.app/Contents/MacOS/sooperlooper \

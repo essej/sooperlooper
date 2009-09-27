@@ -7,6 +7,7 @@ cp ../src/sooperlooper macdist/SooperLooper.app/Contents/MacOS/
 cp ../src/gui/slgui macdist/SooperLooper.app/Contents/MacOS/
 
 cp ../OSC macdist/OSC.txt
+cp ../src/slregister macdist/slregister
 
 sed -e "s/VVVVV/$version/g" Info.plist > macdist/SooperLooper.app/Contents/Info.plist
 
