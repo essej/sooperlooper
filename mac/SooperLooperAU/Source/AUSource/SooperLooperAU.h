@@ -207,7 +207,8 @@ protected:
 	SInt16		 _stay_on_top;
 	
 	bool     _pressReleaseCommands;
-	
+	float    _annoyingPressReleaseVal;
+    
 	std::string  _guiapp_path;
 	
 	// instance, controlid

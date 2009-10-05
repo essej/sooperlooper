@@ -69,7 +69,9 @@ SooperLooperAU::SooperLooperAU(AudioUnit component)
 	_last_framepos = 0;
 	_last_rendered_frames = 0;
 	_stay_on_top = 0;
-	
+	_pressReleaseCommands = false;
+    _annoyingPressReleaseVal = 0.0f;
+    
 	_plugin_count++;
 	
 	//sl_init();
@@ -311,7 +313,7 @@ ComponentResult		SooperLooperAU::GetParameterInfo(AudioUnitScope		inScope,
 				
 				
 				CFStringRef statstr = CFStringCreateWithCString(0, ctrlstr.c_str(), CFStringGetSystemEncoding());
-				AUBase::FillInParameterName (outParameterInfo, statstr, false);
+				AUBase::FillInParameterName (outParameterInfo, statstr, true);
 				CFRelease(statstr);
 				
 				switch (ctrlinfo.unit)
@@ -398,7 +400,7 @@ ComponentResult		SooperLooperAU::Initialize()
 	_engine->initialize (this, auNumInputs, 10051);
 
 	Globals()->SetParameter(kParam_OSCPort, _engine->get_control_osc()->get_server_port());
-	Globals()->SetParameter(kParam_PressReleaseCommands, _pressReleaseCommands);
+	Globals()->SetParameter(kParam_PressReleaseCommands, _annoyingPressReleaseVal);
 	
 	if (_pending_restore.empty()) {
 		int numloops = 1;
@@ -838,6 +840,7 @@ ComponentResult  SooperLooperAU::SetParameter(			AudioUnitParameterID			inID,
 	elem->SetParameter(inID, inValue);
 	
 	if (inID == kParam_PressReleaseCommands) {
+        _annoyingPressReleaseVal = inValue;
 		_pressReleaseCommands = inValue > 0 ? true: false;
 		return noErr;
 	}
@@ -1306,8 +1309,8 @@ ComponentResult SooperLooperAU::SaveState(CFPropertyListRef *outData)
 	}
 		
 	{
-		short tmpshort = _pressReleaseCommands ? 1 : 0;
-		CFDataRef cfdata = CFDataCreate(NULL, (const UInt8 *) &tmpshort, sizeof(short));	
+		float tmpfloat = _annoyingPressReleaseVal;
+		CFDataRef cfdata = CFDataCreate(NULL, (const UInt8 *) &tmpfloat, sizeof(float));	
 		CFDictionarySetValue(dict, CFSTR("SLpressReleaseCommands"), cfdata);
 		CFRelease(cfdata);	
 		//cerr << "saved stay on top as " << _stay_on_top << endl;		
@@ -1397,8 +1400,9 @@ ComponentResult SooperLooperAU::RestoreState(CFPropertyListRef inData)
 	if (pressrelease_data != NULL)
 	{
 		const UInt8 * plaindata = CFDataGetBytePtr(pressrelease_data);
-		_pressReleaseCommands = *((short*)plaindata) > 0;
-		Globals()->SetParameter(kParam_PressReleaseCommands, _pressReleaseCommands ? 1.0f : 0.0f);
+		_pressReleaseCommands = *((float*)plaindata) > 0;
+        _annoyingPressReleaseVal = *((float*)plaindata);
+		Globals()->SetParameter(kParam_PressReleaseCommands, _annoyingPressReleaseVal);
 		//cerr << "restored stay on top as " << _stay_on_top << endl;
 	}
 	
