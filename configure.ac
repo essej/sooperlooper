@@ -8,7 +8,7 @@ AC_VALIDATE_CACHED_SYSTEM_TUPLE()
 
 SOOP_MAJOR_VERSION=1
 SOOP_MINOR_VERSION=6
-SOOP_MICRO_VERSION=15
+SOOP_MICRO_VERSION=16
 
 BETA=
 
@@ -318,7 +318,7 @@ AC_CHECK_HEADER(alsa/asoundlib.h,
         use_alsa_midi=no)
 AM_CONDITIONAL(WITH_ALSA, test x$use_alsa_midi = xyes)
 
-AC_CHECK_HEADER(/System/Library/Frameworks/CoreMIDI.framework/Headers/CoreMIDI.h, 
+AC_CHECK_FILE(/System/Library/Frameworks/CoreMIDI.framework/Headers/CoreMIDI.h, 
                 [use_coremidi=yes
                 AUDIO_LIBS="-framework CoreMIDI -framework CoreFoundation -framework CoreServices -framework ApplicationServices"
                 AC_DEFINE([WITH_COREMIDI], 1, [Have CoreMIDI Headers])],

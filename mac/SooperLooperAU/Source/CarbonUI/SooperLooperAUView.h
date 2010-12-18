@@ -67,7 +67,7 @@ public:
 	
 	void create_slgui();
 	void update_stay_on_top();
-	
+    	
 	static pascal void NavEventCallback(NavEventCallbackMessage callBackSelector,
 								NavCBRecPtr             callBackParms, 
 								 void*                   callBackUD );
@@ -80,7 +80,7 @@ protected:
 		
 		void init_stay_on_top();
 	    void set_stay_on_top_property(short value);
-		
+
 		bool DisplayOpenFileDialog();
 
 		static void * _slgui_thread(void * arg);

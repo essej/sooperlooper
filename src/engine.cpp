@@ -1516,7 +1516,7 @@ Engine::mainloop()
 				ParamChanged(evt->Control, instance); // emit
 			}
 			else if (evt->Type == Event::type_cmd_down || evt->Type == Event::type_cmd_hit) {
-				//cerr << "got command: " << evt->Command << endl;
+				cerr << "got nonrt- command: " << evt->Command << endl;
 				int instance = evt->Instance == -3 ? _selected_loop : evt->Instance;
 				ConfigUpdateEvent cuev (ConfigUpdateEvent::SendCmd, instance, evt->Command, "", "");
 				cuev.source = evt->source;

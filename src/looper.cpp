@@ -94,8 +94,8 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_chan_count = chan_count;
 	
 	_ok = false;
-	requested_cmd = 0;
-	last_requested_cmd = 0;
+	requested_cmd = -1;
+	last_requested_cmd = -1;
 	request_pending = false;
 	_input_ports = 0;
 	_output_ports = 0;
@@ -762,7 +762,7 @@ Looper::is_longpress (int cmd)
 {
 	if ((int) cmd >= 0 && (int) cmd < (int) Event::LAST_COMMAND) {
 
-		return _running_frames > (_down_stamps[cmd] + _longpress_frames);
+		return (_down_stamps[cmd] > 0 && _running_frames > (_down_stamps[cmd] + _longpress_frames));
 	}
 	return false;
 }
@@ -775,7 +775,8 @@ Looper::do_event (Event *ev)
 		Event::command_t cmd = ev->Command;
 		requested_cmd = cmd;
 		request_pending = true;
-		
+                //fprintf(stderr, "Got HIT cmd: %d\n", cmd);
+
 		// a few special commands have double-tap logic
 		if (cmd == Event::RECORD_OR_OVERDUB || cmd == Event::RECORD_OR_OVERDUB_EXCL) {
 			if (_running_frames < (_down_stamps[cmd] + _doubletap_frames))
@@ -792,6 +793,8 @@ Looper::do_event (Event *ev)
 		if ((int) cmd >= 0 && (int) cmd < (int) Event::LAST_COMMAND) {
 			requested_cmd = cmd;
 			request_pending = true;
+
+                        //fprintf(stderr, "Got DOWN cmd: %d\n", cmd);
 
 			// a few special commands have double-tap logic
 			if (cmd == Event::RECORD_OR_OVERDUB || cmd == Event::RECORD_OR_OVERDUB_EXCL) {
@@ -813,7 +816,7 @@ Looper::do_event (Event *ev)
 		if ((int) cmd >= 0 && (int) cmd < (int) Event::LAST_COMMAND)
 		{
 
-		  if (ports[State] != LooperStatePlaying
+                        if (ports[State] != LooperStatePlaying
 			    || cmd == Event::REVERSE || cmd == Event::DELAY || cmd == Event::UNDO || cmd == Event::REDO)
 			{
 				
@@ -835,7 +838,7 @@ Looper::do_event (Event *ev)
 					request_pending = true;
 
 				}
-				else if (_running_frames > (_down_stamps[cmd] + _longpress_frames))
+				else if (_down_stamps[cmd] > 0 && _running_frames > (_down_stamps[cmd] + _longpress_frames))
 				{
 					//cerr << "long up" << endl;
 					requested_cmd = cmd;
@@ -854,6 +857,8 @@ Looper::do_event (Event *ev)
 					}
 				}
 			}
+                        //fprintf(stderr, "Got UP cmd: %d  req: %d\n", cmd, requested_cmd);
+
 			
 			_down_stamps[cmd] = 0;
 		}
@@ -1000,11 +1005,12 @@ Looper::run (nframes_t offset, nframes_t nframes)
 		if (ports[Multi] == requested_cmd) {
 			/* defer till next call */
 			ports[Multi] = -1;
+                        //fprintf(stderr,"Deferred to next run\n");
 		} else {
 			ports[Multi] = requested_cmd;
 			request_pending = false;
-			// cerr << "requested mode " << requested_cmd << endl;
-
+                        //fprintf(stderr,"Requested mode: %d\n", requested_cmd);
+                         
 			if (requested_cmd == Event::RECORD && ports[State] != LooperStateRecording) {
 				// record cmd, lets reset stretch and pitch ratios to 1 always
 				_pending_stretch_ratio = _stretch_ratio = 1.0;
@@ -1016,6 +1022,7 @@ Looper::run (nframes_t offset, nframes_t nframes)
 
 	} else if (ports[Multi] >= 0) {
 		ports[Multi] = -1;
+                //fprintf(stderr,"Reset to -1\n");
 		//cerr << "reset to -1\n";
 	}
 
@@ -1685,7 +1692,7 @@ Looper::save_loop (string fname, LoopFileEvent::FileFormat format)
 
 		if (nframes == 0) {
 			// we're done, it shorted us somehow
-			cerr << "shorted" << endl;
+			//cerr << "shorted" << endl;
 			break;
 		}
 		

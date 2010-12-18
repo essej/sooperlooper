@@ -69,8 +69,8 @@ SooperLooperAU::SooperLooperAU(AudioUnit component)
 	_last_framepos = 0;
 	_last_rendered_frames = 0;
 	_stay_on_top = 0;
-	_pressReleaseCommands = false;
-    _annoyingPressReleaseVal = 0.0f;
+	_pressReleaseCommands = true;
+    _annoyingPressReleaseVal = 1.0f;
     
 	_plugin_count++;
 	
@@ -869,7 +869,7 @@ ComponentResult  SooperLooperAU::SetParameter(			AudioUnitParameterID			inID,
 			// command acting as control, treat specially
 			// current logic is that any change will trigger a hit command for now
 			SooperLooper::Event::command_t cmd = (SooperLooper::Event::command_t) (ctrl - 500);
-			
+			fprintf(stderr,"SetParam: ctrl: %d  cmd: %d  invalue:%g\n", ctrl, cmd, inValue);
 			if (_pressReleaseCommands) {
 				// a 1 is down, a 0 is up
 				_engine->push_command_event(inValue > 0 ? SooperLooper::Event::type_cmd_down : SooperLooper::Event::type_cmd_up, cmd, instance);				

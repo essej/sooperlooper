@@ -1791,6 +1791,7 @@ runSooperLooper(LADSPA_Handle Instance,
      lMultiCtrl = -1;
   }
   else {
+          DBG(fprintf(stderr, "Multi chahge from %d to %d\n", pLS->lLastMultiCtrl, lMultiCtrl));
      pLS->lLastMultiCtrl = lMultiCtrl;
   }
 
@@ -1940,7 +1941,7 @@ runSooperLooper(LADSPA_Handle Instance,
   
   if (lMultiCtrl >= 0 && lMultiCtrl <= 127)
   {
-	  // fprintf(stderr, "Multictrl val is %ld\n", lMultiCtrl);
+          DBG(fprintf(stderr, "Multictrl val is %ld\n", lMultiCtrl));
 
      //lMultiCtrl = lMultiCtrl;
 

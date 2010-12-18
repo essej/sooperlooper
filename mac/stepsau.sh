@@ -7,10 +7,13 @@ xcodebuild -configuration Deployment
 cd ..
 
 if [ -d SooperLooperAU/build/Deployment/SooperLooperAU.component ] ; then
-	cp -Rp SooperLooperAU/build/Deployment/SooperLooperAU.component macdist/
+	echo cp -Rp SooperLooperAU/build/Deployment/SooperLooperAU.component macdist/
+	cp -Rp SooperLooperAU/build/Deployment/SooperLooperAU.component macdist/	
 elif [ -d SooperLooperAU/build/Default/SooperLooperAU.component ] ; then
+	echo cp -Rp SooperLooperAU/build/Default/SooperLooperAU.component macdist/
 	cp -Rp SooperLooperAU/build/Default/SooperLooperAU.component macdist/
 elif [ -d SooperLooperAU/build/SooperLooperAU.component ] ; then
+	echo cp -Rp SooperLooperAU/build/SooperLooperAU.component macdist/
 	cp -Rp SooperLooperAU/build/SooperLooperAU.component macdist/
 else
 	echo "no component found!"

@@ -11,7 +11,7 @@ bin_PROGRAMS =  slgui
 
 AM_CXXFLAGS = -I.. @LOSC_CFLAGS@ @SIGCPP_CFLAGS@ @XML_CFLAGS@ @WX_CFLAGS@
 
-slgui_LDADD = ../libslcore.a  @LOSC_LIBS@ @WX_LIBS@ @SIGCPP_LIBS@ @XML_LIBS@
+slgui_LDADD = ../libslcore.a @BASE_LIBS@ @LOSC_LIBS@ @WX_LIBS@ @SIGCPP_LIBS@ @XML_LIBS@
 
 slgui_SOURCES = \
 	gui_app.cpp \

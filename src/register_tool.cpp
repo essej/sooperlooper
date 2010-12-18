@@ -21,12 +21,12 @@ public:
    lo_address _osc_addr;
    std::string  _our_url;
 
-	RegisterTool(const string & target_port, const string & sl_port) {
+	RegisterTool(const string & target_port, const string & sl_port, const string & target_host="localhost") {
 		
 		_osc_addr = lo_address_new(NULL, sl_port.c_str());
 
 		char tmpbuf[100];
-		snprintf(tmpbuf, sizeof(tmpbuf), "osc.udp://localhost:%s", target_port.c_str()); 
+		snprintf(tmpbuf, sizeof(tmpbuf), "osc.udp://%s:%s", target_host.c_str(), target_port.c_str()); 
 		_our_url = tmpbuf;
 	}
 
@@ -192,26 +192,28 @@ register_control (int index, std::string ctrl, const string & path, bool unreg=f
 int main(int argc, char ** argv)
 {
 
-	if (argc < 3) {
-		printf("Usage: %s target_port_#  sl_server_port_#  [unregister]\n\n", argv[0]);
-		printf("   Where target_port_# is the OSC port of the server you\n    wish to receive status updates from SooperLooper\n");
-		printf("   And sl_server_port_# is your SL port (for example use 9951 for the standalone SL,  or 10051 for the AU plugin)\n");
+	if (argc < 4) {
+		printf("Usage: %s target_host <target_port>  <sl_server_port>  [unregister]\n\n", argv[0]);
+		printf("   Where target_host and <target_port> is the OSC hostname and port number of the server you\n    wish to receive status updates from SooperLooper\nUse localhost if the software is running on the same computer.\n");
+		printf("   And <sl_server_port> is your SL port (for example use 9951 for the standalone SL,  or 10051 for the AU plugin)\n");
 		return 2;
 	}
 
 	string targ_port = "8000";
 	string sl_port = "9951";
+	string targ_host = "localhost";
 	bool unreg = false;
 
 	if (argc > 2) {
-		targ_port = argv[1];
-		sl_port = argv[2];
-		if (argc > 3) {
+		targ_host = argv[1];
+		targ_port = argv[2];
+		sl_port = argv[3];
+		if (argc > 4) {
 			unreg = true;
 		}
 	}
 
-	RegisterTool regtool(targ_port, sl_port);
+	RegisterTool regtool(targ_port, sl_port, targ_host);
 
 	regtool.register_global_updates("/sl/global", unreg);
 	

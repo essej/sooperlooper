@@ -300,7 +300,7 @@ BASE_LIBS="\$SOOPERLOOPER_TOP/libs/midi++/libmidipp.a \$SOOPERLOOPER_TOP/libs/pb
 BASE_INCLUDES="-I\$SOOPERLOOPER_TOP/libs/pbd -I\$SOOPERLOOPER_TOP/libs/midi++"
 CFLAGS="\$CFLAGS  -I\$SOOPERLOOPER_TOP/libs/pbd -I\$SOOPERLOOPER_TOP/libs/midi++"
 CXXFLAGS="\$CXXFLAGS -I\$SOOPERLOOPER_TOP/libs/pbd -I\$SOOPERLOOPER_TOP/libs/midi++"
-LIBS="\$LIBS \$SOOPERLOOPER_TOP/libs/midi++/libmidipp.a \$SOOPERLOOPER_TOP/libs/pbd/libpbd.a"
+#LIBS="\$LIBS \$SOOPERLOOPER_TOP/libs/midi++/libmidipp.a \$SOOPERLOOPER_TOP/libs/pbd/libpbd.a"
 ])
 EOF
 
