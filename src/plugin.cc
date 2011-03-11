@@ -239,10 +239,17 @@ bool
 sl_get_replace_quantized (LADSPA_Handle instance)
 {
 	SooperLooperI * pLS = (SooperLooperI *)instance;
-	if (!pLS) return 0.0f;
+	if (!pLS) return false;
 	return pLS->bReplaceQuantized;
 }
 
+
+bool sl_has_loop (const LADSPA_Handle instance)
+{
+	const SooperLooperI * pLS = (const SooperLooperI *)instance;
+	if (!pLS) return false;
+        return pLS->headLoopChunk != 0;
+}
 
 static bool invalidateTails (SooperLooperI * pLS, unsigned long bufstart, unsigned long buflen, LoopChunk * currloop)
 {

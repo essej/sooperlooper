@@ -810,7 +810,7 @@ Engine::process (nframes_t nframes)
 			    || evt->Command == Event::RECORD_SOLO_NEXT ||  evt->Command == Event::RECORD_SOLO_PREV 
 			    || evt->Command == Event::RECORD_SOLO
 				|| evt->Command == Event::RECORD_EXCLUSIVE_NEXT ||  evt->Command == Event::RECORD_EXCLUSIVE_PREV 
-			    || evt->Command == Event::RECORD_EXCLUSIVE
+			    || evt->Command == Event::RECORD_EXCLUSIVE || evt->Command == Event::RECORD_OR_OVERDUB_SOLO
 				|| evt->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT ||  evt->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV || evt->Command == Event::RECORD_OR_OVERDUB_EXCL)
 			{
 				do_global_rt_event (evt, usedframes + doframes, nframes - (usedframes + doframes));
@@ -974,8 +974,9 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 		
 	}
 	else if (ev->Command == Event::SOLO || ev->Command == Event::SOLO_NEXT ||  ev->Command == Event::SOLO_PREV
-			 ||  ev->Command == Event::RECORD_SOLO_NEXT ||  ev->Command == Event::RECORD_SOLO_PREV || ev->Command == Event::RECORD_SOLO
-			 || exclcmd || exclocmd)
+                 ||  ev->Command == Event::RECORD_SOLO_NEXT ||  ev->Command == Event::RECORD_SOLO_PREV || ev->Command == Event::RECORD_SOLO
+                 || ev->Command == Event::RECORD_OR_OVERDUB_SOLO 
+                 || exclcmd || exclocmd)
 	{
 		// notify all loops they are being soloed or not (this acts as a toggle)
 		int target_instance = (ev->Instance == -3) ? _selected_loop : ev->Instance;
@@ -997,16 +998,18 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 				_sel_loop_changed = true;
 				target_instance = _selected_loop;
 			}
-			else if ( ev->Command == Event::RECORD_EXCLUSIVE || ev->Command == Event::RECORD_OR_OVERDUB_EXCL) {
+			else if ( ev->Command == Event::RECORD_EXCLUSIVE || ev->Command == Event::RECORD_OR_OVERDUB_EXCL || ev->Command == Event::RECORD_OR_OVERDUB_SOLO) {
 				// select the loop commanded in these cases
 				_selected_loop = target_instance;
 				_sel_loop_changed = true;
 			}
 		}
 
-
+                bool target_was_muted = false;
 		if (target_instance >= 0 && target_instance < (int) _rt_instances.size()) 
 		{
+                        target_was_muted = _rt_instances[target_instance]->is_muted() &&  _rt_instances[target_instance]->has_loop(); 
+
 			if (ev->Type == Event::type_cmd_down || ev->Type == Event::type_cmd_hit || ev->Type == Event::type_cmd_upforce
 			    || (ev->Type == Event::type_cmd_up && _running_frames > (_solo_down_stamp + _longpress_frames)))
 			{
@@ -1028,7 +1031,13 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 					
 					for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i) 
 					{
-						(*i)->set_soloed (target_instance, !target_solo_state);
+                                                if (ev->Command == Event::RECORD_OR_OVERDUB_SOLO) {
+                                                        // for this command we always want it to force solo on
+                                                        (*i)->set_soloed (target_instance, true, true);
+                                                }
+                                                else {
+                                                        (*i)->set_soloed (target_instance, !target_solo_state);
+                                                }
 					}
 				}
 				
@@ -1046,12 +1055,12 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			ev->Instance = target_instance;
 			ev->Command = Event::RECORD;
 		}
-		else if (exclocmd)
+		else if (exclocmd || (ev->Command == Event::RECORD_OR_OVERDUB_SOLO && !target_was_muted))
 		{
 			// change the instance to the target we soloed, and the command to record
 			ev->Instance = target_instance;
 			ev->Command = Event::RECORD_OR_OVERDUB;
-			//cerr << "record or overdub exclusive" << endl;
+			// cerr << "record or overdub exclusive: muted " <<  target_was_muted << endl;
 		}
 		else {
 			// change the event's instance so it isn't used later in the process call

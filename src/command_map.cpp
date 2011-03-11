@@ -78,6 +78,7 @@ CommandMap::CommandMap()
 	_str_cmd_map["record_or_overdub_excl"]  = Event::RECORD_OR_OVERDUB_EXCL;
 	_str_cmd_map["record_or_overdub_excl_next"]  = Event::RECORD_OR_OVERDUB_EXCL_NEXT;
 	_str_cmd_map["record_or_overdub_excl_prev"]  = Event::RECORD_OR_OVERDUB_EXCL_PREV;
+	_str_cmd_map["record_or_overdub_solo"]  = Event::RECORD_OR_OVERDUB_SOLO;
 	
 	for (StringCommandMap::iterator iter = _str_cmd_map.begin(); iter != _str_cmd_map.end(); ++iter) {
 		_cmd_str_map[(*iter).second] = (*iter).first;

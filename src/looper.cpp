@@ -181,9 +181,11 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	memset (ports, 0, sizeof(float) * LASTPORT);
 
 	memset(_down_stamps, 0, sizeof(nframes_t) * (Event::LAST_COMMAND+1));
+        /*
 	for (int i=0; i < (int) Event::LAST_COMMAND+1; ++i) {
 	  _down_stamps[i] = 1 << 31;
 	}
+        */
 
 	_longpress_frames = (nframes_t) lrint (srate * 1.0); // more than 1 secs is SUS
 	_doubletap_frames = (nframes_t) lrint (srate * 0.5); // less than 0.5 sec is double tap
@@ -446,7 +448,7 @@ Looper::set_replace_quantized(bool flag)
 }
 
 void 
-Looper::set_soloed (int index, bool value)
+Looper::set_soloed (int index, bool value, bool retrigger)
 {
 	if (index != (int) _index) {
 		// someone else is being soloed (or unsoloed), note our mute state, then mute self
@@ -474,13 +476,19 @@ Looper::set_soloed (int index, bool value)
 		}
 	}
 	else {
+                // we are the target of the solo
 		_is_soloed = value;
 			
-		if (value && ports[State] == LooperStateMuted) {
+		if (value && ports[State] == LooperStateMuted) {                     
 			// ensure we are not muted if we are soloed
 			Event ev;
 			ev.Type = Event::type_cmd_hit;
-			ev.Command = Event::MUTE_OFF;
+                        if (retrigger) {
+                                ev.Command = Event::TRIGGER;
+                        }
+                        else {
+                                ev.Command = Event::MUTE_OFF;
+                        }
 			do_event(&ev);
 		}
 	}
@@ -639,6 +647,11 @@ Looper::recompute_latencies()
 	//cerr << "output lat: " << ports[OutputLatency] << endl;
 }
 
+bool Looper::has_loop() const
+{
+        return (_instances && _instances[0] && sl_has_loop(_instances[0]));
+}
+
 float
 Looper::get_control_value (Event::control_t ctrl)
 {
@@ -778,8 +791,8 @@ Looper::do_event (Event *ev)
                 //fprintf(stderr, "Got HIT cmd: %d\n", cmd);
 
 		// a few special commands have double-tap logic
-		if (cmd == Event::RECORD_OR_OVERDUB || cmd == Event::RECORD_OR_OVERDUB_EXCL) {
-			if (_running_frames < (_down_stamps[cmd] + _doubletap_frames))
+		if (cmd == Event::RECORD_OR_OVERDUB || cmd == Event::RECORD_OR_OVERDUB_EXCL || cmd == Event::RECORD_OR_OVERDUB_SOLO) {
+			if (_down_stamps[cmd] > 0 && _running_frames < (_down_stamps[cmd] + _doubletap_frames))
 			{
 				// we actually need to undo twice!
 				requested_cmd = Event::UNDO_TWICE; 
@@ -794,11 +807,11 @@ Looper::do_event (Event *ev)
 			requested_cmd = cmd;
 			request_pending = true;
 
-                        //fprintf(stderr, "Got DOWN cmd: %d\n", cmd);
+                        // fprintf(stderr, "Got DOWN cmd: %d\n", cmd);
 
 			// a few special commands have double-tap logic
-			if (cmd == Event::RECORD_OR_OVERDUB || cmd == Event::RECORD_OR_OVERDUB_EXCL) {
-				if (_running_frames < (_down_stamps[cmd] + _doubletap_frames))
+			if (cmd == Event::RECORD_OR_OVERDUB || cmd == Event::RECORD_OR_OVERDUB_EXCL || cmd == Event::RECORD_OR_OVERDUB_SOLO) {
+				if (_down_stamps[cmd] > 0 && _running_frames < (_down_stamps[cmd] + _doubletap_frames))
 				{
 					// we actually need to undo twice!
 					requested_cmd = Event::UNDO_TWICE; 
@@ -851,7 +864,7 @@ Looper::do_event (Event *ev)
 					else if (cmd == Event::REDO) {
 						requested_cmd = Event::REDO_ALL;
 					}
-					else if (cmd == Event::RECORD_OR_OVERDUB) {
+					else if (cmd == Event::RECORD_OR_OVERDUB || cmd == Event::RECORD_OR_OVERDUB_EXCL || cmd == Event::RECORD_OR_OVERDUB_SOLO) {
 						// longpress of this turns into undo all for one-button goodness
 						requested_cmd = Event::UNDO_ALL;
 					}

@@ -131,6 +131,7 @@ namespace SooperLooper {
 			RECORD_OR_OVERDUB_EXCL_NEXT,
 			RECORD_OR_OVERDUB_EXCL_PREV,
 			UNDO_TWICE,
+		    RECORD_OR_OVERDUB_SOLO,
 		    LAST_COMMAND
 	    } Command;
 

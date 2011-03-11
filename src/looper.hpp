@@ -102,8 +102,11 @@ class Looper
 	void set_replace_quantized(bool flag);
 
 	// called when some loop instance is being soloed, index says which instance (may not be us)
-	void set_soloed (int index, bool value);
+	void set_soloed (int index, bool value, bool retrigger=false);
 	bool is_soloed() const { return _is_soloed; }
+
+        bool is_muted() const { return ports[State] == LooperStateMuted; }
+        bool has_loop() const ;
 
 	// finishes any active state that may be going (rec, overdub, etc)
 	bool finish_state();

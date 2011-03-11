@@ -395,4 +395,6 @@ extern void sl_set_replace_quantized (LADSPA_Handle instance, bool value);
 extern bool sl_get_replace_quantized (LADSPA_Handle instance);
 extern void sl_set_loop_index (LADSPA_Handle instance, unsigned int index, unsigned int chan);
 
+extern bool sl_has_loop (const LADSPA_Handle instance);
+
 #endif
