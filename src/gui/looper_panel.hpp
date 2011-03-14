@@ -99,7 +99,11 @@ class LooperPanel
 	void start_learning(SooperLooper::MidiBindInfo & info);
 	void got_learn_canceled();
 	
-	wxPanel   * _selbar;
+	wxPanel   * _leftSelbar;
+	wxPanel   * _rightSelbar;
+	wxPanel   * _topSelbar;
+	wxPanel   * _bottomSelbar;
+
 	wxColour   _bgcolor;
 	wxColour   _selbgcolor;
 	wxColour   _learnbgcolor;

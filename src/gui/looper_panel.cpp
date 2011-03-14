@@ -139,6 +139,7 @@ LooperPanel::init()
 	SetThemeEnabled(false);
 
 	wxBoxSizer * mainSizer = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer * mainVSizer = new wxBoxSizer(wxVERTICAL);
 
 	wxBoxSizer * colsizer = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer * rowsizer;
@@ -148,35 +149,52 @@ LooperPanel::init()
 	_selbgcolor.Set(244, 255, 158);
 	_learnbgcolor.Set(134, 80, 158);
 
-	_selbar = new wxPanel(this, -1, wxDefaultPosition, wxSize(4,-1));
-	_selbar->SetThemeEnabled(false);
-	_selbar->SetBackgroundColour (_bgcolor);
+	_leftSelbar = new wxPanel(this, -1, wxDefaultPosition, wxSize(4,-1));
+	_leftSelbar->SetThemeEnabled(false);
+	_leftSelbar->SetBackgroundColour (_bgcolor);
+
+
+	_rightSelbar = new wxPanel(this, -1, wxDefaultPosition, wxSize(4,-1));
+	_rightSelbar->SetThemeEnabled(false);
+	_rightSelbar->SetBackgroundColour (_bgcolor);
+
+	_topSelbar = new wxPanel(this, -1, wxDefaultPosition, wxSize(-1,4));
+	_topSelbar->SetThemeEnabled(false);
+	_topSelbar->SetBackgroundColour (_bgcolor);
+
+	_bottomSelbar = new wxPanel(this, -1, wxDefaultPosition, wxSize(-1,4));
+	_bottomSelbar->SetThemeEnabled(false);
+	_bottomSelbar->SetBackgroundColour (_bgcolor);
+
 	
-	mainSizer->Add (_selbar, 0, wxEXPAND|wxBOTTOM|wxLEFT, 0);
+        mainVSizer->Add (_topSelbar, 0, wxEXPAND|wxBOTTOM|wxLEFT, 0);
+	mainSizer->Add (_leftSelbar, 0, wxEXPAND|wxBOTTOM|wxLEFT, 0);
+
 
 	// create all buttons first, then add them to sizers
 	// must do this because the bitmaps need to be loaded
 	// before adding to sizer
 	create_buttons();
 	
-	
- 	colsizer->Add (_undo_button, 0, wxTOP, 5);
+        int edgegap = 0;
+
+ 	colsizer->Add (_undo_button, 0, 0, 0);
 
  	colsizer->Add (_redo_button, 0, wxTOP, 5);
 	
-	mainSizer->Add (colsizer, 0, wxEXPAND|wxBOTTOM|wxLEFT, 5);
+	mainSizer->Add (colsizer, 0, wxEXPAND|wxLEFT, 5);
 
 	
 	colsizer = new wxBoxSizer(wxVERTICAL);
 
 	
- 	colsizer->Add (_record_button, 0, wxTOP|wxLEFT, 5);
+ 	colsizer->Add (_record_button, 0, wxLEFT, 5);
 
  	colsizer->Add (_overdub_button, 0, wxTOP|wxLEFT, 5);
 
  	colsizer->Add (_multiply_button, 0, wxTOP|wxLEFT, 5);
 	
-	mainSizer->Add (colsizer, 0, wxEXPAND|wxBOTTOM, 5);
+	mainSizer->Add (colsizer, 0, wxEXPAND|wxBOTTOM, 0);
 
 
 	colsizer = new wxBoxSizer(wxVERTICAL);
@@ -208,7 +226,7 @@ LooperPanel::init()
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	inthresh_sizer->Add (slider, 1, wxLEFT|wxEXPAND, 3);
 	
-	colsizer->Add (inthresh_sizer, 1, wxEXPAND|wxTOP|wxLEFT, 5);
+	colsizer->Add (inthresh_sizer, 1, wxEXPAND|wxLEFT, 5);
 
 	_feedback_control = slider = new SliderBar(this, ID_FeedbackControl, 0.0f, 100.0f, 100.0f);
 	slider->set_units(wxT("%"));
@@ -217,12 +235,12 @@ LooperPanel::init()
 	slider->value_changed.connect (bind (slot (*this, &LooperPanel::slider_events), (int) slider->GetId()));
 	slider->bind_request.connect (bind (slot (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 
-	_maininsizer->Add (slider, 1, wxALL|wxEXPAND, 0);
+	_maininsizer->Add (slider, 1, wxEXPAND|wxTOP, 5);
 
 	// mainin check added later
 	_use_main_in_check = 0;
 	
-	colsizer->Add (_maininsizer, 1, wxEXPAND|wxTOP|wxLEFT, 5);
+	colsizer->Add (_maininsizer, 1, wxEXPAND|wxLEFT, 5);
 
 
 	
@@ -243,7 +261,7 @@ LooperPanel::init()
 
 	colsizer->Add (rowsizer, 0);
 	
-	mainSizer->Add (colsizer, 0, wxEXPAND|wxBOTTOM, 5);
+	mainSizer->Add (colsizer, 0, wxEXPAND, 5);
 	
 
 	// time area
@@ -252,7 +270,7 @@ LooperPanel::init()
 	_time_panel = new TimePanel(_loop_control, this, -1);
 	_time_panel->set_index (_index);
 	
-	colsizer->Add (_time_panel, 0, wxLEFT|wxTOP, 5);
+	colsizer->Add (_time_panel, 0, wxLEFT, 5);
 
 	//colsizer->Add (20, -1, 1);
 	_toppansizer = new wxBoxSizer(wxHORIZONTAL);
@@ -306,7 +324,7 @@ LooperPanel::init()
 	colsizer->Add (_botpansizer, 1, wxEXPAND|wxTOP|wxLEFT, 4);
 	
 	
-	mainSizer->Add (colsizer, 0, wxEXPAND|wxBOTTOM, 5);
+	mainSizer->Add (colsizer, 0, wxEXPAND, 5);
 
 
 	//
@@ -374,32 +392,32 @@ LooperPanel::init()
 
 	lilcolsizer->Add (lilrowsizer, 0, wxTOP|wxEXPAND, 0);
 	
-	rowsizer->Add(lilcolsizer, 1, wxTOP|wxLEFT, 3);
+	rowsizer->Add(lilcolsizer, 1, wxLEFT, 3);
 
 
 	lilcolsizer = new wxBoxSizer(wxVERTICAL);
 	
-	lilcolsizer->Add (_load_button, 0, wxTOP, 2);
+	lilcolsizer->Add (_load_button, 0, wxTOP, 0);
 
 	lilcolsizer->Add (_save_button, 0, wxTOP, 2);
 	
-	rowsizer->Add(lilcolsizer, 0, wxTOP|wxLEFT, 3);
+	rowsizer->Add(lilcolsizer, 0, wxLEFT, 3);
 
 	lilcolsizer = new wxBoxSizer(wxVERTICAL);
 	
-	lilcolsizer->Add (_trig_button, 0, wxTOP, 2);
+	lilcolsizer->Add (_trig_button, 0, wxTOP, 0);
 
 	lilcolsizer->Add (_once_button, 0, wxTOP, 2);
 	
-	rowsizer->Add(lilcolsizer, 0, wxTOP|wxLEFT, 3);
+	rowsizer->Add(lilcolsizer, 0, wxLEFT, 3);
 	
 	lilcolsizer = new wxBoxSizer(wxVERTICAL);
 	
- 	lilcolsizer->Add (_mute_button, 0, wxTOP, 2);
+ 	lilcolsizer->Add (_mute_button, 0, wxTOP, 0);
 
  	lilcolsizer->Add (_solo_button, 0, wxTOP, 2);
 
-	rowsizer->Add(lilcolsizer, 0, wxTOP|wxLEFT, 3);	
+	rowsizer->Add(lilcolsizer, 0, wxLEFT, 3);	
 
 	colsizer->Add (rowsizer, 0, wxEXPAND);
 
@@ -488,7 +506,13 @@ LooperPanel::init()
 	colsizer->Add (rowsizer, 0, wxEXPAND|wxLEFT, 1);
 
 	
-	mainSizer->Add (colsizer, 1, wxEXPAND|wxBOTTOM|wxRIGHT, 5);
+	mainSizer->Add (colsizer, 1, wxEXPAND|wxRIGHT, 0);
+
+        mainSizer->Add (_rightSelbar, 0, wxEXPAND|wxLEFT, 0);
+
+
+        mainVSizer->Add (mainSizer, 1, wxEXPAND, 0);
+        mainVSizer->Add (_bottomSelbar, 0, wxEXPAND|wxLEFT, 0);
 
 
 	// add an index static text fixed position
@@ -503,9 +527,9 @@ LooperPanel::init()
 	
 	
 	this->SetAutoLayout( true );     // tell dialog to use sizer
-	this->SetSizer( mainSizer );      // actually set the sizer
-	mainSizer->Fit( this );            // set size to minimum size as calculated by the sizer
-	mainSizer->SetSizeHints( this );   // set size hints to honour mininum size
+	this->SetSizer( mainVSizer );      // actually set the sizer
+	mainVSizer->Fit( this );            // set size to minimum size as calculated by the sizer
+	mainVSizer->SetSizeHints( this );   // set size hints to honour mininum size
 
 }
 
@@ -596,13 +620,25 @@ void
 LooperPanel::set_selected (bool flag)
 {
 	if (flag) {
-		_selbar->SetBackgroundColour (_selbgcolor);
+
+		_leftSelbar->SetBackgroundColour (_selbgcolor);
+		_rightSelbar->SetBackgroundColour (_selbgcolor);
+		_bottomSelbar->SetBackgroundColour (_selbgcolor);
+		_topSelbar->SetBackgroundColour (_selbgcolor);
+		//this->SetBackgroundColour (_selbgcolor);
 	}
 	else {
-		_selbar->SetBackgroundColour (_bgcolor);
+		_leftSelbar->SetBackgroundColour (_bgcolor);
+		_rightSelbar->SetBackgroundColour (_bgcolor);
+		_topSelbar->SetBackgroundColour (_bgcolor);
+		_bottomSelbar->SetBackgroundColour (_bgcolor);
+		//this->SetBackgroundColour (_bgcolor);
 	}
 
-	_selbar->Refresh();
+	_leftSelbar->Refresh();
+	_rightSelbar->Refresh();
+	_bottomSelbar->Refresh();
+	_topSelbar->Refresh();
 }
 
 void
@@ -1588,8 +1624,14 @@ void LooperPanel::start_learning(MidiBindInfo & info)
 	if (!_learning) {
 		_learning = true;
 
-		_selbar->SetBackgroundColour (_learnbgcolor);
-		_selbar->Refresh();
+		_leftSelbar->SetBackgroundColour (_learnbgcolor);
+		_rightSelbar->SetBackgroundColour (_learnbgcolor);
+		_topSelbar->SetBackgroundColour (_learnbgcolor);
+		_bottomSelbar->SetBackgroundColour (_learnbgcolor);
+		_leftSelbar->Refresh();
+		_rightSelbar->Refresh();
+		_topSelbar->Refresh();
+		_bottomSelbar->Refresh();
 		
 	}
 
@@ -1602,8 +1644,14 @@ LooperPanel::got_binding_changed(SooperLooper::MidiBindInfo & info)
 {
 	if (_learning) {
 
-		_selbar->SetBackgroundColour (_bgcolor);
-		_selbar->Refresh();
+		_leftSelbar->SetBackgroundColour (_bgcolor);
+		_rightSelbar->SetBackgroundColour (_bgcolor);
+		_topSelbar->SetBackgroundColour (_bgcolor);
+		_bottomSelbar->SetBackgroundColour (_bgcolor);
+		_leftSelbar->Refresh();
+		_rightSelbar->Refresh();
+		_topSelbar->Refresh();
+		_bottomSelbar->Refresh();
 		_learning = false;
 	}
 }
@@ -1612,8 +1660,14 @@ void
 LooperPanel::got_learn_canceled()
 {
 	if (_learning) {
-		_selbar->SetBackgroundColour (_bgcolor);
-		_selbar->Refresh();
+		_leftSelbar->SetBackgroundColour (_bgcolor);
+		_rightSelbar->SetBackgroundColour (_bgcolor);
+		_topSelbar->SetBackgroundColour (_bgcolor);
+		_bottomSelbar->SetBackgroundColour (_bgcolor);
+		_leftSelbar->Refresh();
+		_rightSelbar->Refresh();
+		_topSelbar->Refresh();
+		_bottomSelbar->Refresh();
 		_learning = false;
 	}
 }

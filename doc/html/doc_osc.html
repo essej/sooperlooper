@@ -199,7 +199,7 @@ GLOBAL PARAMETERS
    where param is one of:
 
   tempo  :: bpm
-  eigth_per_cycle
+  eighth_per_cycle
   dry         	:: range 0 -> 1 affects common input passthru
   wet         	:: range 0 -> 1  affects common output level
   input_gain    :: range 0 -> 1  affects common input gain
@@ -259,6 +259,11 @@ REGISTER FOR CONTROL CHANGES
 
     These are the global control equivalents to the above.
 
+ Finally, there is the command to register for any changes in loop count:
+
+ /register s:returl s:retpath
+
+When the loop count changes it will send the same message that the /ping response does.
 
 
 MIDI BINDING CONTROL
