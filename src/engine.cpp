@@ -810,7 +810,8 @@ Engine::process (nframes_t nframes)
 			    || evt->Command == Event::RECORD_SOLO_NEXT ||  evt->Command == Event::RECORD_SOLO_PREV 
 			    || evt->Command == Event::RECORD_SOLO
 				|| evt->Command == Event::RECORD_EXCLUSIVE_NEXT ||  evt->Command == Event::RECORD_EXCLUSIVE_PREV 
-			    || evt->Command == Event::RECORD_EXCLUSIVE || evt->Command == Event::RECORD_OR_OVERDUB_SOLO
+			    || evt->Command == Event::RECORD_EXCLUSIVE 
+                            || evt->Command == Event::RECORD_OR_OVERDUB_SOLO || evt->Command == Event::RECORD_OR_OVERDUB_SOLO_TRIG || evt->Command == Event::RECORD_OVERDUB_END_SOLO || evt->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG
 				|| evt->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT ||  evt->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV || evt->Command == Event::RECORD_OR_OVERDUB_EXCL)
 			{
 				do_global_rt_event (evt, usedframes + doframes, nframes - (usedframes + doframes));
@@ -925,7 +926,7 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 {
 	bool exclcmd = (ev->Command == Event::RECORD_EXCLUSIVE_NEXT ||  ev->Command == Event::RECORD_EXCLUSIVE_PREV || ev->Command == Event::RECORD_EXCLUSIVE);
 	bool exclocmd = (ev->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT ||  ev->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV || ev->Command == Event::RECORD_OR_OVERDUB_EXCL); 
-
+        bool recOverSolo = (ev->Command == Event::RECORD_OR_OVERDUB_SOLO || ev->Command == Event::RECORD_OR_OVERDUB_SOLO_TRIG || ev->Command == Event::RECORD_OVERDUB_END_SOLO || ev->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG);
 	
 	if (ev->Control == Event::TapTempo) {
 		nframes_t thisframe = _running_frames + offset;
@@ -975,7 +976,7 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 	}
 	else if (ev->Command == Event::SOLO || ev->Command == Event::SOLO_NEXT ||  ev->Command == Event::SOLO_PREV
                  ||  ev->Command == Event::RECORD_SOLO_NEXT ||  ev->Command == Event::RECORD_SOLO_PREV || ev->Command == Event::RECORD_SOLO
-                 || ev->Command == Event::RECORD_OR_OVERDUB_SOLO 
+                 || recOverSolo
                  || exclcmd || exclocmd)
 	{
 		// notify all loops they are being soloed or not (this acts as a toggle)
@@ -998,7 +999,7 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 				_sel_loop_changed = true;
 				target_instance = _selected_loop;
 			}
-			else if ( ev->Command == Event::RECORD_EXCLUSIVE || ev->Command == Event::RECORD_OR_OVERDUB_EXCL || ev->Command == Event::RECORD_OR_OVERDUB_SOLO) {
+			else if ( ev->Command == Event::RECORD_EXCLUSIVE || ev->Command == Event::RECORD_OR_OVERDUB_EXCL || recOverSolo) {
 				// select the loop commanded in these cases
 				_selected_loop = target_instance;
 				_sel_loop_changed = true;
@@ -1028,12 +1029,12 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 				{
 					// solo commands
 					bool target_solo_state = _rt_instances[target_instance]->is_soloed();
-					
+					bool retrigger = (ev->Command == Event::RECORD_OR_OVERDUB_SOLO_TRIG || ev->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG);
 					for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i) 
 					{
-                                                if (ev->Command == Event::RECORD_OR_OVERDUB_SOLO) {
+                                                if (recOverSolo) {
                                                         // for this command we always want it to force solo on
-                                                        (*i)->set_soloed (target_instance, true, true);
+                                                        (*i)->set_soloed (target_instance, true, retrigger);
                                                 }
                                                 else {
                                                         (*i)->set_soloed (target_instance, !target_solo_state);
@@ -1055,11 +1056,17 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			ev->Instance = target_instance;
 			ev->Command = Event::RECORD;
 		}
-		else if (exclocmd || (ev->Command == Event::RECORD_OR_OVERDUB_SOLO && !target_was_muted))
+		else if (exclocmd || (recOverSolo && !target_was_muted))
 		{
 			// change the instance to the target we soloed, and the command to record
 			ev->Instance = target_instance;
-			ev->Command = Event::RECORD_OR_OVERDUB;
+
+                        if ((ev->Command == Event::RECORD_OVERDUB_END_SOLO || ev->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG)) {
+                                ev->Command = Event::RECORD_OVERDUB_END_SOLO;
+                        }
+                        else {
+                                ev->Command = Event::RECORD_OR_OVERDUB;
+                        }
 			// cerr << "record or overdub exclusive: muted " <<  target_was_muted << endl;
 		}
 		else {

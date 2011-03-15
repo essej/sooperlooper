@@ -138,6 +138,7 @@ using namespace SooperLooper;
 #define MULTI_RESET_SYNC_POS Event::RESET_SYNC_POS
 #define MULTI_MUTE_TRIGGER   Event::MUTE_TRIGGER
 #define MULTI_RECORD_OR_OVERDUB Event::RECORD_OR_OVERDUB
+#define MULTI_RECORD_OVERDUB_END Event::RECORD_OVERDUB_END_SOLO
 #define MULTI_UNDO_TWICE     Event::UNDO_TWICE
 
 
@@ -1837,6 +1838,16 @@ runSooperLooper(LADSPA_Handle Instance,
   else if (lMultiCtrl == MULTI_RECORD_OR_OVERDUB) {
 	  if (!pLS->headLoopChunk || pLS->state == STATE_OFF || pLS->state == STATE_RECORD 
 	      || pLS->state == STATE_TRIG_START || pLS->state == STATE_TRIG_STOP 
+	      || pLS->state == STATE_DELAY) {
+		  // we record
+		  lMultiCtrl = MULTI_RECORD;
+	  } else {
+		  // otherwise overdub
+		  lMultiCtrl = MULTI_OVERDUB;
+	  }
+  }
+  else if (lMultiCtrl == MULTI_RECORD_OVERDUB_END) {
+	  if (!pLS->headLoopChunk || pLS->state == STATE_OFF
 	      || pLS->state == STATE_DELAY) {
 		  // we record
 		  lMultiCtrl = MULTI_RECORD;

@@ -864,7 +864,7 @@ Looper::do_event (Event *ev)
 					else if (cmd == Event::REDO) {
 						requested_cmd = Event::REDO_ALL;
 					}
-					else if (cmd == Event::RECORD_OR_OVERDUB || cmd == Event::RECORD_OR_OVERDUB_EXCL || cmd == Event::RECORD_OR_OVERDUB_SOLO) {
+					else if (cmd == Event::RECORD_OR_OVERDUB || cmd == Event::RECORD_OR_OVERDUB_EXCL || cmd == Event::RECORD_OR_OVERDUB_SOLO || Event::RECORD_OVERDUB_END_SOLO) {
 						// longpress of this turns into undo all for one-button goodness
 						requested_cmd = Event::UNDO_ALL;
 					}
