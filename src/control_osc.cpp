@@ -42,6 +42,8 @@ using namespace SigC;
 using namespace SooperLooper;
 using namespace std;
 
+//#define DEBUG 1
+
 static void error_callback(int num, const char *m, const char *path)
 {
 #ifdef DEBUG
@@ -175,6 +177,7 @@ ControlOSC::register_callbacks()
 		lo_server_add_method(serv, "/unregister_update", "sss", ControlOSC::_global_unregister_update_handler, this);
 		lo_server_add_method(serv, "/register_auto_update", "siss", ControlOSC::_global_register_auto_update_handler, this);
 		lo_server_add_method(serv, "/unregister_auto_update", "sss", ControlOSC::_global_unregister_auto_update_handler, this);
+
 
 		// certain RT global ctrls
 		lo_server_add_method(serv, "/sl/-2/set", "sf", ControlOSC::_set_handler, new CommandInfo(this, -2, Event::type_global_control_change));
@@ -670,6 +673,7 @@ int ControlOSC::_global_unregister_auto_update_handler(const char *path, const c
 	return osc->global_unregister_auto_update_handler (path, types, argv, argc, data);
 }
 
+
 int ControlOSC::_midi_start_handler(const char *path, const char *types, lo_arg **argv, int argc,
 			 void *data, void *user_data)
 {
@@ -817,6 +821,9 @@ ControlOSC::global_unregister_auto_update_handler(const char *path, const char *
 
 	return 0;
 }
+
+
+
 
 
 int
@@ -1117,6 +1124,7 @@ int ControlOSC::register_update_handler(const char *path, const char *types, lo_
 
 	// push this onto a queue for the main event loop to process
 	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Register, info->instance, _cmd_map->to_control_t(ctrl), returl, retpath));
+        //cerr << "register update recvd for " << (int)info->instance << "  ctrl: " << ctrl << endl;
 	
 	return 0;
 }
@@ -1145,7 +1153,7 @@ int ControlOSC::register_auto_update_handler(const char *path, const char *types
 
 	// push this onto a queue for the main event loop to process
 	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::RegisterAuto, info->instance, _cmd_map->to_control_t(ctrl), returl, retpath));
-	
+        // cerr << "register autoupdate recvd for " << (int)info->instance << "  ctrl: " << ctrl << endl;
 	return 0;
 }
 
@@ -1285,7 +1293,7 @@ void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 		
 		if (find(ulist.begin(), ulist.end(), upair) == ulist.end()) {
 #ifdef DEBUG
-			cerr << "registered " << ctrl << "  " << returl << endl;
+			cerr << "registered " << (int)event.instance << "  ctrl: " << ctrl << "  " << returl << endl;
 #endif
 			ulist.push_back (upair);
 		}

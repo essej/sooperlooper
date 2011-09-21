@@ -812,7 +812,8 @@ Engine::process (nframes_t nframes)
 				|| evt->Command == Event::RECORD_EXCLUSIVE_NEXT ||  evt->Command == Event::RECORD_EXCLUSIVE_PREV 
 			    || evt->Command == Event::RECORD_EXCLUSIVE 
                             || evt->Command == Event::RECORD_OR_OVERDUB_SOLO || evt->Command == Event::RECORD_OR_OVERDUB_SOLO_TRIG || evt->Command == Event::RECORD_OVERDUB_END_SOLO || evt->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG
-				|| evt->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT ||  evt->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV || evt->Command == Event::RECORD_OR_OVERDUB_EXCL)
+				|| evt->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT ||  evt->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV || evt->Command == Event::RECORD_OR_OVERDUB_EXCL
+                            	|| evt->Command == Event::RECORD_OR_OVERDUB_SOLO_NEXT ||  evt->Command == Event::RECORD_OR_OVERDUB_SOLO_PREV )
 			{
 				do_global_rt_event (evt, usedframes + doframes, nframes - (usedframes + doframes));
 				
@@ -926,7 +927,8 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 {
 	bool exclcmd = (ev->Command == Event::RECORD_EXCLUSIVE_NEXT ||  ev->Command == Event::RECORD_EXCLUSIVE_PREV || ev->Command == Event::RECORD_EXCLUSIVE);
 	bool exclocmd = (ev->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT ||  ev->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV || ev->Command == Event::RECORD_OR_OVERDUB_EXCL); 
-        bool recOverSolo = (ev->Command == Event::RECORD_OR_OVERDUB_SOLO || ev->Command == Event::RECORD_OR_OVERDUB_SOLO_TRIG || ev->Command == Event::RECORD_OVERDUB_END_SOLO || ev->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG);
+        bool recOverSoloNext = (ev->Command == Event::RECORD_OR_OVERDUB_SOLO_NEXT || ev->Command == Event::RECORD_OR_OVERDUB_SOLO_PREV);
+        bool recOverSolo = (ev->Command == Event::RECORD_OR_OVERDUB_SOLO || ev->Command == Event::RECORD_OR_OVERDUB_SOLO_TRIG || ev->Command == Event::RECORD_OVERDUB_END_SOLO || ev->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG  || recOverSoloNext);
 	
 	if (ev->Control == Event::TapTempo) {
 		nframes_t thisframe = _running_frames + offset;
@@ -986,14 +988,14 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 		    || (ev->Type == Event::type_cmd_up && _running_frames > (_solo_down_stamp + _longpress_frames)))
 		{	
 			if (ev->Command == Event::SOLO_NEXT ||  ev->Command == Event::RECORD_SOLO_NEXT 
-				|| ev->Command == Event::RECORD_EXCLUSIVE_NEXT || ev->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT) {
+				|| ev->Command == Event::RECORD_EXCLUSIVE_NEXT || ev->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT || ev->Command == Event::RECORD_OR_OVERDUB_SOLO_NEXT) {
 				// increment selected
 				_selected_loop = (_selected_loop + 1) % _rt_instances.size();
 				_sel_loop_changed = true;
 				target_instance = _selected_loop;
 			}
 			else if (ev->Command == Event::SOLO_PREV ||  ev->Command == Event::RECORD_SOLO_PREV 
-					 || ev->Command == Event::RECORD_EXCLUSIVE_PREV || ev->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV) {
+					 || ev->Command == Event::RECORD_EXCLUSIVE_PREV || ev->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV || ev->Command == Event::RECORD_OR_OVERDUB_SOLO_PREV) {
 				// decrement selected
 				_selected_loop = _selected_loop > 0 ? _selected_loop - 1 : _rt_instances.size() - 1;
 				_sel_loop_changed = true;
@@ -1056,7 +1058,7 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			ev->Instance = target_instance;
 			ev->Command = Event::RECORD;
 		}
-		else if (exclocmd || (recOverSolo && !target_was_muted))
+		else if (exclocmd || (recOverSolo && (!target_was_muted || recOverSoloNext)))
 		{
 			// change the instance to the target we soloed, and the command to record
 			ev->Instance = target_instance;
@@ -1438,12 +1440,18 @@ bool
 Engine::push_nonrt_event (EventNonRT * event)
 {
 
-	_nonrt_event_queue->write(&event, 1);
-	
-	LockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
-	pthread_cond_signal (&_event_cond);
+        if (_nonrt_event_queue->write_space() > 0) {
+                _nonrt_event_queue->write(&event, 1);
+                
+                LockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
+                pthread_cond_signal (&_event_cond);
 
-	return true;
+                return true;
+        }
+        else {
+                //cerr << "UGH, couldn't push event, no writespace" << endl;
+                return false;
+        }
 }
 
 	

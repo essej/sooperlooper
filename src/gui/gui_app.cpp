@@ -187,7 +187,7 @@ GuiApp::parse_options (int argc, wxChar **argv)
 	
 	
 GuiApp::GuiApp()
-	: _frame(0), _host(wxT("")), _port(0)
+	: _frame(0), _host(wxT("localhost")), _port(0)
 {
 	_show_usage = 0;
 	_show_version = 0;

@@ -323,6 +323,9 @@ LoopControl::connect()
 	}
 
 	_pingack = false;
+
+        _registeredauto_loop_map.clear();
+        _registeredin_loop_map.clear();
 	
 	if (!_spawn_config.force_spawn) {
 		// send off a ping.  set a timer, if we don't have a response, we'll start our own locally
@@ -671,6 +674,11 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 
 	cerr << "slgui: remote looper is at " << hosturl << " version=" << version << "   loopcount=" << loopcount << "  id=" << uid << endl;
 
+        if (loopcount < _registeredin_loop_map.size()) {
+                _registeredin_loop_map.erase(_registeredin_loop_map.find(loopcount), _registeredin_loop_map.end());
+                _registeredauto_loop_map.erase(_registeredauto_loop_map.find(loopcount), _registeredauto_loop_map.end());
+        }
+
 	char * remport = lo_url_get_port(hosturl.c_str());
 	wxString tmpstr = wxString::FromAscii(remport);
 	tmpstr.ToLong(&_spawn_config.port);
@@ -711,11 +719,13 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 	}
 	_osc_addr = lo_address_new_from_url (hosturl.c_str());
 
-	if (_engine_id != 0 && _engine_id != uid) {
+	if (_engine_id != 0 && _engine_id != uid && uid != 0) {
 		cerr << "new engine ID pingacked us!, re-registering" << endl;
 		_pingack = false;
 	}
-	_engine_id = uid;
+        if (uid != 0) {
+                _engine_id = uid;
+        }
 
 	if (!_pingack) {
 		// register future configs with it once
@@ -748,7 +758,7 @@ LoopControl::alive_handler(const char *path, const char *types, lo_arg **argv, i
 	// s:hosturl  s:version  i:loopcount [i:id]
 	if (argc > 3) {
 		int uid = argv[3]->i;
-		if (uid != _engine_id) {
+		if (uid != _engine_id && uid != 0) {
 			cerr << "engine changed on us, redoing connections" << endl;
 			return pingack_handler(path, types, argv, argc, data);
 		}
@@ -1086,6 +1096,7 @@ LoopControl::register_auto_updates(int index, bool unreg)
 	if (!_osc_addr) return;
 	char buf[30];
 
+
 	if (unreg) {
 		snprintf(buf, sizeof(buf), "/sl/%d/unregister_auto_update", index);
 		lo_send(_osc_addr, buf, "sss", "state", _our_url.c_str(), "/ctrl");
@@ -1103,6 +1114,12 @@ LoopControl::register_auto_updates(int index, bool unreg)
 		lo_send(_osc_addr, buf, "sss", "stretch_ratio", _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "sss", "pitch_shift", _our_url.c_str(), "/ctrl");
 	} else {
+                if (_registeredauto_loop_map.find(index) != _registeredauto_loop_map.end()) {
+                        // already registered
+                        return;
+                }
+                
+
 		snprintf(buf, sizeof(buf), "/sl/%d/register_auto_update", index);
 		// send request for auto updates
 		lo_send(_osc_addr, buf, "siss", "state",     100, _our_url.c_str(), "/ctrl");
@@ -1119,6 +1136,8 @@ LoopControl::register_auto_updates(int index, bool unreg)
 		lo_send(_osc_addr, buf, "siss",  "is_soloed", 100, _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "siss", "stretch_ratio", 100, _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, buf, "siss", "pitch_shift", 100, _our_url.c_str(), "/ctrl");
+
+                _registeredauto_loop_map[index] = true;
 	}
 
 	
@@ -1130,6 +1149,16 @@ LoopControl::register_input_controls(int index, bool unreg)
 {
 	if (!_osc_addr) return;
 	char buf[50];
+
+        if (_registeredin_loop_map.find(index) != _registeredin_loop_map.end()) {
+                // already registered
+                return;
+        }
+
+        if ((int)_params_val_map.size() <= index) {
+		_params_val_map.resize(index + 1);
+		_updated.resize(index + 1);
+        }
 
 	if ((int)_params_val_map.size() > index) {
 		_params_val_map[index].clear();
@@ -1178,6 +1207,10 @@ LoopControl::register_input_controls(int index, bool unreg)
 	lo_send(_osc_addr, buf, "sss", "pan_2", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "pan_3", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "pan_4", _our_url.c_str(), "/ctrl");
+
+        // cerr << "SENT REGISTERS FOR ALL index: " << index << endl;
+
+        _registeredin_loop_map[index] = true;
 }
 
 void
@@ -1534,6 +1567,7 @@ LoopControl::post_remove_loop()
 	if (lo_send(_osc_addr, "/loop_del", "i", index) == -1) {
 		return false;
 	}
+
 	return true;
 }
 

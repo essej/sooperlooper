@@ -206,6 +206,10 @@ class LoopControl
 	
 	std::map<SooperLooper::LooperState, wxString> state_map;
 
+        typedef std::map<int, bool> RegisteredLoopMap;
+        RegisteredLoopMap  _registeredin_loop_map;
+        RegisteredLoopMap  _registeredauto_loop_map;
+
 	typedef std::map<wxString, bool> UpdatedCtrlMap;
 	typedef std::vector<ControlValMap> UpdatedCtrlMapList;
 	UpdatedCtrlMapList _updated;

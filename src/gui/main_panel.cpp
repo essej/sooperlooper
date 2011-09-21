@@ -155,6 +155,14 @@ MainPanel::~MainPanel()
 		// unregister
 		_loop_control->register_auto_updates((int) i, true);
 		_loop_control->register_input_controls((int) i, true);
+
+                // sleep for a little bit so the UDP isn't lost during this barrage
+#if wxCHECK_VERSION(2,5,3)
+                ::wxMilliSleep(50);
+#else
+                ::wxUsleep(50);
+#endif
+
 	}
 
 	delete _loop_control;
@@ -465,6 +473,12 @@ MainPanel::init_loopers (int count)
 		_loop_control->register_auto_updates((int) i);
 		_loop_control->register_input_controls((int) i);
 		_loop_control->request_all_values ((int)i);
+                // sleep for a short bit to prevent UDP droppage
+#if wxCHECK_VERSION(2,5,3)
+                ::wxMilliSleep(50);
+#else
+                ::wxUsleep(50);
+#endif
 	}
 
 	init_syncto_choice ();
