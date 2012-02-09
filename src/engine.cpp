@@ -1636,7 +1636,7 @@ Engine::mainloop()
 			
 			// wake up every 100 ms for servicing auto-update parameters
 			// TODO: make it more flexible
-			const long up_interval = 100000; // 100 ms
+			const long up_interval = 1000; // 1 ms
 
 			timeout.tv_sec = now.tv_sec;
 			timeout.tv_nsec = (now.tv_usec + up_interval) * 1000;
