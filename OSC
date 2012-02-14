@@ -169,6 +169,7 @@ GLOBAL PARAMETERS
   select_prev_loop  :: any changes
   select_all_loops   :: any changes
   selected_loop_num   :: -1 = all, 0->N selects loop instances (first loop is 0, etc) 
+	output_midi_clock :: 0.0 = no, 1.0 = yes
 
 
 LOOP ADD/REMOVE
