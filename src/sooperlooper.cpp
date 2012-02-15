@@ -119,7 +119,7 @@ static void usage(char *argv0)
 	fprintf(stderr, "  -L <pathname> , --load-session=<pathname> load initial session from pathname\n");
 	fprintf(stderr, "  -D <yes/no>, --discrete-io=[yes]  initial loops should have discrete input and output ports (default yes)\n");
 	fprintf(stderr, "  -p <num> , --osc-port=<num>  udp port number for OSC server (default is %d)\n", DEFAULT_OSC_PORT);
-	fprintf(stderr, "  -j <str> , --jack-name=<str> jack client name, default is sooperlooper_1\n");
+	fprintf(stderr, "  -j <str> , --jack-name=<str> jack client name, default is sooperlooper\n");
 	fprintf(stderr, "  -S <str> , --jack-server-name=<str> specify jack server name\n");
 	fprintf(stderr, "  -m <str> , --load-midi-binding=<str> loads midi binding from file or preset\n");
 	fprintf(stderr, "  -q , --quiet                 do not output status to stderr\n");
