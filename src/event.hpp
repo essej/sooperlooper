@@ -73,9 +73,9 @@ namespace SooperLooper {
     class Event {
         public:
 	    
-            Event() : Type(type_cmd_down),Command(UNKNOWN),Control(Unknown),Instance(0), Value(0) {}
+			Event() : Type(type_cmd_down),Command(UNKNOWN),Control(Unknown),Instance(0), Value(0) {}
 
-            enum type_t {
+			enum type_t {
 		    type_cmd_down,
 		    type_cmd_up,
 		    type_cmd_upforce,
@@ -84,7 +84,7 @@ namespace SooperLooper {
 		    type_control_request,
 		    type_global_control_change,
 		    type_sync
-            } Type;
+			} Type;
 
 	    enum command_t
 	    {
@@ -122,15 +122,15 @@ namespace SooperLooper {
 		    RECORD_SOLO_PREV,
 		    SET_SYNC_POS,
 		    RESET_SYNC_POS,
-			MUTE_TRIGGER,
+				MUTE_TRIGGER,
 		    RECORD_OR_OVERDUB,
-			RECORD_EXCLUSIVE,
-			RECORD_EXCLUSIVE_NEXT,
-			RECORD_EXCLUSIVE_PREV,
-			RECORD_OR_OVERDUB_EXCL,
-			RECORD_OR_OVERDUB_EXCL_NEXT,
-			RECORD_OR_OVERDUB_EXCL_PREV,
-			UNDO_TWICE,
+				RECORD_EXCLUSIVE,
+				RECORD_EXCLUSIVE_NEXT,
+				RECORD_EXCLUSIVE_PREV,
+				RECORD_OR_OVERDUB_EXCL,
+				RECORD_OR_OVERDUB_EXCL_NEXT,
+				RECORD_OR_OVERDUB_EXCL_PREV,
+				UNDO_TWICE,
 		    RECORD_OR_OVERDUB_SOLO,
 		    RECORD_OR_OVERDUB_SOLO_TRIG,
 		    RECORD_OVERDUB_END_SOLO,
@@ -226,10 +226,10 @@ namespace SooperLooper {
 	    
 	    float Value;
 
-            inline int FragmentPos() {
-                if (iFragmentPos >= 0) return (int) iFragmentPos;
-                return (int) (iFragmentPos = pEventGenerator->toFragmentPos(TimeStamp));
-            }
+			inline int FragmentPos() {
+				if (iFragmentPos >= 0) return (int) iFragmentPos;
+				return (int) (iFragmentPos = pEventGenerator->toFragmentPos(TimeStamp));
+			}
 
 	    typedef EventGenerator::time_stamp_t timestamp_t;
 	    EventGenerator::time_stamp_t getTimestamp() const { return TimeStamp; }
@@ -237,14 +237,14 @@ namespace SooperLooper {
 	    int source;
 
     protected:
-            typedef EventGenerator::time_stamp_t time_stamp_t;
-            Event(EventGenerator* pGenerator, EventGenerator::time_stamp_t Time);
-	    Event(EventGenerator* pGenerator, int fragmentpos);
-            friend class EventGenerator;
-        private:
-            EventGenerator* pEventGenerator; ///< Creator of the event.
-            time_stamp_t    TimeStamp;       ///< Time stamp of the event's occurence.
-            int             iFragmentPos;    ///< Position in the current fragment this event refers to.
+			typedef EventGenerator::time_stamp_t time_stamp_t;
+			Event(EventGenerator* pGenerator, EventGenerator::time_stamp_t Time);
+			EventGenerator* pGenerator, int fragmentpos);
+			friend class EventGenerator;
+			ate:
+			EventGenerator* pEventGenerator; ///< Creator of the event.
+			time_stamp_t    TimeStamp;       ///< Time stamp of the event's occurence.
+			int             iFragmentPos;    ///< Position in the current fragment this event refers to.
 	    
     };
 
