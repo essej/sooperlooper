@@ -50,6 +50,11 @@ using namespace SigC;
 
 #define TEMPO_DIFF(t1, t2) (fabs(t1-t2) > 0.000001)
 
+#define AUTO_UPDATE_MIN 5
+#define AUTO_UPDATE_STEP 5
+#define AUTO_UPDATE_MAX 100
+#define AUTO_UPDATE_RANGE (((AUTO_UPDATE_MAX - AUTO_UPDATE_MIN)/AUTO_UPDATE_STEP) + 1)
+
 //#define DEBUG 1
 
 Engine::Engine ()
@@ -1482,14 +1487,21 @@ Engine::mainloop()
 	struct timespec timeout;
 	struct timeval now = {0, 0};
 	struct timeval timeoutv = {0, 0};
+	struct timeval auto_update_timer_v[AUTO_UPDATE_RANGE];
+	struct timeval timer_last[AUTO_UPDATE_RANGE];
 	int  wait_ret = 0;
 	
 	EventNonRT * event;
 	Event  * evt;
 	LoopManageEvent * lmevt;
+
+	//initialize auto timeout arrays
+	for (int i = 0; i < AUTO_UPDATE_RANGE; i++) {
+		timer_last[i] = {0,0};
+		auto_update_timer_v[i] = {0,((AUTO_UPDATE_STEP*(i+1)))*1000};
+	}
 	
 	// non-rt event processing loop
-
 	while (is_ok())
 	{
 		// pull off all loop management events from the rt thread
@@ -1622,9 +1634,26 @@ Engine::mainloop()
 
 		// if now is >= then the last timeout target, we should update
 		if (wait_ret == ETIMEDOUT || timercmp (&now, &timeoutv, >=)) {
-			//cerr << "timed out, sending updates" << endl;
-			_osc->send_auto_updates();
+			std::list<short int> timeout_list;
 
+			//work out for which auto timeouts it is time to update
+			for (short int i = 0; i < AUTO_UPDATE_RANGE; i++) {
+				struct timeval timer_diff = {0,0};
+				timersub(&now, &timer_last[i], &timer_diff);
+				if (timercmp(&timer_diff, &auto_update_timer_v[i], >=)) {
+					timeout_list.push_back((AUTO_UPDATE_STEP*(i+1)));
+					timer_last[i] = now;
+					//if (i == 90)
+					//	cerr << timer_diff.tv_usec << endl;
+				}
+			}
+			//std::list<short int>::iterator list_it;
+			//cerr << "----" << endl;
+			//for(list_it = timeout_list.begin(); list_it != timeout_list.end();++list_it)	
+			//	cerr << (*list_it) << endl;
+
+			_osc->send_auto_updates(timeout_list);
+			
 			// emit a parameter changed for state and others
 			for (unsigned int n=0; n < _instances.size(); ++n) {
 				ParamChanged(Event::State, n); // emit
@@ -1634,9 +1663,9 @@ Engine::mainloop()
 				ParamChanged(Event::FreeTime, n);
 			}
 			
-			// wake up every 100 ms for servicing auto-update parameters
-			// TODO: make it more flexible
-			const long up_interval = 1000; // 1 ms
+			// wake up every 10 ms for servicing auto-update parameters
+			// TODO: make it more even more flexible?
+			const long up_interval = AUTO_UPDATE_STEP * 1000; // 10ms
 
 			timeout.tv_sec = now.tv_sec;
 			timeout.tv_nsec = (now.tv_usec + up_interval) * 1000;
