@@ -1638,14 +1638,8 @@ Engine::mainloop()
 				if (timercmp(&timer_diff, &auto_update_timer_v[i], >=)) {
 					timeout_list.push_back((AUTO_UPDATE_STEP*(i+1)));
 					timer_last[i] = now;
-					//if (i == 90)
-					//	cerr << timer_diff.tv_usec << endl;
 				}
 			}
-			//std::list<short int>::iterator list_it;
-			//cerr << "----" << endl;
-			//for(list_it = timeout_list.begin(); list_it != timeout_list.end();++list_it)	
-			//	cerr << (*list_it) << endl;
 
 			_osc->send_auto_updates(timeout_list);
 			
