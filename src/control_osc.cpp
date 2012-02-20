@@ -1164,6 +1164,8 @@ int ControlOSC::register_auto_update_handler(const char *path, const char *types
 	string returl (&argv[2]->s);
 	string retpath (&argv[3]->s);
 
+	validate_returl(returl);
+
 	// state is checked every AUTO_UPDATE_STEP, ignore setting
 	// round all others down to the nearest step size
 	if (ctrl == "state")
@@ -1575,16 +1577,26 @@ ControlOSC::send_registered_auto_updates(ControlRegistrationMapAuto::iterator & 
 {
 	UrlListAuto::iterator tmpurl;
 	UrlListAuto & ulist_auto = (*iter).second;
+	bool unregister = false;
 	
 	for (UrlListAuto::iterator url = ulist_auto.begin(); url != ulist_auto.end();)
 	{
 		lo_address addr = (*url).upair.first;
 		for (std::list<short int>::const_iterator timeout = timeout_list.begin(); timeout != timeout_list.end(); timeout++) {
 			if ((*url).timeout == (*timeout)) {
-				lo_send(addr, (*url).upair.second.c_str(), "isf", instance, ctrl.c_str(), val);
+				if (lo_send(addr, (*url).upair.second.c_str(), "isf", instance, ctrl.c_str(), val) == -1) {
+					unregister = true;
+				}
+				break;
 			}
 		}
-		++url;
+		if (unregister) {
+			tmpurl = url;
+			++url;
+			ulist_auto.erase(tmpurl);
+		} else {
+			++url;
+		}
 	}
 	
 	if (ulist_auto.empty()) {
@@ -1691,3 +1703,8 @@ void ControlOSC::send_all_midi_bindings (MidiBindings * bindings, string returl,
 			
 }
 
+void ControlOSC::validate_returl(std::string & returl) 
+{
+	if (returl.substr(0,10) != "osc.udp://") 
+		returl = "osc.udp://" + returl;
+}
