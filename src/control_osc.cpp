@@ -1515,17 +1515,15 @@ void ControlOSC::send_auto_updates (const std::list<short int> timeout_list)
 
 	//	// cerr << "ctrl " << ipair.second << " is new: " << val << endl;
 	//	//_engine->ParamChanged(_cmd_map->to_control_t(ipair.second), ipair.first);
-		send_registered_auto_updates (iter, ipair.second, val, ipair.first, timeout_list);
+		if ( ! send_registered_auto_updates (iter, ipair.second, val, ipair.first, timeout_list)) {
+			// remove ipair if false is returned.. no more good registrations
+			tmpiter = iter;
+			++iter;
+			_auto_registration_map.erase(tmpiter);
+		}
+		else {
 		++iter;
-		//if ( ! send_registered_auto_updates (iter, ipair.second, val, ipair.first, timeout)) {
-		//	// remove ipair if false is returned.. no more good registrations
-		//	tmpiter = iter;
-		//	++iter;
-		//	_auto_registration_map.erase(tmpiter);
-		//}
-		//else {
-		//++iter;
-		//}
+		}
 
 	}
 }

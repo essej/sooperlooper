@@ -206,10 +206,11 @@ REGISTER FOR CONTROL CHANGES
  /sl/#/unregister_auto_update  s:ctrl s:returl s:retpath
 
     registers/unregisters for automatic repeated updates at the given
-    interval (currently ignored, and always at 100ms intervals).
+    interval.
+		The interval can be 10-100ms. Values will be rounded down to the nearest 10ms.   
     This is handy for receiving updates for output controls such as state
     and position.  The message is only sent if the control has changed since the
-    last send.
+    last send. State is currently checked every 10ms independant of what the interval is set to. 
 
  
  /register_update  s:ctrl s:returl s:retpath

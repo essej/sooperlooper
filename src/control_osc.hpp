@@ -246,6 +246,7 @@ class ControlOSC
 	typedef std::pair<std::string, std::string> AddrPathPair;
 	typedef std::list<AddrPathPair> AddressList;
 	AddressList _config_registrations;
+  void ControlOSC::validate_returl() 
 };
 
 };  // sooperlooper namespace
