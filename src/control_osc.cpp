@@ -715,6 +715,9 @@ int ControlOSC::ping_handler(const char *path, const char *types, lo_arg **argv,
 {
 	string returl (&argv[0]->s);
 	string retpath (&argv[1]->s);
+
+	validate_returl(returl);
+
 	bool useid = false;
 	if (argc > 2) {
 		useid = true;
@@ -738,6 +741,8 @@ int ControlOSC::global_get_handler(const char *path, const char *types, lo_arg *
 	string param (&argv[0]->s);
 	string returl (&argv[1]->s);
 	string retpath (&argv[2]->s);
+
+	validate_returl(returl);
 
 	_engine->push_nonrt_event ( new GlobalGetEvent (param, returl, retpath));
 	return 0;
@@ -769,6 +774,8 @@ ControlOSC::global_register_update_handler(const char *path, const char *types, 
 	string returl (&argv[1]->s);
 	string retpath (&argv[2]->s);
 
+	validate_returl(returl);
+
 	// push this onto a queue for the main event loop to process
 	// -2 means global
 	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Register, -2, _cmd_map->to_control_t(ctrl), returl, retpath));
@@ -784,6 +791,8 @@ ControlOSC::global_unregister_update_handler(const char *path, const char *types
 	string returl (&argv[1]->s);
 	string retpath (&argv[2]->s);
 
+	validate_returl(returl);
+
 	// push this onto a queue for the main event loop to process
 	// -2 means global
 	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Unregister, -2, _cmd_map->to_control_t(ctrl), returl, retpath));
@@ -796,13 +805,28 @@ ControlOSC::global_register_auto_update_handler(const char *path, const char *ty
 {
 	// first arg is control string, 2nd is every int millisecs, 3rd is return URL string 4th is retpath
 	string ctrl (&argv[0]->s);
-	//int    millisec  = argv[1]->i;  // unused for now
+	short int millisec  = argv[1]->i;
 	string returl (&argv[2]->s);
 	string retpath (&argv[3]->s);
 
+	validate_returl(returl);
+
+	// state is checked every AUTO_UPDATE_STEP, ignore setting
+	// round all others down to the nearest step size
+	if (ctrl == "state")
+		millisec = AUTO_UPDATE_MIN;
+	else
+		millisec -= millisec % AUTO_UPDATE_STEP;
+
+	if (millisec < AUTO_UPDATE_MIN)
+		millisec = AUTO_UPDATE_MIN;
+	else if (millisec > AUTO_UPDATE_MAX)
+		millisec = AUTO_UPDATE_MAX;
+
+
 	// push this onto a queue for the main event loop to process
 	// -2 means global
-	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::RegisterAuto, -2, _cmd_map->to_control_t(ctrl), returl, retpath));
+	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::RegisterAuto, -2, _cmd_map->to_control_t(ctrl), returl, retpath,0.0,-1, millisec));
 
 	return 0;
 }
@@ -814,6 +838,8 @@ ControlOSC::global_unregister_auto_update_handler(const char *path, const char *
 	string ctrl (&argv[0]->s);
 	string returl (&argv[1]->s);
 	string retpath (&argv[2]->s);
+
+	validate_returl(returl);
 
 	// push this onto a queue for the main event loop to process
 	// -2 means global
@@ -835,6 +861,8 @@ ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **a
 		string returl (&argv[0]->s);
 		string retpath (&argv[1]->s);
 	
+		validate_returl(returl);
+
 		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::GetAll, "", "", returl, retpath));
 	}
 	else if (info->command == MidiBindCommand::RemoveBinding)
@@ -860,6 +888,9 @@ ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **a
 		string options (&argv[1]->s);
 		string returl (&argv[2]->s);
 		string retpath (&argv[3]->s);
+
+		validate_returl(returl);
+
 		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::Learn, bindstr, options, returl, retpath));
 	}
 	else if (info->command == MidiBindCommand::GetNextMidi)
@@ -867,6 +898,9 @@ ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **a
 		// add a specific midi binding:  s:returl s:retpath
 		string returl (&argv[0]->s);
 		string retpath (&argv[1]->s);
+
+		validate_returl(returl);
+
 		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::GetNextMidi, "", "", returl, retpath));
 	}
 	else if (info->command == MidiBindCommand::CancelLearn)
@@ -874,6 +908,9 @@ ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **a
 		// add a specific midi binding:  s:returl s:retpath
 		string returl (&argv[0]->s);
 		string retpath (&argv[1]->s);
+
+		validate_returl(returl);
+
 		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::CancelLearn, "", "", returl, retpath));
 	}
 	else if (info->command == MidiBindCommand::CancelGetNext)
@@ -881,6 +918,9 @@ ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **a
 		// add a specific midi binding:  s:returl s:retpath
 		string returl (&argv[0]->s);
 		string retpath (&argv[1]->s);
+
+		validate_returl(returl);
+
 		_engine->push_nonrt_event ( new MidiBindingEvent (MidiBindingEvent::CancelGetNext, "", "", returl, retpath));
 	}
 	else if (info->command == MidiBindCommand::LoadBindings)
@@ -1003,6 +1043,8 @@ int ControlOSC::load_session_handler(const char *path, const char *types, lo_arg
 	string returl (&argv[1]->s);
 	string retpath (&argv[2]->s);
 
+	validate_returl(returl);
+
 	// push this onto a queue for the main event loop to process
 	_engine->push_nonrt_event ( new SessionEvent (SessionEvent::Load, fname, returl, retpath));
 	
@@ -1017,6 +1059,8 @@ int ControlOSC::save_session_handler(const char *path, const char *types, lo_arg
 	string returl (&argv[1]->s);
 	string retpath (&argv[2]->s);
 	bool audio = false;
+
+	validate_returl(returl);
 
 	if (argc > 3) {
 		audio = (bool) argv[3]->i;
@@ -1037,6 +1081,8 @@ int ControlOSC::loadloop_handler(const char *path, const char *types, lo_arg **a
 	string returl (&argv[1]->s);
 	string retpath (&argv[2]->s);
 
+	validate_returl(returl);
+
 	// push this onto a queue for the main event loop to process
 	_engine->push_nonrt_event ( new LoopFileEvent (LoopFileEvent::Load, info->instance, fname, returl, retpath));
 	
@@ -1051,6 +1097,8 @@ int ControlOSC::saveloop_handler(const char *path, const char *types, lo_arg **a
 	string endian (&argv[2]->s);
 	string returl (&argv[3]->s);
 	string retpath (&argv[4]->s);
+
+	validate_returl(returl);
 
 	LoopFileEvent::FileFormat fmt = LoopFileEvent::FormatFloat;
 	LoopFileEvent::Endian end = LoopFileEvent::LittleEndian;
@@ -1109,6 +1157,8 @@ int ControlOSC::get_handler(const char *path, const char *types, lo_arg **argv, 
 	string returl (&argv[1]->s);
 	string retpath (&argv[2]->s);
 
+	validate_returl(returl);
+
 	// push this onto a queue for the main event loop to process
 	_engine->push_nonrt_event ( new GetParamEvent (info->instance, _cmd_map->to_control_t(ctrl), returl, retpath));
 	
@@ -1121,6 +1171,8 @@ int ControlOSC::register_update_handler(const char *path, const char *types, lo_
 	string ctrl (&argv[0]->s);
 	string returl (&argv[1]->s);
 	string retpath (&argv[2]->s);
+
+	validate_returl(returl);
 
 	// push this onto a queue for the main event loop to process
 	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Register, info->instance, _cmd_map->to_control_t(ctrl), returl, retpath));
@@ -1137,6 +1189,8 @@ int ControlOSC::unregister_update_handler(const char *path, const char *types, l
 	string returl (&argv[1]->s);
 	string retpath (&argv[2]->s);
 
+	validate_returl(returl);
+
 	// push this onto a queue for the main event loop to process
 	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::Unregister, info->instance, _cmd_map->to_control_t(ctrl), returl, retpath));
 	
@@ -1147,13 +1201,27 @@ int ControlOSC::register_auto_update_handler(const char *path, const char *types
 {
 	// first arg is control string, 2nd is every int millisecs, 3rd is return URL string 4th is retpath
 	string ctrl (&argv[0]->s);
-	//int    millisec  = argv[1]->i;  // unused for now
+	short int millisec  = argv[1]->i;
 	string returl (&argv[2]->s);
 	string retpath (&argv[3]->s);
 
+	validate_returl(returl);
+
+	// state is checked every AUTO_UPDATE_STEP, ignore setting
+	// round all others down to the nearest step size
+	if (ctrl == "state")
+		millisec = AUTO_UPDATE_MIN;
+	else
+		millisec -= millisec % AUTO_UPDATE_STEP;
+
+	if (millisec < AUTO_UPDATE_MIN)
+		millisec = AUTO_UPDATE_MIN;
+	else if (millisec > AUTO_UPDATE_MAX)
+		millisec = AUTO_UPDATE_MAX;
+
 	// push this onto a queue for the main event loop to process
-	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::RegisterAuto, info->instance, _cmd_map->to_control_t(ctrl), returl, retpath));
-        // cerr << "register autoupdate recvd for " << (int)info->instance << "  ctrl: " << ctrl << endl;
+	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::RegisterAuto, info->instance, _cmd_map->to_control_t(ctrl), returl, retpath,0.0,-1, millisec));
+	// cerr << "register autoupdate recvd for " << (int)info->instance << "  ctrl: " << ctrl << endl;
 	return 0;
 }
 
@@ -1164,6 +1232,8 @@ int ControlOSC::unregister_auto_update_handler(const char *path, const char *typ
 	string ctrl (&argv[0]->s);
 	string returl (&argv[1]->s);
 	string retpath (&argv[2]->s);
+
+	validate_returl(returl);
 
 	// push this onto a queue for the main event loop to process
 	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::UnregisterAuto, info->instance, _cmd_map->to_control_t(ctrl), returl, retpath));
@@ -1179,6 +1249,8 @@ ControlOSC::register_config_handler(const char *path, const char *types, lo_arg 
 	string returl (&argv[0]->s);
 	string retpath (&argv[1]->s);
 
+	validate_returl(returl);
+
 	_engine->push_nonrt_event ( new RegisterConfigEvent (RegisterConfigEvent::Register, returl, retpath));
 	
 	return 0;
@@ -1190,6 +1262,8 @@ ControlOSC::unregister_config_handler(const char *path, const char *types, lo_ar
 	// 1st is return URL string 2nd is retpath
 	string returl (&argv[0]->s);
 	string retpath (&argv[1]->s);
+
+	validate_returl(returl);
 
 	_engine->push_nonrt_event ( new RegisterConfigEvent (RegisterConfigEvent::Unregister, returl, retpath));
 	return 0;
@@ -1240,8 +1314,8 @@ ControlOSC::finish_global_get_event (GlobalGetEvent & event)
 	
 }
 
-
-void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
+void
+ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 {
 	// called from the main event loop (not osc thread)
 
@@ -1268,36 +1342,68 @@ void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 		if ((addr = find_or_cache_addr (returl)) == 0) {
 			return;
 		}
-				
+
 		// add this to register_ctrl map
 		InstancePair ipair(event.instance, ctrl);
-		ControlRegistrationMap::iterator iter;
-		ControlRegistrationMap * regmap;
 		
 		if (event.type == ConfigUpdateEvent::Register) {
+			ControlRegistrationMap::iterator iter;
+			ControlRegistrationMap * regmap;
 			regmap = &_registration_map;
+			iter = regmap->find (ipair);
+			if (iter == regmap->end()) {
+				(*regmap)[ipair] = UrlList();
+				iter = regmap->find (ipair);
+			}
+
+			UrlList & ulist = (*iter).second;
+			UrlPair upair(addr, retpath);
+
+			if (find(ulist.begin(), ulist.end(), upair) == ulist.end()) {
+#ifdef DEBUG
+				cerr << "registered " << (int)event.instance << "  ctrl: " << ctrl << "  " << returl << endl;
+#endif
+				ulist.push_back (upair);
+			}
 		}
 		else {
+			ControlRegistrationMapAuto::iterator iter;
+			InstancePair ipair(event.instance, ctrl);
+			ControlRegistrationMapAuto * regmap;
 			regmap = &_auto_registration_map;
-		}
-
-		iter = regmap->find (ipair);
-		if (iter == regmap->end()) {
-			(*regmap)[ipair] = UrlList();
 			iter = regmap->find (ipair);
+			if (iter == regmap->end()) {
+				(*regmap)[ipair] = UrlListAuto();
+				iter = regmap->find (ipair);
+			}
+
+			UrlListAuto & ulist_auto = (*iter).second;
+			UrlListAuto::iterator list_it;
+			UrlPair upair(addr, retpath);
+			UrlPairAuto upair_auto = {upair,event.update_time_ms};
+			UrlPairAuto upair_dud = {upair,0};
+
+			for(list_it = ulist_auto.begin(); list_it != ulist_auto.end(); ++list_it) {
+				if ((*list_it).upair == upair) {
+					if((*list_it).timeout == event.update_time_ms) {
+						break;
+					} else {
+#ifdef DEBUG
+						cerr << "updated " << (int)event.instance << "  ctrl: " << ctrl << "  " << returl << "  timeout: " << event.update_time_ms << endl;
+#endif
+						(*list_it).timeout = event.update_time_ms;
+						break;
+					}
+				} 
+			}
+			if (list_it == ulist_auto.end()) {
+#ifdef DEBUG
+				cerr << "registered " << (int)event.instance << "  ctrl: " << ctrl << "  " << returl << "  timeout: " << event.update_time_ms << endl;
+#endif
+				ulist_auto.push_back(upair_auto);
+			}
 		}
 
-		
-		UrlList & ulist = (*iter).second;
-		UrlPair upair(addr, retpath);
-		
-		if (find(ulist.begin(), ulist.end(), upair) == ulist.end()) {
-#ifdef DEBUG
-			cerr << "registered " << (int)event.instance << "  ctrl: " << ctrl << "  " << returl << endl;
-#endif
-			ulist.push_back (upair);
-		}
-		
 		
 	}
 	else if (event.type == ConfigUpdateEvent::Unregister ||
@@ -1308,37 +1414,55 @@ void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 			return;
 		}
 		
-		// add this to register_ctrl map
+		// remove this from register_ctrl map
 		InstancePair ipair(event.instance, ctrl);
-		ControlRegistrationMap * regmap;
-		ControlRegistrationMap::iterator iter;
 
 		if (event.type == ConfigUpdateEvent::Unregister) {
+			ControlRegistrationMap * regmap;
+			ControlRegistrationMap::iterator iter;
 			regmap = &_registration_map;
-		}
-		else {
-			regmap = &_auto_registration_map;
-		}
+			iter = regmap->find (ipair);
 
-		iter = regmap->find (ipair);
-		
-		if (iter != regmap->end()) {
-			UrlList & ulist = (*iter).second;
-			UrlPair upair(addr, retpath);
-			UrlList::iterator uiter = find(ulist.begin(), ulist.end(), upair);
-			
-			if (uiter != ulist.end()) {
+			if (iter != regmap->end()) {
+				UrlList & ulist = (*iter).second;
+				UrlPair upair(addr, retpath);
+				UrlList::iterator uiter = find(ulist.begin(), ulist.end(), upair);
+
+				if (uiter != ulist.end()) {
 #ifdef DEBUG
-				cerr << "unregistered " << ctrl << "  " << returl << endl;
+					cerr << "unregistered " << ctrl << "  " << returl << endl;
 #endif
-				ulist.erase (uiter);
+					ulist.erase (uiter);
+				}
 			}
 		}
-		
+		else { //UnRegisterAuto 
+			ControlRegistrationMapAuto * regmap;
+			ControlRegistrationMapAuto::iterator iter;
+			regmap = &_auto_registration_map;
+			iter = regmap->find (ipair);
 
+			if (iter != regmap->end()) {
+				UrlListAuto & ulist_auto = (*iter).second;
+				UrlPair upair(addr, retpath);
+				UrlPairAuto upair_auto = {upair, 0};
+				UrlListAuto::iterator list_it;
+				for(list_it = ulist_auto.begin(); list_it != ulist_auto.end(); ++list_it) {
+					if ((*list_it).upair == upair) 
+					break;
+				}
+				if (list_it != ulist_auto.end()) {
+#ifdef DEBUG
+					cerr << "unregistered " << ctrl << "  " << returl << endl;
+#endif
+					ulist_auto.erase (list_it);
+				}
+			}
+		}
 	}
 }
 
+			
 void ControlOSC::finish_loop_config_event (ConfigLoopEvent &event)
 {
 	if (event.type == ConfigLoopEvent::Remove) {
@@ -1411,17 +1535,18 @@ ControlOSC::send_registered_updates(string ctrl, float val, int instance, int so
 }
 
 
-void ControlOSC::send_auto_updates ()
+void ControlOSC::send_auto_updates (const std::list<short int> timeout_list)
 {
-	ControlRegistrationMap::iterator iter = _auto_registration_map.begin();
-	ControlRegistrationMap::iterator tmpiter;
+	ControlRegistrationMapAuto::iterator iter = _auto_registration_map.begin();
+	ControlRegistrationMapAuto::iterator tmpiter;
 	LastValueMap::iterator  lastval;
-	
+
+
 	while (iter != _auto_registration_map.end())
 	{
+
 		const InstancePair & ipair = (*iter).first;
 		float val = _engine->get_control_value (_cmd_map->to_control_t(ipair.second), ipair.first);
-		
 		// optimize out unnecessary updates
 		lastval = _last_value_map.find (ipair);
 		if (lastval != _last_value_map.end()) {
@@ -1436,14 +1561,14 @@ void ControlOSC::send_auto_updates ()
 		// cerr << "ctrl " << ipair.second << " is new: " << val << endl;
 		//_engine->ParamChanged(_cmd_map->to_control_t(ipair.second), ipair.first);
 
-		if ( ! send_registered_updates (iter, ipair.second, val, ipair.first, -1)) {
+		if ( ! send_registered_auto_updates (iter, ipair.second, val, ipair.first, timeout_list)) {
 			// remove ipair if false is returned.. no more good registrations
 			tmpiter = iter;
 			++iter;
 			_auto_registration_map.erase(tmpiter);
 		}
 		else {
-			++iter;
+		++iter;
 		}
 
 	}
@@ -1485,6 +1610,40 @@ ControlOSC::send_registered_updates(ControlRegistrationMap::iterator & iter,
 	}
 	
 	if (ulist.empty()) {
+		return false;
+	}
+
+	return true;
+}
+bool
+ControlOSC::send_registered_auto_updates(ControlRegistrationMapAuto::iterator & iter,
+				    string ctrl, float val, int instance, const std::list<short int> timeout_list)
+{
+	UrlListAuto::iterator tmpurl;
+	UrlListAuto & ulist_auto = (*iter).second;
+	bool unregister = false;
+	
+	for (UrlListAuto::iterator url = ulist_auto.begin(); url != ulist_auto.end();)
+	{
+		lo_address addr = (*url).upair.first;
+		for (std::list<short int>::const_iterator timeout = timeout_list.begin(); timeout != timeout_list.end(); timeout++) {
+			if ((*url).timeout == (*timeout)) {
+				if (lo_send(addr, (*url).upair.second.c_str(), "isf", instance, ctrl.c_str(), val) == -1) {
+					unregister = true;
+				}
+				break;
+			}
+		}
+		if (unregister) {
+			tmpurl = url;
+			++url;
+			ulist_auto.erase(tmpurl);
+		} else {
+			++url;
+		}
+	}
+	
+	if (ulist_auto.empty()) {
 		return false;
 	}
 
@@ -1588,3 +1747,8 @@ void ControlOSC::send_all_midi_bindings (MidiBindings * bindings, string returl,
 			
 }
 
+void ControlOSC::validate_returl(std::string & returl) 
+{
+	if (returl.substr(0,10) != "osc.udp://") 
+		returl = "osc.udp://" + returl;
+}
