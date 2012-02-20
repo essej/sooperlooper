@@ -800,6 +800,18 @@ ControlOSC::global_register_auto_update_handler(const char *path, const char *ty
 	string returl (&argv[2]->s);
 	string retpath (&argv[3]->s);
 
+	// state is checked every AUTO_UPDATE_STEP, ignore setting
+	// round all others down to the nearest step size
+	if (ctrl == "state")
+		millisec = AUTO_UPDATE_MIN;
+	else
+		millisec -= millisec % AUTO_UPDATE_STEP;
+
+	if (millisec < AUTO_UPDATE_MIN)
+		millisec = AUTO_UPDATE_MIN;
+	else if (millisec > AUTO_UPDATE_MAX)
+		millisec = AUTO_UPDATE_MAX;
+
 
 	// push this onto a queue for the main event loop to process
 	// -2 means global
@@ -1148,16 +1160,25 @@ int ControlOSC::register_auto_update_handler(const char *path, const char *types
 {
 	// first arg is control string, 2nd is every int millisecs, 3rd is return URL string 4th is retpath
 	string ctrl (&argv[0]->s);
-	int    millisec  = argv[1]->i;
+	short int millisec  = argv[1]->i;
 	string returl (&argv[2]->s);
 	string retpath (&argv[3]->s);
 
-	if (millisec % AUTO_UPDATE_STEP)
-		cerr << "invalid step" << endl;
+	// state is checked every AUTO_UPDATE_STEP, ignore setting
+	// round all others down to the nearest step size
+	if (ctrl == "state")
+		millisec = AUTO_UPDATE_MIN;
+	else
+		millisec -= millisec % AUTO_UPDATE_STEP;
+
+	if (millisec < AUTO_UPDATE_MIN)
+		millisec = AUTO_UPDATE_MIN;
+	else if (millisec > AUTO_UPDATE_MAX)
+		millisec = AUTO_UPDATE_MAX;
 
 	// push this onto a queue for the main event loop to process
 	_engine->push_nonrt_event ( new ConfigUpdateEvent (ConfigUpdateEvent::RegisterAuto, info->instance, _cmd_map->to_control_t(ctrl), returl, retpath,0.0,-1,millisec));
-        // cerr << "register autoupdate recvd for " << (int)info->instance << "  ctrl: " << ctrl << endl;
+	// cerr << "register autoupdate recvd for " << (int)info->instance << "  ctrl: " << ctrl << endl;
 	return 0;
 }
 
@@ -1244,8 +1265,8 @@ ControlOSC::finish_global_get_event (GlobalGetEvent & event)
 	
 }
 
-
-void ControlOSC::finish_update_event (ConfigUpdateEvent & event)
+void
+ControlOSC::finish_update_event (ConfigUpdateEvent & event)
 {
 	// called from the main event loop (not osc thread)
 
@@ -1469,7 +1490,7 @@ ControlOSC::send_registered_updates(string ctrl, float val, int instance, int so
 }
 
 
-void ControlOSC::send_auto_updates (std::list<short int> timeout_list)
+void ControlOSC::send_auto_updates (const std::list<short int> timeout_list)
 {
 	ControlRegistrationMapAuto::iterator iter = _auto_registration_map.begin();
 	ControlRegistrationMapAuto::iterator tmpiter;
@@ -1552,7 +1573,7 @@ ControlOSC::send_registered_updates(ControlRegistrationMap::iterator & iter,
 }
 bool
 ControlOSC::send_registered_auto_updates(ControlRegistrationMapAuto::iterator & iter,
-				    string ctrl, float val, int instance, std::list<short int> timeout_list)
+				    string ctrl, float val, int instance, const std::list<short int> timeout_list)
 {
 	UrlListAuto::iterator tmpurl;
 	UrlListAuto & ulist_auto = (*iter).second;
@@ -1560,8 +1581,7 @@ ControlOSC::send_registered_auto_updates(ControlRegistrationMapAuto::iterator & 
 	for (UrlListAuto::iterator url = ulist_auto.begin(); url != ulist_auto.end();)
 	{
 		lo_address addr = (*url).upair.first;
-		const char * port = lo_address_get_port(addr);
-		for (std::list<short int>::iterator timeout = timeout_list.begin(); timeout != timeout_list.end(); timeout++) {
+		for (std::list<short int>::const_iterator timeout = timeout_list.begin(); timeout != timeout_list.end(); timeout++) {
 			if ((*url).timeout == (*timeout)) {
 				lo_send(addr, (*url).upair.second.c_str(), "isf", instance, ctrl.c_str(), val);
 			}

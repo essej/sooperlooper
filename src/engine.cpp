@@ -50,11 +50,6 @@ using namespace SigC;
 
 #define TEMPO_DIFF(t1, t2) (fabs(t1-t2) > 0.000001)
 
-#define AUTO_UPDATE_MIN 5
-#define AUTO_UPDATE_STEP 5
-#define AUTO_UPDATE_MAX 100
-#define AUTO_UPDATE_RANGE (((AUTO_UPDATE_MAX - AUTO_UPDATE_MIN)/AUTO_UPDATE_STEP) + 1)
-
 //#define DEBUG 1
 
 Engine::Engine ()

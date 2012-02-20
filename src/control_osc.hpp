@@ -32,8 +32,10 @@
 #include "event.hpp"
 #include "event_nonrt.hpp"
 
+//define timing for auto updates in ms
+//having STEP more often than 10ms and a different from the MIN may cause timing problems
 #define AUTO_UPDATE_MIN 10
-#define AUTO_UPDATE_STEP 10
+#define AUTO_UPDATE_STEP AUTO_UPDATE_MIN
 #define AUTO_UPDATE_MAX 100
 #define AUTO_UPDATE_RANGE (((AUTO_UPDATE_MAX - AUTO_UPDATE_MIN)/AUTO_UPDATE_STEP) + 1)
 
@@ -63,7 +65,7 @@ class ControlOSC
 	
 	void send_all_midi_bindings (MidiBindings * bind, std::string returl, std::string retpath);
 
-	void send_auto_updates (std::list<short int> timeout_list);
+	void send_auto_updates (const std::list<short int> timeout_list);
 	void send_error (std::string returl, std::string retpath, std::string mesg);
 	
 	void finish_get_event (GetParamEvent & event);
@@ -237,7 +239,7 @@ class ControlOSC
 	bool send_registered_updates(ControlRegistrationMap::iterator & iter,
 				     std::string ctrl, float val, int instance, int source=-1);
 	bool send_registered_auto_updates(ControlRegistrationMapAuto::iterator & iter,
-				     std::string ctrl, float val, int instance, std::list<short int> timeout_list);
+				     std::string ctrl, float val, int instance, const std::list<short int> timeout_list);
 	
 
 	
