@@ -1219,12 +1219,16 @@ LooperPanel::update_state()
 				_flashing_button = _once_button;
 				break;
 			case LooperStateMuted:
+				_flashing_button = _mute_button;
+				break;
 			case LooperStatePlaying:
 				if (soloed) {
 					_flashing_button = _solo_button;
 				}
-				else if (state == LooperStatePlaying || state == LooperStateMuted) {
+				else if (state == LooperStatePlaying)
 					_flashing_button = _reverse_button;
+				else if( state == LooperStateMuted) {
+					_flashing_button = _mute_button;
 				}
 				break;
 			default:
