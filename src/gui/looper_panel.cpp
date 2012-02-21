@@ -1219,13 +1219,16 @@ LooperPanel::update_state()
 				_flashing_button = _once_button;
 				break;
 			case LooperStateMuted:
-				_flashing_button = _mute_button;
+				if (state == LooperStatePlaying)
+					_flashing_button = _mute_button;
+				else if ( state == LooperStateMuted)
+					_flashing_button = _reverse_button;
 				break;
 			case LooperStatePlaying:
-				if (soloed) {
-					_flashing_button = _solo_button;
-				}
-				else if (state == LooperStatePlaying)
+				//if (soloed) {
+				//	_flashing_button = _solo_button;
+				//}
+				if (state == LooperStatePlaying)
 					_flashing_button = _reverse_button;
 				else if( state == LooperStateMuted) {
 					_flashing_button = _mute_button;
@@ -1238,11 +1241,11 @@ LooperPanel::update_state()
 		}
 		else if (state == LooperStatePlaying || state == LooperStateMuted) {
 			// special case, we are pending reverse
-			if (soloed) {
-				_flashing_button = _solo_button;
-			} else {
+			//if (soloed) {
+			//	_flashing_button = _solo_button;
+			//} else {
 				_flashing_button = _reverse_button;
-			}
+			//}
 			
 		}
 		
