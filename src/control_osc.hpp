@@ -230,7 +230,7 @@ class ControlOSC
 	ControlRegistrationMap _registration_map;
 	ControlRegistrationMapAuto _auto_registration_map;
 
-	LastValueMap     _last_value_map;
+	LastValueMap _last_value_map[AUTO_UPDATE_RANGE];
 
 	int compare_auto(UrlPairAuto a, UrlPairAuto b);
 
@@ -239,7 +239,7 @@ class ControlOSC
 	bool send_registered_updates(ControlRegistrationMap::iterator & iter,
 				     std::string ctrl, float val, int instance, int source=-1);
 	bool send_registered_auto_updates(ControlRegistrationMapAuto::iterator & iter,
-				     std::string ctrl, float val, int instance, const std::list<short int> timeout_list);
+				    const InstancePair & ipair, float val, const std::list<short int> timeout_list);
 	
 
 	

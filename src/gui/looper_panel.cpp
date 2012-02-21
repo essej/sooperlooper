@@ -1078,7 +1078,7 @@ LooperPanel::update_state()
 	_loop_control->get_value(_index, wxT("waiting"), val);
 	_loop_control->get_value(_index, wxT("is_soloed"), soloed);
 	_waiting = (val > 0.0f) ? true : false;
-	
+
 
 	if (!_waiting && _flashing_button) {
 		// clear flashing

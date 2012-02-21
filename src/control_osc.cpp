@@ -811,12 +811,8 @@ ControlOSC::global_register_auto_update_handler(const char *path, const char *ty
 
 	validate_returl(returl);
 
-	// state is checked every AUTO_UPDATE_STEP, ignore setting
-	// round all others down to the nearest step size
-	if (ctrl == "state")
-		millisec = AUTO_UPDATE_MIN;
-	else
-		millisec -= millisec % AUTO_UPDATE_STEP;
+	//round down to the nearest step size
+	millisec -= millisec % AUTO_UPDATE_STEP;
 
 	if (millisec < AUTO_UPDATE_MIN)
 		millisec = AUTO_UPDATE_MIN;
@@ -1207,12 +1203,8 @@ int ControlOSC::register_auto_update_handler(const char *path, const char *types
 
 	validate_returl(returl);
 
-	// state is checked every AUTO_UPDATE_STEP, ignore setting
-	// round all others down to the nearest step size
-	if (ctrl == "state")
-		millisec = AUTO_UPDATE_MIN;
-	else
-		millisec -= millisec % AUTO_UPDATE_STEP;
+	//round down to the nearest step size
+	millisec -= millisec % AUTO_UPDATE_STEP;
 
 	if (millisec < AUTO_UPDATE_MIN)
 		millisec = AUTO_UPDATE_MIN;
@@ -1540,28 +1532,18 @@ void ControlOSC::send_auto_updates (const std::list<short int> timeout_list)
 	ControlRegistrationMapAuto::iterator iter = _auto_registration_map.begin();
 	ControlRegistrationMapAuto::iterator tmpiter;
 	LastValueMap::iterator  lastval;
+	std::list<short int>::iterator tl_tmpiter;
 
 
 	while (iter != _auto_registration_map.end())
 	{
-
+		std::list<short int> timeout_after_opt = timeout_list;
 		const InstancePair & ipair = (*iter).first;
 		float val = _engine->get_control_value (_cmd_map->to_control_t(ipair.second), ipair.first);
-		// optimize out unnecessary updates
-		lastval = _last_value_map.find (ipair);
-		if (lastval != _last_value_map.end()) {
-			if (val == (*lastval).second) {
-				// same as last update, don't send
-				++iter;
-				continue;
-			}
-		}
-		_last_value_map[ipair] = val;
-
-		// cerr << "ctrl " << ipair.second << " is new: " << val << endl;
+		
 		//_engine->ParamChanged(_cmd_map->to_control_t(ipair.second), ipair.first);
 
-		if ( ! send_registered_auto_updates (iter, ipair.second, val, ipair.first, timeout_list)) {
+		if ( ! send_registered_auto_updates (iter, ipair, val, timeout_list)) {
 			// remove ipair if false is returned.. no more good registrations
 			tmpiter = iter;
 			++iter;
@@ -1574,6 +1556,50 @@ void ControlOSC::send_auto_updates (const std::list<short int> timeout_list)
 	}
 }
 
+bool
+ControlOSC::send_registered_auto_updates(ControlRegistrationMapAuto::iterator & iter,
+				    const InstancePair & ipair, float val, const std::list<short int> timeout_list)
+{
+	UrlListAuto::iterator tmpurl;
+	UrlListAuto & ulist_auto = (*iter).second;
+	string ctrl = ipair.second;
+	int instance = ipair.first;
+	
+	for (UrlListAuto::iterator url = ulist_auto.begin(); url != ulist_auto.end();)
+	{
+		bool unregister = false;
+		lo_address addr = (*url).upair.first;
+		for (std::list<short int>::const_iterator timeout = timeout_list.begin(); timeout != timeout_list.end(); timeout++) {
+			if ((*url).timeout == (*timeout)) {
+				LastValueMap last_value_map = _last_value_map[((*timeout)/AUTO_UPDATE_STEP) - 1];
+				//optimize out unecessary updates
+				LastValueMap::iterator lastval = last_value_map.find (ipair);
+				if (val != (*lastval).second) {
+
+					if (lo_send(addr, (*url).upair.second.c_str(), "isf", instance, ctrl.c_str(), val) == -1) 
+						unregister = true;
+					else
+						last_value_map[ipair] = val;
+				}
+
+				break;
+			}
+		}
+		if (unregister) {
+			tmpurl = url;
+			++url;
+			ulist_auto.erase(tmpurl);
+		} else {
+			++url;
+		}
+	}
+	
+	if (ulist_auto.empty()) {
+		return false;
+	}
+
+	return true;
+}
 
 bool
 ControlOSC::send_registered_updates(ControlRegistrationMap::iterator & iter,
@@ -1610,40 +1636,6 @@ ControlOSC::send_registered_updates(ControlRegistrationMap::iterator & iter,
 	}
 	
 	if (ulist.empty()) {
-		return false;
-	}
-
-	return true;
-}
-bool
-ControlOSC::send_registered_auto_updates(ControlRegistrationMapAuto::iterator & iter,
-				    string ctrl, float val, int instance, const std::list<short int> timeout_list)
-{
-	UrlListAuto::iterator tmpurl;
-	UrlListAuto & ulist_auto = (*iter).second;
-	bool unregister = false;
-	
-	for (UrlListAuto::iterator url = ulist_auto.begin(); url != ulist_auto.end();)
-	{
-		lo_address addr = (*url).upair.first;
-		for (std::list<short int>::const_iterator timeout = timeout_list.begin(); timeout != timeout_list.end(); timeout++) {
-			if ((*url).timeout == (*timeout)) {
-				if (lo_send(addr, (*url).upair.second.c_str(), "isf", instance, ctrl.c_str(), val) == -1) {
-					unregister = true;
-				}
-				break;
-			}
-		}
-		if (unregister) {
-			tmpurl = url;
-			++url;
-			ulist_auto.erase(tmpurl);
-		} else {
-			++url;
-		}
-	}
-	
-	if (ulist_auto.empty()) {
 		return false;
 	}
 
