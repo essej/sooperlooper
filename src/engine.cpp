@@ -1628,6 +1628,7 @@ Engine::mainloop()
 			// emit a parameter changed for state and others
 			for (unsigned int n=0; n < _instances.size(); ++n) {
 				ParamChanged(Event::State, n); // emit
+				ParamChanged(Event::Waiting, n);
 				ParamChanged(Event::LoopPosition, n);
 				ParamChanged(Event::LoopLength, n);
 				ParamChanged(Event::CycleLength, n);				

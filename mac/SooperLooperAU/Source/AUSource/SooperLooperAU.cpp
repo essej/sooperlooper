@@ -960,7 +960,7 @@ void SooperLooperAU::parameter_changed(int ctrl_id, int instance)
 		}
 	
 	}
-	else {
+	//else {
 	
 		if (instance == -1) {
 			// all loops
@@ -982,7 +982,7 @@ void SooperLooperAU::parameter_changed(int ctrl_id, int instance)
 			}
 		}
 		//cerr << "notifying for param change on: " << ctrl_id << "  inst: " << instance << endl;
-	}
+	//}
 
 }
 

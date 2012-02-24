@@ -3208,6 +3208,7 @@ runSooperLooper(LADSPA_Handle Instance,
 					  loop->lOrigSyncPos = loop->lSyncPos = 0;
 				  }
 				  // cause input-to-loop fade in
+					pLS->fLoopFadeAtten = 0.0f;
 				  pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
 				  pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 				  
@@ -3878,7 +3879,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	      
 
 		 // ASSUMPTION: our rate is +1 only		 
-		 if ((unsigned long)loop->dCurrPos  > (loop->lLoopLength)) {
+		 if ((unsigned long)loop->dCurrPos  >= (loop->lLoopLength)) {
 
 
 			 if (loop->mult_out == (int) loop->lCycles
