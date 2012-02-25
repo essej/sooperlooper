@@ -219,18 +219,20 @@ class ControlOSC
 	typedef std::list<UrlPair> UrlList;
 	typedef std::map<InstancePair, UrlList > ControlRegistrationMap;
 	typedef std::map<InstancePair, float> LastValueMap;
+	typedef std::map<UrlPair, LastValueMap> UrlMapToLastValueMap;
 
 	typedef struct {
 		UrlPair upair;
 		short int timeout;
 	} UrlPairAuto;
+
 	typedef std::list<UrlPairAuto> UrlListAuto;
 	typedef std::map<InstancePair, UrlListAuto > ControlRegistrationMapAuto;
 	
 	ControlRegistrationMap _registration_map;
 	ControlRegistrationMapAuto _auto_registration_map;
 
-	LastValueMap _last_value_map[AUTO_UPDATE_RANGE];
+	UrlMapToLastValueMap _last_value_map;
 
 	int compare_auto(UrlPairAuto a, UrlPairAuto b);
 

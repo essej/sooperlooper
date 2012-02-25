@@ -1568,7 +1568,7 @@ ControlOSC::send_registered_auto_updates(ControlRegistrationMapAuto::iterator & 
 		lo_address addr = (*url).upair.first;
 		for (std::list<short int>::const_iterator timeout = timeout_list.begin(); timeout != timeout_list.end(); timeout++) {
 			if ((*url).timeout == (*timeout)) {
-				LastValueMap *last_value_map = &_last_value_map[((*timeout)/AUTO_UPDATE_STEP) - 1];
+				LastValueMap *last_value_map = &_last_value_map[(*url).upair];
 				//optimize out unecessary updates
 				LastValueMap::iterator lastval = (*last_value_map).find (ipair);
 				if (val != (*lastval).second) {
