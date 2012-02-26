@@ -122,6 +122,7 @@ GET PARAMETER VALUES
 		11 = Scratching
 		12 = OneShot
 		13 = Substitute
+		14 = Paused
 
   next_state  :: same as state
 
