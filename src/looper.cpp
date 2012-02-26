@@ -1356,7 +1356,7 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 	}
 	else 
 	{
-		// nornal operation
+		// normal operation
 
 		for (unsigned int i=0; i < _chan_count; ++i)
 		{
