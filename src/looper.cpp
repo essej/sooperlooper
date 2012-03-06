@@ -649,7 +649,7 @@ Looper::recompute_latencies()
 
 bool Looper::has_loop() const
 {
-        return (_instances && _instances[0] && sl_has_loop(_instances[0]));
+	return (_instances && _instances[0] && sl_has_loop(_instances[0]));
 }
 
 float
@@ -742,30 +742,30 @@ void Looper::set_port (ControlPort n, float val)
 {
 	switch (n)
 	{
-	case DryLevel:
-		_target_dry = val;
-		break;
-	case RelativeSync:
-		_relative_sync = val;
-		break;
-	case Event::ReplaceQuantized:
-		set_replace_quantized(val > 0.0f ? true : false);
-		break;
-	case TempoInput:
-		if (_tempo_stretch && ports[CycleLength] != 0.0f) {
-			// new ratio is origtempo/newtempo
-		        double tempo = (30.0 * ports[EighthPerCycleLoop] / ports[CycleLength]);
-			//cerr << "tempo calc: " << tempo << " tempo input: " << val << endl;
-			// clamp it if close to the same
-			tempo = (abs(tempo-val) < 0.001) ? val: tempo;
-			double newratio = min(4.0, max(0.5, tempo / (double) val)); 
-			_pending_stretch_ratio = newratio;
-			_pending_stretch = true;
-		}
-		// fallthrough intentional
-	default:
-		ports[n] = val;
-		break;
+		case DryLevel:
+			_target_dry = val;
+			break;
+		case RelativeSync:
+			_relative_sync = val;
+			break;
+		case Event::ReplaceQuantized:
+			set_replace_quantized(val > 0.0f ? true : false);
+			break;
+		case TempoInput:
+			if (_tempo_stretch && ports[CycleLength] != 0.0f) {
+				// new ratio is origtempo/newtempo
+				double tempo = (30.0 * ports[EighthPerCycleLoop] / ports[CycleLength]);
+				//cerr << "tempo calc: " << tempo << " tempo input: " << val << endl;
+				// clamp it if close to the same
+				tempo = (abs(tempo-val) < 0.001) ? val: tempo;
+				double newratio = min(4.0, max(0.5, tempo / (double) val)); 
+				_pending_stretch_ratio = newratio;
+				_pending_stretch = true;
+			}
+			// fallthrough intentional
+		default:
+			ports[n] = val;
+			break;
 	}
 }
 
@@ -829,24 +829,24 @@ Looper::do_event (Event *ev)
 		if ((int) cmd >= 0 && (int) cmd < (int) Event::LAST_COMMAND)
 		{
 
-                        if (ports[State] != LooperStatePlaying
-			    || cmd == Event::REVERSE || cmd == Event::DELAY || cmd == Event::UNDO || cmd == Event::REDO)
+			if (ports[State] != LooperStatePlaying
+					|| cmd == Event::REVERSE || cmd == Event::DELAY || cmd == Event::UNDO || cmd == Event::REDO)
 			{
-				
+
 				if (ev->Type == Event::type_cmd_upforce) {
 					// special case if current state is mult or insert
 					// and the cmd is mult or insert and we're not quantized
 					// a SUS action here really means an unrounded action
 					if (ports[Quantize] == 0.0f
-					    && ((ports[State] == LooperStateMultiplying && cmd == Event::MULTIPLY)
-						|| (ports[State] == LooperStateInserting && cmd == Event::INSERT)))
+							&& ((ports[State] == LooperStateMultiplying && cmd == Event::MULTIPLY)
+								|| (ports[State] == LooperStateInserting && cmd == Event::INSERT)))
 					{
 						// this really should be handled down in the plugin
 						cmd = Event::RECORD;
 					}
-					
+
 					//cerr << "force up" << endl;
-					
+
 					requested_cmd = cmd;
 					request_pending = true;
 
@@ -872,14 +872,14 @@ Looper::do_event (Event *ev)
 			}
 			//fprintf(stderr, "Got UP cmd: %d  req: %d\n", cmd, requested_cmd);
 
-			
+
 			_down_stamps[cmd] = 0;
 		}
 	}
 	else if (ev->Type == Event::type_control_change)
 	{
 		// todo: specially handle TriggerThreshold to work across all channels
-		
+
 		if ((int)ev->Control >= (int)Event::TriggerThreshold && (int)ev->Control < (int) Event::State) {
 
 			if (ev->Control == Event::Rate) {
