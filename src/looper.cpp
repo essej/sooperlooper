@@ -788,7 +788,7 @@ Looper::do_event (Event *ev)
 		Event::command_t cmd = ev->Command;
 		requested_cmd = cmd;
 		request_pending = true;
-                //fprintf(stderr, "Got HIT cmd: %d\n", cmd);
+		//fprintf(stderr, "Got HIT cmd: %d\n", cmd);
 
 		// a few special commands have double-tap logic
 		if (cmd == Event::RECORD_OR_OVERDUB || cmd == Event::RECORD_OR_OVERDUB_EXCL || cmd == Event::RECORD_OR_OVERDUB_SOLO) {
@@ -807,7 +807,7 @@ Looper::do_event (Event *ev)
 			requested_cmd = cmd;
 			request_pending = true;
 
-                        // fprintf(stderr, "Got DOWN cmd: %d\n", cmd);
+			// fprintf(stderr, "Got DOWN cmd: %d\n", cmd);
 
 			// a few special commands have double-tap logic
 			if (cmd == Event::RECORD_OR_OVERDUB || cmd == Event::RECORD_OR_OVERDUB_EXCL || cmd == Event::RECORD_OR_OVERDUB_SOLO) {
@@ -870,7 +870,7 @@ Looper::do_event (Event *ev)
 					}
 				}
 			}
-                        //fprintf(stderr, "Got UP cmd: %d  req: %d\n", cmd, requested_cmd);
+			//fprintf(stderr, "Got UP cmd: %d  req: %d\n", cmd, requested_cmd);
 
 			
 			_down_stamps[cmd] = 0;
