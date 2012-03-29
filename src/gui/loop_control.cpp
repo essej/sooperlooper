@@ -317,7 +317,7 @@ LoopControl::connect()
 	// if the spawn_config host string is 127.0.0.1 or localhost, make our_url match it
 	if (_spawn_config.host == "127.0.0.1" || _spawn_config.host == "localhost") {
 		char tmpbuf[100];
-		snprintf (tmpbuf, sizeof(tmpbuf), "osc.udp://127.0.0.1:%d/", _our_port);
+		snprintf (tmpbuf, sizeof(tmpbuf), "osc.udp://localhost:%d/", _our_port);
 		_our_url = tmpbuf;
 		cerr << "Changing our url to be : " << _our_url << endl;
 	}

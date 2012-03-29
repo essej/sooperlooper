@@ -1234,7 +1234,7 @@ void MainPanel::misc_action (bool release, wxString cmd)
 		}
 
 
-		wxString filename = do_file_selector (wxT("Choose file to save loop"), wxT("wav"), wxT("*.*"),  wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
+		wxString filename = do_file_selector (wxT("Choose file to save loop"), wxT("wav"), wxT("*.wav;*.WAV;*.Wav"),  wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
 		
 		if ( !filename.empty() )
 		{
@@ -1253,7 +1253,7 @@ void MainPanel::misc_action (bool release, wxString cmd)
 			index = 0;
 		}
 
-		wxString filename = do_file_selector (wxT("Choose file to open"), wxT(""), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
+		wxString filename = do_file_selector (wxT("Choose file to open"), wxT(""), wxT("*.slsess"), wxOPEN|wxCHANGE_DIR);
 		
 		if ( !filename.empty() )
 		{
@@ -1365,7 +1365,7 @@ void MainPanel::set_curr_loop (int index)
 
 void MainPanel::do_load_session ()
 {
-	wxString filename = do_file_selector (wxT("Choose session to load"), wxT("*.slsess"), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
+	wxString filename = do_file_selector (wxT("Choose session to load"), wxT("*.slsess"), wxT("*.slsess"), wxOPEN|wxCHANGE_DIR);
 	
 	if ( !filename.empty() )
 	{
@@ -1376,7 +1376,7 @@ void MainPanel::do_load_session ()
 
 void MainPanel::do_save_session (bool write_audio)
 {
-	wxString filename = do_file_selector (wxT("Choose file to save session"), wxT("slsess"), wxT("*.*"), wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
+	wxString filename = do_file_selector (wxT("Choose file to save session"), wxT("slsess"), wxT("*.slsess"), wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
 	
 	if ( !filename.empty() )
 	{

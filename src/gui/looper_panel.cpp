@@ -1425,7 +1425,7 @@ LooperPanel::clicked_events (int button, wxString cmd)
 	if (cmd == wxT("save"))
 	{
 		wxString filename = _mainpanel->do_file_selector (wxT("Choose file to save loop"),
-											      wxT("wav"), wxT("*.*"),  wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
+											      wxT("wav"), wxT("*.wav;*.WAV;*.Wav"),  wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
 		
 		if ( !filename.empty() )
 		{
@@ -1439,7 +1439,7 @@ LooperPanel::clicked_events (int button, wxString cmd)
 	}
 	else if (cmd == wxT("load"))
 	{
-		wxString filename = _mainpanel->do_file_selector(wxT("Choose file to open"), wxT(""), wxT("*.*"), wxOPEN|wxCHANGE_DIR);
+		wxString filename = _mainpanel->do_file_selector(wxT("Choose file to open"), wxT(""), wxT("*.wav;*.WAV;*.Wav"), wxOPEN|wxCHANGE_DIR);
 		
 		if ( !filename.empty() )
 		{
