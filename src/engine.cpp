@@ -927,9 +927,9 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 {
 	bool exclcmd = (ev->Command == Event::RECORD_EXCLUSIVE_NEXT ||  ev->Command == Event::RECORD_EXCLUSIVE_PREV || ev->Command == Event::RECORD_EXCLUSIVE);
 	bool exclocmd = (ev->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT ||  ev->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV || ev->Command == Event::RECORD_OR_OVERDUB_EXCL); 
-        bool recOverSoloNext = (ev->Command == Event::RECORD_OR_OVERDUB_SOLO_NEXT || ev->Command == Event::RECORD_OR_OVERDUB_SOLO_PREV);
-        bool recOverSolo = (ev->Command == Event::RECORD_OR_OVERDUB_SOLO || ev->Command == Event::RECORD_OR_OVERDUB_SOLO_TRIG || ev->Command == Event::RECORD_OVERDUB_END_SOLO || ev->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG  || recOverSoloNext);
-	
+	bool recOverSoloNext = (ev->Command == Event::RECORD_OR_OVERDUB_SOLO_NEXT || ev->Command == Event::RECORD_OR_OVERDUB_SOLO_PREV);
+	bool recOverSolo = (ev->Command == Event::RECORD_OR_OVERDUB_SOLO || ev->Command == Event::RECORD_OR_OVERDUB_SOLO_TRIG || ev->Command == Event::RECORD_OVERDUB_END_SOLO || ev->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG  || recOverSoloNext);
+
 	if (ev->Control == Event::TapTempo) {
 		nframes_t thisframe = _running_frames + offset;
 		if (thisframe > _last_tempo_frame) {
