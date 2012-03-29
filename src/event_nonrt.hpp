@@ -145,20 +145,22 @@ namespace SooperLooper {
 			SendCmd,
 		} type;
 
-		ConfigUpdateEvent(Type tp, int8_t inst,  Event::control_t ctrl, std::string returl="", std::string retpath="", float val=0.0, int src=-1)
-			: type(tp), control(ctrl), instance(inst), ret_url(returl), ret_path(retpath), value(val), source(src) {}
+		ConfigUpdateEvent(Type tp, int8_t inst,  Event::control_t ctrl, std::string returl="", std::string retpath="",float val=0.0, int src=-1, short int ms=0)
+			: type(tp), control(ctrl), instance(inst), ret_url(returl), ret_path(retpath), value(val), source(src),update_time_ms(ms) {}
 		ConfigUpdateEvent(Type tp, int8_t inst,  Event::command_t cmd, std::string returl="", std::string retpath="", int src=-1)
 			: type(tp), command(cmd), instance(inst), ret_url(returl), ret_path(retpath), value(0.0f), source(src) {}
+
 		virtual ~ConfigUpdateEvent() {}
 
 		
 		Event::control_t       control;
 		Event::command_t       command;
-		int8_t           instance;
-		std::string      ret_url;
-		std::string      ret_path;
-		float            value;
-		int           source;
+		int8_t                 instance;
+		std::string            ret_url;
+		std::string            ret_path;
+		float                  value;
+		int                    source;
+		short int              update_time_ms;
 	};
 
 	class PingEvent : public EventNonRT

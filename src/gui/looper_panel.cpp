@@ -1078,7 +1078,7 @@ LooperPanel::update_state()
 	_loop_control->get_value(_index, wxT("waiting"), val);
 	_loop_control->get_value(_index, wxT("is_soloed"), soloed);
 	_waiting = (val > 0.0f) ? true : false;
-	
+
 
 	if (!_waiting && _flashing_button) {
 		// clear flashing
@@ -1219,12 +1219,19 @@ LooperPanel::update_state()
 				_flashing_button = _once_button;
 				break;
 			case LooperStateMuted:
-			case LooperStatePlaying:
-				if (soloed) {
-					_flashing_button = _solo_button;
-				}
-				else if (state == LooperStatePlaying || state == LooperStateMuted) {
+				if (state == LooperStatePlaying)
+					_flashing_button = _mute_button;
+				else if ( state == LooperStateMuted)
 					_flashing_button = _reverse_button;
+				break;
+			case LooperStatePlaying:
+				//if (soloed) {
+				//	_flashing_button = _solo_button;
+				//}
+				if (state == LooperStatePlaying)
+					_flashing_button = _reverse_button;
+				else if( state == LooperStateMuted) {
+					_flashing_button = _mute_button;
 				}
 				break;
 			default:
@@ -1234,11 +1241,11 @@ LooperPanel::update_state()
 		}
 		else if (state == LooperStatePlaying || state == LooperStateMuted) {
 			// special case, we are pending reverse
-			if (soloed) {
-				_flashing_button = _solo_button;
-			} else {
+			//if (soloed) {
+			//	_flashing_button = _solo_button;
+			//} else {
 				_flashing_button = _reverse_button;
-			}
+			//}
 			
 		}
 		
