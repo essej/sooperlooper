@@ -1382,10 +1382,6 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
 
-		if (_panner && _use_common_outs) {
-			// mix this output into common outputs
-			(*_panner)[i]->distribute (outbufs[i], com_obufs, 1.0f, nframes);
-		} 
 
 		if (_have_discrete_io && real_inbufs[i]) {
 			// just mix the dry into the outputs
@@ -1397,6 +1393,11 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 				outbufs[i][pos] += currdry * real_inbufs[i][pos];
 			}
 		}
+
+		if (_panner && _use_common_outs) {
+			// mix this output into common outputs
+			(*_panner)[i]->distribute (outbufs[i], com_obufs, 1.0f, nframes);
+		} 
 
 		// calculate output peak post mixing with dry
 		compute_peak (outbufs[i], nframes, _output_peak);
