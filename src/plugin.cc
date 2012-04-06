@@ -95,8 +95,11 @@ using namespace SooperLooper;
 #define STATE_ONESHOT    12
 #define STATE_SUBSTITUTE  13
 #define STATE_PAUSED     14
-
+#define STATE_UNDO_ALL	15
 #define STATE_TRIGGER_PLAY 16
+#define STATE_UNDO		17
+#define STATE_REDO		18
+#define STATE_REDO_ALL	19
 
 /* 1s digit of
  * Multicontroller parameter functions */
@@ -337,6 +340,7 @@ static LoopChunk * ensureLoopSpace(SooperLooperI* pLS, LoopChunk *loop, unsigned
 		pLS->headLoopChunk = loop;
 	}
 	else {
+
 		// check to see if we'll require more space than the buffer allows
 		if (loop->lLoopLength + morelength > pLS->lBufferSize) {
 			DBG(fprintf(stderr, "%u:%u  requesting more space than exists in buffer!\n",pLS->lLoopIndex, pLS->lChannelIndex));
@@ -528,7 +532,8 @@ instantiateSooperLooper(const LADSPA_Descriptor * Descriptor,
 	   goto cleanup;
    }
    // we'll warm up up to 50 secs worth of the loop mem as a tradeoff to the low-mem mac people
-   memset (pLS->pSampleBuf, 0, min(pLS->lBufferSize, (unsigned long) (SampleRate * 50) ) * sizeof(LADSPA_Data));
+	// Removed because this causes heavy cpu load on first record!!!
+   //memset (pLS->pSampleBuf, 0, min(pLS->lBufferSize, (unsigned long) (SampleRate * 50) ) * sizeof(LADSPA_Data));
 
    pLS->lLoopChunkCount = MAX_LOOPS;
 
@@ -1674,7 +1679,7 @@ void
 runSooperLooper(LADSPA_Handle Instance,
 	       unsigned long SampleCount)
 {
-  
+
   LADSPA_Data * pfBuffer;
   LADSPA_Data * pfInput;
   LADSPA_Data * pfOutput;
@@ -1703,8 +1708,9 @@ runSooperLooper(LADSPA_Handle Instance,
   LADSPA_Data fFeedback = 1.0f;
   LADSPA_Data feedbackDelta=0.0f, feedbackTarget=1.0f;
   unsigned int lCurrPos = 0;
+  unsigned int xCurrPos = 0;
   unsigned int lpCurrPos = 0;  
-  LADSPA_Data * pLoopSample, *spLoopSample, *rLoopSample, *rpLoopSample;
+  LADSPA_Data *pLoopSample, *spLoopSample, *rLoopSample, *rpLoopSample, *xLoopSample;
   long slCurrPos;
   double rCurrPos;
   double rpCurrPos;
@@ -1718,7 +1724,7 @@ runSooperLooper(LADSPA_Handle Instance,
   
   SooperLooperI * pLS;
   LoopChunk *loop, *srcloop=0;
-  LoopChunk *lastloop;
+  LoopChunk *lastloop, *prevloop, *nextloop;
   
   LADSPA_Data fSyncMode = 0.0f;
   LADSPA_Data fQuantizeMode = 0.0f;
@@ -2517,7 +2523,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	} break;
 	
 	case MULTI_MUTE:
-        case MULTI_PAUSE:
+	case MULTI_PAUSE:
 	{
 
 	   switch(pLS->state) {
@@ -2798,8 +2804,9 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_DELAY:
 	      case STATE_MUTE:
 	      case STATE_PAUSED:
-		      // POP the head off and start the previous
-		      // one at the same position if possible
+			   
+			   // cancel whatever mode, back to play mode (or mute)
+			   pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
 		      
 		      if (pLS->waitingForSync) {
 			      // don't undo loop
@@ -2811,71 +2818,98 @@ runSooperLooper(LADSPA_Handle Instance,
 			      // undo pending reverse
 			      pLS->fNextCurrRate = 0.0f;
 		      }
-		      else if (loop) {
-			      undoLoop(pLS, false);
-				  
-				  if (lMultiCtrl == MULTI_UNDO_TWICE) {
-					  undoLoop(pLS, true);
-				  }
-		      }
-		      
-		      // cancel whatever mode, back to play mode (or mute)
-		      pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
-		      pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
-		      pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 
-		      if (pLS->state == STATE_PLAY) {
-			      pLS->fPlayFadeAtten = 0.0f; // this is half-ass
-			      pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
-		      }
-		      else {
-			      pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
-		      }
+			   if (pLS->state == STATE_MUTE) {
+				   // undo ONE)
+				   undoLoop(pLS, false);;
+			   } else {
+				   if (loop->prev) {
+					   pLS->state = STATE_UNDO;
+					   pLS->nextState = STATE_PLAY;
+				   } else {
+					   pLS->state = STATE_UNDO_ALL;
+				   }
+
+			   }
+			   
+			   pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+			   pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+			   
+			   pLS->fPlayFadeAtten = 0.0f;
+			   pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+			   
+			   if (pLS->state == STATE_MUTE) {
+				   pLS->fPlayFadeDelta = 0.0f;
+			   } else if (pLS->state == STATE_UNDO_ALL) {
+				   pLS->fPlayFadeAtten = 1.0f;
+				   pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
+			   }
 
 		      DBG(fprintf(stderr,"%u:%u  Undoing and reentering PLAY state from UNDO\n", pLS->lLoopIndex, pLS->lChannelIndex));
 		      break;
-		      
-/* removed undo all from here		      
-*/		 
 	   }
 	   
 	} break;
 
-        case MULTI_UNDO_ALL:
+	case MULTI_UNDO_ALL:
 	{
-		// undo ALL)
-		clearLoopChunks(pLS);
-		DBG(fprintf(stderr,"%u:%u  UNDO all loops\n", pLS->lLoopIndex, pLS->lChannelIndex));
-		pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
-
-		pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
-		pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
-
-		pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
+		if (pLS->state != STATE_OFF) {
+			DBG(fprintf(stderr,"%u:%u  UNDO all loops\n", pLS->lLoopIndex, pLS->lChannelIndex));
+			pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
+			
+			pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+			pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+			
+			pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
+			
+			if (loop && loop->lLoopLength) {
+				pLS->state = STATE_UNDO_ALL;
+				
+				pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
+				pLS->fPlayFadeDelta = -1.0f / xfadeSamples;// fade out for undo all
+				pLS->wasMuted = true;
+			}			
+		}
 	} break;
 
-        case MULTI_REDO_ALL:
+	case MULTI_REDO_ALL:
 	{
-		// redo ALL)
-		lastloop = pLS->headLoopChunk;
-		redoLoop(pLS);
-
-		while (pLS->headLoopChunk != lastloop) {
+		if (pLS->state == STATE_OFF) {
+			pLS->state = STATE_PLAY;
+			pLS->wasMuted = false;
+		} else {
+			pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
+		}
+		
+		if (!loop || pLS->state == STATE_MUTE) {
+			// redo ALL)
 			lastloop = pLS->headLoopChunk;
 			redoLoop(pLS);
+			 
+			while (pLS->headLoopChunk != lastloop) {
+			lastloop = pLS->headLoopChunk;
+			redoLoop(pLS);
+			}
+			if (!pLS->headLoopChunk) {
+				pLS->state = STATE_OFF;
+			}
+		} else {
+			if (loop->next) {
+				pLS->state = STATE_REDO_ALL;
+				pLS->nextState = STATE_PLAY;
+			}
 		}
-
-		pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
+		
 		pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 		pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
 		
-		if (pLS->state == STATE_PLAY) {
-			pLS->fPlayFadeAtten = 0.0f;
-			pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+		pLS->fPlayFadeAtten = 0.0f;
+		pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+		
+		if (pLS->state == STATE_MUTE) {
+			pLS->fPlayFadeDelta = 0.0f;
 		}
-		else {
-			pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
-		}
+
 		DBG(fprintf(stderr,"REDO all loops\n"));
 
 	} break;
@@ -2883,35 +2917,52 @@ runSooperLooper(LADSPA_Handle Instance,
 	case MULTI_REDO:
 	{
 	   switch (pLS->state) {
-	      case STATE_PLAY:
-	      case STATE_RECORD:
-	      case STATE_TRIG_START:
-	      case STATE_TRIG_STOP:		 
-	      case STATE_OVERDUB:
-	      case STATE_MULTIPLY:
-	      case STATE_INSERT:
-	      case STATE_REPLACE:
-	      case STATE_SUBSTITUTE:
-	      case STATE_MUTE:
-              case STATE_PAUSED:
-		 // immediately redo last if possible
-		 redoLoop(pLS);
+		   case STATE_PLAY:
+		   case STATE_RECORD:
+		   case STATE_TRIG_START:
+		   case STATE_TRIG_STOP:		 
+		   case STATE_OVERDUB:
+		   case STATE_MULTIPLY:
+		   case STATE_INSERT:
+		   case STATE_REPLACE:
+		   case STATE_SUBSTITUTE:
+		   case STATE_MUTE:
+		   case STATE_PAUSED:
+		   case STATE_OFF:
+			   
+			   if (pLS->state == STATE_OFF) {
+				   pLS->state = STATE_PLAY;
+				   pLS->wasMuted = false;
+			   } else {
+				   pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
+			   }
+			   
+			   if (!loop || pLS->state == STATE_MUTE) {
+				   // we don't need a fadeout
+				   redoLoop(pLS);
+				   if (!pLS->headLoopChunk) {
+					   pLS->state = STATE_OFF;
+				   }
+			   } else {
+				   // we need a x-fade
+				   if (loop->next) {
+					   pLS->state = STATE_REDO;
+					   pLS->nextState = STATE_PLAY;
+					   pLS->fPlayFadeAtten = 0.0f;
+				   }
+			   }
+			   
+			   pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
+			   pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
+			   			   
+			   if (pLS->state == STATE_MUTE) {
+				   // we don't need a fade in
+				   pLS->fPlayFadeDelta = 0.0f;
+			   } else {
+				   pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
+			   }
 
-		 pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
-		 pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
-
-		 pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
-		 DBG(fprintf(stderr,"Entering PLAY state from REDO\n"));
-
-		 if (pLS->state == STATE_PLAY) {
-			 pLS->fPlayFadeAtten = 0.0f; // this is half-ass
-			 pLS->fPlayFadeDelta = 1.0f / xfadeSamples;
-		 }
-		 else {
-			 pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
-		 }
-
-		 break;
+			break;
 	   }
 
 	} break;
@@ -3075,7 +3126,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		}
 	} break;
 
-        case MULTI_SET_SYNC_POS:
+	case MULTI_SET_SYNC_POS:
 	{
 		// set current loop's sync offset to the current pos
 		if (loop) {
@@ -3084,7 +3135,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
 	} break;
 
-        case MULTI_RESET_SYNC_POS:
+	case MULTI_RESET_SYNC_POS:
 	{
 		// set current loop's sync offset to the current pos
 		if (loop) {
@@ -3143,7 +3194,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
      switch(pLS->state)
      {
-
+			 
 	case STATE_TRIG_START:
 	{
 	   //fprintf(stderr,"in trigstart\n");
@@ -3208,7 +3259,7 @@ runSooperLooper(LADSPA_Handle Instance,
 					  loop->lOrigSyncPos = loop->lSyncPos = 0;
 				  }
 				  // cause input-to-loop fade in
-					pLS->fLoopFadeAtten = 0.0f;
+				  pLS->fLoopFadeAtten = 0.0f;
 				  pLS->fLoopFadeDelta = 1.0f / xfadeSamples;
 				  pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 				  
@@ -3249,7 +3300,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		lSampleIndex++)
 	   {
 	      fWet += wetDelta;
-              fDry += dryDelta;
+		  fDry += dryDelta;
 	      fFeedback += feedbackDelta;
 	      fScratchPos += scratchDelta;
 
@@ -3293,12 +3344,12 @@ runSooperLooper(LADSPA_Handle Instance,
 // 		 pLS->state = STATE_PLAY;
 // 		 break;
 // 	      }
+		   
 
 	      if (lCurrPos == 0) {
 		      pfSyncOutput[lSampleIndex] = 1.0f;
 	      }
-		      
-	      
+		   
 	      fInputSample = pfInput[lSampleIndex];
 	      
 	      *pLoopSample = pLS->fLoopFadeAtten * fInputSample;
@@ -3466,7 +3517,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	
 	case STATE_OVERDUB:
 	case STATE_REPLACE:
-        case STATE_SUBSTITUTE:
+	case STATE_SUBSTITUTE:
 	{
 	   if (loop && loop->srcloop && loop->lLoopLength)
 	   {
@@ -4146,14 +4197,16 @@ runSooperLooper(LADSPA_Handle Instance,
 	   }
 	   
 	} break;
-
 	
-	
+	case STATE_UNDO_ALL:
+	case STATE_REDO_ALL:
+	case STATE_UNDO:
+	case STATE_REDO:
 	case STATE_PLAY:
 	case STATE_ONESHOT:
 	case STATE_SCRATCH:
 	case STATE_MUTE:
-     case STATE_PAUSED:
+	case STATE_PAUSED:
 	{
 	   //fprintf(stderr,"in play begin\n");	   
 	   // play  the input out mixed with the recorded loop.
@@ -4230,6 +4283,25 @@ runSooperLooper(LADSPA_Handle Instance,
 		 lCurrPos =(unsigned int) fmod(loop->dCurrPos, loop->lLoopLength);
 		 //fprintf(stderr, "curr = %u\n", lCurrPos);
 		 pLoopSample = & pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask];
+			  
+			  if (pLS->state == STATE_UNDO){
+				  prevloop = pLS->headLoopChunk->prev;
+				  xCurrPos = (unsigned int) fmod(loop->dCurrPos, prevloop->lLoopLength);
+				  xLoopSample = & pLS->pSampleBuf[(prevloop->lLoopStart + xCurrPos) & pLS->lBufferSizeMask];
+			  }
+			  if (pLS->state == STATE_REDO) {
+				  nextloop = pLS->headLoopChunk->next;
+				  xCurrPos = (unsigned int) fmod(loop->dCurrPos, nextloop->lLoopLength);
+				  xLoopSample = & pLS->pSampleBuf[(nextloop->lLoopStart + xCurrPos) & pLS->lBufferSizeMask];
+			  }
+			  if (pLS->state == STATE_REDO_ALL) {
+				  nextloop = pLS->headLoopChunk;
+				  while (nextloop->next) {
+					  nextloop = nextloop->next;
+				  }
+				  xCurrPos = (unsigned int) fmod(loop->dCurrPos, nextloop->lLoopLength);
+				  xLoopSample = & pLS->pSampleBuf[(nextloop->lLoopStart + xCurrPos) & pLS->lBufferSizeMask];
+			  }
 
 		 rCurrPos = fmod (loop->dCurrPos - (fRate * (lOutputLatency + lInputLatency)), loop->lLoopLength);
 		 if (rCurrPos < 0) {
@@ -4369,10 +4441,16 @@ runSooperLooper(LADSPA_Handle Instance,
 		 
 		 fOutputSample =   tmpWet *  (*pLoopSample)
 		    + fDry * fInputSample;
+		 if (pLS->state == STATE_UNDO || pLS->state == STATE_REDO || pLS->state == STATE_REDO_ALL) {
+			 //fprintf(stderr, "fading.. :%g\n", tmpWet);
+			 fOutputSample =   tmpWet *  (*xLoopSample)
+			 + fDry * fInputSample + (fWet-tmpWet) * (*pLoopSample);
+		 }
 
 		 // jlc play
 		 // we might add a bit from the input still during xfadeout
 		 *(rLoopSample) = ((*rLoopSample) * pLS->fFeedFadeAtten) +  pLS->fLoopFadeAtten * fInputSample;
+		 // if (pLS->fLoopFadeAtten > 0.9 && pLS->fLoopFadeAtten < 1) fprintf(stderr, "fLoopFadeAtten: %g, SampleIndex: %d\n", pLS->fLoopFadeAtten, lCurrPos);
 
 		 // optionally support feedback during playback (use rLoopSample??)
 		 if (useFeedbackPlay) {
@@ -4380,6 +4458,8 @@ runSooperLooper(LADSPA_Handle Instance,
 		 }
 		 
 		 pfOutput[lSampleIndex] = fOutputSample;
+			  
+			  
 
 		 if (pLS->state == STATE_PAUSED && pLS->fPlayFadeAtten == 0.0f) {
 			 // do not increment time
@@ -4444,7 +4524,37 @@ runSooperLooper(LADSPA_Handle Instance,
 
 	      }
 	      
-	      
+		   if (pLS->state == STATE_UNDO && pLS->fPlayFadeAtten == 1.0f) {
+			   // play some of the old loop first and switch later
+			   undoLoop(pLS, false);
+			   fprintf(stderr, "finished UNDO...\n");
+			   pLS->state = pLS->nextState;
+		   }
+		   if (pLS->state == STATE_REDO && pLS->fPlayFadeAtten == 1.0f) {
+			   // play some of the old loop first and switch later
+			   redoLoop(pLS);
+			   fprintf(stderr, "finished REDO...\n");
+			   pLS->state = pLS->nextState;
+		   }
+		   if (pLS->state == STATE_UNDO_ALL && pLS->fPlayFadeAtten == 0.0f) {
+			   // fade out the old loop and goto sate_off
+			   clearLoopChunks(pLS);
+			   fprintf(stderr, "finished UNDO ALL...\n");
+			   pLS->state = STATE_OFF;
+		   }
+		   if (pLS->state == STATE_REDO_ALL && pLS->fPlayFadeAtten == 1.0f) {
+			   // play some of the old loop first and switch later
+			   lastloop = pLS->headLoopChunk;
+			   redoLoop(pLS);
+			   while (pLS->headLoopChunk != lastloop) {
+				   lastloop = pLS->headLoopChunk;
+				   redoLoop(pLS);
+			   }
+			   fprintf(stderr, "finished REDO ALL...\n");
+			   pLS->state = pLS->nextState;
+		   }
+		   
+		   
 	      // recenter around the mod
 	      if (loop) {
 		      lCurrPos = (unsigned int) fabs(fmod(loop->dCurrPos, loop->lLoopLength));
