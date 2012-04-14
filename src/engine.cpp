@@ -1993,7 +1993,7 @@ Engine::set_tempo (double tempo, bool rt)
 	_tempo_counter = 0;
 
 
-	// adjust eigths per cycle if tempo is > 240 or < 60
+	// adjust eighths per cycle if tempo is > 240 or < 60
 	if (_smart_eighths &&
 	    _tempo > 1.0 && (_tempo > 240.0 || _tempo < 60.0)) {
 		//cerr << "tempo is " << _tempo << endl;

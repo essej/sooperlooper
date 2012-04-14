@@ -159,7 +159,7 @@ GLOBAL PARAMETERS
    where param is one of:
 
   tempo  :: bpm
-  eigth_per_cycle
+  eighth_per_cycle
   dry         	:: range 0 -> 1 affects common input passthru
   wet         	:: range 0 -> 1  affects common output level
   input_gain    :: range 0 -> 1  affects common input gain
