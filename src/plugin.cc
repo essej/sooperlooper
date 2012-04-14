@@ -3075,7 +3075,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		}
 	} break;
 
-        case MULTI_SET_SYNC_POS:
+	case MULTI_SET_SYNC_POS:
 	{
 		// set current loop's sync offset to the current pos
 		if (loop) {
@@ -3084,7 +3084,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
 	} break;
 
-        case MULTI_RESET_SYNC_POS:
+	case MULTI_RESET_SYNC_POS:
 	{
 		// set current loop's sync offset to the current pos
 		if (loop) {
