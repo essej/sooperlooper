@@ -1865,6 +1865,11 @@ Engine::process_nonrt_event (EventNonRT * event)
 			MidiBindInfo info;
 			if (info.unserialize (mb_event->bind_str)) {
 				bool exclus = (mb_event->options.find("exclusive") != string::npos);
+
+				//initialize value for toggle with current value
+				if (info.style == MidiBindInfo::ToggleStyle) 
+					info.last_toggle_val = get_control_value(cmdmap.to_control_t(info.control), info.instance);
+
 				LockMonitor lm (_midi_bridge->bindings_lock(), __LINE__, __FILE__);
 				_midi_bridge->bindings().add_binding (info, exclus);
 			}
