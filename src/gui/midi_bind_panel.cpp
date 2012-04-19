@@ -85,6 +85,8 @@ BEGIN_EVENT_TABLE(SooperLooperGui::MidiBindPanel, wxPanel)
 END_EVENT_TABLE()
 
 static const wxString CcString(wxT("CC"));
+static const wxString CcOnString(wxT("CC 127"));
+static const wxString CcOffString(wxT("CC 0"));
 static const wxString NoteString(wxT("Note"));
 static const wxString NoteOnString(wxT("Note On"));
 static const wxString NoteOffString(wxT("Note Off"));
@@ -257,6 +259,8 @@ void MidiBindPanel::init()
 	_type_combo->Append (NoteOnString);
 	_type_combo->Append (NoteOffString);
 	_type_combo->Append (CcString);
+	_type_combo->Append (CcOnString);
+	_type_combo->Append (CcOffString);
 	_type_combo->Append (PcString);
 	_type_combo->Append (KeyPressureString);
 	_type_combo->Append (ChannelPressureString);
@@ -578,6 +582,12 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 	if (info->type == "cc") {
 		_type_combo->SetStringSelection(CcString);
 	}
+	else if (info->type == "cc127") {
+		_type_combo->SetStringSelection(CcOnString);
+	}
+	else if (info->type == "cc0") {
+		_type_combo->SetStringSelection(CcOffString);
+	}
 	else if (info->type == "n") {
 		_type_combo->SetStringSelection(NoteString);
 	}
@@ -679,6 +689,12 @@ void MidiBindPanel::update_curr_binding()
 	}
 	else if (tsel == CcString) {
 		_currinfo.type = "cc";
+	}
+	else if (tsel == CcOnString) {
+		_currinfo.type = "cc127";
+	}
+	else if (tsel == CcOffString) {
+		_currinfo.type = "cc0";
 	}
 	else if (tsel == PcString) {
 		_currinfo.type = "pc";

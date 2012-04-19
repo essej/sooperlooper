@@ -45,6 +45,8 @@ MidiBindings::MidiBindings()
 	_typemap["pb"] = MIDI::pitchbend;
 	_typemap["kp"] = MIDI::polypress;
 	_typemap["cp"] = MIDI::chanpress;
+	_typemap["cc127"] = MIDI::controller;
+	_typemap["cc0"] = MIDI::controller;
 
 	// temp bindings
 // 	_bindings[0x9000 | 48] = MidiBindInfo("note", "record", -1);
@@ -331,7 +333,7 @@ bool MidiBindInfo::unserialize(string strval)
 
 	if (strval.empty()) return false;
 	
-	if ((ret = sscanf(strval.c_str(), "%d %3s %d  %30s %30s %d  %g %g  %10s %d %d",
+	if ((ret = sscanf(strval.c_str(), "%d %5s %d  %30s %30s %d  %g %g  %10s %d %d",
 			  &chan, tp, &parm, cmd, ctrl, &inst, &lb, &ub, stylestr, &dmin, &dmax)) < 5)
 	{
 		cerr << "ret: " << ret << " invalid input line: " << strval << endl;

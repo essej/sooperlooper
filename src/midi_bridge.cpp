@@ -474,7 +474,7 @@ MidiBridge::queue_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long
 			float val_ratio;
 			int clamped_val;
 
-			if ((info.type == "off" && val > 0) || (info.type == "on" && val == 0)) {
+			if ((((info.type == "off") || (info.type == "cc0")) && val > 0) || (((info.type == "on") || (info.type == "cc127")) && val == 0)) {
 				// binding was for note off or on only, skip this
 				continue;
 			}
