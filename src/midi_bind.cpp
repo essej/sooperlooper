@@ -45,8 +45,8 @@ MidiBindings::MidiBindings()
 	_typemap["pb"] = MIDI::pitchbend;
 	_typemap["kp"] = MIDI::polypress;
 	_typemap["cp"] = MIDI::chanpress;
-	_typemap["cc127"] = MIDI::controller;
-	_typemap["cc0"] = MIDI::controller;
+	_typemap["ccon"] = MIDI::controller;
+	_typemap["ccoff"] = MIDI::controller;
 
 	// temp bindings
 // 	_bindings[0x9000 | 48] = MidiBindInfo("note", "record", -1);
