@@ -583,10 +583,10 @@ void MidiBindPanel::update_entry_area(MidiBindInfo * usethis)
 		_type_combo->SetStringSelection(CcString);
 	}
 	else if (info->type == "ccoff") {
-		_type_combo->SetStringSelection(CcOnString);
+		_type_combo->SetStringSelection(CcOffString);
 	}
 	else if (info->type == "ccon") {
-		_type_combo->SetStringSelection(CcOffString);
+		_type_combo->SetStringSelection(CcOnString);
 	}
 	else if (info->type == "n") {
 		_type_combo->SetStringSelection(NoteString);
