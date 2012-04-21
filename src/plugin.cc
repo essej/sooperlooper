@@ -4527,19 +4527,19 @@ runSooperLooper(LADSPA_Handle Instance,
 		   if (pLS->state == STATE_UNDO && pLS->fPlayFadeAtten == 1.0f) {
 			   // play some of the old loop first and switch later
 			   undoLoop(pLS, false);
-			   fprintf(stderr, "finished UNDO...\n");
+			   DBG(fprintf(stderr, "finished UNDO...\n"));
 			   pLS->state = pLS->nextState;
 		   }
 		   if (pLS->state == STATE_REDO && pLS->fPlayFadeAtten == 1.0f) {
 			   // play some of the old loop first and switch later
 			   redoLoop(pLS);
-			   fprintf(stderr, "finished REDO...\n");
+			   DBG(fprintf(stderr, "finished REDO...\n"));
 			   pLS->state = pLS->nextState;
 		   }
 		   if (pLS->state == STATE_UNDO_ALL && pLS->fPlayFadeAtten == 0.0f) {
 			   // fade out the old loop and goto sate_off
 			   clearLoopChunks(pLS);
-			   fprintf(stderr, "finished UNDO ALL...\n");
+			   DBG(fprintf(stderr, "finished UNDO ALL...\n"));
 			   pLS->state = STATE_OFF;
 		   }
 		   if (pLS->state == STATE_REDO_ALL && pLS->fPlayFadeAtten == 1.0f) {
@@ -4550,7 +4550,7 @@ runSooperLooper(LADSPA_Handle Instance,
 				   lastloop = pLS->headLoopChunk;
 				   redoLoop(pLS);
 			   }
-			   fprintf(stderr, "finished REDO ALL...\n");
+			   DBG(fprintf(stderr, "finished REDO ALL...\n"));
 			   pLS->state = pLS->nextState;
 		   }
 		   
