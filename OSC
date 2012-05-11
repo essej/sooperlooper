@@ -126,15 +126,16 @@ GET PARAMETER VALUES
 
   next_state  :: same as state
 
-  loop_len  :: in seconds
-  loop_pos  :: in seconds
-  cycle_len :: in seconds
-  free_time :: in seconds
-  total_time :: in seconds
-  rate_output 
-  in_peak_meter  :: absolute float sample value 0.0 -> 1.0 (or higher)
-  out_peak_meter  :: absolute float sample value 0.0 -> 1.0 (or higher)
-  is_soloed       :: 1 if soloed, 0 if not
+  loop_len         :: in seconds
+  loop_pos         :: in seconds
+  cycle_len        :: in seconds
+  free_time        :: in seconds
+  total_time       :: in seconds
+  rate_output      :: 
+  in_peak_meter    :: absolute float sample value 0.0 -> 1.0 (or higher)
+  out_peak_meter   :: absolute float sample value 0.0 -> 1.0 (or higher)
+  is_soloed        :: 1 if soloed, 0 if not
+  waiting          :: 1 if waiting, 0 if not
 
 SAVE/LOAD
 
