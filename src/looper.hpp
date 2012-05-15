@@ -105,7 +105,7 @@ class Looper
 	void set_soloed (int index, bool value, bool retrigger=false);
 	bool is_soloed() const { return _is_soloed; }
 
-	bool is_muted() const { return ports[State] == LooperStateMuted; }
+	bool is_muted() const { return ports[State] == LooperStateMuted || ports[State] == LooperStateOffMuted; }
 	bool has_loop() const ;
 
 	// finishes any active state that may be going (rec, overdub, etc)

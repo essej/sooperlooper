@@ -124,6 +124,8 @@ GET PARAMETER VALUES
 		13 = Substitute
 		14 = Paused
 
+		20 = OffMuted
+
   next_state  :: same as state
 
   loop_len  :: in seconds

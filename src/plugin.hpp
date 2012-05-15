@@ -103,7 +103,8 @@ enum LooperState
 	LooperStateScratching,
 	LooperStateOneShot,
 	LooperStateSubstitute,
-	LooperStatePaused
+	LooperStatePaused,
+	LooperStateOffMuted = 20
 };
 
 	
