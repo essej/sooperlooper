@@ -710,7 +710,7 @@ void MidiBindPanel::update_curr_binding()
 	}
 
 	if (cmap.is_command(_currinfo.control)) {
-		if (_currinfo.type == "pc") {
+		if (_currinfo.type == "pc" || _currinfo.type == "cc") {
 			_currinfo.command = "hit";
 		}
 		else {
