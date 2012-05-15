@@ -1,9 +1,13 @@
 #!/bin/sh
 
+# this is the old one on my system
+xcodepath=/Developer/usr/bin/xcodebuild
+xcodesdk="-sdk macosx10.5"
+
 rm -rf macdist/SooperLooperAU.component
 
 cd SooperLooperAU
-xcodebuild -configuration Deployment
+${xcodepath} ${xcodesdk} -configuration Deployment
 cd ..
 
 if [ -d SooperLooperAU/build/Deployment/SooperLooperAU.component ] ; then
