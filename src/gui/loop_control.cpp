@@ -281,6 +281,7 @@ void
 LoopControl::setup_param_map()
 {
 	state_map[LooperStateOff] = wxT("off");
+	state_map[LooperStateOffMuted] = wxT("off");
 	state_map[LooperStateWaitStart] = wxT("waiting start");
 	state_map[LooperStateRecording] = wxT("recording");
 	state_map[LooperStateWaitStop] = wxT("waiting stop");

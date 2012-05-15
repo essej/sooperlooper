@@ -453,7 +453,7 @@ Looper::set_soloed (int index, bool value, bool retrigger)
 	if (index != (int) _index) {
 		// someone else is being soloed (or unsoloed), note our mute state, then mute self
 		if (value) {
-			if (ports[State] != LooperStateMuted) {
+			if (ports[State] != LooperStateMuted || ports[State] != LooperStateOffMuted) {
 				_pre_solo_muted = false;
 				Event ev;
 				ev.Type = Event::type_cmd_hit;

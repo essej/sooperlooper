@@ -100,6 +100,7 @@ using namespace SooperLooper;
 #define STATE_UNDO		17
 #define STATE_REDO		18
 #define STATE_REDO_ALL	19
+#define STATE_OFF_MUTE	20
 
 /* 1s digit of
  * Multicontroller parameter functions */
@@ -1805,7 +1806,7 @@ runSooperLooper(LADSPA_Handle Instance,
      lMultiCtrl = -1;
   }
   else {
-          DBG(fprintf(stderr, "Multi chahge from %d to %d\n", pLS->lLastMultiCtrl, lMultiCtrl));
+          DBG(fprintf(stderr, "Multi change from %d to %d\n", pLS->lLastMultiCtrl, lMultiCtrl));
      pLS->lLastMultiCtrl = lMultiCtrl;
   }
 
@@ -1842,7 +1843,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	  }
   }
   else if (lMultiCtrl == MULTI_RECORD_OR_OVERDUB) {
-	  if (!pLS->headLoopChunk || pLS->state == STATE_OFF || pLS->state == STATE_RECORD 
+	  if (!pLS->headLoopChunk || pLS->state == STATE_OFF || pLS->state == STATE_OFF_MUTE || pLS->state == STATE_RECORD 
 	      || pLS->state == STATE_TRIG_START || pLS->state == STATE_TRIG_STOP 
 	      || pLS->state == STATE_DELAY) {
 		  // we record
@@ -1853,7 +1854,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	  }
   }
   else if (lMultiCtrl == MULTI_RECORD_OVERDUB_END) {
-	  if (!pLS->headLoopChunk || pLS->state == STATE_OFF
+	  if (!pLS->headLoopChunk || pLS->state == STATE_OFF || pLS->state == STATE_OFF_MUTE
 	      || pLS->state == STATE_DELAY) {
 		  // we record
 		  lMultiCtrl = MULTI_RECORD;
@@ -2528,6 +2529,14 @@ runSooperLooper(LADSPA_Handle Instance,
 
 	   switch(pLS->state) {
 
+	       case STATE_OFF_MUTE:
+	         pLS->state = STATE_OFF;
+	         pLS->wasMuted = false;
+	         break;
+	       case STATE_OFF:
+	         pLS->state = STATE_OFF_MUTE;
+	         pLS->wasMuted = true;
+	         break;
 	       case STATE_MUTE:
 		      // reset for audio ramp
 		      //pLS->lRampSamples = xfadeSamples;
@@ -2819,18 +2828,22 @@ runSooperLooper(LADSPA_Handle Instance,
 			      pLS->fNextCurrRate = 0.0f;
 		      }
 
-			   if (pLS->state == STATE_MUTE) {
-				   // undo ONE)
-				   undoLoop(pLS, false);;
-			   } else {
-				   if (loop->prev) {
-					   pLS->state = STATE_UNDO;
-					   pLS->nextState = STATE_PLAY;
-				   } else {
-					   pLS->state = STATE_UNDO_ALL;
-				   }
+					if (pLS->state == STATE_MUTE) {
+						// undo ONE)
+						if (loop->prev) {
+							undoLoop(pLS, false);;
+						} else {
+							pLS->state = STATE_UNDO_ALL;
+						}
+					} else {
+						if (loop->prev) {
+							pLS->state = STATE_UNDO;
+							pLS->nextState = STATE_PLAY;
+						} else {
+							pLS->state = STATE_UNDO_ALL;
+						}
 
-			   }
+					}
 			   
 			   pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 			   pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
@@ -2853,7 +2866,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
 	case MULTI_UNDO_ALL:
 	{
-		if (pLS->state != STATE_OFF) {
+		if (pLS->state != STATE_OFF && pLS->state != STATE_OFF_MUTE) {
 			DBG(fprintf(stderr,"%u:%u  UNDO all loops\n", pLS->lLoopIndex, pLS->lChannelIndex));
 			pLS->fPlayFadeDelta = -1.0f / xfadeSamples;
 			
@@ -2877,9 +2890,12 @@ runSooperLooper(LADSPA_Handle Instance,
 		if (pLS->state == STATE_OFF) {
 			pLS->state = STATE_PLAY;
 			pLS->wasMuted = false;
-		} else {
-			pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
-		}
+		} else if (pLS->state == STATE_OFF_MUTE) {
+			pLS->state = STATE_MUTE;
+		} 
+		//else {
+		//	pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
+		//}
 		
 		if (!loop || pLS->state == STATE_MUTE) {
 			// redo ALL)
@@ -2891,7 +2907,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			redoLoop(pLS);
 			}
 			if (!pLS->headLoopChunk) {
-				pLS->state = STATE_OFF;
+				pLS->state = STATE_OFF_MUTE;
 			}
 		} else {
 			if (loop->next) {
@@ -2929,19 +2945,21 @@ runSooperLooper(LADSPA_Handle Instance,
 		   case STATE_MUTE:
 		   case STATE_PAUSED:
 		   case STATE_OFF:
+		   case STATE_OFF_MUTE:
 			   
 			   if (pLS->state == STATE_OFF) {
 				   pLS->state = STATE_PLAY;
 				   pLS->wasMuted = false;
-			   } else {
-				   pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
+			   } else if(pLS->state == STATE_OFF_MUTE) {
+				   pLS->state = STATE_MUTE;
+				   //pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
 			   }
 			   
 			   if (!loop || pLS->state == STATE_MUTE) {
 				   // we don't need a fadeout
 				   redoLoop(pLS);
 				   if (!pLS->headLoopChunk) {
-					   pLS->state = STATE_OFF;
+					   pLS->state = STATE_OFF_MUTE;
 				   }
 			   } else {
 				   // we need a x-fade
@@ -4323,7 +4341,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			 pLS->lSamplesSinceSync++;
 			 
 			 if (pfSyncInput[lSampleIndex] > 1.5f) {
-				 DBG(cerr << pLS->lLoopIndex << ":" << pLS->lChannelIndex << " TS sync reset at: " << loop->dCurrPos << "  with since: " << pLS->lSamplesSinceSync << endl);
+				 //DBG(cerr << pLS->lLoopIndex << ":" << pLS->lChannelIndex << " TS sync reset at: " << loop->dCurrPos << "  with since: " << pLS->lSamplesSinceSync << endl);
 				 pLS->lSamplesSinceSync = 0;
 			 }
 
@@ -4537,10 +4555,14 @@ runSooperLooper(LADSPA_Handle Instance,
 			   pLS->state = pLS->nextState;
 		   }
 		   if (pLS->state == STATE_UNDO_ALL && pLS->fPlayFadeAtten == 0.0f) {
-			   // fade out the old loop and goto sate_off
+			   // fade out the old loop and goto state_off
 			   clearLoopChunks(pLS);
 			   DBG(fprintf(stderr, "finished UNDO ALL...\n"));
-			   pLS->state = STATE_OFF;
+				 cerr << "was muted: " << pLS->wasMuted << endl;
+				 if (pLS->wasMuted)
+			     pLS->state = STATE_OFF_MUTE;
+				 else
+			     pLS->state = STATE_OFF;
 		   }
 		   if (pLS->state == STATE_REDO_ALL && pLS->fPlayFadeAtten == 1.0f) {
 			   // play some of the old loop first and switch later
@@ -4759,7 +4781,7 @@ runSooperLooper(LADSPA_Handle Instance,
      if (pLS->pfCycleLength)
 	*pLS->pfCycleLength = 0.0f;
 
-     if (pLS->pfStateOut && pLS->state != STATE_MUTE && pLS->state != STATE_TRIG_START)
+     if (pLS->pfStateOut && pLS->state != STATE_OFF_MUTE  && pLS->state != STATE_MUTE && pLS->state != STATE_TRIG_START)
 	*pLS->pfStateOut = (LADSPA_Data) STATE_OFF;
 
   }
