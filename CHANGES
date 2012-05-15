@@ -4,6 +4,7 @@ SLGUI:
 - Mute now flashes when waiting to go into mute instead of rev flashing
 - Mute of others flashes instead of solo flashing when going in and out of solo
 - Fixed CC bindings for commands that need to be registered as hits 
+- MIDI bindings choice now sorted alphabetically
 
 SooperLooper:
 - Fixed issue of not being able to load audio files from session when not started from the same directory
