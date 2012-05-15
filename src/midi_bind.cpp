@@ -191,57 +191,57 @@ MidiBindings::clear_bindings ()
 	_bindings.clear();
 }
 
-
-bool
-MidiBindings::load_bindings (string filename, bool append)
-{
-	//FILE * bindfile = 0;
-	ifstream bindfile;
-
-	bindfile.open(filename.c_str(), ios::in);
-	
-	if (!bindfile.is_open()) {
-		cerr << "sooperlooper warning: could not open for reading: " << filename << endl;
-		return false;
-	}
-	// todo: look for is in systemwide and ~/.sooperlooper/bindings/
-
-
-	return load_bindings (bindfile, append);
-}
-
-bool
-MidiBindings::load_bindings (std::istream & instream, bool append)
-{
-	char  line[200];
-
-	
-	if (!append) {
-		clear_bindings();
-	}
-
-	while ( ! instream.eof())
-		//while (fgets (line, sizeof(line), bindfile) != NULL)
-		
-	{
-	        instream.getline (line, sizeof(line));
-		
-		// ignore empty lines and # lines
-		if (line[0] == '\n' || line[0] == '#' || line[0] == '\0') {
-			continue;
-		}
-
-		MidiBindInfo info;
-
-		if (!info.unserialize(line)) {
-			continue;
-		}
-
-		add_binding (info);
-	}
-
-	return true;
-}
+// Moved to engine for easier access to initial values for toggle
+//bool
+//MidiBindings::load_bindings (string filename, bool append)
+//{
+//	//FILE * bindfile = 0;
+//	ifstream bindfile;
+//
+//	bindfile.open(filename.c_str(), ios::in);
+//	
+//	if (!bindfile.is_open()) {
+//		cerr << "sooperlooper warning: could not open for reading: " << filename << endl;
+//		return false;
+//	}
+//	// todo: look for is in systemwide and ~/.sooperlooper/bindings/
+//
+//
+//	return load_bindings (bindfile, append);
+//}
+//
+//bool
+//MidiBindings::load_bindings (std::istream & instream, bool append)
+//{
+//	char  line[200];
+//
+//	
+//	if (!append) {
+//		clear_bindings();
+//	}
+//
+//	while ( ! instream.eof())
+//		//while (fgets (line, sizeof(line), bindfile) != NULL)
+//		
+//	{
+//	        instream.getline (line, sizeof(line));
+//		
+//		// ignore empty lines and # lines
+//		if (line[0] == '\n' || line[0] == '#' || line[0] == '\0') {
+//			continue;
+//		}
+//
+//		MidiBindInfo info;
+//
+//		if (!info.unserialize(line)) {
+//			continue;
+//		}
+//
+//		add_binding (info);
+//	}
+//
+//	return true;
+//}
 
 bool MidiBindings::save_bindings (string filename)
 {
