@@ -13,6 +13,7 @@ SooperLooper:
 - Fixed individual loop monitor not being sent to main-out
 - Fixed toggle MIDI bindings requiring double press when first loaded
 - Fixed some clicks when undoing
+- Added CCon and CCoff messagage types to midi bindings
 - Undo now goes back to Off state even after 2 consecutive actions
 - Can now mute and un-mute when loop is in Off state
 
@@ -26,4 +27,4 @@ AU:
 
 Others:
 - Small maintenance on help output, OSC doc file and indentation, spelling etc.
-- HTML DOCs now include full MIDI command reference
+- HTML docs now include full MIDI command reference
