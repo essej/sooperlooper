@@ -34,6 +34,7 @@
 #include "event_nonrt.hpp"
 
 #include "midi_bridge.hpp"
+#include "command_map.hpp"
 #include <midi++/port_request.h>
 
 // #if WITH_ALSA
@@ -276,7 +277,7 @@ static void setup_signals()
 int main(int argc, char** argv)
 {
 	OptionInfo option_info;
-
+	CommandMap & cmdmap = CommandMap::instance();
 	//setup_signals();
 	
 	
@@ -370,10 +371,11 @@ int main(int argc, char** argv)
 #endif
 
 	if (midibridge && midibridge->is_ok()) {
-		if (!option_info.bindfile.empty()) {
-			midibridge->bindings().load_bindings (option_info.bindfile);
-		}
 		engine->set_midi_bridge(midibridge);
+		if (!option_info.bindfile.empty()) {
+			engine->load_midi_bindings(option_info.bindfile, false, cmdmap);
+			//midibridge->bindings().load_bindings (option_info.bindfile);
+		}
 	}
 	
 	// go into engine's non-rt event loop

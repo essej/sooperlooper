@@ -104,8 +104,9 @@ public:
 
 	void clear_bindings ();
 
-	bool load_bindings (std::string filename, bool append=false);
-	bool load_bindings (std::istream & instream, bool append=false);
+	// Moved to engine for easier access to initial values for toggle
+	//bool load_bindings (std::string filename, bool append=false);
+	//bool load_bindings (std::istream & instream, bool append=false);
 
 	bool save_bindings (std::string filename);
 	bool save_bindings (std::ostream & outstream);

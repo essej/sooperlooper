@@ -1117,6 +1117,7 @@ LooperPanel::update_state()
 		_scratch_button->set_active(false);
 		break;
 	case LooperStateMuted:
+	case LooperStateOffMuted:
 		_mute_button->set_active(false);
 		break;
 	case LooperStateOneShot:
@@ -1169,6 +1170,7 @@ LooperPanel::update_state()
 		//_rate_button->Enable(true);
 		break;
 	case LooperStateMuted:
+	case LooperStateOffMuted:
 		_mute_button->set_active(true);
 		_flashing_button = _mute_button;
 		break;
@@ -1219,6 +1221,7 @@ LooperPanel::update_state()
 				_flashing_button = _once_button;
 				break;
 			case LooperStateMuted:
+			case LooperStateOffMuted:
 				if (state == LooperStatePlaying)
 					_flashing_button = _mute_button;
 				else if ( state == LooperStateMuted)

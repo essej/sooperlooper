@@ -1,0 +1,739 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>SooperLooper -  Documentation :: MIDI Commands</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    
+    <link rel="stylesheet" href="css/nn4.css" type="text/css" media="screen" />
+    <!--link before import prevents Flash Of Unstyled Content in ie6pc -->
+    <style type="text/css" media="screen">@import "css/jlc.css";</style>
+  </head>
+    
+    <body>
+      
+      <div id="Header">      
+	<a href="index.html" border=0>
+	<img src="sl_web_logo_black.png" id="titleimage"></a>
+
+	<div id="headertitle">
+	  <h4 id="titletext">Live Looping Sampler</h4>
+	</div>
+
+	<div id="pagetitle">
+	  <h4 id="pagetitletext">Documentation ::: Midi Commands</h4>
+	</div>
+
+      </div>
+      
+      
+      <div id="Content">
+<h4>[CMD]</h4><h5> These are commands i.e. operations to perform on a loop. </h5>
+<div class ="commandbox_head">
+  <b>[cmd] insert</b>
+</div>
+<div class="commandbox">
+  <p>
+It inserts new input in place, but always one "cycle" length... QuantizeMode and RoundMode have effects similar to Multiply. 
+  <div class="ending_box">
+    <b>Special Endings</b><br>
+    <ul>
+      <li>Ending with a RECORD press it ends the operation immediately and resets the cycle length to the whole loop. 
+    </ul>
+  </div> <!-- class="ending_box" -->
+</div> <!-- class="commandbox" -->
+
+<div class ="commandbox_head">
+  <b>[cmd] multiply</b>
+</div>
+<div class="commandbox">
+  <p>
+This similar to overdub, except the original loop is repeated underneath you "multiplying" the loop length until you stop it. Thus it can turn a 1 measure loop into a 2,3, etc measure loop. QuantizeMode and RoundMode affect how the overdubbing starts and stops. QuantizeMode affects when the operation begins, and RoundMode affects if the new audio continues to be added throughthe end of the current cycle after hitting the final record.
+<p>  Keep in mind that the original loop length is a "cycle" and the loop length will be a multiple of that. You can actually make an already multiplied loop have fewer cycles when using Multiply on loops that have already been multiplied. 
+
+
+  <div class="ending_box">
+    <b>Special Endings</b><br>
+    <ul>
+      <li>If you end a MULTIPLY with a RECORD press it ends the loop immediately and resets the cycle length to the whole loop. 
+      <li>The MultiIncrease function is implemented which allows you to increment the cycle count ahead of time, without needing to wait until the exact time to finish the multiply. Basically, press Multiply as if you were finishing it, then before the current cycle plays out, press Multiply again repeatedly to add cycles. The multiply will resume and automatically go into playback after the specified number of cycles. 
+    </ul>
+  </div> <!-- class="ending_box" -->
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] mute</b>
+</div>
+<div class="commandbox">
+  <p>
+Press to mute loop output, press again to un-mute. Dry passthough audio will be unaffected. To continue playing the loop from the top press "[cmd]trig". To play back the loop once and return to mute, press "[cmd] oneshot". 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] mute_off</b>
+</div>
+<div class="commandbox">
+  <p>
+Press to un-mute loop output.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] mute_on</b>
+</div>
+<div class="commandbox">
+  <p>
+Press to mute loop output.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] mute_trigger</b>
+</div>
+<div class="commandbox">
+  <p>
+Press to mute. Press again to un-mute and start the loop from the top (like "[cmd] trigger"). 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] oneshot</b>
+</div>
+<div class="commandbox">
+  <p>
+(called "once" on GUI and in the <a href="doc_commands.html">GUI Command Reference</a>) this immediately restarts the loop playing back from the beginning, and goes into MUTE mode at the end of the loop. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] overdub</b>
+</div>
+<div class="commandbox">
+  <p>
+This keeps playing the loop and adds whatever you play on top until you stop overdubbing. Very useful.... this is the main tool. The Feedback controls the amount of the original loop that is used every pass. In actuality, when Feedback is set to 100%, it uses a slightly less amount to help prevent clipping on output. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] pause</b>
+</div>
+<div class="commandbox">
+  <p>
+Press to pause loop playback, press again to un-pause. Dry passthough audio will be unaffected. To continue playing the loop from the top press "[cmd] trigger". To play back the loop once and return to mute, press "[cmd] oneshot". 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] pause_off</b>
+</div>
+<div class="commandbox">
+  <p>
+Un-pause the loop playback.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] pause_on</b>
+</div>
+<div class="commandbox">
+  <p>
+Pause the loop playback.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record</b>
+</div>
+<div class="commandbox">
+  <p>
+Start here. If the record threshold is all the way down, pressing it once will start recording and pressing again will end the recording. <p> If the Threshold is set higher the loop recording doesn't start until the audio data is greater than the threshold. When finishing the loop, the threshold value is ignored. See the tips in the EDP manual, it works best if you stop and start recording the moment you hit the downbeat, not before. Trust them. 
+  <div class="ending_box">
+    <b>Special Endings</b><br>
+    <ul>
+      <li>If you end a RECORD with another function (OVERDUB, MULTIPLY, REPLACE, SUBSTITUTE, INSERT, ONCE) it will finish the loop immediately (threshold ignored) and start doing the new function. 
+      <li>Ending with REVERSE stops recording and plays the loop backwards once then goes into MUTE mode. 
+    </ul>
+  </div> <!-- class="ending_box" -->
+</div> <!-- class="commandbox" -->
+
+<div class ="commandbox_head">
+  <b>[cmd] record_exclusive</b>
+</div>
+<div class="commandbox">
+  <p>
+Records one loop exclusively at a time (loop number should be set to something other than all). When you start record on one loop it stop recording on all others. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_exclusive_next</b>
+</div>
+<div class="commandbox">
+  <p>
+Same as record_exclusive but selects the next loop before starting to record (affected loop will always be the one selected no matter what loop number it is set to). Pressing it while recording will stop recording, switch to the next loop and start recording.  
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_exclusive_prev</b>
+</div>
+<div class="commandbox">
+  <p>
+Same as record_exclusive_next but selects the previous loop instead.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_or_overdub</b>
+</div>
+<div class="commandbox">
+  <p>
+Record if nothing has been recorded, otherwise it overdubs. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_or_overdub_excl</b>
+</div>
+<div class="commandbox">
+  <p>
+Same as record_exclusive except it records if nothing has been recorded, otherwise it overdubs. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_or_overdub_excl_next</b>
+</div>
+<div class="commandbox">
+  <p>
+Same as record_exclusive_next except it records if nothing has been recorded on loop it selects , otherwise it overdubs. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_or_overdub_excl_prev</b>
+</div>
+<div class="commandbox">
+  <p>
+Same as record_exclusive_prev except it records if nothing has been recorded on loop it selects , otherwise it overdubs. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_or_overdub_solo</b>
+</div>
+<div class="commandbox">
+  <p>
+Same as record_or_overdub but sets the loop to solo too.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_or_overdub_solo_next</b>
+</div>
+<div class="commandbox">
+  <p>
+Same as record_or_overdub_solo but selects the next loop before beginning recording or overdub. Pressing it a second time will stop recording or overdubbing, select the next loop, set it to solo and begin recording or overdubbing. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_or_overdub_solo_prev</b>
+</div>
+<div class="commandbox">
+  <p>
+Same as record_or_overdub_solo_next but selects the previous loop instead.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_or_overdub_solo_trig</b>
+</div>
+<div class="commandbox">
+  <p>
+Same as record_or_overdub_solo but re-triggers loop if it was muted.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_overdub_end_solo</b>
+</div>
+<div class="commandbox">
+  <p>
+Like record_or_overdub_solo but goes straight out of record into overdub on the second press.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_overdub_end_solo_trig</b>
+</div>
+<div class="commandbox">
+  <p>
+Same as record_overdub_end_solo but re-triggers the loop if it was muted. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_solo</b>
+</div>
+<div class="commandbox">
+  <p>
+Like record but solos the loop. Effectively mutes everything while you are recording. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_solo_next</b>
+</div>
+<div class="commandbox">
+  <p>
+Like record_solo but switches to the next loop before recording. Pressing it while recording will stop recording, switch to next loop, mute all other loops and then start recording.  
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] record_solo_prev</b>
+</div>
+<div class="commandbox">
+  <p>
+Like record_solo_next but switches to the previous loop instead. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] redo</b>
+</div>
+<div class="commandbox">
+  <p>
+Redoes the previous undo if it can (if you haven't done a new operation since your last undo). Taken together UNDO and REDO allow you to do some neat things: record a verse part, then hit record to do a chorus part. To get back to the verse, press UNDO... to get to the chorus press REDO. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] redo_all</b>
+</div>
+<div class="commandbox">
+  <p>
+Redoes as many undos as possible. Doing something else after an undo will make it impossible to redo it. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] replace</b>
+</div>
+<div class="commandbox">
+  <p>
+Replaces the audio in the loop for the duration of the command. The existing loop audio is not heard during the operation.<p>  When Quantize mode is set, this operation will be quantized on start and finish with the current sync and quantize parameters. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] reset_sync_pos</b>
+</div>
+<div class="commandbox">
+  <p>
+Resets the sync position, the place where trigger will start playing when invoked, to 0.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] reverse</b>
+</div>
+<div class="commandbox">
+  <p>
+Reverses playback direction. Can be used in play mode, and even during an OVERDUB, which makes for some pretty interesting stuff. Can also be used in DELAY mode. If Quantize is on, the reversal doesn't happen until the next sync boundary, thus keeping the loop in time. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] scratch</b>
+</div>
+<div class="commandbox">
+  <p>
+("SCRATCH MODE" in the <a href="doc_commands.html">GUI Command Reference</a>) By default the Scratch Rate Active is toggled off which means it ignores the Scratch Rate parameter. Changes in the Scratch Position parameter over time define the rate of playback (position unit is ratio of current loop length). The implementation is still pretty rough sounding.<p>  I've personally used a theremin (the PAIA Theremax) with CV output through my MIDI pedal, although the scratching code needs some work. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] set_sync_pos</b>
+</div>
+<div class="commandbox">
+  <p>
+Sets, the sync position to the current position. The sync position is where the loop will start to play from when trigger is pressed. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] solo</b>
+</div>
+<div class="commandbox">
+  <p>
+Pressing SOLO will mute all other looper instances. Pressing it again will revert to the previous state before solo was pressed (eg, loops that were muted before the first press will stay muted). Pressing solo for a different loop will cause that loop to be the new soloed loop, only one loop may be soloed currently. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] solo_next</b>
+</div>
+<div class="commandbox">
+  <p>
+Select the next loop and solo it
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] solo_prev</b>
+</div>
+<div class="commandbox">
+  <p>
+Select the previous loop and solo it
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] substitute</b>
+</div>
+<div class="commandbox">
+  <p>
+Is like Replace except you still hear the current underlying loop audio as it records new audio into the loop. On the next time around, only the newly recorded audio will be heard. This helps maintain the groove when recording a replacement section, because you can play with what was there.<p>  When Quantize mode is set, this operation will be quantized on start and finish. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] trigger</b>
+</div>
+<div class="commandbox">
+  <p>
+this immediately restarts the loop playing back from the beginning. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] undo</b>
+</div>
+<div class="commandbox">
+  <p>
+Restores the playing loop to the state before the last operation. It maintains the current time position if the current loop was based on the previous loop (eg, not newly recorded). You can go all the way back to the first one still intact within the loop memory. As more operations are done, more of the available loop memory is used, and it will eventually start reclaiming the oldest versions.<p>  Note that to undo all existing state, do a long-press of Undo.<p>  Pressing Undo when an operation is waiting for sync or quantization will cancel the pending operation. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[cmd] undo_all</b>
+</div>
+<div class="commandbox">
+  <p>
+Undoes everything restoring the loop to an empty state. 
+</div> <!-- class="commandbox" -->
+<h4>[CTRL]</h4><h5> These are controls i.e. parameters, set per loop. </h5>
+<div class ="commandbox_head">
+  <b>[ctrl] autoset_latency</b>
+</div>
+<div class="commandbox">
+  <p>
+This toggles the option for automatically disabling latency compensation when the input monitor i.e. "dry" control is not -infinity.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] delay_trigger</b>
+</div>
+<div class="commandbox">
+  <p>
+("Delay" on the GUI "DELAY MODE" in the <a href="doc_commands.html">GUI Command Reference</a>) Pressing the Delay control triggers Delay Mode. The time between the most recent two presses is the new delay time. While in DELAY mode, you can toggle Hold Mode (by pressing Replace), or Reverse at any time for a cool effect. To get out of delay mode press any other function or UNDO. You will probably want to adjust Feedback down from 1 before you enter delay mode or you'll build up a nice cacophony fast. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] dry</b>
+</div>
+<div class="commandbox">
+  <p>
+("in mon" and "main in mon" (if set to global) on GUI and in <a href="doc_commands.html">GUI Command Reference</a>) Sets the level of any incoming audio for passthrough monitoring to the common outputs. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] fade_samples</b>
+</div>
+<div class="commandbox">
+  <p>
+("xfade" on GUI and in the <a href="doc_commands.html">GUI Command Reference</a>) The xfade control sets the length in samples that is used to crossfade the audio on loop operations. Useful to prevent unwanted clicks caused by waveform discontinuities. However, if you want them set this value to 0. The control in the GUI affects all loops. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] feedback</b>
+</div>
+<div class="commandbox">
+  <p>
+Controls the percent feedback that is recorded back to the loop on overdub.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] input_gain</b>
+</div>
+<div class="commandbox">
+  <p>
+The input gain control sets a gain attenuation of the incoming main input audio. This affect the input into the loops only, not the main passthrough monitoring. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] input_latency</b>
+</div>
+<div class="commandbox">
+  <p>
+Controls the amount of input latency.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] jack_timebase_master</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggles whether SL is the jack timebase master.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] mute_quantized</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggles if mute operations are quantized. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] output_latency</b>
+</div>
+<div class="commandbox">
+  <p>
+Controls output latency.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] overdub_quantized</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggles if overdub operations are quantized.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] pan_1</b>
+</div>
+<div class="commandbox">
+  <p>
+Controls the pan of Channel 1.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] pan_2</b>
+</div>
+<div class="commandbox">
+  <p>
+Controls the pan of Channel 2.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] pan_3</b>
+</div>
+<div class="commandbox">
+  <p>
+Controls the pan of Channel 3.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] pan_4</b>
+</div>
+<div class="commandbox">
+  <p>
+Controls the pan of Channel 4.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] pitch_shift</b>
+</div>
+<div class="commandbox">
+  <p>
+Sets the pitch shift amount. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] playback_sync</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggles whether playback is synced i.e. quantized.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] quantize</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggles if any quantize operations apply to this loop.  
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] rate</b>
+</div>
+<div class="commandbox">
+  <p>
+("Rate Adjustement" in <a href="doc_commands.html">GUI Command Reference</a>) The rate can be adjusted anytime (even during Recording) and will affect both the underlying loop and any new incoming audio recorded onto the loop, reminiscent of tape delay systems. Altering the Rate during recording/overdubbing, etc can result in interesting recorded audio. The GUI has buttons for easy access to 1/2 speed, double speed, and normal (1x) speed. MIDI bindings can be created to act like these buttons by specifying the range min and max to equal the target rate. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] rec_thresh</b>
+</div>
+<div class="commandbox">
+  <p>
+Set's the recording threshold for this loop.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] redo_is_tap</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggles whether the redo command is also the tap timer for the delay function.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] relative_sync</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggles releative sync. See <a href="doc_sync.html"> the sync documentation. </a>
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] replace_quantized</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggles whether replace operation quantized for this loop.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] round</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggles round mode. When round is on it keeps recording you input until the next quantize boundary after you finish the operation.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] round_integer_tempo</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggles whether the tempo is rounded to integer values.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] scratch_pos</b>
+</div>
+<div class="commandbox">
+  <p>
+Controls the position of the scratch operation.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] stretch_ratio</b>
+</div>
+<div class="commandbox">
+  <p>
+Controls the ratio of the stretch operation.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] sync</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggles whether this loop's sync to any of the quantize options.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] tempo_stretch</b>
+</div>
+<div class="commandbox">
+  <p>
+Controls the stretch amount.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] trigger_latency</b>
+</div>
+<div class="commandbox">
+  <p>
+Sets the latency for trigger operations.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] use_common_ins</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggles whether this loop connects to the common inputs.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] use_common_outs</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggles whether this loop connects to the common outputs.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] use_feedback_play</b>
+</div>
+<div class="commandbox">
+  <p>
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] use_rate</b>
+</div>
+<div class="commandbox">
+  <p>
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] use_safety_feedback</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggles whether this loop's feedback will be 100% when set to 100% rather than just below (which prevents clipping).
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[ctrl] wet</b>
+</div>
+<div class="commandbox">
+  <p>
+("main out" on the GUI and the <a href="doc_commands.html">GUI Command Reference</a>)
+The main wet control sets master level of all loop audio being sent out the main output ports. It does not affect the passthrough level from the main inputs, use the main in mon control for that. 
+</div> <!-- class="commandbox" -->
+<h4>[G.CTRL]</h4><h5> These are global controls. </h5>
+<div class ="commandbox_head">
+  <b>[g.ctrl] auto_disable_latency</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggle whether latency compensation auto disables if the main in mon is higher than -infinity.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[g.ctrl] eighth_per_cycle</b>
+</div>
+<div class="commandbox">
+  <p>
+Controls the number of eighths per cycle.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[g.ctrl] output_midi_clock</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggle whether to output a midi clock.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[g.ctrl] save_loop</b>
+</div>
+<div class="commandbox">
+  <p>
+Save the loop to a WAV file.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[g.ctrl] select_all_loops</b>
+</div>
+<div class="commandbox">
+  <p>
+Select all the loops in the session.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[g.ctrl] select_next_loop</b>
+</div>
+<div class="commandbox">
+  <p>
+Select the loop after the currently selected one. When it reaches the last it loops back to the first. 
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[g.ctrl] select_prev_loop</b>
+</div>
+<div class="commandbox">
+  <p>
+Select the loop previous to the one currently selected. When it reaches the first loop it goes to the last loop.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[g.ctrl] selected_loop_num</b>
+</div>
+<div class="commandbox">
+  <p>
+Select a specific loop number.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[g.ctrl] send_midi_start_on_trigger</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggle whether a midi start message is sent on trigger.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[g.ctrl] smart_eighths</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggle whether SL figures out the number of eights in a loop.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[g.ctrl] sync_source</b>
+</div>
+<div class="commandbox">
+  <p>
+Select the sync source for tempo. -3 = internal,  -2 = midi, -1 = jack, 0 = none, # > 0 = loop number (1 indexed)
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[g.ctrl] tap_tempo</b>
+</div>
+<div class="commandbox">
+  <p>
+Tap tempo to control the tempo.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[g.ctrl] tempo</b>
+</div>
+<div class="commandbox">
+  <p>
+Set the tempo.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[g.ctrl] use_midi_start</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggle whether SL listens to midi start messages.
+</div> <!-- class="commandbox" -->
+<div class ="commandbox_head">
+  <b>[g.ctrl] use_midi_stop</b>
+</div>
+<div class="commandbox">
+  <p>
+Toggle whether SL listens to midi stop messages.
+</div> <!-- class="commandbox" -->
+      </div> <!--class="Content" -->
+
+
+      <div class="copyright">
+	&copy; 2005  Jesse Chappell  <i>&lt;jesse at essej dot net&gt;</i>
+	
+      </div>
+      
+      <div id="Menu">
+    	<a href="index.html" title="Home">Home</a><br>
+    	<a href="features.html" title="Features">Features</a><br>
+    	<a href="download.html" title="Download">Download</a><br>
+    	<a href="docs.html" title="Documentation">Documentation</a><br>
+
+    	<a href="doc_start.html" title="Getting Started" class="offset">Getting Started</a><br>
+    	<a href="doc_commands.html" title="Command Reference"  class="offset">Commands</a><br>
+    	<a href="doc_sync.html" title="Sync/Tempo"  class="offset">Sync/Tempo</a><br>
+    	<a href="doc_midi.html" title="MIDI Bindings"
+	  class="offset">MIDI Bindings</a><br>
+    	<a href="doc_midi_commands.html" title="MIDI Command Reference"  class="offset">MIDI Commands</a><br>
+    	<a href="doc_osc.html" title="OSC Interface"
+	  class="offset">OSC Interface</a><br>
+
+
+	<a href="donate.html" title="Donate">Donate</a><br>
+	<a href="/slforum/" title="Forum">Forum</a><br>
+	<a href="https://lists.sourceforge.net/lists/listinfo/sooperlooper-users">Email List</a><br>	
+      </div>
+      
+    </body>
+</html>

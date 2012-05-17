@@ -20,6 +20,8 @@
 
 #include <cmath>
 #include <cstring>
+#include <fstream>
+#include <cstring>
 #include <unistd.h>
 #include <sys/time.h>
 #include <pthread.h>
@@ -38,7 +40,6 @@
 #include "midi_bind.hpp"
 #include "midi_bridge.hpp"
 #include "utils.hpp"
-#include "command_map.hpp"
 
 using namespace SooperLooper;
 using namespace std;
@@ -1361,6 +1362,62 @@ Engine::push_sync_event (Event::control_t ctrl, long framepos, MIDI::timestamp_t
 	return;
 }
 
+//load functions are here rather than in midi_bindings.cpp for easy access to instance values
+//to initialize the toggle values.
+bool
+Engine::load_midi_bindings (string filename, bool append, CommandMap & cmdmap)
+{
+	//FILE * bindfile = 0;
+	std::ifstream bindfile;
+
+	bindfile.open(filename.c_str(), ios::in);
+	
+	if (!bindfile.is_open()) {
+		cerr << "sooperlooper warning: could not open for reading: " << filename << endl;
+		return false;
+	}
+	// todo: look for is in systemwide and ~/.sooperlooper/bindings/
+
+
+	return load_midi_bindings (bindfile, append, cmdmap);
+}
+
+bool
+Engine::load_midi_bindings (std::istream & instream, bool append, CommandMap & cmdmap)
+{
+	char  line[200];
+
+	
+	if (!append) {
+		_midi_bridge->bindings().clear_bindings();
+	}
+
+	while ( ! instream.eof())
+		//while (fgets (line, sizeof(line), bindfile) != NULL)
+		
+	{
+	        instream.getline (line, sizeof(line));
+		
+		// ignore empty lines and # lines
+		if (line[0] == '\n' || line[0] == '#' || line[0] == '\0') {
+			continue;
+		}
+
+		MidiBindInfo info;
+
+		if (!info.unserialize(line)) {
+			continue;
+		}
+
+		//initialize value for toggle with current value
+		if (info.style == MidiBindInfo::ToggleStyle) 
+			info.last_toggle_val = get_control_value(cmdmap.to_control_t(info.control), info.instance);
+
+		_midi_bridge->bindings().add_binding (info);
+	}
+
+	return true;
+}
 
 float
 Engine::get_control_value (Event::control_t ctrl, int8_t instance)
@@ -1918,7 +1975,8 @@ Engine::process_nonrt_event (EventNonRT * event)
 		else if (mb_event->type == MidiBindingEvent::Load)
 		{
 			LockMonitor lm (_midi_bridge->bindings_lock(), __LINE__, __FILE__);
-			_midi_bridge->bindings().load_bindings (mb_event->bind_str, mb_event->options == "add" ? true: false);
+			load_midi_bindings(mb_event->bind_str, mb_event->options == "add" ? true: false, cmdmap);
+			//_midi_bridge->bindings().load_bindings (mb_event->bind_str, mb_event->options == "add" ? true: false);
 		}
 		else if (mb_event->type == MidiBindingEvent::Save)
 		{
@@ -2017,7 +2075,7 @@ Engine::set_tempo (double tempo, bool rt)
 	_tempo_counter = 0;
 
 
-	// adjust eigths per cycle if tempo is > 240 or < 60
+	// adjust eighths per cycle if tempo is > 240 or < 60
 	if (_smart_eighths &&
 	    _tempo > 1.0 && (_tempo > 240.0 || _tempo < 60.0)) {
 		//cerr << "tempo is " << _tempo << endl;
