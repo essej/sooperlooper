@@ -31,6 +31,7 @@
 #include "event_nonrt.hpp"
 #include "audio_driver.hpp"
 #include "midi_bind.hpp"
+#include "command_map.hpp"
 
 namespace SooperLooper {
 
@@ -105,6 +106,9 @@ class Engine
 	
 	std::string get_osc_url (bool udp=true);
 	int get_osc_port ();
+
+	bool load_midi_bindings (std::string filename, bool append, CommandMap & cmdmap);
+	bool load_midi_bindings (std::istream & instream, bool append, CommandMap & cmdmap);
 
 	float get_control_value (Event::control_t, int8_t instance);
 	

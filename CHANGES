@@ -1,0 +1,30 @@
+SLGUI:
+- Fixed SooperLooper being mistakenly identified as remote
+- Now ignoring non .wav and non .slsess files in load and save file selection dialogues
+- Mute now flashes when waiting to go into mute instead of rev flashing
+- Mute of others flashes instead of solo flashing when going in and out of solo
+- Fixed CC bindings for commands that need to be registered as hits 
+- MIDI bindings choice now sorted alphabetically
+
+SooperLooper:
+- Fixed issue of not being able to load audio files from session when not started from the same directory
+- Fixed fade not working after undo_all
+- Removed 1 sample click in multiply
+- Fixed individual loop monitor not being sent to main-out
+- Fixed toggle MIDI bindings requiring double press when first loaded
+- Fixed some clicks when undoing
+- Added CCon and CCoff messagage types to midi bindings
+- Undo now goes back to Off state even after 2 consecutive actions
+- Can now mute and un-mute when loop is in Off state
+
+OSC:
+- OSC Auto Update time can now be set between 10-100ms
+- "osc.udp://" can be omitted from the return URL parameter of any OSC message
+- SooperLooper no longer seg-faults when an invalid return URL is given
+
+AU:
+- State and waiting AU parameters now working
+
+Others:
+- Small maintenance on help output, OSC doc file and indentation, spelling etc.
+- HTML docs now include full MIDI command reference

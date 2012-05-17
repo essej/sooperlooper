@@ -200,7 +200,7 @@ void MidiBindPanel::init()
 	wxStaticText * staticText;
 	//colsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE, 2);
 
-	_control_combo = new wxChoice(_edit_panel, ID_ControlCombo,  wxDefaultPosition, wxSize(100, -1), 0, 0);
+	_control_combo = new wxChoice(_edit_panel, ID_ControlCombo,  wxDefaultPosition, wxSize(100, -1), 0, wxCB_SORT);
 	//_control_combo->SetToolTip(wxT("Choose control or command"));
 	populate_controls();
 	//_control_combo->SetSelection(0);
@@ -710,7 +710,7 @@ void MidiBindPanel::update_curr_binding()
 	}
 
 	if (cmap.is_command(_currinfo.control)) {
-		if (_currinfo.type == "pc") {
+		if (_currinfo.type == "pc" || _currinfo.type == "cc") {
 			_currinfo.command = "hit";
 		}
 		else {
