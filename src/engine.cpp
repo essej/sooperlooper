@@ -1492,8 +1492,10 @@ Engine::mainloop()
 
 	//initialize auto timeout arrays
 	for (int i = 0; i < AUTO_UPDATE_RANGE; i++) {
-		timer_last[i] = {0, 0};
-		auto_update_timer_v[i] = {0, ((AUTO_UPDATE_STEP*(i+1)))*1000};
+		timer_last[i].tv_sec = 0;
+                timer_last[i].tv_usec = 0;
+		auto_update_timer_v[i].tv_sec = 0;
+                auto_update_timer_v[i].tv_usec = ((AUTO_UPDATE_STEP*(i+1)))*1000;
 	}
 	
 	// non-rt event processing loop
