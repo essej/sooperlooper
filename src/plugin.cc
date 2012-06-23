@@ -2828,22 +2828,22 @@ runSooperLooper(LADSPA_Handle Instance,
 			      pLS->fNextCurrRate = 0.0f;
 		      }
 
-					if (pLS->state == STATE_MUTE) {
-						// undo ONE)
-						if (loop->prev) {
+					if (loop->prev) {
+						if (pLS->state == STATE_MUTE) {
 							undoLoop(pLS, false);;
-						} else {
-							pLS->state = STATE_UNDO_ALL;
-						}
-					} else {
-						if (loop->prev) {
+						} else { //undo with proper xfade
 							pLS->state = STATE_UNDO;
 							pLS->nextState = STATE_PLAY;
-						} else {
-							pLS->state = STATE_UNDO_ALL;
 						}
-
+					} else {
+							LoopChunk *dead;
+   						dead = pLS->headLoopChunk;
+							//only go back into off if this is the only action undone
+   						if (dead && (!dead->next)) {
+								pLS->state = STATE_UNDO_ALL;
+   						}
 					}
+
 			   
 			   pLS->fLoopFadeDelta = -1.0f / xfadeSamples;
 			   pLS->fFeedFadeDelta = 1.0f / xfadeSamples;
@@ -2880,7 +2880,6 @@ runSooperLooper(LADSPA_Handle Instance,
 				
 				pLS->fLoopFadeDelta = -1.0f / (xfadeSamples);
 				pLS->fPlayFadeDelta = -1.0f / xfadeSamples;// fade out for undo all
-				pLS->wasMuted = true;
 			}			
 		}
 	} break;
@@ -4558,7 +4557,6 @@ runSooperLooper(LADSPA_Handle Instance,
 			   // fade out the old loop and goto state_off
 			   clearLoopChunks(pLS);
 			   DBG(fprintf(stderr, "finished UNDO ALL...\n"));
-				 cerr << "was muted: " << pLS->wasMuted << endl;
 				 if (pLS->wasMuted)
 			     pLS->state = STATE_OFF_MUTE;
 				 else
