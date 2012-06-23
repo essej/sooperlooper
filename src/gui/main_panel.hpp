@@ -194,6 +194,8 @@ protected:
 	bool          _never_timeout;
 	int           _update_timer_time;
 
+	wxString      _last_used_path;
+
 private:
     // any class wishing to process wxWindows events must use this macro
     DECLARE_EVENT_TABLE()

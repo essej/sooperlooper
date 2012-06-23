@@ -1391,23 +1391,32 @@ void MainPanel::do_save_session (bool write_audio)
 
 wxString MainPanel::do_file_selector(const wxString & message, const wxString & ext, const wxString & wc, int style)
 {
-	wxString filename;
+	wxString filestring;
 
 	_keyboard->set_enabled(false);
 	
 	if (_loop_control->is_engine_local()) {
-		filename = ::wxFileSelector(message, wxT(""), wxT(""), ext, wc, style);
+		wxFileName filename;
+		if (_last_used_path.IsEmpty()) {
+			_last_used_path = filename.GetHomeDir();
+		}
+		filestring = ::wxFileSelector(message, _last_used_path, wxT(""), ext, wc, style);
+		if (!filestring.IsEmpty()) {
+				filename.Assign(filestring);
+				_last_used_path = filename.GetPath();
+		}
 	}
 	else {
 		// popup basic filename text entry
-		filename = ::wxGetTextFromUser(wxString::Format(wxT("%s on remote host '%s'"), message.c_str(),
+		filestring = ::wxGetTextFromUser(wxString::Format(wxT("%s on remote host '%s'"), message.c_str(),
 								_loop_control->get_engine_host().c_str())
 					       , message);
 	}
+	cerr << "last used:" << _last_used_path.ToAscii() << endl;
 
 	_keyboard->set_enabled(true);
 
-	return filename;
+	return filestring;
 }
 
 
