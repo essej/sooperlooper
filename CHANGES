@@ -5,6 +5,7 @@ SLGUI:
 - Mute of others flashes instead of solo flashing when going in and out of solo
 - Fixed CC bindings for commands that need to be registered as hits 
 - MIDI bindings choice now sorted alphabetically
+- File selector now defaults to home and tracks last load/save
 
 SooperLooper:
 - Fixed issue of not being able to load audio files from session when not started from the same directory
@@ -14,7 +15,6 @@ SooperLooper:
 - Fixed toggle MIDI bindings requiring double press when first loaded
 - Fixed some clicks when undoing
 - Added CCon and CCoff messagage types to midi bindings
-- Undo now goes back to Off state even after 2 consecutive actions
 - Can now mute and un-mute when loop is in Off state
 
 OSC:
