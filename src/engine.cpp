@@ -506,7 +506,7 @@ Engine::prepare_buffers(nframes_t nframes)
 		//	memset (outbuf, 0, nframes * sizeof(sample_t));
 		//}
 
-		memset (_temp_output_buffers[i], 0, nframes * sizeof(sample_t));		
+		memset (_temp_output_buffers[i], 0, nframes * sizeof(sample_t));
 		
 		// attenuate common inputs
 
@@ -661,7 +661,7 @@ Engine::get_osc_port ()
 
 
 static inline Event * next_rt_event (RingBuffer<Event>::rw_vector & vec, size_t & pos,
-				     RingBuffer<Event>::rw_vector & midivec, size_t & midipos)
+                                     RingBuffer<Event>::rw_vector & midivec, size_t & midipos)
 {
 	Event * e1 = 0;
 	Event * e2 = 0;
@@ -807,14 +807,23 @@ Engine::process (nframes_t nframes)
 			// handle special global RT events
 			if (evt->Instance == -2 
 			    || evt->Command == Event::SOLO
-			    || evt->Command == Event::SOLO_NEXT ||  evt->Command == Event::SOLO_PREV
-			    || evt->Command == Event::RECORD_SOLO_NEXT ||  evt->Command == Event::RECORD_SOLO_PREV 
+			    || evt->Command == Event::SOLO_NEXT
+			    || evt->Command == Event::SOLO_PREV
+			    || evt->Command == Event::RECORD_SOLO_NEXT
+			    || evt->Command == Event::RECORD_SOLO_PREV
 			    || evt->Command == Event::RECORD_SOLO
-				|| evt->Command == Event::RECORD_EXCLUSIVE_NEXT ||  evt->Command == Event::RECORD_EXCLUSIVE_PREV 
-			    || evt->Command == Event::RECORD_EXCLUSIVE 
-                            || evt->Command == Event::RECORD_OR_OVERDUB_SOLO || evt->Command == Event::RECORD_OR_OVERDUB_SOLO_TRIG || evt->Command == Event::RECORD_OVERDUB_END_SOLO || evt->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG
-				|| evt->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT ||  evt->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV || evt->Command == Event::RECORD_OR_OVERDUB_EXCL
-                            	|| evt->Command == Event::RECORD_OR_OVERDUB_SOLO_NEXT ||  evt->Command == Event::RECORD_OR_OVERDUB_SOLO_PREV )
+			    || evt->Command == Event::RECORD_EXCLUSIVE_NEXT
+			    || evt->Command == Event::RECORD_EXCLUSIVE_PREV
+			    || evt->Command == Event::RECORD_EXCLUSIVE
+			    || evt->Command == Event::RECORD_OR_OVERDUB_SOLO
+			    || evt->Command == Event::RECORD_OR_OVERDUB_SOLO_TRIG
+			    || evt->Command == Event::RECORD_OVERDUB_END_SOLO
+			    || evt->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG
+			    || evt->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT
+			    || evt->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV
+			    || evt->Command == Event::RECORD_OR_OVERDUB_EXCL
+			    || evt->Command == Event::RECORD_OR_OVERDUB_SOLO_NEXT
+			    || evt->Command == Event::RECORD_OR_OVERDUB_SOLO_PREV )
 			{
 				do_global_rt_event (evt, usedframes + doframes, nframes - (usedframes + doframes));
 				
@@ -870,10 +879,12 @@ Engine::process (nframes_t nframes)
 
 			usedframes += doframes;
 
-                        // event is committed, if it is a control event, push it onto the nonrt update queue
-                        if (evt->Type == Event::type_control_change || evt->Type == Event::type_global_control_change) {
-                                do_push_control_event (_nonrt_update_event_queue, evt->Type, evt->Control, evt->Value, evt->Instance, evt->source);
-                        }
+			// event is committed, if it is a control event, push it onto the nonrt update queue
+			if (evt->Type == Event::type_control_change || evt->Type == Event::type_global_control_change) {
+				do_push_control_event (_nonrt_update_event_queue, 
+				                       evt->Type, evt->Control, evt->Value, 
+				                       evt->Instance, evt->source);
+			}
 
 			evt = next_rt_event (vec, n, midivec, midi_n);
 		}
@@ -931,10 +942,22 @@ Engine::process (nframes_t nframes)
 void
 Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 {
-	bool exclcmd = (ev->Command == Event::RECORD_EXCLUSIVE_NEXT ||  ev->Command == Event::RECORD_EXCLUSIVE_PREV || ev->Command == Event::RECORD_EXCLUSIVE);
-	bool exclocmd = (ev->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT ||  ev->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV || ev->Command == Event::RECORD_OR_OVERDUB_EXCL); 
-	bool recOverSoloNext = (ev->Command == Event::RECORD_OR_OVERDUB_SOLO_NEXT || ev->Command == Event::RECORD_OR_OVERDUB_SOLO_PREV);
-	bool recOverSolo = (ev->Command == Event::RECORD_OR_OVERDUB_SOLO || ev->Command == Event::RECORD_OR_OVERDUB_SOLO_TRIG || ev->Command == Event::RECORD_OVERDUB_END_SOLO || ev->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG  || recOverSoloNext);
+	bool exclcmd         = (   ev->Command == Event::RECORD_EXCLUSIVE_NEXT 
+	                        || ev->Command == Event::RECORD_EXCLUSIVE_PREV 
+	                        || ev->Command == Event::RECORD_EXCLUSIVE);
+
+	bool exclocmd        = (   ev->Command == Event::RECORD_OR_OVERDUB_EXCL_NEXT 
+	                        || ev->Command == Event::RECORD_OR_OVERDUB_EXCL_PREV 
+	                        || ev->Command == Event::RECORD_OR_OVERDUB_EXCL); 
+
+	bool recOverSoloNext = (   ev->Command == Event::RECORD_OR_OVERDUB_SOLO_NEXT 
+	                        || ev->Command == Event::RECORD_OR_OVERDUB_SOLO_PREV);
+
+	bool recOverSolo     = (   ev->Command == Event::RECORD_OR_OVERDUB_SOLO 
+	                        || ev->Command == Event::RECORD_OR_OVERDUB_SOLO_TRIG 
+	                        || ev->Command == Event::RECORD_OVERDUB_END_SOLO 
+	                        || ev->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG  
+	                        || recOverSoloNext);
 
 	if (ev->Control == Event::TapTempo) {
 		nframes_t thisframe = _running_frames + offset;
@@ -982,10 +1005,13 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 		}
 		
 	}
-	else if (ev->Command == Event::SOLO || ev->Command == Event::SOLO_NEXT ||  ev->Command == Event::SOLO_PREV
-                 ||  ev->Command == Event::RECORD_SOLO_NEXT ||  ev->Command == Event::RECORD_SOLO_PREV || ev->Command == Event::RECORD_SOLO
-                 || recOverSolo
-                 || exclcmd || exclocmd)
+	else if (ev->Command == Event::SOLO 
+	      || ev->Command == Event::SOLO_NEXT
+	      || ev->Command == Event::SOLO_PREV
+	      || ev->Command == Event::RECORD_SOLO_NEXT
+	      || ev->Command == Event::RECORD_SOLO_PREV
+	      || ev->Command == Event::RECORD_SOLO
+	      || recOverSolo || exclcmd || exclocmd)
 	{
 		// notify all loops they are being soloed or not (this acts as a toggle)
 		int target_instance = (ev->Instance == -3) ? _selected_loop : ev->Instance;
@@ -1017,7 +1043,7 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
                 bool target_was_muted = false;
 		if (target_instance >= 0 && target_instance < (int) _rt_instances.size()) 
 		{
-                        target_was_muted = _rt_instances[target_instance]->is_muted() &&  _rt_instances[target_instance]->has_loop(); 
+			target_was_muted = _rt_instances[target_instance]->is_muted() &&  _rt_instances[target_instance]->has_loop(); 
 
 			if (ev->Type == Event::type_cmd_down || ev->Type == Event::type_cmd_hit || ev->Type == Event::type_cmd_upforce
 			    || (ev->Type == Event::type_cmd_up && _running_frames > (_solo_down_stamp + _longpress_frames)))
@@ -1031,7 +1057,7 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 							// if it is in any active state, finish that state
 							(*i)->finish_state();
 						}
-					}										
+					}
 				}
 				else 
 				{
@@ -1040,13 +1066,12 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 					bool retrigger = (ev->Command == Event::RECORD_OR_OVERDUB_SOLO_TRIG || ev->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG);
 					for (Instances::iterator i = _rt_instances.begin(); i != _rt_instances.end(); ++i) 
 					{
-                                                if (recOverSolo) {
-                                                        // for this command we always want it to force solo on
-                                                        (*i)->set_soloed (target_instance, true, retrigger);
-                                                }
-                                                else {
-                                                        (*i)->set_soloed (target_instance, !target_solo_state);
-                                                }
+						if (recOverSolo) {
+						        // for this command we always want it to force solo on
+						        (*i)->set_soloed (target_instance, true, retrigger);
+						} else {
+						        (*i)->set_soloed (target_instance, !target_solo_state);
+						}
 					}
 				}
 				
@@ -1069,12 +1094,11 @@ Engine::do_global_rt_event (Event * ev, nframes_t offset, nframes_t nframes)
 			// change the instance to the target we soloed, and the command to record
 			ev->Instance = target_instance;
 
-                        if ((ev->Command == Event::RECORD_OVERDUB_END_SOLO || ev->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG)) {
-                                ev->Command = Event::RECORD_OVERDUB_END_SOLO;
-                        }
-                        else {
-                                ev->Command = Event::RECORD_OR_OVERDUB;
-                        }
+			if ((ev->Command == Event::RECORD_OVERDUB_END_SOLO || ev->Command == Event::RECORD_OVERDUB_END_SOLO_TRIG)) {
+			        ev->Command = Event::RECORD_OVERDUB_END_SOLO;
+			} else {
+			        ev->Command = Event::RECORD_OR_OVERDUB;
+			}
 			// cerr << "record or overdub exclusive: muted " <<  target_was_muted << endl;
 		}
 		else {
@@ -1559,9 +1583,9 @@ Engine::mainloop()
 	//initialize auto timeout arrays
 	for (int i = 0; i < AUTO_UPDATE_RANGE; i++) {
 		timer_last[i].tv_sec = 0;
-                timer_last[i].tv_usec = 0;
+		timer_last[i].tv_usec = 0;
 		auto_update_timer_v[i].tv_sec = 0;
-                auto_update_timer_v[i].tv_usec = ((AUTO_UPDATE_STEP*(i+1)))*1000;
+		auto_update_timer_v[i].tv_usec = ((AUTO_UPDATE_STEP*(i+1)))*1000;
 	}
 	
 	// non-rt event processing loop

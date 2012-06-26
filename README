@@ -20,10 +20,10 @@ performance looping tool is most effectively used via hardware (midi
 footpedals, etc) and the engine can be run standalone on a computer
 without a monitor.
 
-SooperLooper is currently supported on Linux/Unix and OS X platforms that support JACK (http://jackit.sf.net).
- Macintosh OS X packages are available, and are usable with
-0.6 release of JACK-OS X (http://www.jackosx.com/).  
-Future plans include possible VST and AU plugin versions for both Windows and Mac.
+SooperLooper is currently supported on Linux/Unix and OS X platforms.
+Macintosh OS X packages are available, and are usable with the newest
+release of JACK-OS X (http://www.jackosx.com/) or as an AU.  
+Future plans include a VST plugin version for both Windows and Mac.
 
 This software is licensed under the GPL, thus the source code is free,
 open and available.  It is fully functional, no nagging, no activation

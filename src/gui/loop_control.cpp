@@ -325,8 +325,8 @@ LoopControl::connect()
 
 	_pingack = false;
 
-        _registeredauto_loop_map.clear();
-        _registeredin_loop_map.clear();
+	_registeredauto_loop_map.clear();
+	_registeredin_loop_map.clear();
 	
 	if (!_spawn_config.force_spawn) {
 		// send off a ping.  set a timer, if we don't have a response, we'll start our own locally
