@@ -378,7 +378,7 @@ void ConfigPanel::on_button (wxCommandEvent &ev)
 	else if (ev.GetId() == ID_MidiBrowseButton) {
 		
 		_parent->get_keyboard().set_enabled(false);
-		wxString filename = wxFileSelector(wxT("Choose midi binding file to use"), wxT(""), wxT(""), wxT(""), wxT("*.slb"), wxOPEN|wxCHANGE_DIR);
+		wxString filename = _parent->do_file_selector(wxT("Choose midi binding file to use"), wxT(""), wxT("*.slb"), wxOPEN|wxCHANGE_DIR);
 		_parent->get_keyboard().set_enabled(true);
 		
 		if ( !filename.empty() )
@@ -389,7 +389,8 @@ void ConfigPanel::on_button (wxCommandEvent &ev)
 	else if (ev.GetId() == ID_SessionBrowseButton) {
 		
 		_parent->get_keyboard().set_enabled(false);
-		wxString filename = wxFileSelector(wxT("Choose session file to use"), wxT(""), wxT(""), wxT(""), wxT("*.slsess"), wxOPEN|wxCHANGE_DIR);
+		wxString filename = _parent->do_file_selector(wxT("Choose session file to use"), wxT(""), wxT("*.slsess"), wxOPEN|wxCHANGE_DIR);
+		//wxString filename = wxFileSelector(wxT("Choose session file to use"), wxT(""), wxT(""), wxT(""), wxT("*.slsess"), wxOPEN|wxCHANGE_DIR);
 		_parent->get_keyboard().set_enabled(true);
 		
 		if ( !filename.empty() )

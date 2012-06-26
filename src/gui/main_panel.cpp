@@ -1412,7 +1412,7 @@ wxString MainPanel::do_file_selector(const wxString & message, const wxString & 
 								_loop_control->get_engine_host().c_str())
 					       , message);
 	}
-	cerr << "last used:" << _last_used_path.ToAscii() << endl;
+	//cerr << "last used:" << _last_used_path.ToAscii() << endl;
 
 	_keyboard->set_enabled(true);
 
