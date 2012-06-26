@@ -874,7 +874,8 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 		if (_parent->get_loop_control().is_engine_local()) {
 			
 			_parent->get_keyboard().set_enabled(false);
-			wxString filename = wxFileSelector(wxT("Choose midi binding file to open"), wxT(""), wxT(""), wxT(""), wxT("*.slb"), wxOPEN|wxCHANGE_DIR);
+			wxString filename = _parent->do_file_selector(wxT("Choose midi binding file to open"), wxT(""), wxT("*.slb"), wxOPEN|wxCHANGE_DIR);
+			//wxString filename = wxFileSelector(wxT("Choose midi binding file to open"), wxT(""), wxT(""), wxT(""), wxT("*.slb"), wxOPEN|wxCHANGE_DIR);
 			_parent->get_keyboard().set_enabled(true);
 
 			if ( !filename.empty() )
@@ -903,7 +904,8 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 		if (_parent->get_loop_control().is_engine_local()) {
 			
 			_parent->get_keyboard().set_enabled(false);
-			wxString filename = wxFileSelector(wxT("Choose midi binding file to save"), wxT(""), wxT(""), wxT(""), wxT("*.slb"), wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
+			wxString filename = _parent->do_file_selector(wxT("Choose midi binding file to save"), wxT(""), wxT("*.slb"), wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
+			//wxString filename = wxFileSelector(wxT("Choose midi binding file to save"), wxT(""), wxT(""), wxT(""), wxT("*.slb"), wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
 			_parent->get_keyboard().set_enabled(true);
 
 			if ( !filename.empty() )
