@@ -1234,7 +1234,7 @@ void MainPanel::misc_action (bool release, wxString cmd)
 		}
 
 
-		wxString filename = do_file_selector (wxT("Choose file to save loop"), wxT("wav"), wxT("*.wav;*.WAV;*.Wav"),  wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
+		wxString filename = do_file_selector (wxT("Choose file to save loop"), wxT("wav"), wxT("WAVE files (*.wav)|*.wav;*.WAV;*.Wav"),  wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
 		
 		if ( !filename.empty() )
 		{
@@ -1459,7 +1459,7 @@ AddCustomLoopDialog::AddCustomLoopDialog (MainPanel * parent, wxWindowID id, con
 	
 	statText = new wxStaticText(this, -1, wxT("Loop time (secs minimum):"));
 	setsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL);
-	_secs_per_channel_spin = new wxSpinCtrl(this, -1, wxT("20"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 4, 1000, (int)secs_channel);
+	_secs_per_channel_spin = new wxSpinCtrl(this, -1, wxT("20"), wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 4, 1000000, (int)secs_channel);
 	_secs_per_channel_spin->SetValue ((int)secs_channel);
 	setsizer->Add (_secs_per_channel_spin, 0);
 
