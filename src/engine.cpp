@@ -870,6 +870,11 @@ Engine::process (nframes_t nframes)
 
 			usedframes += doframes;
 
+                        // event is committed, if it is a control event, push it onto the nonrt update queue
+                        if (evt->Type == Event::type_control_change || evt->Type == Event::type_global_control_change) {
+                                do_push_control_event (_nonrt_update_event_queue, evt->Type, evt->Control, evt->Value, evt->Instance, evt->source);
+                        }
+
 			evt = next_rt_event (vec, n, midivec, midi_n);
 		}
 
@@ -1299,9 +1304,11 @@ Engine::push_control_event (Event::type_t type, Event::control_t ctrl, float val
 {
 	do_push_control_event (_event_queue, type, ctrl, val, instance);
 
+        // the nonrt update queue is now pushed on the realtime thread
+
 	// this is a known race condition, if the midi thread is changing controls
 	// simultaneously.  it's just an update :)
-	do_push_control_event (_nonrt_update_event_queue, type, ctrl, val, instance, src);
+	//do_push_control_event (_nonrt_update_event_queue, type, ctrl, val, instance, src);
 
 	// wakeup nonrt loop... this lock should really not block... but still
 	TentativeLockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);
@@ -1314,9 +1321,11 @@ Engine::push_midi_control_event (Event::type_t type, Event::control_t ctrl, floa
 {
 	do_push_control_event (_midi_event_queue, type, ctrl, val, instance, framepos);
 
+        // the nonrt update queue is now pushed on the realtime thread
+
 	// this is a known race condition, if the osc thread is changing controls
 	// simultaneously.  it's just an update :)
-	do_push_control_event (_nonrt_update_event_queue, type, ctrl, val, instance);
+	//do_push_control_event (_nonrt_update_event_queue, type, ctrl, val, instance);
 
 	// wakeup nonrt loop... this lock should really not block... but still
 	TentativeLockMonitor mon(_event_loop_lock,  __LINE__, __FILE__);

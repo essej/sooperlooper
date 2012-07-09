@@ -19,6 +19,7 @@ SooperLooper engine:
 - Fixed some clicks when undoing
 - Added CCon and CCoff messagage types to midi bindings
 - Can now mute and un-mute when loop is in Off state
+- Fixed bug where long-presses were causing undo-all when they weren't supposed to
 
 OSC:
 - OSC Auto Update time can now be set between 10-100ms
@@ -27,6 +28,7 @@ OSC:
 
 AU:
 - State and waiting AU parameters now working
+- Fixed parameter update race condition, so values reflect newly changed state
 
 Others:
 - Small maintenance on help output, OSC doc file and indentation, spelling etc.
