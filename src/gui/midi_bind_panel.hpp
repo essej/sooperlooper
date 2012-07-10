@@ -106,6 +106,7 @@ class MidiBindPanel
 	
 	SooperLooper::MidiBindings::BindingList _bind_list;
 	std::list<std::string> _cmdlist;
+	std::list<std::string> _ctrlist;
 	
 	SooperLooper::MidiBindInfo _currinfo;
 	int     _selitem;

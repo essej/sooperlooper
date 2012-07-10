@@ -200,12 +200,12 @@ void MidiBindPanel::init()
 	wxStaticText * staticText;
 	//colsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE, 2);
 
-	_control_combo = new wxChoice(_edit_panel, ID_ControlCombo,  wxDefaultPosition, wxSize(100, -1), 0, wxCB_SORT);
+	_control_combo = new wxChoice(_edit_panel, ID_ControlCombo,  wxDefaultPosition, wxSize(100, -1), 0, 0);
 	//_control_combo->SetToolTip(wxT("Choose control or command"));
 	populate_controls();
 	//_control_combo->SetSelection(0);
 	colsizer->Add (_control_combo, 0, wxALL|wxALIGN_CENTRE|wxEXPAND, 2);
-	_control_combo->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
+	_control_combo->SetWindowVariant(wxWINDOW_VARIANT_NORMAL);
 
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	staticText = new wxStaticText(_edit_panel, -1, wxT("Loop #"), wxDefaultPosition, wxSize(-1, -1), wxALIGN_LEFT);
@@ -396,17 +396,26 @@ void MidiBindPanel::populate_controls()
 	CommandMap & cmap = CommandMap::instance();
 	
 	cmap.get_commands(_cmdlist);
-	cmap.get_controls(_cmdlist);
+	cmap.get_controls(_ctrlist);
+
+	_cmdlist.sort();
+	_ctrlist.sort();
 
 	for (list<string>::iterator iter = _cmdlist.begin(); iter != _cmdlist.end(); ++iter)
 	{
 		if (cmap.is_command(*iter)) {
 			_control_combo->Append (wxString::Format(wxT("[cmd]  %s"), wxString::FromAscii(iter->c_str()).c_str()), (void *) (iter->c_str()));
 		}
-		else if (cmap.is_input_control(*iter)) {
+	}
+	for (list<string>::iterator iter = _ctrlist.begin(); iter != _ctrlist.end(); ++iter)
+	{
+		if (cmap.is_input_control(*iter)) {
 			_control_combo->Append (wxString::Format(wxT("[ctrl]  %s"), wxString::FromAscii(iter->c_str()).c_str()), (void *) (iter->c_str()));
 		}
-		else if (cmap.is_global_control(*iter)) {
+	}
+	for (list<string>::iterator iter = _ctrlist.begin(); iter != _ctrlist.end(); ++iter)
+	{
+		if (cmap.is_global_control(*iter)) {
 			_control_combo->Append (wxString::Format(wxT("[g. ctrl]  %s"), wxString::FromAscii(iter->c_str()).c_str()), (void *) (iter->c_str()));
 		}
 	}
