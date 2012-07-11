@@ -9,6 +9,7 @@ GUI:
 - MIDI bindings choice now sorted alphabetically
 - File selector now defaults to home and tracks last load/save
 - Removed arbitrary maximum loop memory limit in Add Custom Loop...
+- Fixed issue of some controls not showing up when you have more than 5 loops
 
 SooperLooper engine:
 - Fixed issue of not being able to load audio files from session when not started from the same directory
