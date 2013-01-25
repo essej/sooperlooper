@@ -1,4 +1,4 @@
-SUBDIRS = . gui
+SUBDIRS = @SL_DIRS@
 
 bin_PROGRAMS =  sooperlooper slconsole slregister
 
