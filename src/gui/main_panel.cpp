@@ -466,20 +466,7 @@ MainPanel::init_loopers (int count)
 	//_main_sizer->SetSizeHints( _scroller );   // set size hints to honour mininum size
 	
 	// request all values for initial state
-	_loop_control->request_global_values ();
-	
-	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
-		_looper_panels[i]->set_index(i);
-		_loop_control->register_auto_updates((int) i);
-		_loop_control->register_input_controls((int) i);
-		_loop_control->request_all_values ((int)i);
-                // sleep for a short bit to prevent UDP droppage
-#if wxCHECK_VERSION(2,5,3)
-                ::wxMilliSleep(50);
-#else
-                ::wxUsleep(50);
-#endif
-	}
+	_loop_control->register_all_in_new_thread(_looper_panels.size());
 
 	init_syncto_choice ();
 

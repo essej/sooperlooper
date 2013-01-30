@@ -128,12 +128,15 @@ class LoopControl
 	
 	void update_values();
 
+	int register_all_in_new_thread(int num_of_loops);
+	static void* _register_all(void* arg);
+
 	void register_global_updates(bool unreg=false);
 	void register_auto_updates(int index, bool unreg=false);
 	void register_input_controls(int index, bool unreg=false);
 	void register_control (int index, wxString ctrl, bool unreg=false);
 	void register_auto_update(int index, wxString ctrl, bool unreg=false);
-	
+
 	void send_quit();
 	void send_alive_ping();
 	

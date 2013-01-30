@@ -254,61 +254,72 @@ AC_SUBST(FFTW_CFLAGS)
 AC_SUBST(FFTW_LIBS)
 
 dnl wxwindows
+AC_ARG_WITH([gui],
+  [AS_HELP_STRING([--without-gui],
+     [disable building the GUI])],
+  [],
+  [with_gui=yes])
 
 AC_ARG_WITH(wxconfig-path,
             [  --with-wxconfig-path=PATH    full path to wx-config to use])
 
-if test "x$with_wxconfig_path" != "x"  ; then
-        WX_CONFIG=$with_wxconfig_path
-else
-	WX_CONFIG=""
-fi
+if test "x$with_gui" != xno ; then
+	if test "x$with_wxconfig_path" != "x"  ; then
+	        WX_CONFIG=$with_wxconfig_path
+	else
+		WX_CONFIG=""
+	fi
 
-echo WXCONFIG IS \"$WX_CONFIG\"
+	echo WXCONFIG IS \"$WX_CONFIG\"
 
-if [[ "$WX_CONFIG" = "" ]] ; then
+	if [[ "$WX_CONFIG" = "" ]] ; then
 
-  AC_PATH_PROG(WX_CONFIG0, wx-config-2.6, no, $PATH:/usr/local/bin )
-  if [[ "$WX_CONFIG0" = "no" ]] ; then
-    AC_PATH_PROG(WX_CONFIG1, wxgtk2-2.5-config, no, $PATH:/usr/local/bin )
-    if [[ "$WX_CONFIG1" = "no" ]] ; then
-	AC_PATH_PROG(WX_CONFIG2, wxgtk2-2.4-config, no, $PATH:/usr/local/bin )
-	if [[ "$WX_CONFIG2" = "no" ]] ; then
+	  AC_PATH_PROG(WX_CONFIG0, wx-config-2.6, no, $PATH:/usr/local/bin )
+	  if [[ "$WX_CONFIG0" = "no" ]] ; then
+	    AC_PATH_PROG(WX_CONFIG1, wxgtk2-2.5-config, no, $PATH:/usr/local/bin )
+	    if [[ "$WX_CONFIG1" = "no" ]] ; then
+		AC_PATH_PROG(WX_CONFIG2, wxgtk2-2.4-config, no, $PATH:/usr/local/bin )
+		if [[ "$WX_CONFIG2" = "no" ]] ; then
 
-		AC_PATH_PROG(WX_CONFIG3, wxgtk-2.4-config, no, $PATH:/usr/local/bin )
-		if [[ "$WX_CONFIG3" = "no" ]] ; then
+			AC_PATH_PROG(WX_CONFIG3, wxgtk-2.4-config, no, $PATH:/usr/local/bin )
+			if [[ "$WX_CONFIG3" = "no" ]] ; then
 
-			AC_PATH_PROG(WX_CONFIG4, wx-config, no, $PATH:/usr/local/bin )
-			if [[ "$WX_CONFIG4" = "no" ]] ; then
-        			AC_MSG_ERROR("Could not find any wx-config scripts: is wxWindows installed?")
-			else	
-	   			WX_CONFIG=$WX_CONFIG4
+				AC_PATH_PROG(WX_CONFIG4, wx-config, no, $PATH:/usr/local/bin )
+				if [[ "$WX_CONFIG4" = "no" ]] ; then
+	        			AC_MSG_ERROR("Could not find any wx-config scripts: is wxWindows installed?")
+				else	
+		   			WX_CONFIG=$WX_CONFIG4
+				fi
+			else
+		   		WX_CONFIG=$WX_CONFIG3
 			fi
 		else
-	   		WX_CONFIG=$WX_CONFIG3
+			WX_CONFIG=$WX_CONFIG2
 		fi
-	else
-		WX_CONFIG=$WX_CONFIG2
+	    else	
+	      WX_CONFIG=$WX_CONFIG1
+	    fi
+	  else
+	      WX_CONFIG=$WX_CONFIG0
+	  fi
 	fi
-    else	
-      WX_CONFIG=$WX_CONFIG1
-    fi
-  else
-      WX_CONFIG=$WX_CONFIG0
-  fi
-fi
 
-WX_LIBS="`$WX_CONFIG --libs`"
+	WX_LIBS="`$WX_CONFIG --libs`"
 
-if $WX_CONFIG --cxxflags > /dev/null 2>&1 ; then
-    WX_CFLAGS="`$WX_CONFIG --cxxflags`"
+	if $WX_CONFIG --cxxflags > /dev/null 2>&1 ; then
+	    WX_CFLAGS="`$WX_CONFIG --cxxflags`"
+	else
+	    WX_CFLAGS="`$WX_CONFIG --cflags`"
+	fi
+
+	AC_SUBST(WX_CFLAGS)
+	AC_SUBST(WX_LIBS)
+	AC_SUBST(WX_CONFIG)
+	SL_DIRS=". gui"
 else
-    WX_CFLAGS="`$WX_CONFIG --cflags`"
+	SL_DIRS="."
 fi
-
-AC_SUBST(WX_CFLAGS)
-AC_SUBST(WX_LIBS)
-AC_SUBST(WX_CONFIG)
+AC_SUBST(SL_DIRS)
 
 AUDIO_LIBS=
 AC_CHECK_HEADER(alsa/asoundlib.h,
