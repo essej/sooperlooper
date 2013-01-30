@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
   <head>
-    <title>SooperLooper -  Documentation :: MIDI Commands</title>
+    <title>SooperLooper -  Documentation :: MIDI Reference</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     
@@ -93,7 +93,7 @@ Press to mute. Press again to un-mute and start the loop from the top (like "[cm
 </div>
 <div class="commandbox">
   <p>
-(called "once" on GUI and in the <a href="doc_commands.html">GUI Command Reference</a>) this immediately restarts the loop playing back from the beginning, and goes into MUTE mode at the end of the loop. 
+(called "once" on GUI and in the <a href="doc_gui_reference.html">GUI Command Reference</a>) this immediately restarts the loop playing back from the beginning, and goes into MUTE mode at the end of the loop. 
 </div> <!-- class="commandbox" -->
 <div class ="commandbox_head">
   <b>[cmd] overdub</b>
@@ -290,7 +290,7 @@ Reverses playback direction. Can be used in play mode, and even during an OVERDU
 </div>
 <div class="commandbox">
   <p>
-("SCRATCH MODE" in the <a href="doc_commands.html">GUI Command Reference</a>) By default the Scratch Rate Active is toggled off which means it ignores the Scratch Rate parameter. Changes in the Scratch Position parameter over time define the rate of playback (position unit is ratio of current loop length). The implementation is still pretty rough sounding.<p>  I've personally used a theremin (the PAIA Theremax) with CV output through my MIDI pedal, although the scratching code needs some work. 
+("SCRATCH MODE" in the <a href="doc_gui_reference.html">GUI Command Reference</a>) By default the Scratch Rate Active is toggled off which means it ignores the Scratch Rate parameter. Changes in the Scratch Position parameter over time define the rate of playback (position unit is ratio of current loop length). The implementation is still pretty rough sounding.<p>  I've personally used a theremin (the PAIA Theremax) with CV output through my MIDI pedal, although the scratching code needs some work. 
 </div> <!-- class="commandbox" -->
 <div class ="commandbox_head">
   <b>[cmd] set_sync_pos</b>
@@ -361,21 +361,21 @@ This toggles the option for automatically disabling latency compensation when th
 </div>
 <div class="commandbox">
   <p>
-("Delay" on the GUI "DELAY MODE" in the <a href="doc_commands.html">GUI Command Reference</a>) Pressing the Delay control triggers Delay Mode. The time between the most recent two presses is the new delay time. While in DELAY mode, you can toggle Hold Mode (by pressing Replace), or Reverse at any time for a cool effect. To get out of delay mode press any other function or UNDO. You will probably want to adjust Feedback down from 1 before you enter delay mode or you'll build up a nice cacophony fast. 
+("Delay" on the GUI "DELAY MODE" in the <a href="doc_gui_reference.html">GUI Command Reference</a>) Pressing the Delay control triggers Delay Mode. The time between the most recent two presses is the new delay time. While in DELAY mode, you can toggle Hold Mode (by pressing Replace), or Reverse at any time for a cool effect. To get out of delay mode press any other function or UNDO. You will probably want to adjust Feedback down from 1 before you enter delay mode or you'll build up a nice cacophony fast. 
 </div> <!-- class="commandbox" -->
 <div class ="commandbox_head">
   <b>[ctrl] dry</b>
 </div>
 <div class="commandbox">
   <p>
-("in mon" and "main in mon" (if set to global) on GUI and in <a href="doc_commands.html">GUI Command Reference</a>) Sets the level of any incoming audio for passthrough monitoring to the common outputs. 
+("in mon" and "main in mon" (if set to global) on GUI and in <a href="doc_gui_reference.html">GUI Command Reference</a>) Sets the level of any incoming audio for passthrough monitoring to the common outputs. 
 </div> <!-- class="commandbox" -->
 <div class ="commandbox_head">
   <b>[ctrl] fade_samples</b>
 </div>
 <div class="commandbox">
   <p>
-("xfade" on GUI and in the <a href="doc_commands.html">GUI Command Reference</a>) The xfade control sets the length in samples that is used to crossfade the audio on loop operations. Useful to prevent unwanted clicks caused by waveform discontinuities. However, if you want them set this value to 0. The control in the GUI affects all loops. 
+("xfade" on GUI and in the <a href="doc_gui_reference.html">GUI Command Reference</a>) The xfade control sets the length in samples that is used to crossfade the audio on loop operations. Useful to prevent unwanted clicks caused by waveform discontinuities. However, if you want them set this value to 0. The control in the GUI affects all loops. 
 </div> <!-- class="commandbox" -->
 <div class ="commandbox_head">
   <b>[ctrl] feedback</b>
@@ -480,7 +480,7 @@ Toggles if any quantize operations apply to this loop.
 </div>
 <div class="commandbox">
   <p>
-("Rate Adjustement" in <a href="doc_commands.html">GUI Command Reference</a>) The rate can be adjusted anytime (even during Recording) and will affect both the underlying loop and any new incoming audio recorded onto the loop, reminiscent of tape delay systems. Altering the Rate during recording/overdubbing, etc can result in interesting recorded audio. The GUI has buttons for easy access to 1/2 speed, double speed, and normal (1x) speed. MIDI bindings can be created to act like these buttons by specifying the range min and max to equal the target rate. 
+("Rate Adjustement" in <a href="doc_gui_reference.html">GUI Command Reference</a>) The rate can be adjusted anytime (even during Recording) and will affect both the underlying loop and any new incoming audio recorded onto the loop, reminiscent of tape delay systems. Altering the Rate during recording/overdubbing, etc can result in interesting recorded audio. The GUI has buttons for easy access to 1/2 speed, double speed, and normal (1x) speed. MIDI bindings can be created to act like these buttons by specifying the range min and max to equal the target rate. 
 </div> <!-- class="commandbox" -->
 <div class ="commandbox_head">
   <b>[ctrl] rec_thresh</b>
@@ -515,7 +515,7 @@ Toggles whether replace operation quantized for this loop.
 </div>
 <div class="commandbox">
   <p>
-Toggles round mode. When round is on it keeps recording you input until the next quantize boundary after you finish the operation.
+Toggles round mode. When round is on it keeps recording your input until the next quantize boundary after you finish the operation.
 </div> <!-- class="commandbox" -->
 <div class ="commandbox_head">
   <b>[ctrl] round_integer_tempo</b>
@@ -597,7 +597,7 @@ Toggles whether this loop's feedback will be 100% when set to 100% rather than j
 </div>
 <div class="commandbox">
   <p>
-("main out" on the GUI and the <a href="doc_commands.html">GUI Command Reference</a>)
+("main out" on the GUI and the <a href="doc_gui_reference.html">GUI Command Reference</a>)
 The main wet control sets master level of all loop audio being sent out the main output ports. It does not affect the passthrough level from the main inputs, use the main in mon control for that. 
 </div> <!-- class="commandbox" -->
 <h4>[G.CTRL]</h4><h5> These are global controls. </h5>
@@ -721,11 +721,11 @@ Toggle whether SL listens to midi stop messages.
     	<a href="docs.html" title="Documentation">Documentation</a><br>
 
     	<a href="doc_start.html" title="Getting Started" class="offset">Getting Started</a><br>
-    	<a href="doc_commands.html" title="Command Reference"  class="offset">Commands</a><br>
+    	<a href="doc_gui_reference.html" title="GUI Command and Control Reference"  class="offset">GUI Reference</a><br>
     	<a href="doc_sync.html" title="Sync/Tempo"  class="offset">Sync/Tempo</a><br>
     	<a href="doc_midi.html" title="MIDI Bindings"
 	  class="offset">MIDI Bindings</a><br>
-    	<a href="doc_midi_commands.html" title="MIDI Command Reference"  class="offset">MIDI Commands</a><br>
+    	<a href="doc_midi_reference.html" title="MIDI Command and Control Reference"  class="offset">MIDI Reference</a><br>
     	<a href="doc_osc.html" title="OSC Interface"
 	  class="offset">OSC Interface</a><br>
 
