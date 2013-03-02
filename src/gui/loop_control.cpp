@@ -1114,27 +1114,17 @@ LoopControl::_register_all (void *arg)
 	lc->request_global_values ();
 
 	int num_of_loops = lc->get_spawn_config().num_loops;
-	int div = num_of_loops/4;
-	int rem = num_of_loops % 4;
 
-	for (int j = 0; j < div; ++j) {
-		for (int i = (4 * j); i < (4 + (4 * j)); ++i) {
+	for (int i = 0; i < num_of_loops; i++) {
 			lc->register_auto_updates(i);
 			lc->register_input_controls(i);
 			lc->request_all_values (i);
-		}
 #if wxCHECK_VERSION(2,5,3)
 		::wxMilliSleep(150);
 #else
 		::wxUsleep(150);
 #endif
 	}
-	for (int i = (4 * div); i < (rem + (4 * div)); ++i) {
-		lc->register_auto_updates(i);
-		lc->register_input_controls(i);
-		lc->request_all_values (i);
-	}
-
 	return 0;
 }
 
