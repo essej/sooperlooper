@@ -1105,9 +1105,7 @@ LoopControl::register_all_in_new_thread(int number_of_loops)
 void *
 LoopControl::_register_all (void *arg)
 {
-	//send all registrations in groups of 4 pausing inbetween to
-	//avoid losing osc messages, osc messages for loops greater
-	//than 5 were getting lost
+	//send all registrations pausing inbetween toavoid losing osc messages
 
 	LoopControl * lc = static_cast<LoopControl *>(arg);
 
@@ -1120,9 +1118,9 @@ LoopControl::_register_all (void *arg)
 			lc->register_input_controls(i);
 			lc->request_all_values (i);
 #if wxCHECK_VERSION(2,5,3)
-		::wxMilliSleep(150);
+		::wxMilliSleep(100);
 #else
-		::wxUsleep(150);
+		::wxUsleep(100);
 #endif
 	}
 	return 0;
