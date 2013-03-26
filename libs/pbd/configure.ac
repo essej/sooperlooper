@@ -23,7 +23,7 @@ AC_SUBST(LIBPBD_RELEASE)
 
 AM_INIT_AUTOMAKE(libpbd,${LIBPBD_VERSION})
 
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
 
 dnl Checks for programs.
 AC_PROG_CC

@@ -25,7 +25,7 @@ AC_SUBST(SOOP_VERSION)
 AC_SUBST(SOOP_RELEASE)
 
 AM_INIT_AUTOMAKE(sooperlooper,$SOOP_VERSION)
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
 
 dnl ====================================================================
 dnl you do have C++, right ?
