@@ -104,6 +104,9 @@ enum LooperState
 	LooperStateOneShot,
 	LooperStateSubstitute,
 	LooperStatePaused,
+    LooperStateUndo,
+    LooperStateRedo,
+    LooperStateRedoAll,
 	LooperStateOffMuted = 20
 };
 
