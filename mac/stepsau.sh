@@ -1,17 +1,18 @@
 #!/bin/sh
 
 # this is the old one on my system
-xcodepath=/Developer/usr/bin/xcodebuild
-xcodesdk="-sdk macosx10.5"
+#xcodepath=/Developer/usr/bin/xcodebuild
+#xcodesdk="-sdk macosx10.5"
 
 rm -rf macdist/SooperLooperAU.component
 
-xcodepath=/Developer/usr/bin/xcodebuild
+#xcodepath=/Developer/usr/bin/xcodebuild
 
 
 cd SooperLooperAU
 
-${xcodepath} ${xcodesdk} -configuration Deployment
+#${xcodepath} ${xcodesdk} -configuration Deployment
+xcodebuild -configuration Deployment
 
 cd ..
 
