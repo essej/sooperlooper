@@ -21,23 +21,21 @@ class Test ():
                 ,"MULTIPLY" 
                 ,"INSERT" 
                 ,"MUTE"
+                ,"DELAY"
+                ,"REDO_TOG"
+                ,"QUANT_TOG"
+                ,"ROUND_TOG"
+                ,"ONESHOT"
+                ,"TRIGGER"
+                ,"SUBSTITUTE"
+                ,"UNDO_ALL"
+                ,"REDO_ALL"
+                ,"MUTE_ON"
+                ,"MUTE_OFF"
+                ,"PAUSE"
+                ,"PAUSE_ON"
+                ,"PAUSE_OFF"
                 )
-
-        #self.states = (
-        #         "OFF"
-        #        ,"TRIG_START"
-        #        ,"RECORD"
-        #        ,"TRIG_STOP"
-        #        ,"PLAY"
-        #        ,"OVERDUB"
-        #        ,"MULTIPLY"
-        #        ,"INSERT"
-        #        ,"REPLACE"
-        #        ,"DELAY"
-        #        ,"MUTE"
-        #        ,"SCRATCH"
-        #        ,"ONESHOT"
-        #        )
 
         self.states = {}
         for member in testbed.__dict__.iteritems():
@@ -45,6 +43,8 @@ class Test ():
                 self.states[member[1]] = member[0]
 
         print self.states
+
+        self.ignore_states = [1,3,16,-1]
 
         self.commands_per_state = {}
         for key in self.states:
@@ -60,7 +60,7 @@ class Test ():
           self.looper.request_cmd(command)
           while (self.looper.request_pending):
               pass
-          #time.sleep(0.001)
+          #time.sleep(0.0001)
 
     def run(self):
         current_state = int(self.looper.get_control_value(testbed.State))
@@ -70,14 +70,15 @@ class Test ():
             self.request(command)
             return True
         else:
-            if (isListEmpty(self.commands_per_state)):
-                print "done"
-                return False
+            for key, item in self.commands_per_state.iteritems():
+                if len(item) > 0 and (key not in self.ignore_states):
+                    break
             else:
-                command = random.randint(0, len(self.commands) - 1 )
-                self.request(command)
-                return True
+                return False
 
+            command = random.randint(0, len(self.commands) - 1 )
+            self.request(command)
+            return True
 
 
     def __del__(self):

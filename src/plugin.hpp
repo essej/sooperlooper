@@ -104,6 +104,8 @@ enum LooperState
 	LooperStateOneShot,
 	LooperStateSubstitute,
 	LooperStatePaused,
+    LooperStateUndoAll,
+    LooperStateTriggerPlay,
     LooperStateUndo,
     LooperStateRedo,
     LooperStateRedoAll,
