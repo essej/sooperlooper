@@ -8,6 +8,14 @@ def isListEmpty(inList):
         return all( map(isListEmpty, inList) )
     return False # Not a list
 
+class TwoWayDict(dict):
+    def __len__(self):
+        return dict.__len__(self) / 2
+
+    def __setitem__(self, key, value):
+        dict.__setitem__(self, key, value)
+        dict.__setitem__(self, value, key)
+
 class Test ():
     def __init__(self):
         self.commands = (
@@ -37,21 +45,30 @@ class Test ():
                 ,"PAUSE_OFF"
                 )
 
-        self.states = {}
+        self.states = TwoWayDict() 
         for member in testbed.__dict__.iteritems():
             if "LooperState" in member[0]:
-                self.states[member[1]] = member[0]
+                self.states[member[1]] = member[0][11:]
 
-        print self.states
-
-        self.ignore_states = [1,3,16,-1]
+        self.ignore_states = [ self.states["Unknown"]
+                             , self.states["WaitStart"] 
+                             , self.states["WaitStop"] 
+                             , self.states["TriggerPlay"]
+                             , self.states["OneShot"]
+                             , self.states["Undo"]
+                             , self.states["UndoAll"]
+                             , self.states["Redo"]
+                             , self.states["RedoAll"]
+                             , self.states["Scratching"]
+                             ]
 
         self.commands_per_state = {}
         for key in self.states:
-            self.commands_per_state[key] = [x for x in range(len(self.commands))]
+            if type(key) == int:
+                self.commands_per_state[key] = [x for x in range(len(self.commands))]
 
         #self.commands_per_state = [[x for x in range(len(self.commands))] for _ in self.states]
-        self.TB = testbed.TestBed()  
+        self.TB = testbed.TestBed()
         self.looper = self.TB.looper
         random.seed()
 
