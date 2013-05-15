@@ -23,8 +23,16 @@ class simpleStateOff(testdef_simple_state.simpleStateTest):
         time.sleep(0.001)
         self.assertState("Off")
 
-    def testPause(self):
-        self.engine.request("PAUSE")
+    def testMuteOn(self):
+        self.engine.request("MUTE_ON")
         time.sleep(0.001)
-        self.assertState("Off")
+        self.assertState("OffMuted")
+
+    def testDelay(self):
+        self.engine.request("DELAY")
+        time.sleep(0.001)
+        self.assertState("Delay")
+
+    def testAllOff(self):
+        self._testAll("Off", ignore=[ "RECORD","DELAY","MUTE_ON","MUTE"])
 

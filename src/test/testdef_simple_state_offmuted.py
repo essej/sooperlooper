@@ -15,31 +15,21 @@ class simpleStateOffMuted(testdef_simple_state.simpleStateTest):
         time.sleep(0.001)
         self.assertState("Recording")
 
-    def testUndo(self):
-        self.engine.request("RECORD")
-        self.engine.request("UNDO")
-        time.sleep(0.001)
-        self.assertState("OffMuted")
-
-    def testUndoAll(self):
-        self.engine.request("RECORD")
-        self.engine.request("UNDO_ALL")
-        time.sleep(0.001)
-        self.assertState("OffMuted")
-
-    def testPause(self):
-        self.engine.request("PAUSE")
-        time.sleep(0.001)
-        self.assertState("OffMuted")
-
     def testMute(self):
         self.engine.request("MUTE")
         time.sleep(0.001)
         self.assertState("Off")
 
-    def testMute2(self):
-        self.engine.request("MUTE")
-        self.engine.request("MUTE")
+    def testMuteOff(self):
+        self.engine.request("MUTE_OFF")
         time.sleep(0.001)
-        self.assertState("OffMuted")
+        self.assertState("Off")
+
+    def testDelay(self):
+        self.engine.request("DELAY")
+        time.sleep(0.001)
+        self.assertState("Delay")
+
+    def testAllOffMuted(self):
+        self._testAll("OffMuted", ignore=[ "RECORD","DELAY","MUTE_OFF","MUTE"])
 

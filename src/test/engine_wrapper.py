@@ -67,5 +67,5 @@ class Engine (test_engine.TestEngine):
           while (self.looper.request_pending):
               pass
     def getState(self):
-        return self.looper.get_control_value(test_engine.State)
+        return int(self.looper.get_control_value(test_engine.State))
         

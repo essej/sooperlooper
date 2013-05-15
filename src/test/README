@@ -1,1 +1,1 @@
-run "make" to build and "python -m unittest discover" with python2.7 to test
+run "make" to build and "python -m unittest discover --pattern=testdef*.py" with python2.7 to test
