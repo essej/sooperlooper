@@ -11,7 +11,7 @@ jack.activate()
 
 #t = test.Test()
 
-#jack.connect("python:out_1", "SL_testbed:loop_0_in_1")
+#jack.connect("python:out_1", "SL_test_engine:loop_0_in_1")
 
 jack.connect("python:out_1", "python:in_1")
 

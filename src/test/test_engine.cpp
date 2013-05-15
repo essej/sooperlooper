@@ -1,4 +1,4 @@
-#include "testbed.hpp"
+#include "test_engine.hpp"
 #include <iostream>
 using namespace std;
 
@@ -6,9 +6,9 @@ extern void sl_init ();
 extern	void sl_fini ();
 
 int
-TestBed::connect_to_jack ()
+TestEngine::connect_to_jack (const char* name)
 {
-	if ((jack = jack_client_new ("SL_testbed")) == 0) {
+	if ((jack = jack_client_new (name)) == 0) {
 		return -1;
 	}
 
@@ -20,10 +20,10 @@ TestBed::connect_to_jack ()
 }
 
 
-TestBed::TestBed()
+TestEngine::TestEngine(const char* name)
 {
     sl_init();
-	if (connect_to_jack ()) {
+	if (connect_to_jack (name)) {
 		return;
 	}
     looper = new SooperLooper::TestLooper(jack, 0, 1);
@@ -36,21 +36,21 @@ TestBed::TestBed()
 	}
 }
 
-TestBed::~TestBed()
+TestEngine::~TestEngine()
 {
-    sl_fini();
+    //sl_fini();
     jack_client_close(jack);
 }
     
 
 int
-TestBed::_process_callback (jack_nframes_t nframes, void* arg)
+TestEngine::_process_callback (jack_nframes_t nframes, void* arg)
 {
-	return static_cast<TestBed*> (arg)->process_callback (nframes);
+	return static_cast<TestEngine*> (arg)->process_callback (nframes);
 }
 
 int
-TestBed::process_callback (jack_nframes_t nframes)
+TestEngine::process_callback (jack_nframes_t nframes)
 {
     looper->run(0, nframes);
 	return 0;
