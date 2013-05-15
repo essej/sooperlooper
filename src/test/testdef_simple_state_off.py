@@ -1,7 +1,7 @@
 import time
-import test_simple_state
+import testdef_simple_state
 
-class simpleStateOff(test_simple_state.simpleStateTest):
+class simpleStateOff(testdef_simple_state.simpleStateTest):
 
     def testOff(self):
         self.assertState("Off")

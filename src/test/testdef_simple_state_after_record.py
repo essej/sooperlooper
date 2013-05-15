@@ -1,9 +1,9 @@
 import time
-import test_simple_state
+import testdef_simple_state
 
-class simpleStateTestsAfterRecord(test_simple_state.simpleStateTest):
+class simpleStateTestsAfterRecord(testdef_simple_state.simpleStateTest):
     def setUp(self):
-        test_simple_state.simpleStateTest.setUp(self)
+        testdef_simple_state.simpleStateTest.setUp(self)
         self.engine.request("RECORD")
         self.engine.request("RECORD")
 

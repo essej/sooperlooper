@@ -1,9 +1,9 @@
 import time
-import test_simple_state
+import testdef_simple_state
 
-class simpleStateOffMuted(test_simple_state.simpleStateTest):
+class simpleStateOffMuted(testdef_simple_state.simpleStateTest):
     def setUp(self):
-        test_simple_state.simpleStateTest.setUp(self)
+        testdef_simple_state.simpleStateTest.setUp(self)
         self.engine.request("MUTE")
 
     def testOffMuted(self):
