@@ -39,7 +39,7 @@ class TestLooper
 	
 	void request_cmd (int cmd);
 	
-	void set_port (ControlPort n, LADSPA_Data val) {
+	void set_port (int n, float val) {
 		ports[n] = val;
 	}
 

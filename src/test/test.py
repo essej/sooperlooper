@@ -73,7 +73,7 @@ class Test ():
         random.seed()
 
     def request(self, command):
-          print "   requesting: ", self.commands[command]
+          #print "   requesting: ", self.commands[command]
           self.looper.request_cmd(command)
           while (self.looper.request_pending):
               pass
@@ -81,7 +81,7 @@ class Test ():
 
     def run(self):
         current_state = int(self.looper.get_control_value(testbed.State))
-        print "current state: ", self.states[current_state]
+        #print "current state: ", self.states[current_state]
         if (self.commands_per_state[current_state] != []):
             command = self.commands_per_state[current_state].pop()
             self.request(command)

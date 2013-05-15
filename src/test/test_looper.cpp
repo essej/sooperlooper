@@ -23,6 +23,7 @@
 #include <iostream>
 #include <cstring>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "ladspa.h"
 
@@ -207,11 +208,18 @@ TestLooper::run (jack_nframes_t offset, jack_nframes_t nframes)
 		//cerr << "reset to -1\n";
 	}
 
+    LADSPA_Data test_buf[nframes]; 
+    for (int i = 0; i < nframes; ++i)
+    {
+        test_buf[i] = -0.7;
+    }
+    //test_buf = (LADSPA_Data *) jack_port_get_buffer(_input_ports[0], nframes);
+
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
 		/* (re)connect audio ports */
 		
-		descriptor->connect_port (_instances[i], AudioInputPort, (LADSPA_Data*) jack_port_get_buffer (_input_ports[i], nframes) + offset);
+		descriptor->connect_port (_instances[i], AudioInputPort, test_buf);
 		descriptor->connect_port (_instances[i], AudioOutputPort, (LADSPA_Data*) jack_port_get_buffer (_output_ports[i], nframes) + offset);
 
 
