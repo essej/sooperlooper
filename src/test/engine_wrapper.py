@@ -1,7 +1,4 @@
-#! /usr/bin/env python2
 import test_engine
-import unittest
-import time
 
 class TwoWayDict(dict):
     def __len__(self):
@@ -72,39 +69,3 @@ class Engine (test_engine.TestEngine):
     def getState(self):
         return self.looper.get_control_value(test_engine.State)
         
-
-class stateTests(unittest.TestCase):
-    def setUp(self):
-        self.engine = Engine("SL_test")
-
-    def tearDown(self):
-        del self.engine
-
-    def assertState(self, state):
-        self.assertEqual(self.engine.getState(), self.engine.states[state])
-
-
-    def testOff(self):
-        self.assertState("Off")
-
-    def testRecord(self):
-        self.engine.request("RECORD")
-        self.assertState("Recording")
-
-    def testRecord2(self):
-        self.engine.request("RECORD")
-        self.engine.request("RECORD")
-        self.assertState("Playing")
-
-    def testOverdub(self):
-        self.engine.request("RECORD")
-        self.engine.request("RECORD")
-        self.engine.request("OVERDUB")
-        self.assertState("Overdubbing")
-
-
-def main():
-    unittest.main()
-
-if __name__ == '__main__':
-    main()

@@ -8,9 +8,10 @@ extern	void sl_fini ();
 int
 TestEngine::connect_to_jack (const char* name)
 {
-	if ((jack = jack_client_new (name)) == 0) {
+	if ((jack = jack_client_open (name, (jack_options_t)0, NULL, NULL)) == 0) {
 		return -1;
 	}
+
 
 	if (jack_set_process_callback (jack, _process_callback, this) != 0) {
 		return -1;
