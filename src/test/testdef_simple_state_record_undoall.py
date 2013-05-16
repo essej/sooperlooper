@@ -1,13 +1,13 @@
 import time
 import testdef_simple_state
 
-class simpleStateTestsRecordUndo(testdef_simple_state.simpleStateTest):
+class simpleStateTestsRecordUndoAll(testdef_simple_state.simpleStateTest):
 
     def setUp(self):
         testdef_simple_state.simpleStateTest.setUp(self)
         self.engine.request("RECORD")
         self.engine.request("RECORD")
-        self.engine.request("UNDO")
+        self.engine.request("UNDO_ALL")
 
     def testOff(self):
         time.sleep(0.001)

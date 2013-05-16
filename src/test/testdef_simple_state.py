@@ -30,3 +30,8 @@ class simpleStateTest(unittest.TestCase):
                 actual[c] = self.engine.states[self.engine.getState()]
         self.assertDictEqual(should_be, actual)
 
+    def testRecord(self):
+        print "record"
+        self.engine.request("RECORD")
+        time.sleep(0.001)
+        self.assertState("Recording")

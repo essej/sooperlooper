@@ -7,7 +7,7 @@ class simpleStateTestsAfterRecord(testdef_simple_state.simpleStateTest):
         self.engine.request("RECORD")
         self.engine.request("RECORD")
 
-    def testRecord(self):
+    def testPlay(self):
         time.sleep(0.001)
         self.assertState("Playing")
 

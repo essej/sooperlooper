@@ -10,11 +10,6 @@ class simpleStateOffMuted(testdef_simple_state.simpleStateTest):
         time.sleep(0.001)
         self.assertState("OffMuted")
 
-    def testRecord(self):
-        self.engine.request("RECORD")
-        time.sleep(0.001)
-        self.assertState("Recording")
-
     def testMute(self):
         self.engine.request("MUTE")
         time.sleep(0.001)

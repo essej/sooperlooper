@@ -6,11 +6,6 @@ class simpleStateOff(testdef_simple_state.simpleStateTest):
     def testOff(self):
         self.assertState("Off")
 
-    def testRecord(self):
-        self.engine.request("RECORD")
-        time.sleep(0.001)
-        self.assertState("Recording")
-
     def testUndo(self):
         self.engine.request("RECORD")
         self.engine.request("UNDO")
