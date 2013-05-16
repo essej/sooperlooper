@@ -1,5 +1,9 @@
 import time
+from nose_parameterized import parameterized
+
 import testdef_simple_state
+import engine_wrapper
+
 
 class simpleStateOffMuted(testdef_simple_state.simpleStateTest):
     def setUp(self):
@@ -25,6 +29,9 @@ class simpleStateOffMuted(testdef_simple_state.simpleStateTest):
         time.sleep(0.001)
         self.assertState("Delay")
 
-    def testAllOffMuted(self):
-        self._testAll("OffMuted", ignore=[ "RECORD","DELAY","MUTE_OFF","MUTE"])
+    @parameterized.expand([(c,) for c in engine_wrapper.commands if c not in [ "RECORD","DELAY","MUTE_OFF","MUTE"]])
+    def testAllOffMuted(self, c):
+        self.engine.request(c)
+        time.sleep(0.001)
+        self.assertState("OffMuted")
 

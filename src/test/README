@@ -1,5 +1,7 @@
 dependencies:
     swig
     python2.7  
+    nose
+    nose_parameterized
 
-run "make" to build and "python -m unittest discover --pattern=testdef*.py" with python2.7 to test
+run "make" to build and "nosetest" to run tests

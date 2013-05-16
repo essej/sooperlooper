@@ -1,5 +1,8 @@
 import time
+from nose_parameterized import parameterized
+
 import testdef_simple_state
+import engine_wrapper
 
 class simpleStateTestsRecordUndo(testdef_simple_state.simpleStateTest):
 
@@ -45,6 +48,11 @@ class simpleStateTestsRecordUndo(testdef_simple_state.simpleStateTest):
         time.sleep(0.001)
         self.assertState("Playing")
 
-    def testAllOff(self):
-        self._testAll("Off", ignore=[ "RECORD","DELAY","MUTE_ON","MUTE", "REDO", "REDO_ALL"])
+    @parameterized.expand([(c,) for c in engine_wrapper.commands if c not in [ "RECORD","DELAY","MUTE_ON","MUTE", "REDO", "REDO_ALL"]])
+    def testAllOff(self, c):
+        self.engine.request(c)
+        time.sleep(0.001)
+        self.assertState("Off")
+
+
 

@@ -1,6 +1,8 @@
 import time
 import testdef_simple_state
 
+from nose_parameterized import parameterized
+
 class simpleStateTestsAfterRecord(testdef_simple_state.simpleStateTest):
     def setUp(self):
         testdef_simple_state.simpleStateTest.setUp(self)
