@@ -79,3 +79,4 @@ src/slconsole
 *.so
 *.deps/
 *.h.in~
+src/test/test_engine.py
