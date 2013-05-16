@@ -28,7 +28,7 @@ AC_SUBST(LIBMIDI_RELEASE)
 
 AM_INIT_AUTOMAKE(libmidi++,${LIBMIDI_VERSION})
 
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS(config.h)
 
 dnl ====================================================================
 dnl you do have C++, right ?
