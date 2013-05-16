@@ -24,9 +24,9 @@ class simpleStateTest(unittest.TestCase):
         actual = {}
         for c in self.engine.commands:
             if c not in ignore:
-                should_be[c] = should_be_state
+                should_be[c] = should_be_state_string
                 self.engine.request(c)
                 time.sleep(0.001)
-                actual[c] = self.engine.getState()
+                actual[c] = self.engine.states[self.engine.getState()]
         self.assertDictEqual(should_be, actual)
 
