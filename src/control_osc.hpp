@@ -46,7 +46,7 @@ class MidiBindings;
 class CommandMap;
 	
 class ControlOSC
-	: public SigC::Object
+	: public sigc::trackable
 {
   public:
 	

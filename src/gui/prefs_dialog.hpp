@@ -42,7 +42,7 @@ class MidiBindPanel;
 class LatencyPanel;
 	
 class PrefsDialog
-	: public wxFrame,  public SigC::Object
+	: public wxFrame,  public sigc::trackable
 {
   public:
 	

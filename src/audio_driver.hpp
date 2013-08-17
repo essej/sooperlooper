@@ -103,7 +103,7 @@ class AudioDriver
 	virtual nframes_t get_samplerate() { return _samplerate; }
 	virtual nframes_t get_buffersize() { return _buffersize; }
 
-	SigC::Signal0<void> ConnectionsChanged;
+	sigc::signal0<void> ConnectionsChanged;
 	
   protected:
 

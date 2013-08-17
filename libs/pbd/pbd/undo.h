@@ -29,7 +29,7 @@
 using std::string;
 using std::list;
 
-typedef SigC::Slot0<void> UndoAction;
+typedef sigc::slot0<void> UndoAction;
 
 class UndoCommand 
 {

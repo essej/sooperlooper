@@ -45,7 +45,7 @@ class MainPanel;
 class SpinBox;
 	
 class LooperPanel
-	: public wxPanel, public SigC::Object
+	: public wxPanel, public sigc::trackable
 {
   public:
 	

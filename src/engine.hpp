@@ -40,7 +40,7 @@ class ControlOSC;
 class MidiBridge;
 	
 class Engine
-	: public SigC::Object
+	: public sigc::trackable
 {
   public:
 
@@ -112,10 +112,10 @@ class Engine
 
 	float get_control_value (Event::control_t, int8_t instance);
 	
-	SigC::Signal2<void, int, bool> LoopAdded;
-	SigC::Signal0<void> LoopRemoved;
+	sigc::signal2<void, int, bool> LoopAdded;
+	sigc::signal0<void> LoopRemoved;
 
-	SigC::Signal2<void, int , int> ParamChanged;
+	sigc::signal2<void, int , int> ParamChanged;
 
 	// the main non-rt event processing loop
 	void mainloop();

@@ -36,7 +36,7 @@ class MainPanel;
 class KeyboardTarget;
 	
 class KeysPanel
-	: public wxPanel,  public SigC::Object
+	: public wxPanel,  public sigc::trackable
 {
   public:
 	

@@ -23,7 +23,7 @@
 #include <pbd/receiver.h>
 #include <pbd/transmitter.h>
 
-using namespace SigC;
+using namespace sigc;
 
 Receiver::Receiver () {}
 
@@ -36,7 +36,7 @@ Receiver::~Receiver ()
 void
 Receiver::hangup ()
 {
-	vector<SigC::Connection *>::iterator i;
+	vector<sigc::connection *>::iterator i;
 
 	for (i = connections.begin(); i != connections.end (); i++) {
 		(*i)->disconnect ();
@@ -50,7 +50,7 @@ void
 Receiver::listen_to (Transmitter &transmitter)
 
 {
-	SigC::Connection *c = new SigC::Connection;
+	sigc::connection *c = new sigc::connection;
 
 	(*c) = transmitter.sender().connect (slot (*this, &Receiver::receive));
 

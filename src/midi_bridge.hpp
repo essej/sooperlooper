@@ -44,7 +44,7 @@ namespace SooperLooper {
 	class Engine;
 
 class MidiBridge
-	: public SigC::Object
+	: public sigc::trackable
 {
   public:
 
@@ -64,14 +64,14 @@ class MidiBridge
 	void start_get_next ();
 	void cancel_get_next ();
 	
-	SigC::Signal1<void, MidiBindInfo> BindingLearned;
-	SigC::Signal1<void, MidiBindInfo> NextMidiReceived;
+	sigc::signal1<void, MidiBindInfo> BindingLearned;
+	sigc::signal1<void, MidiBindInfo> NextMidiReceived;
 
 	// type, command, loop index, framepos (-1 if not set)
-	SigC::Signal4<void, Event::type_t, Event::command_t, int8_t, long> MidiCommandEvent;
-	SigC::Signal5<void, Event::type_t, Event::control_t, float, int8_t, long> MidiControlEvent;
+	sigc::signal4<void, Event::type_t, Event::command_t, int8_t, long> MidiCommandEvent;
+	sigc::signal5<void, Event::type_t, Event::control_t, float, int8_t, long> MidiControlEvent;
 
-	SigC::Signal3<void, Event::control_t, long, MIDI::timestamp_t> MidiSyncEvent;
+	sigc::signal3<void, Event::control_t, long, MIDI::timestamp_t> MidiSyncEvent;
 	
 
 	void inject_midi (MIDI::byte chcmd, MIDI::byte param, MIDI::byte val, long framepos=-1);

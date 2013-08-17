@@ -51,7 +51,7 @@ class AbstractUI : public Receiver
 	virtual bool running () = 0;
 	virtual void request (RequestType) = 0;
 	virtual void touch_display (Touchable *) = 0;
-	virtual void call_slot (SigC::Slot0<void>) = 0;
+	virtual void call_slot (sigc::slot0<void>) = 0;
 	virtual bool caller_is_gui_thread() = 0;
 
 	/* needed to be a receiver ... */

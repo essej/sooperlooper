@@ -40,7 +40,7 @@ typedef float pan_t;
 
 class Panner;
 
-class StreamPanner : public SigC::Object
+class StreamPanner : public sigc::trackable
 {
   public:
 	StreamPanner (Panner& p);
@@ -66,8 +66,8 @@ class StreamPanner : public SigC::Object
 	virtual void distribute (sample_t* src, sample_t** obufs, gain_t gain_coeff, nframes_t nframes) = 0;
 
 
-	SigC::Signal0<void> Changed;      /* for position */
-	SigC::Signal0<void> StateChanged; /* for mute */
+	sigc::signal0<void> Changed;      /* for position */
+	sigc::signal0<void> StateChanged; /* for mute */
 
 	virtual XMLNode& get_state (void) = 0;
 	virtual int      set_state (const XMLNode&);
@@ -160,7 +160,7 @@ class Multi2dPanner : public StreamPanner
 };
 
 
-class Panner : public std::vector<StreamPanner*>, public SigC::Object
+class Panner : public std::vector<StreamPanner*>, public sigc::trackable
 {
   public:
 	struct Output {
@@ -192,7 +192,7 @@ class Panner : public std::vector<StreamPanner*>, public SigC::Object
 	int      set_state (const XMLNode&);
 
 	
-	SigC::Signal0<void> Changed;
+	sigc::signal0<void> Changed;
 	
 	static bool equivalent (pan_t a, pan_t b) {
 		return fabsf (a - b) < 0.002; // about 1 degree of arc for a stereo panner
@@ -215,8 +215,8 @@ class Panner : public std::vector<StreamPanner*>, public SigC::Object
 	bool linked() const { return _linked; }
 	void set_linked (bool yn);
 
-	SigC::Signal0<void> LinkStateChanged;
-	SigC::Signal0<void> StateChanged; /* for bypass */
+	sigc::signal0<void> LinkStateChanged;
+	sigc::signal0<void> StateChanged; /* for bypass */
 
 	/* only StreamPanner should call these */
 	

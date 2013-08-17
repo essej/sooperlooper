@@ -35,7 +35,7 @@ namespace Select {
 		Exception = 0x4
     };
 
-class Selectable : public SigC::Object
+class Selectable : public sigc::trackable
 
 {
   public:
@@ -44,9 +44,9 @@ class Selectable : public SigC::Object
 	Selectable (FILE *);
 	~Selectable ();
 
-	SigC::Signal2<void,Selectable *,Select::Condition> readable;
-	SigC::Signal2<void,Selectable *,Select::Condition> writable;
-	SigC::Signal2<void,Selectable *,Select::Condition> exceptioned;
+	sigc::signal2<void,Selectable *,Select::Condition> readable;
+	sigc::signal2<void,Selectable *,Select::Condition> writable;
+	sigc::signal2<void,Selectable *,Select::Condition> exceptioned;
 
 	int  fd() { return _fd; }
 	bool ok() { return _ok; }

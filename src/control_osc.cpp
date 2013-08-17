@@ -37,7 +37,7 @@
 
 #include <lo/lo.h>
 #include <sigc++/sigc++.h>
-using namespace SigC;
+using namespace sigc;
 
 using namespace SooperLooper;
 using namespace std;

@@ -23,7 +23,7 @@
 #include <pbd/undo.h>
 
 using namespace std;
-using namespace SigC;
+using namespace sigc;
 
 UndoCommand::UndoCommand ()
 {

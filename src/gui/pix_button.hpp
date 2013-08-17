@@ -66,14 +66,14 @@ class PixButton
 	};
 
 	// int argument is mouse button as above
-	SigC::Signal1<void,int> pressed;
-	SigC::Signal1<void,int> released;
-	SigC::Signal1<void,int> clicked;
+	sigc::signal1<void,int> pressed;
+	sigc::signal1<void,int> released;
+	sigc::signal1<void,int> clicked;
 	
-	SigC::Signal0<void> enter;
-	SigC::Signal0<void> leave;
+	sigc::signal0<void> enter;
+	sigc::signal0<void> leave;
 
-	SigC::Signal0<void> bind_request;
+	sigc::signal0<void> bind_request;
 	
   protected:
 

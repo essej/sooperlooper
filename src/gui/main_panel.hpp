@@ -46,7 +46,7 @@ class HelpWindow;
 class PrefsDialog;
 	
 class MainPanel
-	: public wxPanel,  public SigC::Object
+	: public wxPanel,  public sigc::trackable
 {
 public:
 	
@@ -100,7 +100,7 @@ public:
 
 	wxString do_file_selector(const wxString & message, const wxString & ext, const wxString & wc, int style);
 	
-	SigC::Signal2<void,int, int> PreferredSizeChange;
+	sigc::signal2<void,int, int> PreferredSizeChange;
 
 	
 protected:
@@ -151,7 +151,7 @@ protected:
 	void on_error_received (const std::string & msg);
 
 	LoopControl * _loop_control;
-	SigC::Connection  _loop_update_connection;
+	sigc::connection  _loop_update_connection;
 	
 	std::vector<LooperPanel *> _looper_panels;
 	

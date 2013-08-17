@@ -44,7 +44,7 @@
 using namespace SooperLooper;
 using namespace std;
 using namespace PBD;
-using namespace SigC;
+using namespace sigc;
 
 #define MAX_EVENTS 1024
 #define MAX_SYNC_EVENTS 1024

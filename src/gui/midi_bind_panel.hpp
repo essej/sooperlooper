@@ -40,7 +40,7 @@ class MainPanel;
 class KeyboardTarget;
 	
 class MidiBindPanel
-	: public wxPanel,  public SigC::Object
+	: public wxPanel,  public sigc::trackable
 {
   public:
 	

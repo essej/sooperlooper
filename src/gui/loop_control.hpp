@@ -44,7 +44,7 @@ class LoopUpdateTimer;
 
 
 class LoopControl
-	: public SigC::Object
+	: public sigc::trackable
 {
   public:
 
@@ -150,17 +150,17 @@ class LoopControl
 
 	void pingtimer_expired();
 
-	SigC::Signal1<void,int> LooperConnected;
-	SigC::Signal1<void, const std::string&> ConnectFailed;
-	SigC::Signal1<void, const std::string&> LostConnection;
-	SigC::Signal1<void, const std::string&> ErrorReceived;
-	SigC::Signal0<void> Disconnected;
-	SigC::Signal0<void> NewDataReady;
-	SigC::Signal0<void> IsAlive;
-	SigC::Signal1<void, SooperLooper::MidiBindInfo&> MidiBindingChanged;
-	SigC::Signal1<void, SooperLooper::MidiBindInfo&> ReceivedNextMidi;
-	SigC::Signal0<void> MidiLearnCancelled;
-	SigC::Signal0<void> NextMidiCancelled;
+	sigc::signal1<void,int> LooperConnected;
+	sigc::signal1<void, const std::string&> ConnectFailed;
+	sigc::signal1<void, const std::string&> LostConnection;
+	sigc::signal1<void, const std::string&> ErrorReceived;
+	sigc::signal0<void> Disconnected;
+	sigc::signal0<void> NewDataReady;
+	sigc::signal0<void> IsAlive;
+	sigc::signal1<void, SooperLooper::MidiBindInfo&> MidiBindingChanged;
+	sigc::signal1<void, SooperLooper::MidiBindInfo&> ReceivedNextMidi;
+	sigc::signal0<void> MidiLearnCancelled;
+	sigc::signal0<void> NextMidiCancelled;
 	
   protected:
 	

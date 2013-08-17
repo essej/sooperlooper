@@ -32,7 +32,7 @@ namespace SooperLooperGui {
 class LoopControl;
 	
 class TimePanel
-	: public wxPanel, public SigC::Object
+	: public wxPanel, public sigc::trackable
 {
   public:
 	

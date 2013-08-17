@@ -47,7 +47,7 @@ class PrefsDialog;
 class MainPanel;
 	
 class AppFrame
-	: public wxFrame,  public SigC::Object
+	: public wxFrame,  public sigc::trackable
 {
 public:
 	

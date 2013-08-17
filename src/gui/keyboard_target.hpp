@@ -50,7 +50,7 @@ class KeyboardTarget
 	virtual ~KeyboardTarget();
 
 	// first arg is key_release bool
-	typedef SigC::Slot1<void, bool> KeyAction;
+	typedef sigc::slot1<void, bool> KeyAction;
 
 	typedef std::vector<unsigned int> KeyState;
 
@@ -88,7 +88,7 @@ class KeyboardTarget
 	
 	wxWindow * window() const { return _window; }
 
-	SigC::Signal0<void> LearningStopped;
+	sigc::signal0<void> LearningStopped;
 	
   protected:
 	typedef map<KeyState,KeyAction> KeyMap;

@@ -15,7 +15,7 @@ void pthread_exit_pbd (void* status);
 std::string pthread_name ();
 
 namespace PBD {
-  extern SigC::Signal1<void,pthread_t> ThreadCreated;
+  extern sigc::signal1<void,pthread_t> ThreadCreated;
 }
 
 #endif /* __pbd_pthread_utils__ */

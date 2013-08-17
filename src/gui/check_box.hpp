@@ -64,9 +64,9 @@ class CheckBox
 	wxColour & get_border_color () { return _bordercolor; }
 	
 	
-	SigC::Signal1<void, bool> value_changed;
+	sigc::signal1<void, bool> value_changed;
 
-	SigC::Signal0<void> bind_request;
+	sigc::signal0<void> bind_request;
 	
   protected:
 

@@ -30,7 +30,7 @@ using std::vector;
 
 class strstream;
 
-class Receiver : public SigC::Object
+class Receiver : public sigc::trackable
 {
   public:
 	Receiver ();
@@ -43,7 +43,7 @@ class Receiver : public SigC::Object
 	virtual void receive (Transmitter::Channel, const char *) = 0;
 
   private:
-	vector<SigC::Connection *> connections;
+	vector<sigc::connection *> connections;
 };
 
 #endif  // __libmisc_receiver_h__

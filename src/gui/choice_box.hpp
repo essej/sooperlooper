@@ -76,8 +76,8 @@ class ChoiceBox
 	wxColour & get_border_color () { return _bordercolor; }
 	
 	
-	SigC::Signal2<void, int, wxString> value_changed;
-	SigC::Signal0<void> bind_request;
+	sigc::signal2<void, int, wxString> value_changed;
+	sigc::signal0<void> bind_request;
 	
   protected:
 

@@ -30,7 +30,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-class Transmitter : public std::stringstream, public SigC::Object
+class Transmitter : public std::stringstream, public sigc::trackable
 
 {
   public:
@@ -44,7 +44,7 @@ class Transmitter : public std::stringstream, public SigC::Object
 
 	Transmitter (Channel);
 
-	SigC::Signal2<void,Channel, const char *> &sender() { 
+	sigc::signal2<void,Channel, const char *> &sender() { 
 		return *send;
 	}
 
@@ -56,12 +56,12 @@ class Transmitter : public std::stringstream, public SigC::Object
 
   private:
 	Channel channel;
-	SigC::Signal2<void, Channel, const char *> *send;
+	sigc::signal2<void, Channel, const char *> *send;
 
-	SigC::Signal2<void, Channel, const char *> info;
-	SigC::Signal2<void, Channel, const char *> warning;
-	SigC::Signal2<void, Channel, const char *> error;
-	SigC::Signal2<void, Channel, const char *> fatal;
+	sigc::signal2<void, Channel, const char *> info;
+	sigc::signal2<void, Channel, const char *> warning;
+	sigc::signal2<void, Channel, const char *> error;
+	sigc::signal2<void, Channel, const char *> fatal;
 };
 
 /* for EGCS 2.91.66, if this function is not compiled within the same

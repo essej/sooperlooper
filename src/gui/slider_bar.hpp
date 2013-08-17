@@ -120,10 +120,10 @@ class SliderBar
 	int get_decimal_digits () { return _decimal_digits; }
 	
 	
-	SigC::Signal0<void> pressed;
-	SigC::Signal0<void> released;
-	SigC::Signal1<void, float> value_changed;
-	SigC::Signal0<void> bind_request;
+	sigc::signal0<void> pressed;
+	sigc::signal0<void> released;
+	sigc::signal1<void, float> value_changed;
+	sigc::signal0<void> bind_request;
 	
   protected:
 

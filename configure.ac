@@ -220,7 +220,7 @@ then
     AC_SUBST(NCURSES_LIBS)
 
     dnl sigc++
-    PKG_CHECK_MODULES(SIGCPP, sigc++-1.2 >= 0.14)
+    PKG_CHECK_MODULES(SIGCPP, sigc++-2.0 >= 2.2.10)
 
     AC_SUBST(SIGCPP_LIBS)
     AC_SUBST(SIGCPP_CFLAGS)

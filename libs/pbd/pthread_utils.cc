@@ -33,7 +33,7 @@ static ThreadMap all_threads;
 static pthread_mutex_t thread_map_lock = PTHREAD_MUTEX_INITIALIZER;
 
 namespace PBD {
-SigC::Signal1<void,pthread_t> ThreadCreated;
+sigc::signal1<void,pthread_t> ThreadCreated;
 }
 
 using namespace PBD;
