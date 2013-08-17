@@ -31,7 +31,7 @@ namespace MIDI {
 
 class Port;
 
-class Channel : public SigC::Object {
+class Channel : public sigc::trackable {
 
   public:
 	Channel (byte channel_number, Port &);

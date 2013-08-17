@@ -32,7 +32,7 @@ namespace MIDI {
 class Channel;
 class PortRequest;
 
-class Port : public SigC::Object {
+class Port : public sigc::trackable {
   public:
 	enum Type {
 		Unknown,
@@ -133,7 +133,7 @@ class Port : public SigC::Object {
 	int _mode;
 	size_t _number;
 	Channel *_channel[16];
-	SigC::Connection thru_connection;
+	sigc::connection thru_connection;
 	unsigned int bytes_written;
 	unsigned int bytes_read;
 	Parser *input_parser;

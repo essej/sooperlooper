@@ -1125,8 +1125,8 @@
 					../../src,
 					../..,
 					/opt/local/include,
-					"/usr/local/include/sigc++-1.2",
-					"/usr/local/lib/sigc++-1.2/include",
+					"/usr/local/include/sigc++-2.0",
+					"/usr/local/lib/sigc++-2.0/include",
 					/usr/include/libxml2,
 					/usr/local/include,
 				);
@@ -1193,8 +1193,8 @@
 					../../src,
 					../..,
 					/opt/local/include,
-					"/usr/local/include/sigc++-1.2",
-					"/usr/local/lib/sigc++-1.2/include",
+					"/usr/local/include/sigc++-2.0",
+					"/usr/local/lib/sigc++-2.0/include",
 					/usr/include/libxml2,
 					/usr/local/include,
 				);
@@ -1260,8 +1260,8 @@
 					../../src,
 					../..,
 					/opt/local/include,
-					"/usr/local/include/sigc++-1.2",
-					"/usr/local/lib/sigc++-1.2/include",
+					"/usr/local/include/sigc++-2.0",
+					"/usr/local/lib/sigc++-2.0/include",
 					/usr/include/libxml2,
 					/usr/local/include,
 				);

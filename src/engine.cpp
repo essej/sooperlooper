@@ -201,7 +201,7 @@ bool Engine::initialize(AudioDriver * driver, int buschans, int port, string pin
 		return false;
 	}
 
-	_driver->ConnectionsChanged.connect(slot(*this, &Engine::connections_changed));
+	_driver->ConnectionsChanged.connect(mem_fun(*this, &Engine::connections_changed));
 	
 	_ok = true;
 
@@ -304,14 +304,14 @@ void Engine::set_midi_bridge (MidiBridge * bridge)
 {
 	_midi_bridge = bridge;
 	if (_midi_bridge) {
-		_midi_bridge->BindingLearned.connect(slot(*this, &Engine::binding_learned));
-		_midi_bridge->NextMidiReceived.connect(slot(*this, &Engine::next_midi_received));
+		_midi_bridge->BindingLearned.connect(mem_fun(*this, &Engine::binding_learned));
+		_midi_bridge->NextMidiReceived.connect(mem_fun(*this, &Engine::next_midi_received));
 
-		_midi_bridge->MidiCommandEvent.connect (slot(*this, &Engine::push_midi_command_event));
-		_midi_bridge->MidiControlEvent.connect (slot(*this, &Engine::push_midi_control_event));
-		_midi_bridge->MidiSyncEvent.connect (slot(*this, &Engine::push_sync_event));
+		_midi_bridge->MidiCommandEvent.connect (mem_fun(*this, &Engine::push_midi_command_event));
+		_midi_bridge->MidiControlEvent.connect (mem_fun(*this, &Engine::push_midi_control_event));
+		_midi_bridge->MidiSyncEvent.connect (mem_fun(*this, &Engine::push_sync_event));
 
-		ParamChanged.connect(bind (slot(*_midi_bridge, &MidiBridge::parameter_changed), this));
+		ParamChanged.connect(bind (mem_fun(*_midi_bridge, &MidiBridge::parameter_changed), this));
 
 		_midi_bridge->set_output_midi_clock(_output_midi_clock);
 	}

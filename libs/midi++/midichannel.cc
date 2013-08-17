@@ -23,7 +23,7 @@
 #include <midi++/channel.h>
 #include <cstring>
 
-using namespace SigC;
+using namespace sigc;
 using namespace MIDI;
 
 Channel::Channel (byte channelnum, Port &p) : port (p)
@@ -38,20 +38,20 @@ Channel::connect_input_signals ()
 
 {
 	port.input()->channel_pressure[channel_number].connect
-		(slot (*this, &Channel::process_chanpress));
+		(mem_fun (*this, &Channel::process_chanpress));
 	port.input()->channel_note_on[channel_number].connect
-		(slot (*this, &Channel::process_note_on));
+		(mem_fun (*this, &Channel::process_note_on));
 	port.input()->channel_note_off[channel_number].connect
-		(slot (*this, &Channel::process_note_off));
+		(mem_fun (*this, &Channel::process_note_off));
 	port.input()->channel_poly_pressure[channel_number].connect
-		(slot (*this, &Channel::process_polypress));
+		(mem_fun (*this, &Channel::process_polypress));
 	port.input()->channel_program_change[channel_number].connect
-		(slot (*this, &Channel::process_program_change));
+		(mem_fun (*this, &Channel::process_program_change));
 	port.input()->channel_controller[channel_number].connect
-		(slot (*this, &Channel::process_controller));
+		(mem_fun (*this, &Channel::process_controller));
 	port.input()->channel_pitchbend[channel_number].connect
-		(slot (*this, &Channel::process_pitchbend));
-	port.input()->reset.connect (slot (*this, &Channel::process_reset));
+		(mem_fun (*this, &Channel::process_pitchbend));
+	port.input()->reset.connect (mem_fun (*this, &Channel::process_reset));
 }
 
 void
@@ -59,20 +59,20 @@ Channel::connect_output_signals ()
 
 {
 	port.output()->channel_pressure[channel_number].connect
-		(slot (*this, &Channel::process_chanpress));
+		(mem_fun (*this, &Channel::process_chanpress));
 	port.output()->channel_note_on[channel_number].connect
-		(slot (*this, &Channel::process_note_on));
+		(mem_fun (*this, &Channel::process_note_on));
 	port.output()->channel_note_off[channel_number].connect
-		(slot (*this, &Channel::process_note_off));
+		(mem_fun (*this, &Channel::process_note_off));
 	port.output()->channel_poly_pressure[channel_number].connect
-		(slot (*this, &Channel::process_polypress));
+		(mem_fun (*this, &Channel::process_polypress));
 	port.output()->channel_program_change[channel_number].connect
-		(slot (*this, &Channel::process_program_change));
+		(mem_fun (*this, &Channel::process_program_change));
 	port.output()->channel_controller[channel_number].connect
-		(slot (*this, &Channel::process_controller));
+		(mem_fun (*this, &Channel::process_controller));
 	port.output()->channel_pitchbend[channel_number].connect
-		(slot (*this, &Channel::process_pitchbend));
-	port.output()->reset.connect (slot (*this, &Channel::process_reset));
+		(mem_fun (*this, &Channel::process_pitchbend));
+	port.output()->reset.connect (mem_fun (*this, &Channel::process_reset));
 }
 
 void

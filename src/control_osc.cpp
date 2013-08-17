@@ -95,8 +95,8 @@ ControlOSC::ControlOSC(Engine * eng, unsigned int port)
 
 	*/
 
-	_engine->LoopAdded.connect(slot (*this, &ControlOSC::on_loop_added));
-	_engine->LoopRemoved.connect(slot (*this, &ControlOSC::on_loop_removed));
+	_engine->LoopAdded.connect(mem_fun (*this, &ControlOSC::on_loop_added));
+	_engine->LoopRemoved.connect(mem_fun (*this, &ControlOSC::on_loop_removed));
 
 	register_callbacks();
 

@@ -34,7 +34,7 @@
 #include <pbd/transmitter.h>
 
 using namespace std;
-using namespace SigC;
+using namespace sigc;
 using namespace MIDI;
 
 const char *
@@ -119,7 +119,7 @@ Parser::Parser (Port &p)
 	_mmc_forward = false;
 	reset_mtc_state ();
 
-	raw_preparse.connect(slot(*this, &Parser::handle_preparse));
+	raw_preparse.connect(mem_fun(*this, &Parser::handle_preparse));
 
 	/* this hack deals with the possibility of our first MIDI
 	   bytes being running status messages.
@@ -323,7 +323,7 @@ Parser::trace (bool onoff, ostream *o, const string &prefix)
 		trace_stream = o;
 		trace_prefix = prefix;
 		trace_connection = any.connect 
-			(slot (*this, &Parser::trace_event));
+			(mem_fun (*this, &Parser::trace_event));
 	} else {
 		trace_prefix = "";
 		trace_stream = 0;

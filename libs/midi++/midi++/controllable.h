@@ -32,7 +32,7 @@ class Channel;
 class Port;
 class Parser;
 
-class Controllable : public SigC::Object
+class Controllable : public sigc::trackable
 {
   public:
 	Controllable (Port *, bool bistate = false);
@@ -45,8 +45,8 @@ class Controllable : public SigC::Object
 
 	virtual void set_value (float) = 0;
 
-	SigC::Signal0<void> learning_started;
-	SigC::Signal0<void> learning_stopped;
+	sigc::signal0<void> learning_started;
+	sigc::signal0<void> learning_stopped;
 
 	bool get_control_info (channel_t&, eventType&, byte&);
 	void set_control_type (channel_t, eventType, byte);
@@ -63,8 +63,8 @@ class Controllable : public SigC::Object
   private:
 	bool             bistate;
 	int              midi_msg_id;      /* controller ID or note number */
-	SigC::Connection midi_sense_connection[2];
-	SigC::Connection midi_learn_connection;
+	sigc::connection midi_sense_connection[2];
+	sigc::connection midi_learn_connection;
 	size_t           connections;
 	Port*            port;
 	eventType        control_type;

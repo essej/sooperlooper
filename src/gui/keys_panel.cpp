@@ -128,7 +128,7 @@ void KeysPanel::init()
 	topsizer->Add (buttsizer, 0, wxEXPAND|wxALL, 1);
 
 
-	_parent->get_keyboard().LearningStopped.connect (slot (*this, &KeysPanel::learning_stopped));
+	_parent->get_keyboard().LearningStopped.connect (mem_fun (*this, &KeysPanel::learning_stopped));
 	
 	refresh_state();
 	

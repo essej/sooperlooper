@@ -219,7 +219,7 @@ AM_CONDITIONAL(WITH_COREMIDI, test x$use_coremidi = xyes)
 AC_SUBST(AUDIO_LIBS)
 
 dnl sigc++
-PKG_CHECK_MODULES(SIGCPP, sigc++-1.2 >= 0.14)
+PKG_CHECK_MODULES(SIGCPP, sigc++-2.0 >= 2.2.10)
 
 
 dnl Checks for header files.

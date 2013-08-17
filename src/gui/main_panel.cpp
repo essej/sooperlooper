@@ -140,10 +140,10 @@ END_EVENT_TABLE()
 
 	_taptempo_button_timer = new wxTimer(this, ID_TapTempoTimer);
 
-	_loop_control->ConnectFailed.connect (slot (*this,  &MainPanel::on_connect_failed));
-	_loop_control->LostConnection.connect (slot (*this,  &MainPanel::on_connection_lost));
-	_loop_control->IsAlive.connect (slot (*this,  &MainPanel::on_engine_alive));
-	_loop_control->ErrorReceived.connect (slot (*this,  &MainPanel::on_error_received));
+	_loop_control->ConnectFailed.connect (mem_fun (*this,  &MainPanel::on_connect_failed));
+	_loop_control->LostConnection.connect (mem_fun (*this,  &MainPanel::on_connection_lost));
+	_loop_control->IsAlive.connect (mem_fun (*this,  &MainPanel::on_engine_alive));
+	_loop_control->ErrorReceived.connect (mem_fun (*this,  &MainPanel::on_error_received));
 	
 }
 
@@ -199,8 +199,8 @@ MainPanel::init()
 	_sync_choice = new ChoiceBox (_top_panel, ID_SyncChoice, true, wxDefaultPosition, wxSize (130, 20));
 	_sync_choice->set_label (wxT("sync to"));
 	_sync_choice->SetFont (sliderFont);
-	_sync_choice->value_changed.connect (slot (*this,  &MainPanel::on_syncto_change));
-	_sync_choice->bind_request.connect (bind (slot (*this,  &MainPanel::on_bind_request), wxT("sync")));
+	_sync_choice->value_changed.connect (mem_fun (*this,  &MainPanel::on_syncto_change));
+	_sync_choice->bind_request.connect (bind (mem_fun (*this,  &MainPanel::on_bind_request), wxT("sync")));
 	
 	rowsizer->Add (_sync_choice, 0, wxALL|wxEXPAND, 2);
 	
@@ -210,8 +210,8 @@ MainPanel::init()
 	_tempo_bar->set_snap_mode (SpinBox::IntegerSnap);
 	_tempo_bar->set_allow_outside_bounds(true);
 	_tempo_bar->SetFont (sliderFont);
-	_tempo_bar->value_changed.connect (slot (*this,  &MainPanel::on_tempo_change));
-	_tempo_bar->bind_request.connect (bind (slot (*this,  &MainPanel::on_bind_request), wxT("tempo")));
+	_tempo_bar->value_changed.connect (mem_fun (*this,  &MainPanel::on_tempo_change));
+	_tempo_bar->bind_request.connect (bind (mem_fun (*this,  &MainPanel::on_bind_request), wxT("tempo")));
 	rowsizer->Add (_tempo_bar, 0, wxALL|wxEXPAND, 2);
 
  	_taptempo_button = new PixButton(_top_panel, ID_TapTempoButton, true);
@@ -220,9 +220,9 @@ MainPanel::init()
 	_taptempo_button->set_focus_bitmap (wxBitmap(tap_tempo_focus));
 	_taptempo_button->set_disabled_bitmap (wxBitmap(tap_tempo_disabled));
 	_taptempo_button->set_active_bitmap (wxBitmap(tap_tempo_active));
-	_taptempo_button->pressed.connect (slot (*this, &MainPanel::on_taptempo_press));
-	_taptempo_button->released.connect (slot (*this, &MainPanel::on_taptempo_release));
-	_taptempo_button->bind_request.connect (bind (slot (*this,  &MainPanel::on_bind_request), wxT("taptempo")));
+	_taptempo_button->pressed.connect (mem_fun (*this, &MainPanel::on_taptempo_press));
+	_taptempo_button->released.connect (mem_fun (*this, &MainPanel::on_taptempo_release));
+	_taptempo_button->bind_request.connect (bind (mem_fun (*this,  &MainPanel::on_bind_request), wxT("taptempo")));
  	rowsizer->Add (_taptempo_button, 0, wxALL|wxEXPAND, 2);
 	
 
@@ -232,16 +232,16 @@ MainPanel::init()
 	_eighth_cycle_bar->set_snap_mode (SpinBox::IntegerSnap);
 	_eighth_cycle_bar->set_allow_outside_bounds(true);
 	_eighth_cycle_bar->SetFont (sliderFont);
-	_eighth_cycle_bar->value_changed.connect (slot (*this,  &MainPanel::on_eighth_change));
-	_eighth_cycle_bar->bind_request.connect (bind (slot (*this,  &MainPanel::on_bind_request), wxT("eighth")));
+	_eighth_cycle_bar->value_changed.connect (mem_fun (*this,  &MainPanel::on_eighth_change));
+	_eighth_cycle_bar->bind_request.connect (bind (mem_fun (*this,  &MainPanel::on_bind_request), wxT("eighth")));
 	rowsizer->Add (_eighth_cycle_bar, 0, wxALL|wxEXPAND, 2);
 	
 
 	_quantize_choice = new ChoiceBox (_top_panel, ID_QuantizeChoice, true, wxDefaultPosition, wxSize (110, 20));
 	_quantize_choice->SetFont (sliderFont);
 	_quantize_choice->set_label (wxT("quantize"));
-	_quantize_choice->value_changed.connect (slot (*this,  &MainPanel::on_quantize_change));
-	_quantize_choice->bind_request.connect (bind (slot (*this,  &MainPanel::on_bind_request), wxT("quantize")));
+	_quantize_choice->value_changed.connect (mem_fun (*this,  &MainPanel::on_quantize_change));
+	_quantize_choice->bind_request.connect (bind (mem_fun (*this,  &MainPanel::on_bind_request), wxT("quantize")));
 	_quantize_choice->append_choice (wxT("off"), 0);
 	_quantize_choice->append_choice (wxT("cycle"), 1);
 	_quantize_choice->append_choice (wxT("8th"), 2);
@@ -251,22 +251,22 @@ MainPanel::init()
 	_mute_quant_check = new CheckBox(_top_panel, ID_MuteQuantCheck, wxT("mute quant"), true, wxDefaultPosition, wxSize(90, 18));
 	_mute_quant_check->SetFont(sliderFont);
 	_mute_quant_check->SetToolTip(wxT("quantize mute operations"));
-	_mute_quant_check->value_changed.connect (slot (*this, &MainPanel::on_mute_quant_check));
-	_mute_quant_check->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("mute_quantized")));
+	_mute_quant_check->value_changed.connect (mem_fun (*this, &MainPanel::on_mute_quant_check));
+	_mute_quant_check->bind_request.connect (bind (mem_fun (*this, &MainPanel::on_bind_request), wxT("mute_quantized")));
 	rowsizer->Add (_mute_quant_check, 0, wxALL|wxEXPAND, 2);
 
 	_odub_quant_check = new CheckBox(_top_panel, ID_OdubQuantCheck, wxT("odub quant"), true, wxDefaultPosition, wxSize(90, 18));
 	_odub_quant_check->SetFont(sliderFont);
 	_odub_quant_check->SetToolTip(wxT("quantize overdub operations"));
-	_odub_quant_check->value_changed.connect (slot (*this, &MainPanel::on_odub_quant_check));
-	_odub_quant_check->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("overdub_quantized")));
+	_odub_quant_check->value_changed.connect (mem_fun (*this, &MainPanel::on_odub_quant_check));
+	_odub_quant_check->bind_request.connect (bind (mem_fun (*this, &MainPanel::on_bind_request), wxT("overdub_quantized")));
 	rowsizer->Add (_odub_quant_check, 0, wxALL|wxEXPAND, 2);
 
 	_repl_quant_check = new CheckBox(_top_panel, ID_ReplQuantCheck, wxT("repl quant"), true, wxDefaultPosition, wxSize(90, 18));
 	_repl_quant_check->SetFont(sliderFont);
 	_repl_quant_check->SetToolTip(wxT("quantize replace and substitute operations"));
-	_repl_quant_check->value_changed.connect (slot (*this, &MainPanel::on_repl_quant_check));
-	_repl_quant_check->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("replace_quantized")));
+	_repl_quant_check->value_changed.connect (mem_fun (*this, &MainPanel::on_repl_quant_check));
+	_repl_quant_check->bind_request.connect (bind (mem_fun (*this, &MainPanel::on_bind_request), wxT("replace_quantized")));
 	rowsizer->Add (_repl_quant_check, 0, wxALL|wxEXPAND, 2);
 
 
@@ -287,8 +287,8 @@ MainPanel::init()
 	_xfade_bar->set_snap_mode (SpinBox::IntegerSnap);
 	_xfade_bar->set_decimal_digits (0);
 	_xfade_bar->SetFont (sliderFont);
-	_xfade_bar->value_changed.connect (slot (*this,  &MainPanel::on_xfade_change));
-	_xfade_bar->bind_request.connect (bind (slot (*this,  &MainPanel::on_bind_request), wxT("fade_samples")));
+	_xfade_bar->value_changed.connect (mem_fun (*this,  &MainPanel::on_xfade_change));
+	_xfade_bar->bind_request.connect (bind (mem_fun (*this,  &MainPanel::on_bind_request), wxT("fade_samples")));
 	rowsizer->Add (_xfade_bar, 0, wxALL|wxEXPAND, 2);
 
 	_common_ingain_bar = new SliderBar(_top_panel, ID_InGainControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(132,20));
@@ -297,8 +297,8 @@ MainPanel::init()
 	_common_ingain_bar->set_scale_mode(SliderBar::ZeroGainMode);
 	_common_ingain_bar->set_show_indicator_bar(true);
 	_common_ingain_bar->SetFont(sliderFont);
-	_common_ingain_bar->value_changed.connect (slot (*this, &MainPanel::on_ingain_change));
-	_common_ingain_bar->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("input_gain")));
+	_common_ingain_bar->value_changed.connect (mem_fun (*this, &MainPanel::on_ingain_change));
+	_common_ingain_bar->bind_request.connect (bind (mem_fun (*this, &MainPanel::on_bind_request), wxT("input_gain")));
 	rowsizer->Add (_common_ingain_bar, 0, wxALL|wxEXPAND, 2);
 	
 	_common_dry_bar = new SliderBar(_top_panel, ID_DryControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(132,20));
@@ -307,8 +307,8 @@ MainPanel::init()
 	_common_dry_bar->set_scale_mode(SliderBar::ZeroGainMode);
 	_common_dry_bar->set_show_indicator_bar(true);
 	_common_dry_bar->SetFont(sliderFont);
-	_common_dry_bar->value_changed.connect (slot (*this, &MainPanel::on_dry_change));
-	_common_dry_bar->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("dry")));
+	_common_dry_bar->value_changed.connect (mem_fun (*this, &MainPanel::on_dry_change));
+	_common_dry_bar->bind_request.connect (bind (mem_fun (*this, &MainPanel::on_bind_request), wxT("dry")));
 	rowsizer->Add (_common_dry_bar, 0, wxALL|wxEXPAND, 2);
 
 	_common_wet_bar = new SliderBar(_top_panel, ID_WetControl, 0.0f, 1.0f, 1.0f, true, wxDefaultPosition, wxSize(132,20));
@@ -317,30 +317,30 @@ MainPanel::init()
 	_common_wet_bar->set_scale_mode(SliderBar::ZeroGainMode);
 	_common_wet_bar->set_show_indicator_bar(true);
 	_common_wet_bar->SetFont(sliderFont);
-	_common_wet_bar->value_changed.connect (slot (*this, &MainPanel::on_wet_change));
-	_common_wet_bar->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("wet")));
+	_common_wet_bar->value_changed.connect (mem_fun (*this, &MainPanel::on_wet_change));
+	_common_wet_bar->bind_request.connect (bind (mem_fun (*this, &MainPanel::on_bind_request), wxT("wet")));
 	rowsizer->Add (_common_wet_bar, 0, wxALL|wxEXPAND, 2);
 	
 
 	
 	_round_check = new CheckBox (_top_panel, ID_RoundCheck, wxT("round"), true, wxDefaultPosition, wxSize(60, 20));
 	_round_check->SetFont (sliderFont);
-	_round_check->value_changed.connect (slot (*this, &MainPanel::on_round_check));
-	_round_check->bind_request.connect (bind (slot (*this,  &MainPanel::on_bind_request), wxT("round")));
+	_round_check->value_changed.connect (mem_fun (*this, &MainPanel::on_round_check));
+	_round_check->bind_request.connect (bind (mem_fun (*this,  &MainPanel::on_bind_request), wxT("round")));
 	rowsizer->Add (_round_check, 0, wxALL|wxEXPAND, 2);
 
 	_relsync_check = new CheckBox (_top_panel, ID_RelSyncCheck, wxT("rel sync"), true, wxDefaultPosition, wxSize(75, 20));
 	_relsync_check->SetFont (sliderFont);
-	_relsync_check->value_changed.connect (slot (*this, &MainPanel::on_relsync_check));
-	_relsync_check->bind_request.connect (bind (slot (*this,  &MainPanel::on_bind_request), wxT("relative_sync")));
+	_relsync_check->value_changed.connect (mem_fun (*this, &MainPanel::on_relsync_check));
+	_relsync_check->bind_request.connect (bind (mem_fun (*this,  &MainPanel::on_bind_request), wxT("relative_sync")));
 	rowsizer->Add (_relsync_check, 0, wxALL|wxEXPAND, 2);
 	
 
 	_smart_eighths_check = new CheckBox(_top_panel, ID_SmartEighthCheck, wxT("auto 8th"), true, wxDefaultPosition, wxSize(80, 18));
 	_smart_eighths_check->SetFont(sliderFont);
 	_smart_eighths_check->SetToolTip(wxT("auto adjust 8ths per cycle with tempo"));
-	_smart_eighths_check->value_changed.connect (slot (*this, &MainPanel::on_smart_eighths_check));
-	_smart_eighths_check->bind_request.connect (bind (slot (*this, &MainPanel::on_bind_request), wxT("smart_eighths")));
+	_smart_eighths_check->value_changed.connect (mem_fun (*this, &MainPanel::on_smart_eighths_check));
+	_smart_eighths_check->bind_request.connect (bind (mem_fun (*this, &MainPanel::on_bind_request), wxT("smart_eighths")));
 	rowsizer->Add (_smart_eighths_check, 0, wxALL|wxEXPAND, 2);
 
 
@@ -361,9 +361,9 @@ MainPanel::init()
 	
 
 	// todo request how many loopers to construct based on connection
-	_loop_control->LooperConnected.connect (slot (*this, &MainPanel::init_loopers));
-	_loop_control->Disconnected.connect (bind (slot (*this, &MainPanel::init_loopers), 0));
-	_loop_update_connection = _loop_control->NewDataReady.connect (slot (*this, &MainPanel::osc_data_ready));
+	_loop_control->LooperConnected.connect (mem_fun (*this, &MainPanel::init_loopers));
+	_loop_control->Disconnected.connect (bind (mem_fun (*this, &MainPanel::init_loopers), 0));
+	_loop_update_connection = _loop_control->NewDataReady.connect (mem_fun (*this, &MainPanel::osc_data_ready));
 
 
 
@@ -1065,58 +1065,58 @@ MainPanel::process_key_event (wxKeyEvent &ev)
 void MainPanel::intialize_keybindings ()
 {
 	
-	KeyboardTarget::add_action ("record", bind (slot (*this, &MainPanel::command_action), wxT("record")));
-	KeyboardTarget::add_action ("overdub", bind (slot (*this, &MainPanel::command_action), wxT("overdub")));
-	KeyboardTarget::add_action ("multiply", bind (slot (*this, &MainPanel::command_action), wxT("multiply")));
-	KeyboardTarget::add_action ("insert", bind (slot (*this, &MainPanel::command_action), wxT("insert")));
-	KeyboardTarget::add_action ("replace", bind (slot (*this, &MainPanel::command_action), wxT("replace")));
-	KeyboardTarget::add_action ("reverse", bind (slot (*this, &MainPanel::command_action), wxT("reverse")));
-	KeyboardTarget::add_action ("scratch", bind (slot (*this, &MainPanel::command_action), wxT("scratch")));
-	KeyboardTarget::add_action ("substitute", bind (slot (*this, &MainPanel::command_action), wxT("substitute")));
-	KeyboardTarget::add_action ("mute", bind (slot (*this, &MainPanel::command_action), wxT("mute")));
-	KeyboardTarget::add_action ("mute_on", bind (slot (*this, &MainPanel::command_action), wxT("mute_on")));
-	KeyboardTarget::add_action ("mute_off", bind (slot (*this, &MainPanel::command_action), wxT("mute_off")));
-	KeyboardTarget::add_action ("mute_trigger", bind (slot (*this, &MainPanel::command_action), wxT("mute_trigger")));
-	KeyboardTarget::add_action ("undo", bind (slot (*this, &MainPanel::command_action), wxT("undo")));
-	KeyboardTarget::add_action ("redo", bind (slot (*this, &MainPanel::command_action), wxT("redo")));	
-	KeyboardTarget::add_action ("undo_all", bind (slot (*this, &MainPanel::command_action), wxT("undo_all")));
-	KeyboardTarget::add_action ("redo_all", bind (slot (*this, &MainPanel::command_action), wxT("redo_all")));	
-	KeyboardTarget::add_action ("oneshot", bind (slot (*this, &MainPanel::command_action), wxT("oneshot")));
-	KeyboardTarget::add_action ("trigger", bind (slot (*this, &MainPanel::command_action), wxT("trigger")));
-	KeyboardTarget::add_action ("pause", bind (slot (*this, &MainPanel::command_action), wxT("pause")));
-	KeyboardTarget::add_action ("pause_on", bind (slot (*this, &MainPanel::command_action), wxT("pause_on")));
-	KeyboardTarget::add_action ("pause_off", bind (slot (*this, &MainPanel::command_action), wxT("pause_off")));
-	KeyboardTarget::add_action ("solo", bind (slot (*this, &MainPanel::command_action), wxT("solo")));
-	KeyboardTarget::add_action ("solo_prev", bind (slot (*this, &MainPanel::command_action), wxT("solo_prev")));
-	KeyboardTarget::add_action ("solo_next", bind (slot (*this, &MainPanel::command_action), wxT("solo_next")));
-	KeyboardTarget::add_action ("record_solo", bind (slot (*this, &MainPanel::command_action), wxT("record_solo")));
-	KeyboardTarget::add_action ("record_solo_prev", bind (slot (*this, &MainPanel::command_action), wxT("record_solo_prev")));
-	KeyboardTarget::add_action ("record_solo_next", bind (slot (*this, &MainPanel::command_action), wxT("record_solo_next")));
-	KeyboardTarget::add_action ("set_sync_pos", bind (slot (*this, &MainPanel::command_action), wxT("set_sync_pos")));
-	KeyboardTarget::add_action ("reset_sync_pos", bind (slot (*this, &MainPanel::command_action), wxT("reset_sync_pos")));
-	KeyboardTarget::add_action ("record_or_overdub", bind (slot (*this, &MainPanel::command_action), wxT("record_or_overdub")));
-	KeyboardTarget::add_action ("record_exclusive", bind (slot (*this, &MainPanel::command_action), wxT("record_exclusive")));
-	KeyboardTarget::add_action ("record_exclusive_next", bind (slot (*this, &MainPanel::command_action), wxT("record_exclusive_next")));
-	KeyboardTarget::add_action ("record_exclusive_prev", bind (slot (*this, &MainPanel::command_action), wxT("record_exclusive_prev")));	
+	KeyboardTarget::add_action ("record", bind (mem_fun (*this, &MainPanel::command_action), wxT("record")));
+	KeyboardTarget::add_action ("overdub", bind (mem_fun (*this, &MainPanel::command_action), wxT("overdub")));
+	KeyboardTarget::add_action ("multiply", bind (mem_fun (*this, &MainPanel::command_action), wxT("multiply")));
+	KeyboardTarget::add_action ("insert", bind (mem_fun (*this, &MainPanel::command_action), wxT("insert")));
+	KeyboardTarget::add_action ("replace", bind (mem_fun (*this, &MainPanel::command_action), wxT("replace")));
+	KeyboardTarget::add_action ("reverse", bind (mem_fun (*this, &MainPanel::command_action), wxT("reverse")));
+	KeyboardTarget::add_action ("scratch", bind (mem_fun (*this, &MainPanel::command_action), wxT("scratch")));
+	KeyboardTarget::add_action ("substitute", bind (mem_fun (*this, &MainPanel::command_action), wxT("substitute")));
+	KeyboardTarget::add_action ("mute", bind (mem_fun (*this, &MainPanel::command_action), wxT("mute")));
+	KeyboardTarget::add_action ("mute_on", bind (mem_fun (*this, &MainPanel::command_action), wxT("mute_on")));
+	KeyboardTarget::add_action ("mute_off", bind (mem_fun (*this, &MainPanel::command_action), wxT("mute_off")));
+	KeyboardTarget::add_action ("mute_trigger", bind (mem_fun (*this, &MainPanel::command_action), wxT("mute_trigger")));
+	KeyboardTarget::add_action ("undo", bind (mem_fun (*this, &MainPanel::command_action), wxT("undo")));
+	KeyboardTarget::add_action ("redo", bind (mem_fun (*this, &MainPanel::command_action), wxT("redo")));	
+	KeyboardTarget::add_action ("undo_all", bind (mem_fun (*this, &MainPanel::command_action), wxT("undo_all")));
+	KeyboardTarget::add_action ("redo_all", bind (mem_fun (*this, &MainPanel::command_action), wxT("redo_all")));	
+	KeyboardTarget::add_action ("oneshot", bind (mem_fun (*this, &MainPanel::command_action), wxT("oneshot")));
+	KeyboardTarget::add_action ("trigger", bind (mem_fun (*this, &MainPanel::command_action), wxT("trigger")));
+	KeyboardTarget::add_action ("pause", bind (mem_fun (*this, &MainPanel::command_action), wxT("pause")));
+	KeyboardTarget::add_action ("pause_on", bind (mem_fun (*this, &MainPanel::command_action), wxT("pause_on")));
+	KeyboardTarget::add_action ("pause_off", bind (mem_fun (*this, &MainPanel::command_action), wxT("pause_off")));
+	KeyboardTarget::add_action ("solo", bind (mem_fun (*this, &MainPanel::command_action), wxT("solo")));
+	KeyboardTarget::add_action ("solo_prev", bind (mem_fun (*this, &MainPanel::command_action), wxT("solo_prev")));
+	KeyboardTarget::add_action ("solo_next", bind (mem_fun (*this, &MainPanel::command_action), wxT("solo_next")));
+	KeyboardTarget::add_action ("record_solo", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_solo")));
+	KeyboardTarget::add_action ("record_solo_prev", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_solo_prev")));
+	KeyboardTarget::add_action ("record_solo_next", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_solo_next")));
+	KeyboardTarget::add_action ("set_sync_pos", bind (mem_fun (*this, &MainPanel::command_action), wxT("set_sync_pos")));
+	KeyboardTarget::add_action ("reset_sync_pos", bind (mem_fun (*this, &MainPanel::command_action), wxT("reset_sync_pos")));
+	KeyboardTarget::add_action ("record_or_overdub", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_or_overdub")));
+	KeyboardTarget::add_action ("record_exclusive", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_exclusive")));
+	KeyboardTarget::add_action ("record_exclusive_next", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_exclusive_next")));
+	KeyboardTarget::add_action ("record_exclusive_prev", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_exclusive_prev")));	
 
-	KeyboardTarget::add_action ("delay", bind (slot (*this, &MainPanel::misc_action), wxT("delay")));
-	KeyboardTarget::add_action ("taptempo", bind (slot (*this, &MainPanel::misc_action), wxT("taptempo")));
-	KeyboardTarget::add_action ("load", bind (slot (*this, &MainPanel::misc_action), wxT("load")));
-	KeyboardTarget::add_action ("save", bind (slot (*this, &MainPanel::misc_action), wxT("save")));
-	KeyboardTarget::add_action ("cancel_midi_learn", bind (slot (*this, &MainPanel::misc_action), wxT("cancel_learn")));
+	KeyboardTarget::add_action ("delay", bind (mem_fun (*this, &MainPanel::misc_action), wxT("delay")));
+	KeyboardTarget::add_action ("taptempo", bind (mem_fun (*this, &MainPanel::misc_action), wxT("taptempo")));
+	KeyboardTarget::add_action ("load", bind (mem_fun (*this, &MainPanel::misc_action), wxT("load")));
+	KeyboardTarget::add_action ("save", bind (mem_fun (*this, &MainPanel::misc_action), wxT("save")));
+	KeyboardTarget::add_action ("cancel_midi_learn", bind (mem_fun (*this, &MainPanel::misc_action), wxT("cancel_learn")));
 
-	KeyboardTarget::add_action ("select_prev_loop", bind (slot (*this, &MainPanel::select_loop_action), -2));
-	KeyboardTarget::add_action ("select_next_loop", bind (slot (*this, &MainPanel::select_loop_action), -1));
-	KeyboardTarget::add_action ("select_loop_1", bind (slot (*this, &MainPanel::select_loop_action), 1));
-	KeyboardTarget::add_action ("select_loop_2", bind (slot (*this, &MainPanel::select_loop_action), 2));
-	KeyboardTarget::add_action ("select_loop_3", bind (slot (*this, &MainPanel::select_loop_action), 3));
-	KeyboardTarget::add_action ("select_loop_4", bind (slot (*this, &MainPanel::select_loop_action), 4));
-	KeyboardTarget::add_action ("select_loop_5", bind (slot (*this, &MainPanel::select_loop_action), 5));
-	KeyboardTarget::add_action ("select_loop_6", bind (slot (*this, &MainPanel::select_loop_action), 6));
-	KeyboardTarget::add_action ("select_loop_7", bind (slot (*this, &MainPanel::select_loop_action), 7));
-	KeyboardTarget::add_action ("select_loop_8", bind (slot (*this, &MainPanel::select_loop_action), 8));
-	KeyboardTarget::add_action ("select_loop_9", bind (slot (*this, &MainPanel::select_loop_action), 9));
-	KeyboardTarget::add_action ("select_loop_all", bind (slot (*this, &MainPanel::select_loop_action), 0));
+	KeyboardTarget::add_action ("select_prev_loop", bind (mem_fun (*this, &MainPanel::select_loop_action), -2));
+	KeyboardTarget::add_action ("select_next_loop", bind (mem_fun (*this, &MainPanel::select_loop_action), -1));
+	KeyboardTarget::add_action ("select_loop_1", bind (mem_fun (*this, &MainPanel::select_loop_action), 1));
+	KeyboardTarget::add_action ("select_loop_2", bind (mem_fun (*this, &MainPanel::select_loop_action), 2));
+	KeyboardTarget::add_action ("select_loop_3", bind (mem_fun (*this, &MainPanel::select_loop_action), 3));
+	KeyboardTarget::add_action ("select_loop_4", bind (mem_fun (*this, &MainPanel::select_loop_action), 4));
+	KeyboardTarget::add_action ("select_loop_5", bind (mem_fun (*this, &MainPanel::select_loop_action), 5));
+	KeyboardTarget::add_action ("select_loop_6", bind (mem_fun (*this, &MainPanel::select_loop_action), 6));
+	KeyboardTarget::add_action ("select_loop_7", bind (mem_fun (*this, &MainPanel::select_loop_action), 7));
+	KeyboardTarget::add_action ("select_loop_8", bind (mem_fun (*this, &MainPanel::select_loop_action), 8));
+	KeyboardTarget::add_action ("select_loop_9", bind (mem_fun (*this, &MainPanel::select_loop_action), 9));
+	KeyboardTarget::add_action ("select_loop_all", bind (mem_fun (*this, &MainPanel::select_loop_action), 0));
 
 	
 	// these are the defaults... they get overridden by rc file

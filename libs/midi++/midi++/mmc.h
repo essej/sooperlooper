@@ -29,7 +29,7 @@ namespace MIDI {
 class Port;
 class Parser;
 
-class MachineControl : public SigC::Object
+class MachineControl : public sigc::trackable
 
 {
   public:
@@ -99,56 +99,56 @@ class MachineControl : public SigC::Object
 	   when certain MMC commands are received.
 	*/
 			
-	SigC::Signal1<void,MachineControl &> Stop;
-	SigC::Signal1<void,MachineControl &> Play;
-	SigC::Signal1<void,MachineControl &> DeferredPlay;
-	SigC::Signal1<void,MachineControl &> FastForward;
-	SigC::Signal1<void,MachineControl &> Rewind;
-	SigC::Signal1<void,MachineControl &> RecordStrobe;
-	SigC::Signal1<void,MachineControl &> RecordExit;
-	SigC::Signal1<void,MachineControl &> RecordPause;
-	SigC::Signal1<void,MachineControl &> Pause;
-	SigC::Signal1<void,MachineControl &> Eject;
-	SigC::Signal1<void,MachineControl &> Chase;
-	SigC::Signal1<void,MachineControl &> CommandErrorReset;
-	SigC::Signal1<void,MachineControl &> MmcReset;
+	sigc::signal1<void,MachineControl &> Stop;
+	sigc::signal1<void,MachineControl &> Play;
+	sigc::signal1<void,MachineControl &> DeferredPlay;
+	sigc::signal1<void,MachineControl &> FastForward;
+	sigc::signal1<void,MachineControl &> Rewind;
+	sigc::signal1<void,MachineControl &> RecordStrobe;
+	sigc::signal1<void,MachineControl &> RecordExit;
+	sigc::signal1<void,MachineControl &> RecordPause;
+	sigc::signal1<void,MachineControl &> Pause;
+	sigc::signal1<void,MachineControl &> Eject;
+	sigc::signal1<void,MachineControl &> Chase;
+	sigc::signal1<void,MachineControl &> CommandErrorReset;
+	sigc::signal1<void,MachineControl &> MmcReset;
 
-	SigC::Signal1<void,MachineControl &> JogStart;
-	SigC::Signal1<void,MachineControl &> JogStop;
+	sigc::signal1<void,MachineControl &> JogStart;
+	sigc::signal1<void,MachineControl &> JogStop;
 
-	SigC::Signal1<void,MachineControl &> Write;
-	SigC::Signal1<void,MachineControl &> MaskedWrite;
-	SigC::Signal1<void,MachineControl &> Read;
-	SigC::Signal1<void,MachineControl &> Update;
-	SigC::Signal1<void,MachineControl &> VariablePlay;
-	SigC::Signal1<void,MachineControl &> Search;
-	SigC::Signal1<void,MachineControl &> AssignSystemMaster;
-	SigC::Signal1<void,MachineControl &> GeneratorCommand;
-	SigC::Signal1<void,MachineControl &> MidiTimeCodeCommand;
-	SigC::Signal1<void,MachineControl &> Move;
-	SigC::Signal1<void,MachineControl &> Add;
-	SigC::Signal1<void,MachineControl &> Subtract;
-	SigC::Signal1<void,MachineControl &> DropFrameAdjust;
-	SigC::Signal1<void,MachineControl &> Procedure;
-	SigC::Signal1<void,MachineControl &> Event;
-	SigC::Signal1<void,MachineControl &> Group;
-	SigC::Signal1<void,MachineControl &> CommandSegment;
-	SigC::Signal1<void,MachineControl &> DeferredVariablePlay;
-	SigC::Signal1<void,MachineControl &> RecordStrobeVariable;
-	SigC::Signal1<void,MachineControl &> Wait;
-	SigC::Signal1<void,MachineControl &> Resume;
+	sigc::signal1<void,MachineControl &> Write;
+	sigc::signal1<void,MachineControl &> MaskedWrite;
+	sigc::signal1<void,MachineControl &> Read;
+	sigc::signal1<void,MachineControl &> Update;
+	sigc::signal1<void,MachineControl &> VariablePlay;
+	sigc::signal1<void,MachineControl &> Search;
+	sigc::signal1<void,MachineControl &> AssignSystemMaster;
+	sigc::signal1<void,MachineControl &> GeneratorCommand;
+	sigc::signal1<void,MachineControl &> MidiTimeCodeCommand;
+	sigc::signal1<void,MachineControl &> Move;
+	sigc::signal1<void,MachineControl &> Add;
+	sigc::signal1<void,MachineControl &> Subtract;
+	sigc::signal1<void,MachineControl &> DropFrameAdjust;
+	sigc::signal1<void,MachineControl &> Procedure;
+	sigc::signal1<void,MachineControl &> Event;
+	sigc::signal1<void,MachineControl &> Group;
+	sigc::signal1<void,MachineControl &> CommandSegment;
+	sigc::signal1<void,MachineControl &> DeferredVariablePlay;
+	sigc::signal1<void,MachineControl &> RecordStrobeVariable;
+	sigc::signal1<void,MachineControl &> Wait;
+	sigc::signal1<void,MachineControl &> Resume;
 
 	/* The second argument is the shuttle speed, the third is
 	   true if the direction is "forwards", false for "reverse"
 	*/
 	
-	SigC::Signal3<void,MachineControl &,float,bool> Shuttle;
+	sigc::signal3<void,MachineControl &,float,bool> Shuttle;
 
 	/* The second argument specifies the desired track record enabled
 	   status.
 	*/
 
-	SigC::Signal3<void,MachineControl &,size_t,bool> 
+	sigc::signal3<void,MachineControl &,size_t,bool> 
 		                             TrackRecordStatusChange;
 	
 	/* The second argument points to a byte array containing
@@ -156,11 +156,11 @@ class MachineControl : public SigC::Object
 	   format (5 bytes, roughly: hrs/mins/secs/frames/subframes)
 	*/
 
-	SigC::Signal2<void,MachineControl &, const byte *> Locate;
+	sigc::signal2<void,MachineControl &, const byte *> Locate;
 
 	/* The second argument is the number of steps to jump */
 	
-	SigC::Signal2<void,MachineControl &, int> Step;
+	sigc::signal2<void,MachineControl &, int> Step;
 	
   protected:
 

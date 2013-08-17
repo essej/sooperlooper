@@ -205,7 +205,7 @@ MachineControl::MachineControl (Port &p, float version,
 	
 	if ((parser = _port.input()) != 0) {
 		parser->mmc.connect 
-			(slot (*this, &MachineControl::process_mmc_message));
+			(mem_fun (*this, &MachineControl::process_mmc_message));
 	} else {
 		warning << "MMC connected to a non-input port: useless!"
 			<< endmsg;

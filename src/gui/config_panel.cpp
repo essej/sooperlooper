@@ -245,8 +245,8 @@ void ConfigPanel::init()
 	topsizer->Add (colsizer, 0, wxEXPAND|wxALL, 4);
 
 	
-	_parent->get_loop_control().LooperConnected.connect(slot (*this, &ConfigPanel::looper_connected));
-	_parent->get_loop_control().Disconnected.connect(slot (*this, &ConfigPanel::refresh_state));
+	_parent->get_loop_control().LooperConnected.connect(mem_fun (*this, &ConfigPanel::looper_connected));
+	_parent->get_loop_control().Disconnected.connect(mem_fun (*this, &ConfigPanel::refresh_state));
 	
 	refresh_state();
 	refresh_defaults();

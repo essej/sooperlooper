@@ -3334,7 +3334,7 @@
 				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
 				GCC_WARN_UNKNOWN_PRAGMAS = NO;
 				GENERATE_PKGINFO_FILE = YES;
-				HEADER_SEARCH_PATHS = "../../libs/midi++ ../../libs/pbd ../../src /opt/local/include /usr/local/include/sigc++-1.2 /usr/local/lib/sigc++-1.2/include /opt/local/include/libxml2 /usr/local/include";
+				HEADER_SEARCH_PATHS = "../../libs/midi++ ../../libs/pbd ../../src /opt/local/include /usr/local/include/sigc++-2.0 /usr/local/lib/sigc++-2.0/include /opt/local/include/libxml2 /usr/local/include";
 				INFOPLIST_FILE = Resources/Info.plist;
 				INSTALL_PATH = "$(HOME)/Library/Audio/Plug-Ins/Components/";
 				LIBRARY_SEARCH_PATHS = "../../libs/midi++ ../../libs/pbd ../../src /Users/jesse/src/sooperlooper/src /Users/jesse/src/sooperlooper/libs/pbd /Users/jesse/src/sooperlooper/libs/midi++ /usr/local/lib /opt/local/lib";

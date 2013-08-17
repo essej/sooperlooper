@@ -378,9 +378,9 @@ void MidiBindPanel::init()
 	topsizer->Add (buttsizer, 0, wxALL|wxEXPAND|wxALIGN_RIGHT, 4);
 
 
-	_parent->get_loop_control().MidiBindingChanged.connect (slot (*this, &MidiBindPanel::got_binding_changed));
-	_parent->get_loop_control().ReceivedNextMidi.connect (slot (*this, &MidiBindPanel::recvd_next_midi));
-	_parent->get_loop_control().NextMidiCancelled.connect (slot (*this, &MidiBindPanel::cancelled_next_midi));
+	_parent->get_loop_control().MidiBindingChanged.connect (mem_fun (*this, &MidiBindPanel::got_binding_changed));
+	_parent->get_loop_control().ReceivedNextMidi.connect (mem_fun (*this, &MidiBindPanel::recvd_next_midi));
+	_parent->get_loop_control().NextMidiCancelled.connect (mem_fun (*this, &MidiBindPanel::cancelled_next_midi));
 
 	refresh_state();
 	

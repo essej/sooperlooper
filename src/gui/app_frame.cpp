@@ -154,7 +154,7 @@ AppFrame::init()
 	
 	_mainpanel = new MainPanel(this, -1, wxDefaultPosition, wxDefaultSize);
 
-	_mainpanel->PreferredSizeChange.connect (slot (*this,  &AppFrame::on_preferred_size));
+	_mainpanel->PreferredSizeChange.connect (mem_fun (*this,  &AppFrame::on_preferred_size));
 
 	
 	_topsizer->Add (_mainpanel, 1, wxEXPAND);

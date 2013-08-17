@@ -52,7 +52,7 @@ Receiver::listen_to (Transmitter &transmitter)
 {
 	sigc::connection *c = new sigc::connection;
 
-	(*c) = transmitter.sender().connect (slot (*this, &Receiver::receive));
+	(*c) = transmitter.sender().connect (mem_fun (*this, &Receiver::receive));
 
 	connections.push_back (c);
 }

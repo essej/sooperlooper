@@ -31,7 +31,7 @@
 #include <pbd/transmitter.h>
 
 using namespace std;
-using namespace SigC;
+using namespace sigc;
 using namespace MIDI;
 
 bool

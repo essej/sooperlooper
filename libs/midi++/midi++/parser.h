@@ -32,13 +32,13 @@ namespace MIDI {
 class Port;
 class Parser;
 
-typedef SigC::Signal2<void, Parser &, byte>                 OneByteSignal;
-typedef SigC::Signal2<void, Parser &, EventTwoBytes *>      TwoByteSignal;
-typedef SigC::Signal2<void, Parser &, pitchbend_t>          PitchBendSignal;
-typedef SigC::Signal3<void, Parser &, byte *, size_t> Signal;
-typedef SigC::Signal4<void, Parser &, byte *, size_t, timestamp_t> TimestampedSignal;
+typedef sigc::signal2<void, Parser &, byte>                 OneByteSignal;
+typedef sigc::signal2<void, Parser &, EventTwoBytes *>      TwoByteSignal;
+typedef sigc::signal2<void, Parser &, pitchbend_t>          PitchBendSignal;
+typedef sigc::signal3<void, Parser &, byte *, size_t> Signal;
+typedef sigc::signal4<void, Parser &, byte *, size_t, timestamp_t> TimestampedSignal;
 
-class Parser : public SigC::Object {
+class Parser : public sigc::trackable {
  public:
 	Parser (Port &p);
 	~Parser ();
@@ -62,8 +62,8 @@ class Parser : public SigC::Object {
 	OneByteSignal         channel_program_change[16];
 	PitchBendSignal       channel_pitchbend[16];
 	TwoByteSignal         channel_controller[16];
-	SigC::Signal1<void, Parser &>          channel_active_preparse[16];
-	SigC::Signal1<void, Parser &>          channel_active_postparse[16];
+	sigc::signal1<void, Parser &>          channel_active_preparse[16];
+	sigc::signal1<void, Parser &>          channel_active_postparse[16];
 
 	OneByteSignal         mtc_quarter_frame;
 
@@ -75,15 +75,15 @@ class Parser : public SigC::Object {
 	Signal                mtc;
 	Signal                position;
 	Signal                song;
-	SigC::Signal1<void, Parser &>          all_notes_off;
-	SigC::Signal1<void, Parser &>          tune;
-	SigC::Signal1<void, Parser &>          timing;
-	SigC::Signal1<void, Parser &>          start;
-	SigC::Signal1<void, Parser &>          stop;
-	SigC::Signal1<void, Parser &>          contineu;  /* note spelling */
-	SigC::Signal1<void, Parser &>          active_sense;
-	SigC::Signal1<void, Parser &>          reset;
-	SigC::Signal1<void, Parser &>          eox;
+	sigc::signal1<void, Parser &>          all_notes_off;
+	sigc::signal1<void, Parser &>          tune;
+	sigc::signal1<void, Parser &>          timing;
+	sigc::signal1<void, Parser &>          start;
+	sigc::signal1<void, Parser &>          stop;
+	sigc::signal1<void, Parser &>          contineu;  /* note spelling */
+	sigc::signal1<void, Parser &>          active_sense;
+	sigc::signal1<void, Parser &>          reset;
+	sigc::signal1<void, Parser &>          eox;
 
 	/* This should really be protected, but then derivatives of Port
 	   can't access it.
@@ -97,7 +97,7 @@ class Parser : public SigC::Object {
 	bool tracing() { return trace_stream != 0; }
 	Port &port() { return _port; }
 
-	SigC::Signal2<int, byte *, size_t> edit;
+	sigc::signal2<int, byte *, size_t> edit;
 
 	void set_mmc_forwarding (bool yn) {
 		_mmc_forward = yn;
@@ -116,9 +116,9 @@ class Parser : public SigC::Object {
 	const byte *mtc_current() const { return _mtc_time; }
 	bool        mtc_locked() const  { return _mtc_locked; }
 
-	SigC::Signal1<void,MTC_Status> mtc_status;
-	SigC::Signal0<bool>            mtc_skipped;
-	SigC::Signal2<void,const byte*,bool> mtc_time;
+	sigc::signal1<void,MTC_Status> mtc_status;
+	sigc::signal0<bool>            mtc_skipped;
+	sigc::signal2<void,const byte*,bool> mtc_time;
 
 	void set_mtc_forwarding (bool yn) {
 		_mtc_forward = yn;
@@ -133,7 +133,7 @@ class Parser : public SigC::Object {
 	std::ostream *trace_stream;
 	std::string trace_prefix;
 	void trace_event (Parser &p, byte *msg, size_t len, timestamp_t ts);
-	SigC::Connection trace_connection;
+	sigc::connection trace_connection;
 
 	size_t message_counter[256];
 

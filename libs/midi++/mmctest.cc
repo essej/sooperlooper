@@ -94,11 +94,11 @@ main (int argc, char *argv[])
 	}
 
 
-	mmc->DeferredPlay.connect (slot (do_deferred_play));
-	mmc->FastForward.connect (slot (do_ffwd));
-	mmc->Rewind.connect (slot (do_rewind));
-	mmc->Stop.connect (slot (do_stop));
-	mmc->TrackRecordStatusChange.connect (slot (do_record_status));
+	mmc->DeferredPlay.connect (mem_fun (do_deferred_play));
+	mmc->FastForward.connect (mem_fun (do_ffwd));
+	mmc->Rewind.connect (mem_fun (do_rewind));
+	mmc->Stop.connect (mem_fun (do_stop));
+	mmc->TrackRecordStatusChange.connect (mem_fun (do_record_status));
 
 	while (1) {
 		if (port->read (buf, 1) < 0) {

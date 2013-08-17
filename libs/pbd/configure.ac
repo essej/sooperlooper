@@ -193,7 +193,7 @@ AC_CHECK_LIB(pthread, pthread_create, ,[AC_MSG_ERROR([you have no POSIX thread s
 PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.5)
 
 dnl sigc++
-PKG_CHECK_MODULES(SIGCPP, sigc++-1.2 >= 0.14)
+PKG_CHECK_MODULES(SIGCPP, sigc++-2.0 >= 2.2.10)
 
 
 AM_BUILD_ENVIRONMENT

@@ -93,9 +93,9 @@ SooperLooperAU::SooperLooperAU(AudioUnit component)
 	
 	_engine->set_midi_bridge (_midi_bridge);
 	_engine->set_ignore_quit (true);
-	_engine->ParamChanged.connect(slot(*this, &SooperLooperAU::parameter_changed));
-	_engine->LoopAdded.connect(slot(*this, &SooperLooperAU::loop_added));
-	_engine->LoopRemoved.connect(slot(*this, &SooperLooperAU::loop_removed));	
+	_engine->ParamChanged.connect(mem_fun(*this, &SooperLooperAU::parameter_changed));
+	_engine->LoopAdded.connect(mem_fun(*this, &SooperLooperAU::loop_added));
+	_engine->LoopRemoved.connect(mem_fun(*this, &SooperLooperAU::loop_removed));	
 	
 	memset(_currStates, 0, sizeof(int) * SL_MAXLOOPS);
 }

@@ -101,7 +101,7 @@ MidiBridge::MidiBridge (string name, string oscurl, PortRequest & req)
 	}
 
 	// this is a callback that will be made from the parser
-	_port->input()->any.connect (slot (*this, &MidiBridge::incoming_midi));
+	_port->input()->any.connect (mem_fun (*this, &MidiBridge::incoming_midi));
 
 	init_thread();
 	init_clock_thread();
@@ -134,7 +134,7 @@ MidiBridge::MidiBridge (string name,  PortRequest & req)
 	}
 
 	// this is a callback that will be made from the parser
-	_port->input()->any.connect (slot (*this, &MidiBridge::incoming_midi));
+	_port->input()->any.connect (mem_fun (*this, &MidiBridge::incoming_midi));
 
 	init_thread();
 	init_clock_thread();
