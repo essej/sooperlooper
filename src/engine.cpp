@@ -113,6 +113,8 @@ Engine::Engine ()
 	_send_midi_start_on_trigger = false;
 	_send_midi_start_after_next_hit = false;
 
+	_load_sess_event = NULL;
+
 	// for now just use the current time!
 	_unique_id = (int) ::time(NULL);
 
@@ -605,9 +607,7 @@ Engine::remove_loop (Looper * looper)
 	
 	delete looper;
 
-	if (!_loading) {
-		LoopRemoved(); // emit
-	}
+	LoopRemoved(); // emit
 	
 	update_sync_source();
 
@@ -737,6 +737,13 @@ void Engine::process_rt_loop_manage_events ()
 		{
 			_rt_instances.push_back (lmevt->looper);
 			lmevt->looper->recompute_latencies();
+		}
+		else if (lmevt->etype == LoopManageEvent::LoadSessionPhase1)
+		{
+			_rt_instances.clear();
+
+			// signal main loop
+			push_loop_manage_to_main (*lmevt);
 		}
 		
 		_loop_manage_to_rt_queue->increment_read_ptr(1);
@@ -1602,6 +1609,10 @@ Engine::mainloop()
 			if (lmevt->etype == LoopManageEvent::RemoveLoop) {
 				remove_loop (lmevt->looper);
 			}
+			else if (lmevt->etype == LoopManageEvent::LoadSessionPhase1)
+			{
+				load_session_phase_1();
+			}
 			
 			_loop_manage_to_main_queue->increment_read_ptr(1);
 		}
@@ -1921,7 +1932,9 @@ Engine::process_nonrt_event (EventNonRT * event)
 	{
 		_osc->finish_update_event (*cu_event);
 	}
-	else if ((cl_event = dynamic_cast<ConfigLoopEvent*> (event)) != 0)
+	// to be on the safe side we do not handle loop add and remove commands
+	// while loading a new session
+	else if ((cl_event = dynamic_cast<ConfigLoopEvent*> (event)) != 0 && !_loading)
 	{
 		if (cl_event->type == ConfigLoopEvent::Add) {
 			// todo: use secs
@@ -2054,9 +2067,10 @@ Engine::process_nonrt_event (EventNonRT * event)
 	else if ((sess_event = dynamic_cast<SessionEvent*> (event)) != 0)
 	{
 		if (sess_event->type == SessionEvent::Load) {
-			if (!load_session (sess_event->filename)) {
-				_osc->send_error(sess_event->ret_url, sess_event->ret_path, "Session Load Failed");
-			}
+			_loading = true;
+			_load_sess_event = new SessionEvent(*sess_event);
+			LoopManageEvent lmev (LoopManageEvent::LoadSessionPhase1, NULL);
+			push_loop_manage_to_rt (lmev);
 		}
 		else {
 			if (!save_session (sess_event->filename, sess_event->write_audio)) {
@@ -2684,6 +2698,32 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 	return hit_at;
 }
 
+void
+Engine::load_session_phase_1()
+{
+	while (_instances.size() > 0)
+	{
+		remove_loop(_instances.back());
+	}
+
+	load_session_phase_2();
+}
+
+void
+Engine::load_session_phase_2()
+{
+	if (!_load_sess_event)
+	{
+		_loading = false;
+		return;
+	}
+	if (!load_session (_load_sess_event->filename))
+	{
+		_osc->send_error(_load_sess_event->ret_url, _load_sess_event->ret_path, "Session Load Failed");
+	}
+	_loading = false;
+	delete _load_sess_event;
+}
 
 bool
 Engine::load_session (std::string fname, string * readstr)

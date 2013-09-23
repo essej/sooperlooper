@@ -140,7 +140,8 @@ class Engine
 	{
 		enum EventType {
 			AddLoop = 0,
-			RemoveLoop
+			RemoveLoop,
+			LoadSessionPhase1
 		};
 
 		LoopManageEvent () {}
@@ -178,6 +179,10 @@ class Engine
 	void prepare_buffers(nframes_t nframes);
 
 	void connections_changed();
+
+	void load_session_phase_1();
+
+	void load_session_phase_2();
 
 	
 	AudioDriver * _driver;
@@ -310,6 +315,8 @@ class Engine
 	bool _use_sync_stop;
 
 	bool _loading;
+
+	SessionEvent* _load_sess_event;
 };
 
 
