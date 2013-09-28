@@ -72,3 +72,11 @@ src/gui/slgui
 src/sooperlooper
 src/slregister
 src/slconsole
+*.pyc
+*.pye
+*.htmle
+*_wrap.cxx
+*.so
+*.deps/
+*.h.in~
+src/test/test_engine.py
