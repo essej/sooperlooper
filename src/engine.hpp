@@ -141,7 +141,7 @@ class Engine
 		enum EventType {
 			AddLoop = 0,
 			RemoveLoop,
-			LoadSessionPhase1
+			LoadSession
 		};
 
 		LoopManageEvent () {}
@@ -180,9 +180,7 @@ class Engine
 
 	void connections_changed();
 
-	void load_session_phase_1();
-
-	void load_session_phase_2();
+	void handle_load_session_event();
 
 	
 	AudioDriver * _driver;

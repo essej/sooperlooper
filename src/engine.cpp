@@ -738,7 +738,7 @@ void Engine::process_rt_loop_manage_events ()
 			_rt_instances.push_back (lmevt->looper);
 			lmevt->looper->recompute_latencies();
 		}
-		else if (lmevt->etype == LoopManageEvent::LoadSessionPhase1)
+		else if (lmevt->etype == LoopManageEvent::LoadSession)
 		{
 			_rt_instances.clear();
 
@@ -1609,9 +1609,9 @@ Engine::mainloop()
 			if (lmevt->etype == LoopManageEvent::RemoveLoop) {
 				remove_loop (lmevt->looper);
 			}
-			else if (lmevt->etype == LoopManageEvent::LoadSessionPhase1)
+			else if (lmevt->etype == LoopManageEvent::LoadSession)
 			{
-				load_session_phase_1();
+				handle_load_session_event();
 			}
 			
 			_loop_manage_to_main_queue->increment_read_ptr(1);
@@ -2069,7 +2069,7 @@ Engine::process_nonrt_event (EventNonRT * event)
 		if (sess_event->type == SessionEvent::Load) {
 			_loading = true;
 			_load_sess_event = new SessionEvent(*sess_event);
-			LoopManageEvent lmev (LoopManageEvent::LoadSessionPhase1, NULL);
+			LoopManageEvent lmev (LoopManageEvent::LoadSession, NULL);
 			push_loop_manage_to_rt (lmev);
 		}
 		else {
@@ -2699,19 +2699,12 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 }
 
 void
-Engine::load_session_phase_1()
+Engine::handle_load_session_event ()
 {
 	while (_instances.size() > 0)
 	{
 		remove_loop(_instances.back());
 	}
-
-	load_session_phase_2();
-}
-
-void
-Engine::load_session_phase_2()
-{
 	if (!_load_sess_event)
 	{
 		_loading = false;
