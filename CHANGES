@@ -1,3 +1,4 @@
+- Fixed issue of loosing separate IO ports when loading a session while running
 - moved to sigc++-2.0
 
 CHANGES FOR 1.7.0
