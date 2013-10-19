@@ -1,7 +1,0 @@
-dependencies:
-    swig
-    python2.7  
-    nose
-    nose_parameterized
-
-run "make" to build and "nosetest" to run tests

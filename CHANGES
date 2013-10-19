@@ -1,4 +1,6 @@
 - moved to sigc++-2.0
+- added plugin tests 
+- fixed seg-fault when undoing wating to record 
 
 CHANGES FOR 1.7.0
 
