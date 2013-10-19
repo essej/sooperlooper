@@ -332,7 +332,7 @@ MidiBridge::finish_learn(MIDI::byte chcmd, MIDI::byte param, MIDI::byte val)
 
 			// if type is n, then lets force the command to be note as well
 			if (CommandMap::instance().is_command(_learninfo.control)) {
-				if (_learninfo.type == "pc") {
+				if (_learninfo.type == "pc" || _learninfo.type == "cc") {
 					_learninfo.command = "hit";
 				}
 				else {

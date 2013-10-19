@@ -1,3 +1,6 @@
+- Fixed small midi learn related glitch: midi learnt CC commands could not be
+  removed or modified in preferences dialog
+- Fixed issue of loosing separate IO ports when loading a session while running
 - moved to sigc++-2.0
 - added plugin tests 
 - fixed seg-fault when undoing wating to record 
