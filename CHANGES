@@ -4,6 +4,7 @@
 - Moved to sigc++-2.0
 - Added plugin tests
 - Fixed seg-fault when undoing wating to record
+- Fixing erronous muting when off
 
 CHANGES FOR 1.7.0
 
