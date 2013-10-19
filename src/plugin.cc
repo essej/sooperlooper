@@ -866,7 +866,7 @@ static inline void fillLoops(SooperLooperI *pLS, LoopChunk *mloop, unsigned long
 		      pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask] = 0.0f;
 		      //DBG(fprintf(stderr, "srcloop invalid\n"));
 	      }
-	      else {
+	      else if (srcloop->lLoopLength) {
 		      // we need to finish off a previous
 		      pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask] = 
 			      pLS->pSampleBuf[(srcloop->lLoopStart + (lCurrPos % srcloop->lLoopLength)) & pLS->lBufferSizeMask];
@@ -894,12 +894,12 @@ static inline void fillLoops(SooperLooperI *pLS, LoopChunk *mloop, unsigned long
       else if (loop->backfill && lCurrPos<=loop->lMarkEndH && lCurrPos>=loop->lMarkEndL)		
       {
 
-	      if (!srcloop->valid) {
+	      if (srcloop && !srcloop->valid) {
 		      // if src is not valid, fill with silence
 		      pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask] = 0.0f;
 		      //DBG(fprintf(stderr, "srcloop invalid\n"));
 	      }
-	      else {
+	      else if (srcloop && srcloop->lLoopLength) {
 		      // we need to finish off a previous
 		      pLS->pSampleBuf[(loop->lLoopStart + lCurrPos) & pLS->lBufferSizeMask] =
 			      pLS->pSampleBuf[(srcloop->lLoopStart +
@@ -2832,7 +2832,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			      pLS->fNextCurrRate = 0.0f;
 		      }
 
-					if (loop->prev) {
+					if ( loop && loop->prev) {
 						if (pLS->state == STATE_MUTE) {
 							undoLoop(pLS, false);;
 						} else { //undo with proper xfade

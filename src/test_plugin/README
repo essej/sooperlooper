@@ -1,0 +1,11 @@
+This is code to run tests on plugin.cc. It wraps plugin.cc using 
+swig. Each tests sets up plugin.cc as simple jack-client and then 
+takes it through it's states. 
+
+dependencies:
+    swig
+    python2.7  
+    nose
+    nose_parameterized
+
+run "make" to build and "nosetest" to run tests
