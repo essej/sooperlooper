@@ -1820,7 +1820,7 @@ runSooperLooper(LADSPA_Handle Instance,
      useDelay = 1;
   }
   else if (lMultiCtrl == MULTI_MUTE_ON) {
-	  if (pLS->state != STATE_MUTE) {
+	  if ((pLS->state != STATE_MUTE) && (pLS->state != STATE_OFF_MUTE)) {
 		  // lets mute it
 		  lMultiCtrl = MULTI_MUTE;
 	  } else {
@@ -1829,7 +1829,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	  }
   }
   else if (lMultiCtrl == MULTI_MUTE_OFF) {
-	  if (pLS->state == STATE_MUTE) {
+	  if ((pLS->state == STATE_MUTE) || (pLS->state == STATE_OFF_MUTE)) {
 		  // lets unmute it
 		  lMultiCtrl = MULTI_MUTE;
 	  } else {
@@ -2534,12 +2534,16 @@ runSooperLooper(LADSPA_Handle Instance,
 	   switch(pLS->state) {
 
 	       case STATE_OFF_MUTE:
-	         pLS->state = STATE_OFF;
-	         pLS->wasMuted = false;
+             if (lMultiCtrl == MULTI_MUTE) {
+                 pLS->state = STATE_OFF;
+                 pLS->wasMuted = false;
+             }
 	         break;
 	       case STATE_OFF:
-	         pLS->state = STATE_OFF_MUTE;
-	         pLS->wasMuted = true;
+             if (lMultiCtrl == MULTI_MUTE) {
+                 pLS->state = STATE_OFF_MUTE;
+                 pLS->wasMuted = true;
+             }
 	         break;
 	       case STATE_MUTE:
 		      // reset for audio ramp
@@ -2789,6 +2793,8 @@ runSooperLooper(LADSPA_Handle Instance,
 	      case STATE_SUBSTITUTE:
 	      case STATE_INSERT:
 	      case STATE_DELAY:
+	      case STATE_OFF:
+	      case STATE_OFF_MUTE:
 		 // nothing happens
 		 break;
 		 
@@ -2894,6 +2900,7 @@ runSooperLooper(LADSPA_Handle Instance,
 
 	case MULTI_REDO_ALL:
 	{
+
 		if (pLS->state == STATE_OFF) {
 			pLS->state = STATE_PLAY;
 			pLS->wasMuted = false;
@@ -2904,8 +2911,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		//	pLS->state = pLS->wasMuted ? STATE_MUTE : STATE_PLAY;
 		//}
 		
-		if (!loop || pLS->state == STATE_MUTE) {
-			// redo ALL)
+		if (!loop || (pLS->state == STATE_MUTE)) {
 			lastloop = pLS->headLoopChunk;
 			redoLoop(pLS);
 			 
@@ -2914,7 +2920,7 @@ runSooperLooper(LADSPA_Handle Instance,
 			redoLoop(pLS);
 			}
 			if (!pLS->headLoopChunk) {
-				pLS->state = STATE_OFF_MUTE;
+			    pLS->state = pLS->wasMuted ? STATE_OFF_MUTE : STATE_OFF;
 			}
 		} else {
 			if (loop->next) {
@@ -2966,7 +2972,7 @@ runSooperLooper(LADSPA_Handle Instance,
 				   // we don't need a fadeout
 				   redoLoop(pLS);
 				   if (!pLS->headLoopChunk) {
-					   pLS->state = STATE_OFF_MUTE;
+                       pLS->state = pLS->wasMuted ? STATE_OFF_MUTE : STATE_OFF;
 				   }
 			   } else {
 				   // we need a x-fade
@@ -4372,10 +4378,6 @@ runSooperLooper(LADSPA_Handle Instance,
 			  || (fQuantizeMode == QUANT_CYCLE && ((lCurrPos + loop->lSyncPos) % loop->lCycleLength) == 0)
 			  || (fQuantizeMode == QUANT_LOOP && (((lCurrPos + loop->lSyncPos) % loop->lLoopLength) == 0)) 
 			  || (fQuantizeMode == QUANT_8TH && ((lCurrPos + loop->lSyncPos) % eighthSamples) == 0)) {
-			  //|| (fQuantizeMode == QUANT_CYCLE && ((lCurrPos) % loop->lCycleLength) == 0)
-			  //|| (fQuantizeMode == QUANT_LOOP && (((lCurrPos) % loop->lLoopLength) == 0)) 
-			  //|| (fQuantizeMode == QUANT_8TH && ((lCurrPos) % eighthSamples) == 0)) {
-			 //DBG(fprintf(stderr, "x%08x  outputtuing sync at %d\n", (unsigned) pLS, lCurrPos));
 			 pfSyncOutput[lSampleIndex] = 2.0f;
 		 }
 
@@ -4604,6 +4606,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	   }
 	   
 	} break;
+
 
 	case STATE_DELAY:
 	{
