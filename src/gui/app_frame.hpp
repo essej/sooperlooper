@@ -52,7 +52,7 @@ class AppFrame
 public:
 	
 	// ctor(s)
-	AppFrame(const wxString& title, const wxPoint& pos, const wxSize& size, bool stay_on_top=false);
+	AppFrame(const wxString& title, const wxPoint& pos, const wxSize& size, bool stay_on_top=false, bool embedded=false);
 	virtual ~AppFrame();
 	
 	// event handlers (these functions should _not_ be virtual)
@@ -92,7 +92,11 @@ protected:
 	PrefsDialog * _prefs_dialog;
 	HelpWindow *  _help_window;
 	
+    wxToolBar * _toolbar;
+    
 	wxString  _rcdir;
+    
+    bool _embedded;
 	
 private:
     // any class wishing to process wxWindows events must use this macro

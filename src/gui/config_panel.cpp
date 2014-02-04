@@ -172,7 +172,7 @@ void ConfigPanel::init()
 	colsizer->Add (rowsizer, 0 , wxEXPAND|wxALL, 1);
 	
 	
-	wxFlexGridSizer * setsizer = new wxFlexGridSizer(-1, 2, 4, 4);
+	wxFlexGridSizer * setsizer = new wxFlexGridSizer(0, 2, 4, 4);
 
 
 	statText = new wxStaticText(this, -1, wxT("# Loops:"));

@@ -79,11 +79,11 @@ class KeyboardTarget
 	bool stop_learning (bool cancel=false);
 	bool is_learning() { return _learning; }
 	
-	static int add_action (string, KeyAction);
-	static int find_action (string, KeyAction&);
-	static int remove_action (string);
-	static void show_all_actions();
-	static void get_action_names (ActionNameList & nlist);
+	int add_action (string, KeyAction);
+	int find_action (string, KeyAction&);
+	int remove_action (string);
+	void show_all_actions();
+	void get_action_names (ActionNameList & nlist);
 	
 	
 	wxWindow * window() const { return _window; }
@@ -109,7 +109,7 @@ class KeyboardTarget
 	
   private:
 	typedef map<string,KeyAction> ActionMap; 
-	static ActionMap actions;
+	ActionMap actions;
 	string _name;
 	wxWindow * _window;
 

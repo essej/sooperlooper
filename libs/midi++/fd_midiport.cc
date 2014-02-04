@@ -68,7 +68,7 @@ FD_MidiPort::FD_MidiPort (PortRequest &req,
 			midi_filename_pattern = new string (pattern);
 		}
 
-		if (req.mode & O_NONBLOCK == 0) {
+		if ((req.mode & O_NONBLOCK) == 0) {
 			/* we unconditionally set O_NONBLOCK during
 			   open, but the request didn't ask for it,
 			   so remove it.

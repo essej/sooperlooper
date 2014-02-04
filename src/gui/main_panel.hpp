@@ -87,7 +87,9 @@ public:
 	void do_load_session ();
 	void do_save_session (bool write_audio=false);
 	
-	
+	void set_embedded(bool flag) { _embedded = flag; }
+    bool get_embedded() const { return _embedded; }
+    
 	void init_loopers (int count);
 
 	bool load_rc();
@@ -137,6 +139,9 @@ protected:
 	void on_about (wxCommandEvent &ev);
 	void on_help (wxCommandEvent &ev);
 
+    void on_modal_dialog_close (wxCommandEvent & ev);
+
+    
 	void on_taptempo_press (int button);
 	void on_taptempo_release (int button);
 	
@@ -152,7 +157,15 @@ protected:
 
 	LoopControl * _loop_control;
 	sigc::connection  _loop_update_connection;
-	
+	sigc::connection  _loop_connect_connection;
+	sigc::connection  _loop_disconnect_connection;
+
+    sigc::connection  _connect_failed_connection;
+    sigc::connection  _lost_connect_connection;
+    sigc::connection  _isalive_connection;
+    sigc::connection  _error_recvd_connection;
+
+    
 	std::vector<LooperPanel *> _looper_panels;
 	
 	wxTimer * _update_timer;
@@ -179,7 +192,15 @@ protected:
 	CheckBox *  _repl_quant_check;
 	CheckBox *  _smart_eighths_check;
 	float _tapdelay_val;
-
+    bool _embedded;
+    
+    bool _got_add_custom;
+    int _add_num_channels;
+    int _add_num_loops;
+    float _add_secs_channel;
+    bool _add_discrete;
+    
+    
 	// keybindings
 
 	PrefsDialog * _prefs_dialog;

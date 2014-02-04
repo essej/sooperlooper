@@ -39,7 +39,10 @@ Transmitter  warning (Transmitter::Warning);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-COMPONENT_ENTRY(SooperLooperAU)
+// COMPONENT_ENTRY(SooperLooperAU)
+
+AUDIOCOMPONENT_ENTRY(AUMIDIEffectFactory, SooperLooperAU)
+
 
 int SooperLooperAU::_plugin_count = 0;
 
@@ -62,6 +65,8 @@ SooperLooperAU::SooperLooperAU(AudioUnit component)
 	mDebugDispatcher = new AUDebugDispatcher (this);
 #endif
 	
+    // fprintf(stderr, "HEELLLLLO\n");
+    
 	// SL stuff
 	_in_channel_id = 0;
 	_out_channel_id = 0;
@@ -378,6 +383,13 @@ ComponentResult		SooperLooperAU::GetParameterInfo(AudioUnitScope		inScope,
 /*! @method Initialize */
 ComponentResult		SooperLooperAU::Initialize()
 {
+    
+    OSStatus ret = AUMIDIEffectBase::Initialize();
+    
+    if (ret != noErr) {
+        return ret;
+    }
+    
 	// get our current numChannels for input and output
 	SInt16 auNumInputs = (SInt16) GetInput(0)->GetStreamFormat().mChannelsPerFrame;
 	SInt16 auNumOutputs = (SInt16) GetOutput(0)->GetStreamFormat().mChannelsPerFrame;
@@ -638,6 +650,7 @@ OSStatus			SooperLooperAU::ProcessBufferLists(
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 OSStatus 	SooperLooperAU::HandleMidiEvent(UInt8 inStatus, UInt8 inChannel, UInt8 inData1, UInt8 inData2, UInt32 inStartFrame)
 {
+    // fprintf(stderr, "Handle MIDI event: %d\n", (int)IsInitialized());
 	if (!IsInitialized()) return kAudioUnitErr_Uninitialized;
 	
 	UInt8 chcmd = inStatus | inChannel;
@@ -669,6 +682,11 @@ ComponentResult		SooperLooperAU::GetPropertyInfo (AudioUnitPropertyID	inID,
 		outWritable = true;
 		return noErr;
 	}
+    else if (inID == kAudioUnitProperty_CocoaUI) {
+        outWritable = false;
+        outDataSize = sizeof (AudioUnitCocoaViewInfo);
+        return noErr;
+    }
 
 	
 	return AUMIDIEffectBase::GetPropertyInfo (inID, inScope, inElement, outDataSize, outWritable);
@@ -691,6 +709,41 @@ ComponentResult		SooperLooperAU::GetProperty(	AudioUnitPropertyID inID,
 		*((short *)outData) = _stay_on_top;
 		return noErr;
 	}
+    else if (inID == kAudioUnitProperty_CocoaUI)
+    {
+        
+        // Look for a resource in the main bundle by name and type.
+#ifdef __x86_64__
+        CFBundleRef bundle = CFBundleGetBundleWithIdentifier( CFSTR("net.essej.audiounit.SooperLooperAU64") );
+#else
+        CFBundleRef bundle = CFBundleGetBundleWithIdentifier( CFSTR("net.essej.audiounit.SooperLooperAU") );
+#endif
+        
+        if (bundle == NULL) return fnfErr;
+        
+        //fprintf(stderr, "Got our own bundle\n");
+        
+        CFURLRef bundleURL = CFBundleCopyResourceURL( bundle,
+                                                     CFSTR("SooperLooperCocoaViewFactory"),
+                                                     CFSTR("bundle"),
+                                                     NULL);
+        
+        if (bundleURL == NULL) return fnfErr;
+
+        //fprintf(stderr, "Got our the gui bundle\n");
+
+        //	SampleEffectUnit.component/Contents/Resources/SampleEffectBundle.bundle
+        
+        AudioUnitCocoaViewInfo cocoaInfo;
+        cocoaInfo.mCocoaAUViewBundleLocation = bundleURL;
+        cocoaInfo.mCocoaAUViewClass[0] = CFStringCreateWithCString(NULL, "SooperLooperCocoaViewFactory", kCFStringEncodingUTF8);
+        
+        *((AudioUnitCocoaViewInfo *)outData) = cocoaInfo;
+        
+        return noErr;
+        
+    }
+    
 	return AUMIDIEffectBase::GetProperty (inID, inScope, inElement, outData);
 }
 
@@ -722,9 +775,9 @@ ComponentResult 	SooperLooperAU::GetParameter(	AudioUnitParameterID			inID,
 													AudioUnitElement 				inElement,
 													Float32 &						outValue)
 {
-	if (inScope == kAudioUnitScope_Group) {
-		return GetGroupParameter (inID, inElement, outValue);
-	}
+	//if (inScope == kAudioUnitScope_Group) {
+	//	return GetGroupParameter (inID, inElement, outValue);
+	//}
 	
 	if (inID ==  kParam_OSCPort || inID ==  kParam_PressReleaseCommands) {
 	    //cerr << "outvalue for port is: " << Globals()->GetParameter(inID) << endl;
@@ -832,9 +885,9 @@ ComponentResult  SooperLooperAU::SetParameter(			AudioUnitParameterID			inID,
 													Float32							inValue,
 													UInt32							inBufferOffsetInFrames)
 {
-	if (inScope == kAudioUnitScope_Group) {
-		return SetGroupParameter (inID, inElement, inValue, inBufferOffsetInFrames);
-	}
+	//if (inScope == kAudioUnitScope_Group) {
+	//	return SetGroupParameter (inID, inElement, inValue, inBufferOffsetInFrames);
+	//}
 	
 	AUElement *elem = SafeGetElement(inScope, inElement);
 	elem->SetParameter(inID, inValue);
@@ -869,7 +922,7 @@ ComponentResult  SooperLooperAU::SetParameter(			AudioUnitParameterID			inID,
 			// command acting as control, treat specially
 			// current logic is that any change will trigger a hit command for now
 			SooperLooper::Event::command_t cmd = (SooperLooper::Event::command_t) (ctrl - 500);
-			fprintf(stderr,"SetParam: ctrl: %d  cmd: %d  invalue:%g\n", ctrl, cmd, inValue);
+			//fprintf(stderr,"SetParam: ctrl: %d  cmd: %d  invalue:%g\n", ctrl, cmd, inValue);
 			if (_pressReleaseCommands) {
 				// a 1 is down, a 0 is up
 				_engine->push_command_event(inValue > 0 ? SooperLooper::Event::type_cmd_down : SooperLooper::Event::type_cmd_up, cmd, instance);				
@@ -1182,7 +1235,10 @@ SooperLooperAU::get_transport_info (TransportInfo &info)
 	Float64 tempo = info.bpm;
 	// the current beat in the song, counting from 0 at the start of the song
 	Float64 beat = 0;
-	
+
+	Float64 sampsbeat = GetSampleRate() / (tempo / 60.0);
+    nframes_t currpos = _last_framepos;
+
 	info.state = TransportInfo::STOPPED;
 	
 	if (mHostCallbackInfo.beatAndTempoProc != NULL )
@@ -1192,6 +1248,8 @@ SooperLooperAU::get_transport_info (TransportInfo &info)
 		{
 			// do something with tempo and beat values here
 			info.bpm = tempo;
+            sampsbeat = GetSampleRate() / (tempo / 60.0);
+            currpos = (nframes_t) (beat * sampsbeat);
 		}
 	}
 	
@@ -1199,8 +1257,8 @@ SooperLooperAU::get_transport_info (TransportInfo &info)
 		return false;
 	}
 	
-	Float64 sampsbeat = GetSampleRate() / (tempo / 60.0);
-	
+
+#if 0
 	// the number of samples until the next beat from the start sample of the current rendering buffer
 	UInt32 sampleOffsetToNextBeat = 0;
 	
@@ -1210,38 +1268,86 @@ SooperLooperAU::get_transport_info (TransportInfo &info)
 	UInt32 timeSigDenominator = 4;
 	// the beat that corresponds to the downbeat (first beat) of the current measure
 	Float64 currentMeasureDownBeat;
-	nframes_t currpos = _last_framepos;
-	
-	if (mHostCallbackInfo.musicalTimeLocationProc != NULL) {
-			if ( mHostCallbackInfo.musicalTimeLocationProc(mHostCallbackInfo.hostUserData, &sampleOffsetToNextBeat, 
+    
+    
+    if (mHostCallbackInfo.musicalTimeLocationProc != NULL) {
+        if ( mHostCallbackInfo.musicalTimeLocationProc(mHostCallbackInfo.hostUserData, &sampleOffsetToNextBeat,
 													   &timeSigNumerator, &timeSigDenominator, &currentMeasureDownBeat) == noErr )
-			{
-				// do something with beat position and time signature values here
-				
-				//info.framepos = (nframes_t) ((beat * sampsbeat) + (sampsbeat - sampleOffsetToNextBeat)); 
-				currpos = (nframes_t) (beat * sampsbeat);
-				//cerr << "musicaltime: " << sampsbeat << " beat: " << beat << "  frame: " << info.framepos << endl;
-			}
+        {
+            // do something with beat position and time signature values here
+            
+            //info.framepos = (nframes_t) ((beat * sampsbeat) + (sampsbeat - sampleOffsetToNextBeat));
+            currpos = (nframes_t) (beat * sampsbeat);
+            //cerr << "musicaltime: " << sampsbeat << " beat: " << beat << "  frame: " << info.framepos << endl;
+        }
 	}
+#endif
+    
 	
-	if (currpos == 0 || currpos != _last_framepos) {
-		info.framepos = currpos;
-		info.last_framepos = _last_framepos;
-		_last_framepos = currpos;
-		info.state = TransportInfo::ROLLING;
-	}
-	else if (_engine->get_transport_always_rolls())
-	{
-		info.last_framepos = _last_fake_framepos;
-		info.framepos = (nframes_t) _curr_stamp.mSampleTime;					
-		_last_fake_framepos = info.framepos;
-		info.state = TransportInfo::ROLLING;
-	}
-	else {
-		info.state = TransportInfo::STOPPED;
-		info.framepos = currpos;
-		info.last_framepos = _last_framepos;
-	}
+    Boolean isPlaying;
+    Boolean transportChanged;
+    Float64 currSamplePos;
+    Boolean isCycling;
+    Float64 cycleStartBeat, cycleEndBeat;
+    
+    
+	if (mHostCallbackInfo.transportStateProc != NULL) {
+        if ( mHostCallbackInfo.transportStateProc(mHostCallbackInfo.hostUserData,
+                                                       &isPlaying,
+                                                       &transportChanged,
+                                                       &currSamplePos,
+                                                       &isCycling,
+                                                       &cycleStartBeat,
+                                                       &cycleEndBeat
+                                                       ) == noErr)
+        {
+            currpos = currSamplePos;
+            
+            if (isPlaying || currpos == 0) {
+                info.framepos = currpos;
+                info.last_framepos = _last_framepos;
+                _last_framepos = currpos;
+                info.state = TransportInfo::ROLLING;
+            }
+            else if (_engine->get_transport_always_rolls())
+            {
+                info.last_framepos = _last_fake_framepos;
+                info.framepos = (nframes_t) _curr_stamp.mSampleTime;
+                _last_fake_framepos = info.framepos;
+                info.state = TransportInfo::ROLLING;
+            }
+            else {
+                info.state = TransportInfo::STOPPED;
+                info.framepos = currpos;
+                info.last_framepos = _last_framepos;
+                _last_framepos = currpos;
+            }
+            
+        }
+    }
+    else {
+
+        if (currpos == 0 || currpos != _last_framepos) {
+            info.framepos = currpos;
+            info.last_framepos = _last_framepos;
+            _last_framepos = currpos;
+            info.state = TransportInfo::ROLLING;
+        }
+        else if (_engine->get_transport_always_rolls())
+        {
+            info.last_framepos = _last_fake_framepos;
+            info.framepos = (nframes_t) _curr_stamp.mSampleTime;
+            _last_fake_framepos = info.framepos;
+            info.state = TransportInfo::ROLLING;
+        }
+        else {
+            info.state = TransportInfo::STOPPED;
+            info.framepos = currpos;
+            info.last_framepos = _last_framepos;
+        }
+    }
+
+    
 				
 
 

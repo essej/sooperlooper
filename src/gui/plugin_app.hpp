@@ -46,12 +46,23 @@ class PluginApp : public wxApp
 	
 	virtual int OnRun();
 	
+    void cleanup_stuff();
+    
 	MainPanel * get_main_panel() {return _mainpanel; }
+	wxPanel * get_top_panel() {return _toppanel; }
+
 	wxFrame * get_main_frame() { return _frame; }
 	
-	wxString get_host() { return _host; }
-	int get_port() { return _port; }
 
+    wxString get_host() { return _host; }
+    void set_host(wxString host) { _host = host;}
+    
+	int get_port() const { return _port; }
+    void set_port(int port) { _port = port; }
+    
+    void set_stay_on_top(bool flag) { _stay_on_top = flag; }
+    bool get_stay_on_top() const { return _stay_on_top; }
+    
 	bool get_force_spawn() { return _force_spawn; }
 	wxString get_exec_name() { return _exec_name; }
 	wxChar ** get_engine_args () { return _engine_argv; }
@@ -62,9 +73,12 @@ class PluginApp : public wxApp
 
 	void process_key_event (wxKeyEvent &ev);
 
+    void * _externalView;
+    
 	MainPanel * _mainpanel;
 	wxFrame * _frame;
-	
+	wxPanel * _toppanel;
+    
 	wxString _host;
 	int      _port;
 	int _show_usage;
@@ -79,9 +93,11 @@ class PluginApp : public wxApp
 	wxString _server_name;
 	wxString _client_name;
 	
+    bool _stay_on_top;
+    
 	wxChar ** _engine_argv;
 
-	DECLARE_EVENT_TABLE()
+	// DECLARE_EVENT_TABLE()
 	
 };
 
@@ -89,7 +105,7 @@ class PluginApp : public wxApp
 
 };
 
-DECLARE_APP(SooperLooperGui::PluginApp);
+//DECLARE_APP(SooperLooperGui::PluginApp);
 
 
 #endif

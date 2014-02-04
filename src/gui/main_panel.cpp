@@ -104,7 +104,7 @@ BEGIN_EVENT_TABLE(MainPanel, wxPanel)
 	EVT_TIMER(ID_UpdateTimer, MainPanel::OnUpdateTimer)
 	EVT_TIMER(ID_TapTempoTimer, MainPanel::on_taptempo_timer)
 
-	EVT_ACTIVATE (MainPanel::OnActivate)
+    EVT_ACTIVATE (MainPanel::OnActivate)
 	EVT_ACTIVATE_APP (MainPanel::OnActivate)
 	
 	
@@ -123,7 +123,13 @@ END_EVENT_TABLE()
 	_engine_alive = true;
 	_never_timeout = false;
 	_update_timer_time = 11000; // ms
-
+    _embedded = false;
+    _got_add_custom = false;
+    _add_num_loops = 1;
+    _add_num_channels = 1;
+    _add_discrete = true;
+    _add_secs_channel = 40.0f;
+    
 	_rcdir = wxGetHomeDir() + wxFileName::GetPathSeparator() + wxT(".sooperlooper");
 
 	_loop_control = new LoopControl(_rcdir);
@@ -140,15 +146,16 @@ END_EVENT_TABLE()
 
 	_taptempo_button_timer = new wxTimer(this, ID_TapTempoTimer);
 
-	_loop_control->ConnectFailed.connect (mem_fun (*this,  &MainPanel::on_connect_failed));
-	_loop_control->LostConnection.connect (mem_fun (*this,  &MainPanel::on_connection_lost));
-	_loop_control->IsAlive.connect (mem_fun (*this,  &MainPanel::on_engine_alive));
-	_loop_control->ErrorReceived.connect (mem_fun (*this,  &MainPanel::on_error_received));
+	_connect_failed_connection = _loop_control->ConnectFailed.connect (mem_fun (*this,  &MainPanel::on_connect_failed));
+	_lost_connect_connection = _loop_control->LostConnection.connect (mem_fun (*this,  &MainPanel::on_connection_lost));
+	_isalive_connection = _loop_control->IsAlive.connect (mem_fun (*this,  &MainPanel::on_engine_alive));
+	_error_recvd_connection =  _loop_control->ErrorReceived.connect (mem_fun (*this,  &MainPanel::on_error_received));
 	
 }
 
 MainPanel::~MainPanel()
 {
+    //wxLogWarning(wxT("Mainpanel destroy"));
 	save_rc();
 	
 	for (unsigned int i=0; i < _looper_panels.size(); ++i) {
@@ -165,6 +172,16 @@ MainPanel::~MainPanel()
 
 	}
 
+    _loop_connect_connection.disconnect();
+	_loop_disconnect_connection.disconnect();
+	_loop_update_connection.disconnect();
+
+    _connect_failed_connection.disconnect();
+    _lost_connect_connection.disconnect();
+    _isalive_connection.disconnect();
+    _error_recvd_connection.disconnect();
+
+    
 	delete _loop_control;
 
 	delete _keyboard;
@@ -361,8 +378,8 @@ MainPanel::init()
 	
 
 	// todo request how many loopers to construct based on connection
-	_loop_control->LooperConnected.connect (mem_fun (*this, &MainPanel::init_loopers));
-	_loop_control->Disconnected.connect (bind (mem_fun (*this, &MainPanel::init_loopers), 0));
+	_loop_connect_connection = _loop_control->LooperConnected.connect (mem_fun (*this, &MainPanel::init_loopers));
+	_loop_disconnect_connection = _loop_control->Disconnected.connect (bind (mem_fun (*this, &MainPanel::init_loopers), 0));
 	_loop_update_connection = _loop_control->NewDataReady.connect (mem_fun (*this, &MainPanel::osc_data_ready));
 
 
@@ -555,6 +572,8 @@ MainPanel::do_close(bool quitengine)
 	// send quit command to looper by default
 	save_default_midibindings();
 	_loop_update_connection.disconnect();
+        _loop_disconnect_connection.disconnect();
+        _loop_connect_connection.disconnect();
 
 	_update_timer->Stop();
 	_taptempo_button_timer->Stop();
@@ -758,6 +777,7 @@ void MainPanel::OnPaint(wxPaintEvent & event)
 void
 MainPanel::OnIdle(wxIdleEvent& event)
 {
+    
 	if (_got_new_data) {
 		//cerr << "idle update" << endl;
 
@@ -807,10 +827,35 @@ MainPanel::do_add_loop (const string & type)
 	}
 }
 
+#define IdAddCustomLoop 34567
+
+void
+MainPanel::on_modal_dialog_close (wxCommandEvent & ev)
+{
+    
+    AddCustomLoopDialog * dial = (AddCustomLoopDialog *)((wxWindowModalDialogEvent *)&ev)->GetDialog();
+    int retcode = ((wxWindowModalDialogEvent *)&ev)->GetReturnCode();
+    if (retcode == wxID_OK) {
+        // wxLogError("Num loops: %d   numchan: %d  secs: %g  discrete: %d", dial->num_loops, dial->num_channels, dial->secs_channel, dial->discrete);
+        
+		for (int i=0; i < dial->num_loops; ++i) {
+			//cerr << "adding loop with " << dial->num_channels << "  secs: " << dial->secs_channel << endl;
+			_loop_control->post_add_loop (dial->num_channels, dial->secs_channel, dial->discrete);
+		}
+    }
+}
+
 void
 MainPanel::do_add_custom_loop ()
 {
-	AddCustomLoopDialog * dial = new AddCustomLoopDialog(this);
+#ifdef __WXMAC__
+	AddCustomLoopDialog * dial = new AddCustomLoopDialog(this, IdAddCustomLoop);
+    this->Connect(IdAddCustomLoop, wxEVT_WINDOW_MODAL_DIALOG_CLOSED, wxCommandEventHandler(MainPanel::on_modal_dialog_close));
+    dial->CentreOnParent();
+    dial->ShowWindowModal();
+    //dial->Show();
+#else
+    AddCustomLoopDialog * dial = new AddCustomLoopDialog(this);
 	dial->CentreOnParent();
 	// it takes care of itself
 	if (dial->ShowModal() == wxID_OK) {
@@ -819,8 +864,9 @@ MainPanel::do_add_custom_loop ()
 			_loop_control->post_add_loop (dial->num_channels, dial->secs_channel, dial->discrete);
 		}
 	}
-
 	delete dial;
+
+#endif
 }
 
 void
@@ -1065,58 +1111,67 @@ MainPanel::process_key_event (wxKeyEvent &ev)
 void MainPanel::intialize_keybindings ()
 {
 	
-	KeyboardTarget::add_action ("record", bind (mem_fun (*this, &MainPanel::command_action), wxT("record")));
-	KeyboardTarget::add_action ("overdub", bind (mem_fun (*this, &MainPanel::command_action), wxT("overdub")));
-	KeyboardTarget::add_action ("multiply", bind (mem_fun (*this, &MainPanel::command_action), wxT("multiply")));
-	KeyboardTarget::add_action ("insert", bind (mem_fun (*this, &MainPanel::command_action), wxT("insert")));
-	KeyboardTarget::add_action ("replace", bind (mem_fun (*this, &MainPanel::command_action), wxT("replace")));
-	KeyboardTarget::add_action ("reverse", bind (mem_fun (*this, &MainPanel::command_action), wxT("reverse")));
-	KeyboardTarget::add_action ("scratch", bind (mem_fun (*this, &MainPanel::command_action), wxT("scratch")));
-	KeyboardTarget::add_action ("substitute", bind (mem_fun (*this, &MainPanel::command_action), wxT("substitute")));
-	KeyboardTarget::add_action ("mute", bind (mem_fun (*this, &MainPanel::command_action), wxT("mute")));
-	KeyboardTarget::add_action ("mute_on", bind (mem_fun (*this, &MainPanel::command_action), wxT("mute_on")));
-	KeyboardTarget::add_action ("mute_off", bind (mem_fun (*this, &MainPanel::command_action), wxT("mute_off")));
-	KeyboardTarget::add_action ("mute_trigger", bind (mem_fun (*this, &MainPanel::command_action), wxT("mute_trigger")));
-	KeyboardTarget::add_action ("undo", bind (mem_fun (*this, &MainPanel::command_action), wxT("undo")));
-	KeyboardTarget::add_action ("redo", bind (mem_fun (*this, &MainPanel::command_action), wxT("redo")));	
-	KeyboardTarget::add_action ("undo_all", bind (mem_fun (*this, &MainPanel::command_action), wxT("undo_all")));
-	KeyboardTarget::add_action ("redo_all", bind (mem_fun (*this, &MainPanel::command_action), wxT("redo_all")));	
-	KeyboardTarget::add_action ("oneshot", bind (mem_fun (*this, &MainPanel::command_action), wxT("oneshot")));
-	KeyboardTarget::add_action ("trigger", bind (mem_fun (*this, &MainPanel::command_action), wxT("trigger")));
-	KeyboardTarget::add_action ("pause", bind (mem_fun (*this, &MainPanel::command_action), wxT("pause")));
-	KeyboardTarget::add_action ("pause_on", bind (mem_fun (*this, &MainPanel::command_action), wxT("pause_on")));
-	KeyboardTarget::add_action ("pause_off", bind (mem_fun (*this, &MainPanel::command_action), wxT("pause_off")));
-	KeyboardTarget::add_action ("solo", bind (mem_fun (*this, &MainPanel::command_action), wxT("solo")));
-	KeyboardTarget::add_action ("solo_prev", bind (mem_fun (*this, &MainPanel::command_action), wxT("solo_prev")));
-	KeyboardTarget::add_action ("solo_next", bind (mem_fun (*this, &MainPanel::command_action), wxT("solo_next")));
-	KeyboardTarget::add_action ("record_solo", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_solo")));
-	KeyboardTarget::add_action ("record_solo_prev", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_solo_prev")));
-	KeyboardTarget::add_action ("record_solo_next", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_solo_next")));
-	KeyboardTarget::add_action ("set_sync_pos", bind (mem_fun (*this, &MainPanel::command_action), wxT("set_sync_pos")));
-	KeyboardTarget::add_action ("reset_sync_pos", bind (mem_fun (*this, &MainPanel::command_action), wxT("reset_sync_pos")));
-	KeyboardTarget::add_action ("record_or_overdub", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_or_overdub")));
-	KeyboardTarget::add_action ("record_exclusive", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_exclusive")));
-	KeyboardTarget::add_action ("record_exclusive_next", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_exclusive_next")));
-	KeyboardTarget::add_action ("record_exclusive_prev", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_exclusive_prev")));	
+	_keyboard->add_action ("record", bind (mem_fun (*this, &MainPanel::command_action), wxT("record")));
+	_keyboard->add_action ("overdub", bind (mem_fun (*this, &MainPanel::command_action), wxT("overdub")));
+	_keyboard->add_action ("multiply", bind (mem_fun (*this, &MainPanel::command_action), wxT("multiply")));
+	_keyboard->add_action ("insert", bind (mem_fun (*this, &MainPanel::command_action), wxT("insert")));
+	_keyboard->add_action ("replace", bind (mem_fun (*this, &MainPanel::command_action), wxT("replace")));
+	_keyboard->add_action ("reverse", bind (mem_fun (*this, &MainPanel::command_action), wxT("reverse")));
+	_keyboard->add_action ("scratch", bind (mem_fun (*this, &MainPanel::command_action), wxT("scratch")));
+	_keyboard->add_action ("substitute", bind (mem_fun (*this, &MainPanel::command_action), wxT("substitute")));
+	_keyboard->add_action ("mute", bind (mem_fun (*this, &MainPanel::command_action), wxT("mute")));
+	_keyboard->add_action ("mute_on", bind (mem_fun (*this, &MainPanel::command_action), wxT("mute_on")));
+	_keyboard->add_action ("mute_off", bind (mem_fun (*this, &MainPanel::command_action), wxT("mute_off")));
+	_keyboard->add_action ("mute_trigger", bind (mem_fun (*this, &MainPanel::command_action), wxT("mute_trigger")));
+	_keyboard->add_action ("undo", bind (mem_fun (*this, &MainPanel::command_action), wxT("undo")));
+	_keyboard->add_action ("redo", bind (mem_fun (*this, &MainPanel::command_action), wxT("redo")));	
+	_keyboard->add_action ("undo_all", bind (mem_fun (*this, &MainPanel::command_action), wxT("undo_all")));
+	_keyboard->add_action ("redo_all", bind (mem_fun (*this, &MainPanel::command_action), wxT("redo_all")));	
+	_keyboard->add_action ("oneshot", bind (mem_fun (*this, &MainPanel::command_action), wxT("oneshot")));
+	_keyboard->add_action ("trigger", bind (mem_fun (*this, &MainPanel::command_action), wxT("trigger")));
+	_keyboard->add_action ("pause", bind (mem_fun (*this, &MainPanel::command_action), wxT("pause")));
+	_keyboard->add_action ("pause_on", bind (mem_fun (*this, &MainPanel::command_action), wxT("pause_on")));
+	_keyboard->add_action ("pause_off", bind (mem_fun (*this, &MainPanel::command_action), wxT("pause_off")));
+	_keyboard->add_action ("solo", bind (mem_fun (*this, &MainPanel::command_action), wxT("solo")));
+	_keyboard->add_action ("solo_prev", bind (mem_fun (*this, &MainPanel::command_action), wxT("solo_prev")));
+	_keyboard->add_action ("solo_next", bind (mem_fun (*this, &MainPanel::command_action), wxT("solo_next")));
+	_keyboard->add_action ("record_solo", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_solo")));
+	_keyboard->add_action ("record_solo_prev", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_solo_prev")));
+	_keyboard->add_action ("record_solo_next", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_solo_next")));
+	_keyboard->add_action ("set_sync_pos", bind (mem_fun (*this, &MainPanel::command_action), wxT("set_sync_pos")));
+	_keyboard->add_action ("reset_sync_pos", bind (mem_fun (*this, &MainPanel::command_action), wxT("reset_sync_pos")));
+	_keyboard->add_action ("record_or_overdub", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_or_overdub")));
+	_keyboard->add_action ("record_exclusive", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_exclusive")));
+	_keyboard->add_action ("record_exclusive_next", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_exclusive_next")));
+	_keyboard->add_action ("record_exclusive_prev", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_exclusive_prev")));	
+	_keyboard->add_action ("record_or_overdub_excl", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_or_overdub_excl")));
+	_keyboard->add_action ("record_or_overdub_excl_next", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_or_overdub_excl_next")));
+	_keyboard->add_action ("record_or_overdub_excl_prev", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_or_overdub_excl_prev")));
+	_keyboard->add_action ("record_or_overdub_solo", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_or_overdub_solo")));
+	_keyboard->add_action ("record_or_overdub_solo_next", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_or_overdub_solo_next")));
+	_keyboard->add_action ("record_or_overdub_solo_prev", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_or_overdub_solo_prev")));
+	_keyboard->add_action ("record_overdub_end_solo", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_overdub_end_solo")));
+	_keyboard->add_action ("record_overdub_end_solo_trig", bind (mem_fun (*this, &MainPanel::command_action), wxT("record_overdub_end_solo_trig")));
 
-	KeyboardTarget::add_action ("delay", bind (mem_fun (*this, &MainPanel::misc_action), wxT("delay")));
-	KeyboardTarget::add_action ("taptempo", bind (mem_fun (*this, &MainPanel::misc_action), wxT("taptempo")));
-	KeyboardTarget::add_action ("load", bind (mem_fun (*this, &MainPanel::misc_action), wxT("load")));
-	KeyboardTarget::add_action ("save", bind (mem_fun (*this, &MainPanel::misc_action), wxT("save")));
-	KeyboardTarget::add_action ("cancel_midi_learn", bind (mem_fun (*this, &MainPanel::misc_action), wxT("cancel_learn")));
+    
+	_keyboard->add_action ("delay", bind (mem_fun (*this, &MainPanel::misc_action), wxT("delay")));
+	_keyboard->add_action ("taptempo", bind (mem_fun (*this, &MainPanel::misc_action), wxT("taptempo")));
+	_keyboard->add_action ("load", bind (mem_fun (*this, &MainPanel::misc_action), wxT("load")));
+	_keyboard->add_action ("save", bind (mem_fun (*this, &MainPanel::misc_action), wxT("save")));
+	_keyboard->add_action ("cancel_midi_learn", bind (mem_fun (*this, &MainPanel::misc_action), wxT("cancel_learn")));
 
-	KeyboardTarget::add_action ("select_prev_loop", bind (mem_fun (*this, &MainPanel::select_loop_action), -2));
-	KeyboardTarget::add_action ("select_next_loop", bind (mem_fun (*this, &MainPanel::select_loop_action), -1));
-	KeyboardTarget::add_action ("select_loop_1", bind (mem_fun (*this, &MainPanel::select_loop_action), 1));
-	KeyboardTarget::add_action ("select_loop_2", bind (mem_fun (*this, &MainPanel::select_loop_action), 2));
-	KeyboardTarget::add_action ("select_loop_3", bind (mem_fun (*this, &MainPanel::select_loop_action), 3));
-	KeyboardTarget::add_action ("select_loop_4", bind (mem_fun (*this, &MainPanel::select_loop_action), 4));
-	KeyboardTarget::add_action ("select_loop_5", bind (mem_fun (*this, &MainPanel::select_loop_action), 5));
-	KeyboardTarget::add_action ("select_loop_6", bind (mem_fun (*this, &MainPanel::select_loop_action), 6));
-	KeyboardTarget::add_action ("select_loop_7", bind (mem_fun (*this, &MainPanel::select_loop_action), 7));
-	KeyboardTarget::add_action ("select_loop_8", bind (mem_fun (*this, &MainPanel::select_loop_action), 8));
-	KeyboardTarget::add_action ("select_loop_9", bind (mem_fun (*this, &MainPanel::select_loop_action), 9));
-	KeyboardTarget::add_action ("select_loop_all", bind (mem_fun (*this, &MainPanel::select_loop_action), 0));
+	_keyboard->add_action ("select_prev_loop", bind (mem_fun (*this, &MainPanel::select_loop_action), -2));
+	_keyboard->add_action ("select_next_loop", bind (mem_fun (*this, &MainPanel::select_loop_action), -1));
+	_keyboard->add_action ("select_loop_1", bind (mem_fun (*this, &MainPanel::select_loop_action), 1));
+	_keyboard->add_action ("select_loop_2", bind (mem_fun (*this, &MainPanel::select_loop_action), 2));
+	_keyboard->add_action ("select_loop_3", bind (mem_fun (*this, &MainPanel::select_loop_action), 3));
+	_keyboard->add_action ("select_loop_4", bind (mem_fun (*this, &MainPanel::select_loop_action), 4));
+	_keyboard->add_action ("select_loop_5", bind (mem_fun (*this, &MainPanel::select_loop_action), 5));
+	_keyboard->add_action ("select_loop_6", bind (mem_fun (*this, &MainPanel::select_loop_action), 6));
+	_keyboard->add_action ("select_loop_7", bind (mem_fun (*this, &MainPanel::select_loop_action), 7));
+	_keyboard->add_action ("select_loop_8", bind (mem_fun (*this, &MainPanel::select_loop_action), 8));
+	_keyboard->add_action ("select_loop_9", bind (mem_fun (*this, &MainPanel::select_loop_action), 9));
+	_keyboard->add_action ("select_loop_all", bind (mem_fun (*this, &MainPanel::select_loop_action), 0));
 
 	
 	// these are the defaults... they get overridden by rc file
@@ -1382,7 +1437,7 @@ wxString MainPanel::do_file_selector(const wxString & message, const wxString & 
 
 	_keyboard->set_enabled(false);
 	
-	if (_loop_control->is_engine_local()) {
+	if (_embedded || _loop_control->is_engine_local()) {
 		wxFileName filename;
 		if (_last_used_path.IsEmpty()) {
 			_last_used_path = filename.GetHomeDir();
@@ -1422,7 +1477,7 @@ AddCustomLoopDialog::AddCustomLoopDialog (MainPanel * parent, wxWindowID id, con
        
 	wxBoxSizer *mainsizer = new wxBoxSizer(wxVERTICAL);
 
-	wxFlexGridSizer * setsizer = new wxFlexGridSizer(-1, 2, 4, 4);
+	wxFlexGridSizer * setsizer = new wxFlexGridSizer(0, 2, 4, 4);
 
 
 	wxStaticText * statText = new wxStaticText(this, -1, wxT("# Loops to add:"));

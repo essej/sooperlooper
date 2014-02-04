@@ -5,7 +5,7 @@
 * 
 *	Created:	7/2/05
 *	
-*	Copyright:  Copyright © 2005 __MyCompanyName__, All Rights Reserved
+*	Copyright:  Copyright ï¿½ 2005 __MyCompanyName__, All Rights Reserved
 * 
 *	Disclaimer:	IMPORTANT:  This Apple software is supplied to you by Apple Computer, Inc. ("Apple") in 
 *				consideration of your agreement to the following terms, and your use, installation, modification 
@@ -45,7 +45,7 @@
 
 // Note that resource IDs must be spaced 2 apart for the 'STR ' name and description
 #define kAudioUnitResID_SooperLooperAU				1000
-#define kAudioUnitResID_SooperLooperAUView			2000
+// #define kAudioUnitResID_SooperLooperAUView			2000
 
 //~~~~~~~~~~~~~~~~~~~ SooperLooperAU ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -60,17 +60,3 @@
 #define ENTRY_POINT		"SooperLooperAUEntry"
 
 #include "AUResources.r"
-
-//~~~~~~~~~~~~~~~~~~ SooperLooperAU View ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#define RES_ID			kAudioUnitResID_SooperLooperAUView
-#define COMP_TYPE		kAudioUnitCarbonViewComponentType
-#define COMP_SUBTYPE	SooperLooperAU_COMP_SUBTYPE
-#define COMP_MANUF		SooperLooperAU_COMP_MANF	
-
-#define VERSION			kSooperLooperAUVersion
-#define NAME			"essej.net : SooperLooperAU"
-#define DESCRIPTION		"SooperLooper Custom Carbon AU View"
-#define ENTRY_POINT		"SooperLooperAUViewEntry"
-
-#include "AUResources.r"
-

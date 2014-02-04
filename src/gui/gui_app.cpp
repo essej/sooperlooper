@@ -86,22 +86,22 @@ END_EVENT_TABLE()
 
 static const wxCmdLineEntryDesc cmdLineDesc[] =
 {
-	{ wxCMD_LINE_SWITCH, wxT("h"), wxT("help"), wxT("show this help"), wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
-	{ wxCMD_LINE_SWITCH, wxT("V"), wxT("version"), wxT("show version only"), wxCMD_LINE_VAL_NONE },
-	{ wxCMD_LINE_OPTION, wxT("l"), wxT("loopcount"), wxT("number of loopers to create (default is 1)"), wxCMD_LINE_VAL_NUMBER },
-	{ wxCMD_LINE_OPTION, wxT("c"), wxT("channels"), wxT("channel count for each looper (default is 2)"), wxCMD_LINE_VAL_NUMBER },
-	{ wxCMD_LINE_OPTION, wxT("t"), wxT("looptime"), wxT("number of seconds of loop memory per channel"), wxCMD_LINE_VAL_NUMBER },
-	{ wxCMD_LINE_OPTION, wxT("H"), wxT("connect-host"), wxT("connect to sooperlooper engine on given host (default is localhost)")},
-	{ wxCMD_LINE_OPTION, wxT("P"), wxT("connect-port"), wxT("connect to sooperlooper engine on given port (default is 9951)"), wxCMD_LINE_VAL_NUMBER },
-	{ wxCMD_LINE_OPTION, wxT("m"), wxT("load-midi-binding"), wxT("loads midi binding from file")},
-	{ wxCMD_LINE_OPTION, wxT("L"), wxT("load-session"), wxT("load session from file")},
-	{ wxCMD_LINE_SWITCH, wxT("s"), wxT("force-spawn"), wxT("force the execution of a new engine")},
-	{ wxCMD_LINE_SWITCH, wxT("N"), wxT("never-spawn"), wxT("never start a new engine"), wxCMD_LINE_VAL_NONE },
-	{ wxCMD_LINE_OPTION, wxT("E"), wxT("exec-name"), wxT("use name as binary to execute as sooperlooper engine (default is sooperlooper)")},
-	{ wxCMD_LINE_OPTION, wxT("J"), wxT("jack-name"), wxT("jack client name, default is sooperlooper_1")},
-	{ wxCMD_LINE_OPTION, wxT("S"), wxT("jack-server-name"), wxT("specify JACK server name")},
-	{ wxCMD_LINE_SWITCH, wxT("T"), wxT("stay-on-top"), wxT("keep main window on top of other applications")},
-	{ wxCMD_LINE_SWITCH, wxT("n"), wxT("never-timeout"), wxT("Never timeout if an engine stops responding")},
+	{ wxCMD_LINE_SWITCH, wxT_2("h"), wxT_2("help"), wxT_2("show this help"), wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+	{ wxCMD_LINE_SWITCH, wxT_2("V"), wxT_2("version"), wxT_2("show version only"), wxCMD_LINE_VAL_NONE },
+	{ wxCMD_LINE_OPTION, wxT_2("l"), wxT_2("loopcount"), wxT_2("number of loopers to create (default is 1)"), wxCMD_LINE_VAL_NUMBER },
+	{ wxCMD_LINE_OPTION, wxT_2("c"), wxT_2("channels"), wxT_2("channel count for each looper (default is 2)"), wxCMD_LINE_VAL_NUMBER },
+	{ wxCMD_LINE_OPTION, wxT_2("t"), wxT_2("looptime"), wxT_2("number of seconds of loop memory per channel"), wxCMD_LINE_VAL_NUMBER },
+	{ wxCMD_LINE_OPTION, wxT_2("H"), wxT_2("connect-host"), wxT_2("connect to sooperlooper engine on given host (default is localhost)")},
+	{ wxCMD_LINE_OPTION, wxT_2("P"), wxT_2("connect-port"), wxT_2("connect to sooperlooper engine on given port (default is 9951)"), wxCMD_LINE_VAL_NUMBER },
+	{ wxCMD_LINE_OPTION, wxT_2("m"), wxT_2("load-midi-binding"), wxT_2("loads midi binding from file")},
+	{ wxCMD_LINE_OPTION, wxT_2("L"), wxT_2("load-session"), wxT_2("load session from file")},
+	{ wxCMD_LINE_SWITCH, wxT_2("s"), wxT_2("force-spawn"), wxT_2("force the execution of a new engine")},
+	{ wxCMD_LINE_SWITCH, wxT_2("N"), wxT_2("never-spawn"), wxT_2("never start a new engine"), wxCMD_LINE_VAL_NONE },
+	{ wxCMD_LINE_OPTION, wxT_2("E"), wxT_2("exec-name"), wxT_2("use name as binary to execute as sooperlooper engine (default is sooperlooper)")},
+	{ wxCMD_LINE_OPTION, wxT_2("J"), wxT_2("jack-name"), wxT_2("jack client name, default is sooperlooper_1")},
+	{ wxCMD_LINE_OPTION, wxT_2("S"), wxT_2("jack-server-name"), wxT_2("specify JACK server name")},
+	{ wxCMD_LINE_SWITCH, wxT_2("T"), wxT_2("stay-on-top"), wxT_2("keep main window on top of other applications")},
+	{ wxCMD_LINE_SWITCH, wxT_2("n"), wxT_2("never-timeout"), wxT_2("Never timeout if an engine stops responding")},
 	{ wxCMD_LINE_NONE }
 };
 	
@@ -236,7 +236,7 @@ bool GuiApp::OnInit()
 	
 	// use stderr as log
 	wxLog *logger=new wxLogStderr();
-	logger->SetTimestamp(NULL);
+	logger->SetTimestamp(wxT(""));
 	wxLog::SetActiveTarget(logger);
 	
 	

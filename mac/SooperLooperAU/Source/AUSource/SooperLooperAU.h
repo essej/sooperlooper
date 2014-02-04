@@ -14,7 +14,11 @@
 #include "AUDebugDispatcher.h"
 #endif
 
+#ifdef USE_CARBON_UI
 #include <AudioUnit/AudioUnitCarbonView.h>
+#endif
+
+#include "sigc++/sigc++.h"
 
 #include "audio_driver.hpp"
 #include <string>
@@ -35,12 +39,13 @@ namespace SooperLooper {
 static CFStringRef kParameterOSCPortName = CFSTR("OSC Port");
 static CFStringRef kParameterPressReleaseCommandsName = CFSTR("Press/release for commands");
 
+//#define SL_MAXLOOPS 17
 #define SL_MAXLOOPS 9
 
 #pragma mark ____SooperLooperAU 
 class SooperLooperAU 
 	: public AUMIDIEffectBase,
-public SooperLooper::AudioDriver, public SigC::Object
+public SooperLooper::AudioDriver, public sigc::trackable
 {
 public:
 	SooperLooperAU(AudioUnit component);
@@ -119,6 +124,8 @@ public:
 	/*! @method Version */
 	virtual ComponentResult	Version() { return kSooperLooperAUVersion; }
 	
+#ifdef USE_CARBON_UI
+    
 	int		GetNumCustomUIComponents () { return 1; }
 	
 	void	GetUIComponentDescs (ComponentDescription* inDescArray) {
@@ -128,6 +135,7 @@ public:
         inDescArray[0].componentFlags = 0;
         inDescArray[0].componentFlagsMask = 0;
 	}
+#endif
     
 	/*
 	virtual ComponentResult		RenderBus(				AudioUnitRenderActionFlags &	ioActionFlags,
@@ -142,12 +150,12 @@ public:
 	
 protected:
 		/*! @method HandleMidiEvent */
-		virtual OSStatus	HandleMidiEvent(		UInt8 	inStatus,
-													UInt8 	inChannel,
-													UInt8 	inData1,
-													UInt8 	inData2,
-													UInt32 	inStartFrame);
-	
+		OSStatus	HandleMidiEvent(		UInt8 	inStatus,
+                                    UInt8 	inChannel,
+                                    UInt8 	inData1,
+                                    UInt8 	inData2,
+                                    UInt32 	inStartFrame);
+    	
 public:
 	// SL AudioDriver stuff
 	virtual bool initialize(std::string client_name="");

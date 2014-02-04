@@ -116,20 +116,25 @@ BEGIN_EVENT_TABLE(AppFrame, wxFrame)
 	
 END_EVENT_TABLE()
 
-AppFrame::AppFrame(const wxString& title, const wxPoint& pos, const wxSize& size, bool stay_on_top)
-: wxFrame((wxFrame *)NULL, -1, title, pos, size, wxDEFAULT_FRAME_STYLE | (stay_on_top ? wxSTAY_ON_TOP : 0), wxT("sooperlooper"))
+AppFrame::AppFrame(const wxString& title, const wxPoint& pos, const wxSize& size, bool stay_on_top, bool embedded)
+: wxFrame((wxFrame *)NULL, -1, title, pos, size,
+          //          embedded ? (stay_on_top ? wxSTAY_ON_TOP : 0) : (wxDEFAULT_FRAME_STYLE | (stay_on_top ? wxSTAY_ON_TOP : 0))
+                    embedded ? (wxRESIZE_BORDER | wxCAPTION | (stay_on_top ? wxSTAY_ON_TOP : 0)) : (wxDEFAULT_FRAME_STYLE | (stay_on_top ? wxSTAY_ON_TOP : 0))
+         //  (wxDEFAULT_FRAME_STYLE | (stay_on_top ? wxSTAY_ON_TOP : 0))
+          , wxT("sooperlooper")), _embedded(embedded)
 
 {
 	_prefs_dialog = 0;
 	_help_window = 0;
-	
-
+	_toolbar = 0;
 
 #ifdef __WXMAC__
-	wxApp::s_macAboutMenuItemId = ID_AboutMenu;
-	wxApp::s_macPreferencesMenuItemId = ID_PreferencesMenu;
-	wxApp::s_macExitMenuItemId = ID_QuitStop;
-	wxApp::s_macHelpMenuTitleName = wxT("&Help");
+    if (!_embedded) {
+        wxApp::s_macAboutMenuItemId = ID_AboutMenu;
+        wxApp::s_macPreferencesMenuItemId = ID_PreferencesMenu;
+        wxApp::s_macExitMenuItemId = ID_QuitStop;
+        wxApp::s_macHelpMenuTitleName = wxT("&Help");
+    }
 #endif
 
 	init();
@@ -138,7 +143,10 @@ AppFrame::AppFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 AppFrame::~AppFrame()
 {
 	_mainpanel->save_rc();
-	
+    
+    //wxLogWarning(wxT("appframe destroy"));
+
+    
 }
 
 void
@@ -156,51 +164,85 @@ AppFrame::init()
 
 	_mainpanel->PreferredSizeChange.connect (mem_fun (*this,  &AppFrame::on_preferred_size));
 
+	_mainpanel->set_embedded(_embedded);
 	
-	_topsizer->Add (_mainpanel, 1, wxEXPAND);
+    if (!_embedded) {
 	
-	
-	wxMenuBar *menuBar = new wxMenuBar();
-
-	wxMenu *menuFile = new wxMenu(wxT(""));
-
-	menuFile->Append(ID_LoadSession, wxT("Load Session\tCtrl-L"), wxT("Load session"));
-	menuFile->Append(ID_SaveSession, wxT("Save Session\tCtrl-E"), wxT("Save session"));
-	menuFile->Append(ID_SaveSessionAudio, wxT("Save Session with Audio\tCtrl-Shift-P"), wxT("Save session with Audio"));
-
-	menuFile->AppendSeparator();
-	
-	//menuFile->Append(ID_AddLoop, wxT("Add Default Loop"), wxT("Add one default loop"));
-	menuFile->Append(ID_AddMonoLoop, wxT("Add Mono Loop\tCtrl-1"), wxT("Add one default mono loop"));
-	menuFile->Append(ID_AddStereoLoop, wxT("Add Stereo Loop\tCtrl-2"), wxT("Add one default stereo loop"));
-	menuFile->Append(ID_AddCustomLoop, wxT("Add Custom Loop(s)...\tCtrl-A"), wxT("Add one or more custom loops, where loop memory can be specified"));
-	menuFile->Append(ID_RemoveLoop, wxT("Remove Last Loop\tCtrl-D"), wxT("Remove last loop"));
-
-	menuFile->AppendSeparator();
-	menuFile->Append(ID_PreferencesMenu, wxT("&Preferences...\tCtrl-P"), wxT("Preferences..."));
-
+        wxMenuBar *menuBar = new wxMenuBar();
+        
+        wxMenu *menuFile = new wxMenu(wxT(""));
+        
+        menuFile->Append(ID_LoadSession, wxT("Load Session\tCtrl-L"), wxT("Load session"));
+        menuFile->Append(ID_SaveSession, wxT("Save Session\tCtrl-E"), wxT("Save session"));
+        menuFile->Append(ID_SaveSessionAudio, wxT("Save Session with Audio\tCtrl-Shift-P"), wxT("Save session with Audio"));
+        
+        menuFile->AppendSeparator();
+        
+        //menuFile->Append(ID_AddLoop, wxT("Add Default Loop"), wxT("Add one default loop"));
+        menuFile->Append(ID_AddMonoLoop, wxT("Add Mono Loop\tCtrl-1"), wxT("Add one default mono loop"));
+        menuFile->Append(ID_AddStereoLoop, wxT("Add Stereo Loop\tCtrl-2"), wxT("Add one default stereo loop"));
+        menuFile->Append(ID_AddCustomLoop, wxT("Add Custom Loop(s)...\tCtrl-A"), wxT("Add one or more custom loops, where loop memory can be specified"));
+        menuFile->Append(ID_RemoveLoop, wxT("Remove Last Loop\tCtrl-D"), wxT("Remove last loop"));
+        
+        menuFile->AppendSeparator();
+        menuFile->Append(ID_PreferencesMenu, wxT("&Preferences...\tCtrl-P"), wxT("Preferences..."));
+        
 #ifndef __WXMAC__
-	menuFile->AppendSeparator();
+        menuFile->AppendSeparator();
 #endif
-	
-	menuFile->Append(ID_Quit, wxT("Quit but Leave Engine Running\tCtrl-Shift-Q"), wxT("Exit from GUI and leave engine running"));
-	menuFile->Append(ID_QuitStop, wxT("Quit and Stop Engine\tCtrl-Q"), wxT("Exit from GUI and stop engine"));
-	
-	menuBar->Append(menuFile, wxT("&Session"));
+        
+        menuFile->Append(ID_Quit, wxT("Quit but Leave Engine Running\tCtrl-Shift-Q"), wxT("Exit from GUI and leave engine running"));
+        menuFile->Append(ID_QuitStop, wxT("Quit and Stop Engine\tCtrl-Q"), wxT("Exit from GUI and stop engine"));
+        
+        menuBar->Append(menuFile, wxT("&Session"));
+        
+
+        //wxMenu *menuView = new wxMenu(wxT(""));
+        //menuBar->Append(menuView, wxT("&View"));
+        
+        
+        wxMenu *menuHelp = new wxMenu(wxT(""));
+        menuHelp->Append(ID_HelpTipsMenu, wxT("&Usage Tips..."), wxT("Show Usage Tips window"));
+        menuHelp->Append(ID_AboutMenu, wxT("&About..."), wxT("Show about dialog"));
+        menuBar->Append(menuHelp, wxT("&Help"));
+        
+        // ... and attach this menu bar to the frame
+        SetMenuBar(menuBar);
+    }
+    else {
+        int xSize = 8;
+        int ySize = 8;
+        wxImage * image = new wxImage(xSize, ySize);
+        if (!image->HasAlpha()){
+            image->SetAlpha();
+        }
+        
+        memset((void*)image->GetAlpha(), 0x0, xSize * ySize );
+        wxBitmap bitmap(*image, 32);
+        delete image;
+        
+        wxToolBar * toolbar = new wxToolBar(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 24), wxTB_TEXT/*|wxTB_NOICONS*/);
+        toolbar->SetToolSeparation(10);
+        
+        toolbar->AddTool(ID_AddMonoLoop, wxT("Add Mono"), bitmap, wxNullBitmap, wxITEM_NORMAL, wxT("Add one default mono loop"));
+        toolbar->AddTool(ID_AddStereoLoop, wxT("Add Stereo"), bitmap, wxNullBitmap, wxITEM_NORMAL, wxT("Add one default stereo loop"));
+        toolbar->AddTool(ID_AddCustomLoop, wxT("Add Custom"), bitmap , wxNullBitmap, wxITEM_NORMAL, wxT("Add one or more custom loops, where loop memory can be specified"));
+        toolbar->AddTool(ID_RemoveLoop, wxT("Remove Last"), bitmap, wxNullBitmap, wxITEM_NORMAL, wxT("Remove last loop"));
+        toolbar->AddStretchableSpace();
+        toolbar->AddTool(ID_LoadSession, wxT("Load"), bitmap, wxNullBitmap, wxITEM_NORMAL, wxT("Load session..."));
+        toolbar->AddTool(ID_SaveSession, wxT("Save"), bitmap, wxNullBitmap, wxITEM_NORMAL, wxT("Save session..."));
+        toolbar->AddSeparator();
+        toolbar->AddTool(ID_PreferencesMenu, wxT("Prefs"), bitmap, wxNullBitmap, wxITEM_NORMAL, wxT("Preferences..."));
+        toolbar->Realize();
+        //Connect(ID_AddMonoLoop, wxEVT_COMMAND_TOOL_CLICKED, wxCommandEventHandler(AppFrame::on_add_loop));
+        
+        toolbar->SetSize(0, 0, -1, 24);
+        _toolbar = toolbar;
+        _topsizer->Add(toolbar, 0, wxEXPAND);
+    }
 
 
-	//wxMenu *menuView = new wxMenu(wxT(""));
-	//menuBar->Append(menuView, wxT("&View"));
-	
-
-	wxMenu *menuHelp = new wxMenu(wxT(""));
-	menuHelp->Append(ID_HelpTipsMenu, wxT("&Usage Tips..."), wxT("Show Usage Tips window"));
-	menuHelp->Append(ID_AboutMenu, wxT("&About..."), wxT("Show about dialog"));
-	menuBar->Append(menuHelp, wxT("&Help"));
-	
-	// ... and attach this menu bar to the frame
-	SetMenuBar(menuBar);
-
+    _topsizer->Add (_mainpanel, 1, wxEXPAND);
 
 	
 	this->SetAutoLayout( true );     // tell dialog to use sizer
@@ -234,8 +276,16 @@ AppFrame::on_preferred_size(int w, int h)
 	}
 #else
 	topheight += 32;
+
+    if (_embedded && _toolbar) {
+        topheight += _toolbar->GetSize().GetHeight();
+    }
+
 #endif
-	SetSize (w, h + topheight);
+
+	//if (!_embedded) {
+        SetSize (w, h + topheight);
+    //}
 }
 
 
@@ -298,8 +348,8 @@ void AppFrame::on_view_menu (wxCommandEvent &ev)
 {
 	if (ev.GetId() == ID_PreferencesMenu) {
 		if (!_prefs_dialog) {
-			_prefs_dialog = new PrefsDialog(_mainpanel, -1, wxT("SooperLooper Preferences"));
-			_prefs_dialog->SetSize (230,410);
+			_prefs_dialog = new PrefsDialog(_mainpanel, -1, wxT("SooperLooper Preferences"), wxDefaultPosition, wxSize(230, 410));
+			//_prefs_dialog->SetSize (230,410);
 		}
 		else if (!_prefs_dialog->IsShown()) {
 			_prefs_dialog->refresh_state();

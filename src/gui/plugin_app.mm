@@ -52,6 +52,8 @@ wxString GetExecutablePath(wxString argv0);
 #include "plugin_app.hpp"
 #include "main_panel.hpp"
 #include "loop_control.hpp"
+#include "app_frame.hpp"
+
 
 using namespace SooperLooperGui;
 using namespace std;
@@ -61,15 +63,15 @@ using namespace std;
 // static object for many reasons) and also declares the accessor function
 // wxGetApp() which will return the reference of the right type (i.e. MyApp and
 // not wxApp)
-IMPLEMENT_APP_NO_MAIN(SooperLooperGui::PluginApp)
+//IMPLEMENT_APP_NO_MAIN(SooperLooperGui::PluginApp)
 
-
+/*
 BEGIN_EVENT_TABLE(SooperLooperGui::PluginApp, wxApp)
    EVT_KEY_DOWN (PluginApp::process_key_event)
    EVT_KEY_UP (PluginApp::process_key_event)
 
 END_EVENT_TABLE()
-
+*/
 	
 // ============================================================================
 // implementation
@@ -79,28 +81,38 @@ END_EVENT_TABLE()
 // the application class
 // ----------------------------------------------------------------------------
 
-#define DEFAULT_OSC_PORT 9951
+#define DEFAULT_OSC_PORT 9951 // 10051
 #define DEFAULT_LOOP_TIME 40.0f
 
 
 static const wxCmdLineEntryDesc cmdLineDesc[] =
 {
-	{ wxCMD_LINE_SWITCH, wxT("h"), wxT("help"), wxT("show this help"), wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
-	{ wxCMD_LINE_SWITCH, wxT("V"), wxT("version"), wxT("show version only"), wxCMD_LINE_VAL_NONE },
-	{ wxCMD_LINE_OPTION, wxT("l"), wxT("loopcount"), wxT("number of loopers to create (default is 1)"), wxCMD_LINE_VAL_NUMBER },
-	{ wxCMD_LINE_OPTION, wxT("c"), wxT("channels"), wxT("channel count for each looper (default is 2)"), wxCMD_LINE_VAL_NUMBER },
-	{ wxCMD_LINE_OPTION, wxT("t"), wxT("looptime"), wxT("number of seconds of loop memory per channel"), wxCMD_LINE_VAL_NUMBER },
-	{ wxCMD_LINE_OPTION, wxT("H"), wxT("connect-host"), wxT("connect to sooperlooper engine on given host (default is localhost)")},
-	{ wxCMD_LINE_OPTION, wxT("P"), wxT("connect-port"), wxT("connect to sooperlooper engine on given port (default is 9951)"), wxCMD_LINE_VAL_NUMBER },
-	{ wxCMD_LINE_OPTION, wxT("m"), wxT("load-midi-binding"), wxT("loads midi binding from file")},
-	{ wxCMD_LINE_SWITCH, wxT("s"), wxT("force-spawn"), wxT("force the execution of a new engine")},
-	{ wxCMD_LINE_SWITCH, wxT("N"), wxT("never-spawn"), wxT("never start a new engine"), wxCMD_LINE_VAL_NONE },
-	{ wxCMD_LINE_OPTION, wxT("E"), wxT("exec-name"), wxT("use name as binary to execute as sooperlooper engine (default is sooperlooper)")},
-	{ wxCMD_LINE_OPTION, wxT("J"), wxT("jack-name"), wxT("jack client name, default is sooperlooper_1")},
-	{ wxCMD_LINE_OPTION, wxT("S"), wxT("jack-server-name"), wxT("specify JACK server name")},
+	{ wxCMD_LINE_SWITCH, wxT_2("h"), wxT_2("help"), wxT_2("show this help"), wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
+	{ wxCMD_LINE_SWITCH, wxT_2("V"), wxT_2("version"), wxT_2("show version only"), wxCMD_LINE_VAL_NONE },
+	{ wxCMD_LINE_OPTION, wxT_2("l"), wxT_2("loopcount"), wxT_2("number of loopers to create (default is 1)"), wxCMD_LINE_VAL_NUMBER },
+	{ wxCMD_LINE_OPTION, wxT_2("c"), wxT_2("channels"), wxT_2("channel count for each looper (default is 2)"), wxCMD_LINE_VAL_NUMBER },
+	{ wxCMD_LINE_OPTION, wxT_2("t"), wxT_2("looptime"), wxT_2("number of seconds of loop memory per channel"), wxCMD_LINE_VAL_NUMBER },
+	{ wxCMD_LINE_OPTION, wxT_2("H"), wxT_2("connect-host"), wxT_2("connect to sooperlooper engine on given host (default is localhost)")},
+	{ wxCMD_LINE_OPTION, wxT_2("P"), wxT_2("connect-port"), wxT_2("connect to sooperlooper engine on given port (default is 9951)"), wxCMD_LINE_VAL_NUMBER },
+	{ wxCMD_LINE_OPTION, wxT_2("m"), wxT_2("load-midi-binding"), wxT_2("loads midi binding from file")},
+	{ wxCMD_LINE_SWITCH, wxT_2("s"), wxT_2("force-spawn"), wxT_2("force the execution of a new engine")},
+	{ wxCMD_LINE_SWITCH, wxT_2("N"), wxT_2("never-spawn"), wxT_2("never start a new engine"), wxCMD_LINE_VAL_NONE },
+	{ wxCMD_LINE_OPTION, wxT_2("E"), wxT_2("exec-name"), wxT_2("use name as binary to execute as sooperlooper engine (default is sooperlooper)")},
+	{ wxCMD_LINE_OPTION, wxT_2("J"), wxT_2("jack-name"), wxT_2("jack client name, default is sooperlooper_1")},
+	{ wxCMD_LINE_OPTION, wxT_2("S"), wxT_2("jack-server-name"), wxT_2("specify JACK server name")},
 	{ wxCMD_LINE_NONE }
 };
 	
+
+class ExternalFrame : public wxFrame
+{
+public:
+    ExternalFrame(void * nativeWindow) : wxFrame() {
+        wxNonOwnedWindow::Create(NULL, (WXWindow) nativeWindow);
+    }
+    
+    virtual ~ExternalFrame() { }
+};
 
 bool
 PluginApp::parse_options (int argc, wxChar **argv)
@@ -110,7 +122,7 @@ PluginApp::parse_options (int argc, wxChar **argv)
 
 	wxString logotext = wxT("SooperLooper ") +
 		wxString::FromAscii (sooperlooper_version) +
-		wxT("\nCopyright 2007 Jesse Chappell\n")
+		wxT("\nCopyright 2014 Jesse Chappell\n")
 		wxT("SooperLooper comes with ABSOLUTELY NO WARRANTY\n")
 		wxT("This is free software, and you are welcome to redistribute it\n")
 		wxT("under certain conditions; see the file COPYING for details\n");
@@ -122,6 +134,7 @@ PluginApp::parse_options (int argc, wxChar **argv)
 
 	if (ret != 0) {
 		// help or error
+        NSLog(@"Error: parsing args");
 		return false;
 	}
 
@@ -135,7 +148,7 @@ PluginApp::parse_options (int argc, wxChar **argv)
 	
 	if (parser.Found (wxT("c"), &longval)) {
 		if (longval < 1) {
-			fprintf(stderr, "Error: channel count must be > 0\n");
+			NSLog(@"Error: channel count must be > 0");
 			parser.Usage();
 			return false;
 		}
@@ -143,7 +156,7 @@ PluginApp::parse_options (int argc, wxChar **argv)
 	}
 	if (parser.Found (wxT("l"), &longval)) {
 		if (longval < 0) {
-			fprintf(stderr, "Error: loop count must be >= 0\n");
+			NSLog(@"Error: loop count must be >= 0");
 			parser.Usage();
 			return false;
 		}
@@ -151,7 +164,7 @@ PluginApp::parse_options (int argc, wxChar **argv)
 	}
 	if (parser.Found (wxT("t"), &longval)) {
 		if (longval < 1) {
-			fprintf(stderr, "Error: loop memory must be > 0\n");
+			NSLog(@"Error: loop memory must be > 0");
 			parser.Usage();
 			return false;
 		}
@@ -187,14 +200,23 @@ PluginApp::PluginApp()
 	_loop_count = 0;
 	_channels = 0;
 	_mem_secs = 0.0f;
+    _stay_on_top = false;
 }
 
 PluginApp::~PluginApp()
 {
-	cerr << "DESTURCT" << endl;
+	NSLog(@"Destructing %p", this);
+    //cerr << "DESTURCT" << endl;
+    
+    cleanup_stuff();
 }
 
 
+void PluginApp::cleanup_stuff()
+{
+    Unbind(wxEVT_KEY_DOWN, &PluginApp::process_key_event, this);
+    Unbind(wxEVT_KEY_UP, &PluginApp::process_key_event, this);
+}
 
 
 // `Main program' equivalent: the program execution "starts" here
@@ -207,39 +229,74 @@ bool PluginApp::OnInit()
 	wxString rcdir;
 	wxString jackdir;
 	
-	SetExitOnFrameDelete(TRUE);
+	SetExitOnFrameDelete(FALSE);
 
 	
 	// use stderr as log
-	wxLog *logger=new wxLogStderr();
-	logger->SetTimestamp(NULL);
-	wxLog::SetActiveTarget(logger);
+	//wxLog *logger=new wxLogStderr();
+    //wxLog *logger=new wxLogGui();
+	//logger->SetTimestamp(wxT(""));
+	//wxLog::SetActiveTarget(logger);
 	
-	
-	if (!parse_options(argc, argv)) {
+	// cerr << "INITING APP" << endl;
+
+    
+	//if (!parse_options(argc, argv)) {
 		// do not continue
-		return FALSE;
-	}
+		//return FALSE;
+	//}
 
-	cerr << "INITING APP" << endl;
+    // Create the main application window
+	_frame = new AppFrame (wxString::Format(wxT("SooperLooper v %s"), wxString::FromAscii(sooperlooper_version).c_str()), wxPoint(100, 100), wxDefaultSize, _stay_on_top, true);
+	_mainpanel = ((AppFrame*)_frame)->get_main_panel();
 
+    
+    Bind(wxEVT_KEY_DOWN, &PluginApp::process_key_event, this);
+    Bind(wxEVT_KEY_UP, &PluginApp::process_key_event, this);
+
+
+    NSLog(@"INITING APP %p  mainpanel: %p", this, _mainpanel);
+
+#if 0
+    
 	// Create the main application window
-	_frame =  new wxFrame(NULL, -1, "blah");
-	wxBoxSizer * sizer = new wxBoxSizer(wxVERTICAL);
-	_mainpanel = new MainPanel(_frame, -1, wxDefaultPosition, wxDefaultSize);
+    
+	//_frame =  new wxFrame(NULL, -1, "SooperLooper Plugin UI", wxDefaultPosition, wxDefaultSize, 0);
+    // _frame =  new ExternalFrame(_externalView);
+    wxBoxSizer * topsizer = new wxBoxSizer(wxVERTICAL);
 
-	sizer->Add (_mainpanel, 1, wxEXPAND);
+    
+    //_toppanel = new wxPanel(_frame, -1, wxDefaultPosition, wxSize(820, 220));
+
+	wxBoxSizer * sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    
+	// _mainpanel = new MainPanel(_frame, -1, wxDefaultPosition, wxDefaultSize);
+
+    
+    Bind(wxEVT_KEY_DOWN, &PluginApp::process_key_event, this);
+    Bind(wxEVT_KEY_UP, &PluginApp::process_key_event, this);
+    
+	// sizer->Add (_mainpanel, 1, wxEXPAND);
 	
-	_frame->SetSizer(sizer);
+
+    topsizer->Add (_mainpanel, 1, wxEXPAND);
+
+    _frame->SetSizer(topsizer);
 	_frame->SetAutoLayout(true);
-	sizer->Fit(_frame);
-	sizer->SetSizeHints(_frame);
-	
-	_frame->SetSize(800,215);
-	_frame->Show();
-
+	topsizer->Fit(_frame);
+	topsizer->SetSizeHints(_frame);
 	
 
+#endif
+
+	_frame->SetSize(840,255);
+
+    //SetTopWindow(_frame);
+
+    _frame->Show();
+    
+    
 		// override defaults
 	LoopControl & loopctrl = _mainpanel->get_loop_control();
 	
@@ -294,7 +351,9 @@ void
 PluginApp::process_key_event (wxKeyEvent &ev)
 {
 	// this recieves all key events first
-
+    NSLog(@"Process key for %p  mainpanel: %p", this, _mainpanel);
+    
 	_mainpanel->process_key_event (ev);
+    ev.Skip(false);
 }
 

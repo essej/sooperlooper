@@ -140,7 +140,7 @@ void KeysPanel::init()
 
 void KeysPanel::refresh_state()
 {
-	int selitem = _listctrl->GetNextItem(-1, wxLIST_NEXT_ALL,  wxLIST_STATE_SELECTED);
+	int selitem = (int) _listctrl->GetNextItem(-1, wxLIST_NEXT_ALL,  wxLIST_STATE_SELECTED);
 
 	_listctrl->DeleteAllItems();
 
@@ -193,7 +193,7 @@ void KeysPanel::on_button (wxCommandEvent &ev)
 		}
 		else {
 			// start learn selected
-			int item = _listctrl->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+			int item = (int) _listctrl->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 
 			if (item > -1) {
 				_learn_button->SetLabel (wxT("Cancel Learn"));

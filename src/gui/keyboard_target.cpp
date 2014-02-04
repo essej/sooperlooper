@@ -37,7 +37,7 @@ using namespace SooperLooperGui;
 using std::pair;
 using namespace std;
 
-KeyboardTarget::ActionMap KeyboardTarget::actions;
+//KeyboardTarget::ActionMap KeyboardTarget::actions;
 
 KeyboardTarget::KeyboardTarget (wxWindow *win, string name)
 {
