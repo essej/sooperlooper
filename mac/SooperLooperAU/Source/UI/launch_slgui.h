@@ -10,7 +10,7 @@
 
 
 #import <Cocoa/Cocoa.h>
-#import "TaskWrapper.h"
+#import "TaskWrapperNew.h"
 
 //we conform to the ProcessController protocol, as defined in Process.h
 @interface LaunchSLguiCocoa : NSObject <TaskWrapperController>

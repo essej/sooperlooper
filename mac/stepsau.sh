@@ -5,6 +5,7 @@
 #xcodesdk="-sdk macosx10.5"
 
 rm -rf macdist/SooperLooperAU.component
+rm -rf macdist/SooperLooperAU64.component
 
 #xcodepath=/Developer/usr/bin/xcodebuild
 
@@ -12,19 +13,30 @@ rm -rf macdist/SooperLooperAU.component
 cd SooperLooperAU
 
 #${xcodepath} ${xcodesdk} -configuration Deployment
-xcodebuild -configuration Deployment
+#xcodebuild -configuration Deployment
+
+xcodebuild -configuration Deployment -scheme "SooperLooperAU 32" -derivedDataPath .
+xcodebuild -configuration Deployment -scheme "SooperLooperAU 64" -derivedDataPath .
+
 
 cd ..
 
-if [ -d SooperLooperAU/build/Deployment/SooperLooperAU.component ] ; then
-	echo cp -Rp SooperLooperAU/build/Deployment/SooperLooperAU.component macdist/
-	cp -Rp SooperLooperAU/build/Deployment/SooperLooperAU.component macdist/	
-elif [ -d SooperLooperAU/build/Default/SooperLooperAU.component ] ; then
-	echo cp -Rp SooperLooperAU/build/Default/SooperLooperAU.component macdist/
-	cp -Rp SooperLooperAU/build/Default/SooperLooperAU.component macdist/
-elif [ -d SooperLooperAU/build/SooperLooperAU.component ] ; then
-	echo cp -Rp SooperLooperAU/build/SooperLooperAU.component macdist/
-	cp -Rp SooperLooperAU/build/SooperLooperAU.component macdist/
+if [ -d SooperLooperAU/Build/Products/Deployment/SooperLooperAU.component ] ; then
+	echo cp -Rp SooperLooperAU/Build/Products/Deployment/SooperLooperAU.component macdist/
+	cp -Rp SooperLooperAU/Build/Products/Deployment/SooperLooperAU.component macdist/	
+
+	echo cp -Rp SooperLooperAU/Build/Products/Deployment/SooperLooperAU64.component macdist/
+	cp -Rp SooperLooperAU/Build/Products/Deployment/SooperLooperAU64.component macdist/	
+
+#if [ -d SooperLooperAU/build/Deployment/SooperLooperAU.component ] ; then
+#	echo cp -Rp SooperLooperAU/build/Deployment/SooperLooperAU.component macdist/
+#	cp -Rp SooperLooperAU/build/Deployment/SooperLooperAU.component macdist/	
+#elif [ -d SooperLooperAU/build/Default/SooperLooperAU.component ] ; then
+#	echo cp -Rp SooperLooperAU/build/Default/SooperLooperAU.component macdist/
+#	cp -Rp SooperLooperAU/build/Default/SooperLooperAU.component macdist/
+#elif [ -d SooperLooperAU/build/SooperLooperAU.component ] ; then
+#	echo cp -Rp SooperLooperAU/build/SooperLooperAU.component macdist/
+#	cp -Rp SooperLooperAU/build/SooperLooperAU.component macdist/
 else
 	echo "no component found!"
 	exit 1

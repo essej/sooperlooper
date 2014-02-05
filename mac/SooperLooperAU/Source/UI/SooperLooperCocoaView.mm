@@ -47,6 +47,8 @@ using namespace std;
                                     { 0, kParam_Three_Indexed, kAudioUnitScope_Global, 0 }	};
 */
 
+#ifdef EMBEDWX
+
 static bool gWxIsInitialized = false;
 
 
@@ -58,6 +60,8 @@ static bool gWxIsInitialized = false;
 
 #include <wx/init.h>
 #include <wx/evtloop.h>
+
+#endif
 
 @implementation SooperLooperCocoaView
 
@@ -182,6 +186,8 @@ static bool gWxIsInitialized = false;
 }
 
 
+#ifdef EMBEDWX
+
 - (void)windowBecameKey:(NSNotification *)notification
 {
     wxApp::SetInstance( _app );
@@ -225,7 +231,7 @@ static bool gWxIsInitialized = false;
 
 - (void)viewDidMoveToWindow
 {
-    NSLog(@"Move to window");
+    // NSLog(@"Move to window");
     if (!_appframe) {
 #ifdef DO_EMBEDDED
         [self performSelector:@selector(startEmbeddedUI) withObject:NULL afterDelay:0.5];
@@ -250,6 +256,8 @@ static bool gWxIsInitialized = false;
         [self windowResized:NULL];
     }
 }
+
+
 
 -(void) disposeEmbeddedGui
 {
@@ -497,13 +505,15 @@ static bool gWxIsInitialized = false;
 
 }
 
+#endif  // embedwx
+
 
 #pragma mark ____ (INIT /) DEALLOC ____
 - (void)dealloc {
 
-    NSLog(@"dealloc cocoa view");
+    // NSLog(@"dealloc cocoa view");
 
-#if DO_EMBEDDED
+#ifdef EMBEDWX
     [self _removeListeners];
 	
 
@@ -541,10 +551,13 @@ static bool gWxIsInitialized = false;
         NSLog(@"No app path!");
         return;
     }
+    else {
+        // NSLog(@"SLapppath: %@", _slapp_path);
+    }
     
     string slguipath = [_slapp_path UTF8String];
     
-    slguipath += "/Contents/MacOS/slgui";
+    // slguipath += "/Contents/MacOS/slgui";
     
     snprintf(portbuf, sizeof(portbuf), "%d", (int) auvp.GetValue());
     
@@ -556,7 +569,7 @@ static bool gWxIsInitialized = false;
 	args.push_back("-N");
 	
     
-#if 0
+#if EMBEDWX
     
     if (!_appframe) {
         [self startEmbeddedUI];
@@ -607,9 +620,9 @@ static bool gWxIsInitialized = false;
 		}
 	}
 	
-    NSLog(@"Set stayontop to %d", value);
+    // NSLog(@"Set stayontop to %d", value);
     
-#ifdef DO_EMBEDDED
+#ifdef EMBEDWX
     if (_appframe) {
         // set it to be stay on top style or not
         [self startEmbeddedUI];
@@ -735,16 +748,18 @@ void ParameterListenerDispatcher (void *inRefCon, void *inObject, const AudioUni
 		[self _addListeners];
 		
         // our setup
-        NSLog(@"Cocoa GUI init");
+        // NSLog(@"Cocoa GUI init");
         [self init_app_path];
         [self init_stay_on_top];
         
-        NSLog(@"Init app path: %@", _slapp_path);
+        // NSLog(@"Init app path: %@", _slapp_path);
 
         
 		// initial setup
 		[self _synchronizeUIWithParameterValues];
         
+
+        [self create_slgui];
         
         //if (!_appframe) {
         //    [self startEmbeddedUI];
@@ -776,7 +791,7 @@ void ParameterListenerDispatcher (void *inRefCon, void *inObject, const AudioUni
         NSURL *file = [openDlg URL];
         _slapp_path = [file path];
         
-        NSLog(@"SL app path returned: %@", [file path]);
+        // NSLog(@"SL app path returned: %@", [file path]);
         
         [uiPathTextField setStringValue:_slapp_path];
     }

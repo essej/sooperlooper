@@ -231,15 +231,20 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 			_bstate = Selected;
 			pressed (get_mouse_button(ev)); // emit
 			CaptureMouse();
+            _pressed = true;
 			Refresh(false);
 		}
 	}
 	else if (ev.ButtonUp())
 	{
 		_bstate = Normal;
-		ReleaseMouse();
+        if (_pressed) {
+            ReleaseMouse();
+        }
 		released (get_mouse_button(ev)); // emit
-			  
+
+        _pressed = false;
+        
 		wxPoint pt = ev.GetPosition();
 		wxRect bounds = GetRect();
 		pt.x += bounds.x;

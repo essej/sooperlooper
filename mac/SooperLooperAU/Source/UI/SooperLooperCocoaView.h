@@ -55,10 +55,12 @@ class wxEventLoopGuarantor;
 class wxFrame;
 class wxEventLoop;
 
+#ifdef EMBEDWX
 namespace SooperLooperGui {
     class PluginApp;
     class AppFrame;
 }
+#endif
 
 @interface SooperLooperCocoaView : NSView
 {
@@ -80,12 +82,13 @@ namespace SooperLooperGui {
     NSString * _slapp_path;
     short  _stay_on_top;
     LaunchSLgui * _launcher;
-    
+
+#ifdef EMBEDWX
     SooperLooperGui::PluginApp * _app;
     wxFrame * _appframe;
     wxEventLoopGuarantor * _guarantor;
     wxEventLoop * _eventloop;
-    
+#endif
 }
 
 #pragma mark ____ PUBLIC FUNCTIONS ____

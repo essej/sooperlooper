@@ -106,7 +106,8 @@ class PixButton
 	ButtonState _bstate;
 	EnterState _estate;
 	bool _active;
-	
+	bool _pressed;
+    
 	int _width, _height;
 	
 	wxColour _bgcolor;

@@ -164,7 +164,7 @@ AppFrame::init()
 
 	_mainpanel->PreferredSizeChange.connect (mem_fun (*this,  &AppFrame::on_preferred_size));
 
-	_mainpanel->set_embedded(_embedded);
+	_mainpanel->set_force_local(_embedded);
 	
     if (!_embedded) {
 	
@@ -366,15 +366,18 @@ void AppFrame::on_about (wxCommandEvent &ev)
 	// construct splash
 	wxBitmap bitmap(sl_splash_xpm);
 	// add version info
-	wxMemoryDC mdc;
-	mdc.SelectObject(bitmap);
-	int w,h;
-	wxString vstr = wxString::Format(wxT("v %s"), wxString::FromAscii(sooperlooper_version).c_str());
-	mdc.SetFont(*wxSWISS_FONT);
-	mdc.SetTextForeground(*wxWHITE);
-	mdc.SetTextBackground(*wxBLACK);
-	mdc.GetTextExtent(vstr, &w, &h);
-	mdc.DrawText(vstr, bitmap.GetWidth() / 2 - (w/2), 148);
+
+    {
+        wxMemoryDC mdc;
+        mdc.SelectObject(bitmap);
+        int w,h;
+        wxString vstr = wxString::Format(wxT("v %s"), wxString::FromAscii(sooperlooper_version).c_str());
+        //	mdc.SetFont(*wxSWISS_FONT);
+        mdc.SetTextForeground(*wxWHITE);
+        mdc.SetTextBackground(*wxBLACK);
+        mdc.GetTextExtent(vstr, &w, &h);
+        mdc.DrawText(vstr, bitmap.GetWidth() / 2 - (w/2), 148);
+    }
 	
 	wxSplashScreen* splash = new wxSplashScreen(bitmap,
 						    wxSPLASH_CENTRE_ON_PARENT|wxSPLASH_NO_TIMEOUT,

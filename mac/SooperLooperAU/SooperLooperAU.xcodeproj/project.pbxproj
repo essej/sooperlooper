@@ -13,9 +13,6 @@
 		880FCF300878CA09004384B4 /* AUMIDIEffectBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 880FCF2C0878CA09004384B4 /* AUMIDIEffectBase.cpp */; };
 		880FCF310878CA09004384B4 /* AUMIDIEffectBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 880FCF2D0878CA09004384B4 /* AUMIDIEffectBase.h */; };
 		8810CF690E247C10002155C4 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8810CF680E247C10002155C4 /* ApplicationServices.framework */; };
-		881934F30878E48B008C28C2 /* liblo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 881934F20878E48B008C28C2 /* liblo.a */; };
-		881934F90878E4F4008C28C2 /* libsndfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 881934F80878E4F4008C28C2 /* libsndfile.a */; };
-		881935010878E55F008C28C2 /* libsamplerate.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935000878E55F008C28C2 /* libsamplerate.a */; };
 		881935030878E594008C28C2 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935020878E594008C28C2 /* CoreMIDI.framework */; };
 		881935130878E75A008C28C2 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935120878E75A008C28C2 /* libz.dylib */; };
 		881935190878E7A0008C28C2 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935180878E7A0008C28C2 /* CoreFoundation.framework */; };
@@ -48,7 +45,6 @@
 		88288AAC1857C0A00008E7EE /* ComponentBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A931857C0A00008E7EE /* ComponentBase.cpp */; };
 		88288AAD1857C0A00008E7EE /* ComponentBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 88288A941857C0A00008E7EE /* ComponentBase.h */; };
 		88288AAE1857C0A00008E7EE /* ComponentBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 88288A941857C0A00008E7EE /* ComponentBase.h */; };
-		88288ABE1857C3F70008E7EE /* libsigc-1.2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288ABD1857C3F70008E7EE /* libsigc-1.2.a */; };
 		88288ABF1857C42B0008E7EE /* libfftw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB11857C3C30008E7EE /* libfftw3.a */; };
 		88288AC01857C42B0008E7EE /* liblo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB21857C3C30008E7EE /* liblo.a */; };
 		88288AC11857C42B0008E7EE /* librubberband.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB31857C3C30008E7EE /* librubberband.a */; };
@@ -59,7 +55,6 @@
 		88365057185843AB00246E75 /* SooperLooperCocoaViewFactory.mm in Sources */ = {isa = PBXBuildFile; fileRef = 88288A791857A8770008E7EE /* SooperLooperCocoaViewFactory.mm */; };
 		88365058185843AF00246E75 /* SooperLooperCocoaView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 88288A7B1857A8770008E7EE /* SooperLooperCocoaView.mm */; };
 		8836505A185843BE00246E75 /* launch_slgui.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8855A55C08B5732D00B1396A /* launch_slgui.mm */; };
-		8836505B185843C100246E75 /* TaskWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 8855A55008B571B500B1396A /* TaskWrapper.m */; };
 		8836505C1858445100246E75 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05AFA072074E100365D66 /* AudioUnit.framework */; };
 		8836505D1858445500246E75 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05AF9072074E100365D66 /* AudioToolbox.framework */; };
 		8836505E1858445B00246E75 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 888AC6DA087E2C7C001F80AD /* Cocoa.framework */; };
@@ -68,8 +63,6 @@
 		88365064185845CB00246E75 /* libsamplerate.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB41857C3C30008E7EE /* libsamplerate.a */; };
 		883ECF110D4C57850047B14B /* CADebugMacros.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 883ECF0F0D4C57840047B14B /* CADebugMacros.cpp */; };
 		883ECF120D4C57850047B14B /* CADebugMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = 883ECF100D4C57840047B14B /* CADebugMacros.h */; };
-		884365080D464EBF00E6C1F9 /* librubberband.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 884365070D464EBF00E6C1F9 /* librubberband.a */; };
-		8843650A0D464EDA00E6C1F9 /* libfftw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 884365090D464EDA00E6C1F9 /* libfftw3.a */; };
 		8855A55108B571B500B1396A /* TaskWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 8855A54F08B571B500B1396A /* TaskWrapper.h */; };
 		8855A55208B571B500B1396A /* TaskWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 8855A55008B571B500B1396A /* TaskWrapper.m */; };
 		8855A55D08B5732D00B1396A /* launch_slgui.h in Headers */ = {isa = PBXBuildFile; fileRef = 8855A55B08B5732D00B1396A /* launch_slgui.h */; };
@@ -365,72 +358,9 @@
 		885F138E0BD2670F0069E7EC /* CAVectorUnit.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F138C0BD2670F0069E7EC /* CAVectorUnit.h */; };
 		886245A508B8E4F3003959C6 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 886245A408B8E4F3003959C6 /* AppKit.framework */; };
 		8862462308B95927003959C6 /* SLproperties.h in Headers */ = {isa = PBXBuildFile; fileRef = 8862462208B95927003959C6 /* SLproperties.h */; };
-		887ED3E81888CC9100F83F8A /* app_frame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3C11888CC9100F83F8A /* app_frame.cpp */; };
-		887ED3E91888CC9100F83F8A /* check_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3C31888CC9100F83F8A /* check_box.cpp */; };
-		887ED3EA1888CC9100F83F8A /* choice_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3C51888CC9100F83F8A /* choice_box.cpp */; };
-		887ED3EB1888CC9100F83F8A /* config_panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3C71888CC9100F83F8A /* config_panel.cpp */; };
-		887ED3EC1888CC9100F83F8A /* help_window.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3C91888CC9100F83F8A /* help_window.cpp */; };
-		887ED3ED1888CC9100F83F8A /* keyboard_target.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3CB1888CC9100F83F8A /* keyboard_target.cpp */; };
-		887ED3EE1888CC9100F83F8A /* keys_panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3CD1888CC9100F83F8A /* keys_panel.cpp */; };
-		887ED3EF1888CC9100F83F8A /* latency_panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3CF1888CC9100F83F8A /* latency_panel.cpp */; };
-		887ED3F01888CC9100F83F8A /* loop_control.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3D11888CC9100F83F8A /* loop_control.cpp */; };
-		887ED3F11888CC9100F83F8A /* looper_panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3D31888CC9100F83F8A /* looper_panel.cpp */; };
-		887ED3F21888CC9100F83F8A /* main_panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3D51888CC9100F83F8A /* main_panel.cpp */; };
-		887ED3F31888CC9100F83F8A /* midi_bind_panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3D71888CC9100F83F8A /* midi_bind_panel.cpp */; };
-		887ED3F41888CC9100F83F8A /* pix_button.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3D91888CC9100F83F8A /* pix_button.cpp */; };
-		887ED3F61888CC9100F83F8A /* prefs_dialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3DE1888CC9100F83F8A /* prefs_dialog.cpp */; };
-		887ED3F71888CC9100F83F8A /* slider_bar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3E01888CC9100F83F8A /* slider_bar.cpp */; };
-		887ED3F81888CC9100F83F8A /* spin_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3E21888CC9100F83F8A /* spin_box.cpp */; };
-		887ED3F91888CC9100F83F8A /* time_panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3E41888CC9100F83F8A /* time_panel.cpp */; };
-		887ED4011888CDC700F83F8A /* libwx_osx_cocoau-3.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED3FB1888CDC700F83F8A /* libwx_osx_cocoau-3.0.a */; };
-		887ED4021888CDC700F83F8A /* libwxjpeg-3.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED3FC1888CDC700F83F8A /* libwxjpeg-3.0.a */; };
-		887ED4031888CDC700F83F8A /* libwxpng-3.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED3FD1888CDC700F83F8A /* libwxpng-3.0.a */; };
-		887ED4041888CDC700F83F8A /* libwxregexu-3.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED3FE1888CDC700F83F8A /* libwxregexu-3.0.a */; };
-		887ED4051888CDC700F83F8A /* libwxscintilla-3.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED3FF1888CDC700F83F8A /* libwxscintilla-3.0.a */; };
-		887ED4061888CDC700F83F8A /* libwxtiff-3.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4001888CDC700F83F8A /* libwxtiff-3.0.a */; };
 		887ED40B1888CE0B00F83F8A /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4081888CE0B00F83F8A /* IOKit.framework */; };
 		887ED40C1888CE0B00F83F8A /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4091888CE0B00F83F8A /* OpenGL.framework */; };
-		887ED40D1888CF4E00F83F8A /* libsigc-2.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB51857C3C30008E7EE /* libsigc-2.0.a */; };
-		887ED40E1888CF5400F83F8A /* liblo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB21857C3C30008E7EE /* liblo.a */; };
-		887ED40F1888D0EE00F83F8A /* basename.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D50BD260A70069E7EC /* basename.cc */; };
-		887ED4101888D0F700F83F8A /* dirname.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D70BD260A70069E7EC /* dirname.cc */; };
-		887ED4111888D0F700F83F8A /* dmalloc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D80BD260A70069E7EC /* dmalloc.cc */; };
-		887ED4121888D0F700F83F8A /* ftw.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D90BD260A70069E7EC /* ftw.cc */; };
-		887ED4131888D0F700F83F8A /* mountpoint.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12DA0BD260A70069E7EC /* mountpoint.cc */; };
-		887ED4141888D0F700F83F8A /* pathscanner.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12DB0BD260A70069E7EC /* pathscanner.cc */; };
-		887ED4151888D0F700F83F8A /* pool.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13130BD260A70069E7EC /* pool.cc */; };
-		887ED4161888D0F700F83F8A /* pthread_utils.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13140BD260A70069E7EC /* pthread_utils.cc */; };
-		887ED4171888D0F700F83F8A /* receiver.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13150BD260A70069E7EC /* receiver.cc */; };
-		887ED4181888D0F700F83F8A /* textreceiver.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13160BD260A70069E7EC /* textreceiver.cc */; };
-		887ED4191888D0F700F83F8A /* transmitter.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13170BD260A70069E7EC /* transmitter.cc */; };
-		887ED41A1888D0F700F83F8A /* undo.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13180BD260A70069E7EC /* undo.cc */; };
-		887ED41B1888D0F700F83F8A /* unescape.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13190BD260A70069E7EC /* unescape.cc */; };
-		887ED41C1888D0F700F83F8A /* version.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F131A0BD260A70069E7EC /* version.cc */; };
-		887ED41D1888D0F700F83F8A /* xml++.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F131B0BD260A70069E7EC /* xml++.cc */; };
-		887ED41E1888D24600F83F8A /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935120878E75A008C28C2 /* libz.dylib */; };
-		887ED41F1888D24D00F83F8A /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8855A6F508B59DE600B1396A /* libxml2.dylib */; };
-		887ED4201888D25000F83F8A /* libm.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8819351A0878E7CA008C28C2 /* libm.dylib */; };
-		887ED4221888D2CA00F83F8A /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4211888D2CA00F83F8A /* libiconv.dylib */; };
 		887ED4241888D2F900F83F8A /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4231888D2F900F83F8A /* Carbon.framework */; };
-		887ED4251888D3B100F83F8A /* coremidi_midiport.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12910BD25FD90069E7EC /* coremidi_midiport.cc */; };
-		887ED4261888D3B100F83F8A /* fd_midiport.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12920BD25FD90069E7EC /* fd_midiport.cc */; };
-		887ED4271888D3B100F83F8A /* fifomidi.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12930BD25FD90069E7EC /* fifomidi.cc */; };
-		887ED4281888D3B100F83F8A /* midi.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12940BD25FD90069E7EC /* midi.cc */; };
-		887ED4291888D3B100F83F8A /* midichannel.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12950BD25FD90069E7EC /* midichannel.cc */; };
-		887ED42A1888D3B100F83F8A /* midicontrollable.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12960BD25FD90069E7EC /* midicontrollable.cc */; };
-		887ED42B1888D3B100F83F8A /* midifactory.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12970BD25FD90069E7EC /* midifactory.cc */; };
-		887ED42C1888D3B100F83F8A /* midimanager.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12980BD25FD90069E7EC /* midimanager.cc */; };
-		887ED42D1888D3B100F83F8A /* midiparser.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12990BD25FD90069E7EC /* midiparser.cc */; };
-		887ED42E1888D3B100F83F8A /* midiport.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129A0BD25FD90069E7EC /* midiport.cc */; };
-		887ED42F1888D3B100F83F8A /* mmc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129C0BD25FD90069E7EC /* mmc.cc */; };
-		887ED4301888D3B100F83F8A /* mtc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129E0BD25FD90069E7EC /* mtc.cc */; };
-		887ED4311888D3B100F83F8A /* port_request.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129F0BD25FD90069E7EC /* port_request.cc */; };
-		887ED4321888D3B100F83F8A /* version.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12A00BD25FD90069E7EC /* version.cc */; };
-		887ED4331888D3C200F83F8A /* command_map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12570BD25EC60069E7EC /* command_map.cpp */; };
-		887ED4341888D3C200F83F8A /* midi_bind.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12650BD25EC60069E7EC /* midi_bind.cpp */; };
-		887ED4361888D3E600F83F8A /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4351888D3E600F83F8A /* CoreMIDI.framework */; };
-		887ED4381888D64300F83F8A /* Globals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED4371888D64300F83F8A /* Globals.cpp */; };
-		887ED43B1888D7F400F83F8A /* plugin_app.mm in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3DC1888CC9100F83F8A /* plugin_app.mm */; };
 		888AC6CD087E2B20001F80AD /* version.h in Headers */ = {isa = PBXBuildFile; fileRef = 888AC6CC087E2B20001F80AD /* version.h */; };
 		888AC6DB087E2C7C001F80AD /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 888AC6DA087E2C7C001F80AD /* Cocoa.framework */; };
 		88A6E11E185962940099FEDF /* SooperLooperCocoaUI.xib in Resources */ = {isa = PBXBuildFile; fileRef = 88A6E11D185962940099FEDF /* SooperLooperCocoaUI.xib */; };
@@ -568,7 +498,6 @@
 		88C5713918984DC400FD840A /* AUMIDIBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 880FCF2A0878CA09004384B4 /* AUMIDIBase.cpp */; };
 		88C5713A18984DC400FD840A /* AUScopeElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A911857C0A00008E7EE /* AUScopeElement.cpp */; };
 		88C5713B18984DC400FD840A /* AUMIDIEffectBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 880FCF2C0878CA09004384B4 /* AUMIDIEffectBase.cpp */; };
-		88C5713C18984DC400FD840A /* TaskWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 8855A55008B571B500B1396A /* TaskWrapper.m */; };
 		88C5713D18984DC400FD840A /* launch_slgui.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8855A55C08B5732D00B1396A /* launch_slgui.mm */; };
 		88C5713E18984DC400FD840A /* audio_driver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12550BD25EC60069E7EC /* audio_driver.cpp */; };
 		88C5713F18984DC400FD840A /* ComponentBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A931857C0A00008E7EE /* ComponentBase.cpp */; };
@@ -619,100 +548,34 @@
 		88C5716D18984DC400FD840A /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05AF9072074E100365D66 /* AudioToolbox.framework */; };
 		88C5716E18984DC400FD840A /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05AFA072074E100365D66 /* AudioUnit.framework */; };
 		88C5716F18984DC400FD840A /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05B01072074F900365D66 /* CoreServices.framework */; };
-		88C5717018984DC400FD840A /* liblo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 881934F20878E48B008C28C2 /* liblo.a */; };
-		88C5717118984DC400FD840A /* libsndfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 881934F80878E4F4008C28C2 /* libsndfile.a */; };
-		88C5717218984DC400FD840A /* libsamplerate.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935000878E55F008C28C2 /* libsamplerate.a */; };
 		88C5717318984DC400FD840A /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935020878E594008C28C2 /* CoreMIDI.framework */; };
 		88C5717418984DC400FD840A /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935120878E75A008C28C2 /* libz.dylib */; };
 		88C5717518984DC400FD840A /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935180878E7A0008C28C2 /* CoreFoundation.framework */; };
-		88C5717618984DC400FD840A /* libsigc-1.2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288ABD1857C3F70008E7EE /* libsigc-1.2.a */; };
 		88C5717718984DC400FD840A /* libm.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8819351A0878E7CA008C28C2 /* libm.dylib */; };
 		88C5717818984DC400FD840A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 888AC6DA087E2C7C001F80AD /* Cocoa.framework */; };
 		88C5717918984DC400FD840A /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8855A6F508B59DE600B1396A /* libxml2.dylib */; };
 		88C5717A18984DC400FD840A /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 886245A408B8E4F3003959C6 /* AppKit.framework */; };
-		88C5717B18984DC400FD840A /* librubberband.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 884365070D464EBF00E6C1F9 /* librubberband.a */; };
-		88C5717C18984DC400FD840A /* libfftw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 884365090D464EDA00E6C1F9 /* libfftw3.a */; };
 		88C5717D18984DC400FD840A /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8810CF680E247C10002155C4 /* ApplicationServices.framework */; };
 		88C571861898A13100FD840A /* SooperLooperAU64.r in Rez */ = {isa = PBXBuildFile; fileRef = 88288AC71857C69D0008E7EE /* SooperLooperAU64.r */; };
 		88C5719B18A04E9F00FD840A /* launch_slgui.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8855A55C08B5732D00B1396A /* launch_slgui.mm */; };
-		88C5719C18A04EA400FD840A /* TaskWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 8855A55008B571B500B1396A /* TaskWrapper.m */; };
 		88C5719F18A0A6EA00FD840A /* SooperLooperAU64.r in Rez */ = {isa = PBXBuildFile; fileRef = 88288AC71857C69D0008E7EE /* SooperLooperAU64.r */; };
-		88C571A218A0A75B00FD840A /* mmc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129C0BD25FD90069E7EC /* mmc.cc */; };
-		88C571A318A0A75B00FD840A /* mountpoint.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12DA0BD260A70069E7EC /* mountpoint.cc */; };
-		88C571A418A0A75B00FD840A /* CAAUParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BA05B050720754400365D66 /* CAAUParameter.cpp */; };
-		88C571A518A0A75B00FD840A /* time_panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3E41888CC9100F83F8A /* time_panel.cpp */; };
-		88C571A618A0A75B00FD840A /* midi_bind_panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3D71888CC9100F83F8A /* midi_bind_panel.cpp */; };
-		88C571A718A0A75B00FD840A /* midichannel.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12950BD25FD90069E7EC /* midichannel.cc */; };
-		88C571A818A0A75B00FD840A /* TaskWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 8855A55008B571B500B1396A /* TaskWrapper.m */; };
-		88C571A918A0A75B00FD840A /* slider_bar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3E01888CC9100F83F8A /* slider_bar.cpp */; };
-		88C571AA18A0A75B00FD840A /* midi.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12940BD25FD90069E7EC /* midi.cc */; };
-		88C571AB18A0A75B00FD840A /* choice_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3C51888CC9100F83F8A /* choice_box.cpp */; };
-		88C571AC18A0A75B00FD840A /* spin_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3E21888CC9100F83F8A /* spin_box.cpp */; };
-		88C571AD18A0A75B00FD840A /* midimanager.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12980BD25FD90069E7EC /* midimanager.cc */; };
-		88C571AE18A0A75B00FD840A /* main_panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3D51888CC9100F83F8A /* main_panel.cpp */; };
-		88C571AF18A0A75B00FD840A /* undo.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13180BD260A70069E7EC /* undo.cc */; };
-		88C571B018A0A75B00FD840A /* looper_panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3D31888CC9100F83F8A /* looper_panel.cpp */; };
-		88C571B118A0A75B00FD840A /* plugin_app.mm in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3DC1888CC9100F83F8A /* plugin_app.mm */; };
-		88C571B218A0A75B00FD840A /* fd_midiport.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12920BD25FD90069E7EC /* fd_midiport.cc */; };
-		88C571B318A0A75B00FD840A /* receiver.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13150BD260A70069E7EC /* receiver.cc */; };
-		88C571B418A0A75B00FD840A /* launch_slgui.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8855A55C08B5732D00B1396A /* launch_slgui.mm */; };
-		88C571B518A0A75B00FD840A /* port_request.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129F0BD25FD90069E7EC /* port_request.cc */; };
-		88C571B618A0A75B00FD840A /* midifactory.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12970BD25FD90069E7EC /* midifactory.cc */; };
-		88C571B718A0A75B00FD840A /* version.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12A00BD25FD90069E7EC /* version.cc */; };
-		88C571B818A0A75B00FD840A /* textreceiver.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13160BD260A70069E7EC /* textreceiver.cc */; };
-		88C571B918A0A75B00FD840A /* basename.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D50BD260A70069E7EC /* basename.cc */; };
-		88C571BA18A0A75B00FD840A /* xml++.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F131B0BD260A70069E7EC /* xml++.cc */; };
-		88C571BB18A0A75B00FD840A /* coremidi_midiport.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12910BD25FD90069E7EC /* coremidi_midiport.cc */; };
-		88C571BC18A0A75B00FD840A /* dmalloc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D80BD260A70069E7EC /* dmalloc.cc */; };
-		88C571BD18A0A75B00FD840A /* midiparser.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12990BD25FD90069E7EC /* midiparser.cc */; };
-		88C571BE18A0A75B00FD840A /* midi_bind.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12650BD25EC60069E7EC /* midi_bind.cpp */; };
-		88C571BF18A0A75B00FD840A /* dirname.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D70BD260A70069E7EC /* dirname.cc */; };
-		88C571C018A0A75B00FD840A /* prefs_dialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3DE1888CC9100F83F8A /* prefs_dialog.cpp */; };
-		88C571C118A0A75B00FD840A /* midicontrollable.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12960BD25FD90069E7EC /* midicontrollable.cc */; };
-		88C571C218A0A75B00FD840A /* SooperLooperCocoaViewFactory.mm in Sources */ = {isa = PBXBuildFile; fileRef = 88288A791857A8770008E7EE /* SooperLooperCocoaViewFactory.mm */; };
-		88C571C318A0A75B00FD840A /* pool.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13130BD260A70069E7EC /* pool.cc */; };
-		88C571C418A0A75B00FD840A /* mtc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129E0BD25FD90069E7EC /* mtc.cc */; };
-		88C571C518A0A75B00FD840A /* loop_control.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3D11888CC9100F83F8A /* loop_control.cpp */; };
-		88C571C618A0A75B00FD840A /* SooperLooperCocoaView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 88288A7B1857A8770008E7EE /* SooperLooperCocoaView.mm */; };
-		88C571C718A0A75B00FD840A /* fifomidi.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12930BD25FD90069E7EC /* fifomidi.cc */; };
-		88C571C818A0A75B00FD840A /* pathscanner.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12DB0BD260A70069E7EC /* pathscanner.cc */; };
-		88C571C918A0A75B00FD840A /* version.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F131A0BD260A70069E7EC /* version.cc */; };
-		88C571CA18A0A75B00FD840A /* latency_panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3CF1888CC9100F83F8A /* latency_panel.cpp */; };
-		88C571CB18A0A75B00FD840A /* app_frame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3C11888CC9100F83F8A /* app_frame.cpp */; };
-		88C571CC18A0A75B00FD840A /* check_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3C31888CC9100F83F8A /* check_box.cpp */; };
-		88C571CD18A0A75B00FD840A /* help_window.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3C91888CC9100F83F8A /* help_window.cpp */; };
-		88C571CE18A0A75B00FD840A /* midiport.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129A0BD25FD90069E7EC /* midiport.cc */; };
-		88C571CF18A0A75B00FD840A /* ftw.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D90BD260A70069E7EC /* ftw.cc */; };
-		88C571D018A0A75B00FD840A /* keyboard_target.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3CB1888CC9100F83F8A /* keyboard_target.cpp */; };
-		88C571D118A0A75B00FD840A /* pthread_utils.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13140BD260A70069E7EC /* pthread_utils.cc */; };
-		88C571D218A0A75B00FD840A /* transmitter.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13170BD260A70069E7EC /* transmitter.cc */; };
-		88C571D318A0A75B00FD840A /* pix_button.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3D91888CC9100F83F8A /* pix_button.cpp */; };
-		88C571D418A0A75B00FD840A /* keys_panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3CD1888CC9100F83F8A /* keys_panel.cpp */; };
-		88C571D518A0A75B00FD840A /* unescape.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13190BD260A70069E7EC /* unescape.cc */; };
-		88C571D618A0A75B00FD840A /* config_panel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED3C71888CC9100F83F8A /* config_panel.cpp */; };
-		88C571D718A0A75B00FD840A /* Globals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887ED4371888D64300F83F8A /* Globals.cpp */; };
-		88C571D818A0A75B00FD840A /* command_map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12570BD25EC60069E7EC /* command_map.cpp */; };
-		88C571DA18A0A75B00FD840A /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4351888D3E600F83F8A /* CoreMIDI.framework */; };
-		88C571DB18A0A75B00FD840A /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4231888D2F900F83F8A /* Carbon.framework */; };
-		88C571DC18A0A75B00FD840A /* libiconv.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4211888D2CA00F83F8A /* libiconv.dylib */; };
-		88C571DD18A0A75B00FD840A /* libm.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8819351A0878E7CA008C28C2 /* libm.dylib */; };
-		88C571DE18A0A75B00FD840A /* libwx_osx_cocoau-3.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED3FB1888CDC700F83F8A /* libwx_osx_cocoau-3.0.a */; };
-		88C571DF18A0A75B00FD840A /* libwxjpeg-3.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED3FC1888CDC700F83F8A /* libwxjpeg-3.0.a */; };
-		88C571E018A0A75B00FD840A /* liblo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB21857C3C30008E7EE /* liblo.a */; };
-		88C571E118A0A75B00FD840A /* libwxpng-3.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED3FD1888CDC700F83F8A /* libwxpng-3.0.a */; };
-		88C571E218A0A75B00FD840A /* libwxregexu-3.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED3FE1888CDC700F83F8A /* libwxregexu-3.0.a */; };
-		88C571E318A0A75B00FD840A /* libwxscintilla-3.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED3FF1888CDC700F83F8A /* libwxscintilla-3.0.a */; };
-		88C571E418A0A75B00FD840A /* libwxtiff-3.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4001888CDC700F83F8A /* libwxtiff-3.0.a */; };
-		88C571E518A0A75B00FD840A /* libsigc-2.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB51857C3C30008E7EE /* libsigc-2.0.a */; };
-		88C571E618A0A75B00FD840A /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4081888CE0B00F83F8A /* IOKit.framework */; };
-		88C571E718A0A75B00FD840A /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935120878E75A008C28C2 /* libz.dylib */; };
-		88C571E818A0A75B00FD840A /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4091888CE0B00F83F8A /* OpenGL.framework */; };
-		88C571E918A0A75B00FD840A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 888AC6DA087E2C7C001F80AD /* Cocoa.framework */; };
-		88C571EA18A0A75B00FD840A /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05AFA072074E100365D66 /* AudioUnit.framework */; };
-		88C571EB18A0A75B00FD840A /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05AF9072074E100365D66 /* AudioToolbox.framework */; };
-		88C571EC18A0A75B00FD840A /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8855A6F508B59DE600B1396A /* libxml2.dylib */; };
-		88C571EE18A0A75B00FD840A /* SooperLooperCocoaUI.xib in Resources */ = {isa = PBXBuildFile; fileRef = 88A6E11D185962940099FEDF /* SooperLooperCocoaUI.xib */; };
-		88C571EF18A0A75B00FD840A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 8836504F1858422D00246E75 /* InfoPlist.strings */; };
+		88C5720018A135DF00FD840A /* TaskWrapperNew.m in Sources */ = {isa = PBXBuildFile; fileRef = 88C571FF18A135DF00FD840A /* TaskWrapperNew.m */; };
+		88C5720218A1360C00FD840A /* TaskWrapperNew.m in Sources */ = {isa = PBXBuildFile; fileRef = 88C571FF18A135DF00FD840A /* TaskWrapperNew.m */; };
+		88C5720318A1360D00FD840A /* TaskWrapperNew.m in Sources */ = {isa = PBXBuildFile; fileRef = 88C571FF18A135DF00FD840A /* TaskWrapperNew.m */; };
+		88E4EA7B18A15D0C0055D475 /* libfftw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7518A15D0C0055D475 /* libfftw3.a */; };
+		88E4EA7C18A15D0C0055D475 /* libfftw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7518A15D0C0055D475 /* libfftw3.a */; };
+		88E4EA7D18A15D0C0055D475 /* liblo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7618A15D0C0055D475 /* liblo.a */; };
+		88E4EA7E18A15D0C0055D475 /* liblo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7618A15D0C0055D475 /* liblo.a */; };
+		88E4EA7F18A15D0C0055D475 /* librubberband.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7718A15D0C0055D475 /* librubberband.a */; };
+		88E4EA8018A15D0C0055D475 /* librubberband.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7718A15D0C0055D475 /* librubberband.a */; };
+		88E4EA8118A15D0C0055D475 /* libsamplerate.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7818A15D0C0055D475 /* libsamplerate.a */; };
+		88E4EA8218A15D0C0055D475 /* libsamplerate.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7818A15D0C0055D475 /* libsamplerate.a */; };
+		88E4EA8318A15D0C0055D475 /* libsigc-2.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7918A15D0C0055D475 /* libsigc-2.0.a */; };
+		88E4EA8418A15D0C0055D475 /* libsigc-2.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7918A15D0C0055D475 /* libsigc-2.0.a */; };
+		88E4EA8518A15D0C0055D475 /* libsndfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7A18A15D0C0055D475 /* libsndfile.a */; };
+		88E4EA8618A15D0C0055D475 /* libsndfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7A18A15D0C0055D475 /* libsndfile.a */; };
+		88E4EA8C18A168010055D475 /* SooperLooperCocoaViewFactory.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 883650441858422D00246E75 /* SooperLooperCocoaViewFactory.bundle */; };
+		88E4EA9818A18A370055D475 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA9618A18A2F0055D475 /* CoreAudio.framework */; };
 		8B4119230749635800361ABE /* SooperLooperAU.r in Rez */ = {isa = PBXBuildFile; fileRef = 8BA05A680720730100365D66 /* SooperLooperAU.r */; };
 		8B43D4AB073C1138003F6C3C /* SooperLooperAUView.h in Headers */ = {isa = PBXBuildFile; fileRef = 8B43D4A9073C1138003F6C3C /* SooperLooperAUView.h */; };
 		8B43D4AC073C1138003F6C3C /* SooperLooperAUView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8B43D4AA073C1138003F6C3C /* SooperLooperAUView.mm */; };
@@ -760,13 +623,6 @@
 			remoteGlobalIDString = 883650431858422D00246E75;
 			remoteInfo = CocoaUI;
 		};
-		88C5719D18A0A6B900FD840A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 089C1669FE841209C02AAC07 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 883650431858422D00246E75;
-			remoteInfo = CocoaUI;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -777,6 +633,16 @@
 			dstSubfolderSpec = 7;
 			files = (
 				88365061185844F800246E75 /* SooperLooperCocoaViewFactory.bundle in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		88E4EA8B18A167EB0055D475 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				88E4EA8C18A168010055D475 /* SooperLooperCocoaViewFactory.bundle in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -792,9 +658,6 @@
 		880FCF2C0878CA09004384B4 /* AUMIDIEffectBase.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = AUMIDIEffectBase.cpp; sourceTree = "<group>"; };
 		880FCF2D0878CA09004384B4 /* AUMIDIEffectBase.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AUMIDIEffectBase.h; sourceTree = "<group>"; };
 		8810CF680E247C10002155C4 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
-		881934F20878E48B008C28C2 /* liblo.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblo.a; path = /usr/local/lib/liblo.a; sourceTree = "<absolute>"; };
-		881934F80878E4F4008C28C2 /* libsndfile.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsndfile.a; path = /usr/local/lib/libsndfile.a; sourceTree = "<absolute>"; };
-		881935000878E55F008C28C2 /* libsamplerate.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsamplerate.a; path = /usr/local/lib/libsamplerate.a; sourceTree = "<absolute>"; };
 		881935020878E594008C28C2 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = /System/Library/Frameworks/CoreMIDI.framework; sourceTree = "<absolute>"; };
 		881935120878E75A008C28C2 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
 		881935180878E7A0008C28C2 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
@@ -824,7 +687,6 @@
 		88288AB41857C3C30008E7EE /* libsamplerate.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libsamplerate.a; sourceTree = "<group>"; };
 		88288AB51857C3C30008E7EE /* libsigc-2.0.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libsigc-2.0.a"; sourceTree = "<group>"; };
 		88288AB61857C3C30008E7EE /* libsndfile.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libsndfile.a; sourceTree = "<group>"; };
-		88288ABD1857C3F70008E7EE /* libsigc-1.2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libsigc-1.2.a"; sourceTree = "<group>"; };
 		88288AC51857C6170008E7EE /* SooperLooperAU64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = SooperLooperAU64.exp; sourceTree = "<group>"; };
 		88288AC71857C69D0008E7EE /* SooperLooperAU64.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; path = SooperLooperAU64.r; sourceTree = "<group>"; };
 		883650441858422D00246E75 /* SooperLooperCocoaViewFactory.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SooperLooperCocoaViewFactory.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -837,8 +699,6 @@
 		883650521858422D00246E75 /* CocoaUI-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CocoaUI-Prefix.pch"; sourceTree = "<group>"; };
 		883ECF0F0D4C57840047B14B /* CADebugMacros.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = CADebugMacros.cpp; sourceTree = "<group>"; };
 		883ECF100D4C57840047B14B /* CADebugMacros.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = CADebugMacros.h; sourceTree = "<group>"; };
-		884365070D464EBF00E6C1F9 /* librubberband.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = librubberband.a; path = /usr/local/lib/librubberband.a; sourceTree = "<absolute>"; };
-		884365090D464EDA00E6C1F9 /* libfftw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfftw3.a; path = /usr/local/lib/libfftw3.a; sourceTree = "<absolute>"; };
 		8855A54F08B571B500B1396A /* TaskWrapper.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = TaskWrapper.h; sourceTree = "<group>"; };
 		8855A55008B571B500B1396A /* TaskWrapper.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = TaskWrapper.m; sourceTree = "<group>"; };
 		8855A55B08B5732D00B1396A /* launch_slgui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = launch_slgui.h; sourceTree = "<group>"; };
@@ -1030,10 +890,19 @@
 		88A6E11B185903760099FEDF /* MusicDeviceBase.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MusicDeviceBase.cpp; sourceTree = "<group>"; };
 		88A6E11C185903760099FEDF /* MusicDeviceBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MusicDeviceBase.h; sourceTree = "<group>"; };
 		88A6E11D185962940099FEDF /* SooperLooperCocoaUI.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = SooperLooperCocoaUI.xib; sourceTree = "<group>"; };
-		88C5718418984DC400FD840A /* SooperLooperAU copy.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "SooperLooperAU copy.component"; sourceTree = BUILT_PRODUCTS_DIR; };
-		88C5718518984DC800FD840A /* SooperLooperAU copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "SooperLooperAU copy-Info.plist"; path = "/Users/jesse/src/sooperlooper/mac/SooperLooperAU/SooperLooperAU copy-Info.plist"; sourceTree = "<absolute>"; };
-		88C571F418A0A75B00FD840A /* CocoaUI 64 copy.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "CocoaUI 64 copy.bundle"; sourceTree = BUILT_PRODUCTS_DIR; };
-		88C571F518A0A75C00FD840A /* CocoaUI 64 copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "CocoaUI 64 copy-Info.plist"; path = "/Users/jesse/src/sooperlooper/mac/SooperLooperAU/CocoaUI 64 copy-Info.plist"; sourceTree = "<absolute>"; };
+		88C5718418984DC400FD840A /* SooperLooperAU.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SooperLooperAU.component; sourceTree = BUILT_PRODUCTS_DIR; };
+		88C5718518984DC800FD840A /* SooperLooperAU-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "SooperLooperAU-Info.plist"; path = "/Users/jesse/src/sooperlooper/mac/SooperLooperAU/SooperLooperAU-Info.plist"; sourceTree = "<absolute>"; };
+		88C571F518A0A75C00FD840A /* CocoaUI 32-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "CocoaUI 32-Info.plist"; path = "/Users/jesse/src/sooperlooper/mac/SooperLooperAU/CocoaUI 32-Info.plist"; sourceTree = "<absolute>"; };
+		88C571FE18A135DF00FD840A /* TaskWrapperNew.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TaskWrapperNew.h; sourceTree = "<group>"; };
+		88C571FF18A135DF00FD840A /* TaskWrapperNew.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TaskWrapperNew.m; sourceTree = "<group>"; };
+		88E4EA7518A15D0C0055D475 /* libfftw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libfftw3.a; sourceTree = "<group>"; };
+		88E4EA7618A15D0C0055D475 /* liblo.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = liblo.a; sourceTree = "<group>"; };
+		88E4EA7718A15D0C0055D475 /* librubberband.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = librubberband.a; sourceTree = "<group>"; };
+		88E4EA7818A15D0C0055D475 /* libsamplerate.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libsamplerate.a; sourceTree = "<group>"; };
+		88E4EA7918A15D0C0055D475 /* libsigc-2.0.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libsigc-2.0.a"; sourceTree = "<group>"; };
+		88E4EA7A18A15D0C0055D475 /* libsndfile.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libsndfile.a; sourceTree = "<group>"; };
+		88E4EA8718A15DE40055D475 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = ../../../../../../usr/local/lib/libjpeg.a; sourceTree = "<group>"; };
+		88E4EA9618A18A2F0055D475 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/System/Library/Frameworks/CoreAudio.framework; sourceTree = DEVELOPER_DIR; };
 		8B43D4A9073C1138003F6C3C /* SooperLooperAUView.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; path = SooperLooperAUView.h; sourceTree = "<group>"; };
 		8B43D4AA073C1138003F6C3C /* SooperLooperAUView.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = SooperLooperAUView.mm; sourceTree = "<group>"; };
 		8B5C7F83076FB26000A15F61 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
@@ -1079,25 +948,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				887ED4361888D3E600F83F8A /* CoreMIDI.framework in Frameworks */,
+				88E4EA9818A18A370055D475 /* CoreAudio.framework in Frameworks */,
 				887ED4241888D2F900F83F8A /* Carbon.framework in Frameworks */,
-				887ED4221888D2CA00F83F8A /* libiconv.dylib in Frameworks */,
-				887ED4201888D25000F83F8A /* libm.dylib in Frameworks */,
-				887ED4011888CDC700F83F8A /* libwx_osx_cocoau-3.0.a in Frameworks */,
-				887ED4021888CDC700F83F8A /* libwxjpeg-3.0.a in Frameworks */,
-				887ED40E1888CF5400F83F8A /* liblo.a in Frameworks */,
-				887ED4031888CDC700F83F8A /* libwxpng-3.0.a in Frameworks */,
-				887ED4041888CDC700F83F8A /* libwxregexu-3.0.a in Frameworks */,
-				887ED4051888CDC700F83F8A /* libwxscintilla-3.0.a in Frameworks */,
-				887ED4061888CDC700F83F8A /* libwxtiff-3.0.a in Frameworks */,
-				887ED40D1888CF4E00F83F8A /* libsigc-2.0.a in Frameworks */,
 				887ED40B1888CE0B00F83F8A /* IOKit.framework in Frameworks */,
-				887ED41E1888D24600F83F8A /* libz.dylib in Frameworks */,
 				887ED40C1888CE0B00F83F8A /* OpenGL.framework in Frameworks */,
 				8836505E1858445B00246E75 /* Cocoa.framework in Frameworks */,
 				8836505C1858445100246E75 /* AudioUnit.framework in Frameworks */,
 				8836505D1858445500246E75 /* AudioToolbox.framework in Frameworks */,
-				887ED41F1888D24D00F83F8A /* libxml2.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1130,49 +987,23 @@
 			buildActionMask = 2147483647;
 			files = (
 				88C5716C18984DC400FD840A /* Carbon.framework in Frameworks */,
+				88E4EA8218A15D0C0055D475 /* libsamplerate.a in Frameworks */,
 				88C5716D18984DC400FD840A /* AudioToolbox.framework in Frameworks */,
 				88C5716E18984DC400FD840A /* AudioUnit.framework in Frameworks */,
 				88C5716F18984DC400FD840A /* CoreServices.framework in Frameworks */,
-				88C5717018984DC400FD840A /* liblo.a in Frameworks */,
-				88C5717118984DC400FD840A /* libsndfile.a in Frameworks */,
-				88C5717218984DC400FD840A /* libsamplerate.a in Frameworks */,
+				88E4EA8018A15D0C0055D475 /* librubberband.a in Frameworks */,
+				88E4EA7C18A15D0C0055D475 /* libfftw3.a in Frameworks */,
+				88E4EA7E18A15D0C0055D475 /* liblo.a in Frameworks */,
 				88C5717318984DC400FD840A /* CoreMIDI.framework in Frameworks */,
 				88C5717418984DC400FD840A /* libz.dylib in Frameworks */,
 				88C5717518984DC400FD840A /* CoreFoundation.framework in Frameworks */,
-				88C5717618984DC400FD840A /* libsigc-1.2.a in Frameworks */,
+				88E4EA8618A15D0C0055D475 /* libsndfile.a in Frameworks */,
 				88C5717718984DC400FD840A /* libm.dylib in Frameworks */,
 				88C5717818984DC400FD840A /* Cocoa.framework in Frameworks */,
 				88C5717918984DC400FD840A /* libxml2.dylib in Frameworks */,
+				88E4EA8418A15D0C0055D475 /* libsigc-2.0.a in Frameworks */,
 				88C5717A18984DC400FD840A /* AppKit.framework in Frameworks */,
-				88C5717B18984DC400FD840A /* librubberband.a in Frameworks */,
-				88C5717C18984DC400FD840A /* libfftw3.a in Frameworks */,
 				88C5717D18984DC400FD840A /* ApplicationServices.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		88C571D918A0A75B00FD840A /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				88C571DA18A0A75B00FD840A /* CoreMIDI.framework in Frameworks */,
-				88C571DB18A0A75B00FD840A /* Carbon.framework in Frameworks */,
-				88C571DC18A0A75B00FD840A /* libiconv.dylib in Frameworks */,
-				88C571DD18A0A75B00FD840A /* libm.dylib in Frameworks */,
-				88C571DE18A0A75B00FD840A /* libwx_osx_cocoau-3.0.a in Frameworks */,
-				88C571DF18A0A75B00FD840A /* libwxjpeg-3.0.a in Frameworks */,
-				88C571E018A0A75B00FD840A /* liblo.a in Frameworks */,
-				88C571E118A0A75B00FD840A /* libwxpng-3.0.a in Frameworks */,
-				88C571E218A0A75B00FD840A /* libwxregexu-3.0.a in Frameworks */,
-				88C571E318A0A75B00FD840A /* libwxscintilla-3.0.a in Frameworks */,
-				88C571E418A0A75B00FD840A /* libwxtiff-3.0.a in Frameworks */,
-				88C571E518A0A75B00FD840A /* libsigc-2.0.a in Frameworks */,
-				88C571E618A0A75B00FD840A /* IOKit.framework in Frameworks */,
-				88C571E718A0A75B00FD840A /* libz.dylib in Frameworks */,
-				88C571E818A0A75B00FD840A /* OpenGL.framework in Frameworks */,
-				88C571E918A0A75B00FD840A /* Cocoa.framework in Frameworks */,
-				88C571EA18A0A75B00FD840A /* AudioUnit.framework in Frameworks */,
-				88C571EB18A0A75B00FD840A /* AudioToolbox.framework in Frameworks */,
-				88C571EC18A0A75B00FD840A /* libxml2.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1181,22 +1012,22 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D01CCCE0486CAD60068D4B7 /* Carbon.framework in Frameworks */,
+				88E4EA8118A15D0C0055D475 /* libsamplerate.a in Frameworks */,
 				8BA05AFC072074E100365D66 /* AudioToolbox.framework in Frameworks */,
 				8BA05AFD072074E100365D66 /* AudioUnit.framework in Frameworks */,
 				8BA05B02072074F900365D66 /* CoreServices.framework in Frameworks */,
-				881934F30878E48B008C28C2 /* liblo.a in Frameworks */,
-				881934F90878E4F4008C28C2 /* libsndfile.a in Frameworks */,
-				881935010878E55F008C28C2 /* libsamplerate.a in Frameworks */,
+				88E4EA7F18A15D0C0055D475 /* librubberband.a in Frameworks */,
+				88E4EA7B18A15D0C0055D475 /* libfftw3.a in Frameworks */,
+				88E4EA7D18A15D0C0055D475 /* liblo.a in Frameworks */,
 				881935030878E594008C28C2 /* CoreMIDI.framework in Frameworks */,
 				881935130878E75A008C28C2 /* libz.dylib in Frameworks */,
 				881935190878E7A0008C28C2 /* CoreFoundation.framework in Frameworks */,
-				88288ABE1857C3F70008E7EE /* libsigc-1.2.a in Frameworks */,
+				88E4EA8518A15D0C0055D475 /* libsndfile.a in Frameworks */,
 				8819351B0878E7CA008C28C2 /* libm.dylib in Frameworks */,
 				888AC6DB087E2C7C001F80AD /* Cocoa.framework in Frameworks */,
 				8855A6F608B59DE600B1396A /* libxml2.dylib in Frameworks */,
+				88E4EA8318A15D0C0055D475 /* libsigc-2.0.a in Frameworks */,
 				886245A508B8E4F3003959C6 /* AppKit.framework in Frameworks */,
-				884365080D464EBF00E6C1F9 /* librubberband.a in Frameworks */,
-				8843650A0D464EDA00E6C1F9 /* libfftw3.a in Frameworks */,
 				8810CF690E247C10002155C4 /* ApplicationServices.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1214,8 +1045,8 @@
 				883650451858422D00246E75 /* Frameworks */,
 				19C28FB4FE9D528D11CA2CBB /* Products */,
 				885670EC1813927500AA5367 /* SooperLooperAU64-Info.plist */,
-				88C5718518984DC800FD840A /* SooperLooperAU copy-Info.plist */,
-				88C571F518A0A75C00FD840A /* CocoaUI 64 copy-Info.plist */,
+				88C5718518984DC800FD840A /* SooperLooperAU-Info.plist */,
+				88C571F518A0A75C00FD840A /* CocoaUI 32-Info.plist */,
 			);
 			name = SooperLooperAU;
 			sourceTree = "<group>";
@@ -1271,8 +1102,7 @@
 				8D01CCD20486CAD60068D4B7 /* SooperLooperAU.component */,
 				885670EB1813927400AA5367 /* SooperLooperAU64.component */,
 				883650441858422D00246E75 /* SooperLooperCocoaViewFactory.bundle */,
-				88C5718418984DC400FD840A /* SooperLooperAU copy.component */,
-				88C571F418A0A75B00FD840A /* CocoaUI 64 copy.bundle */,
+				88C5718418984DC400FD840A /* SooperLooperAU.component */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1302,14 +1132,15 @@
 		88288AAF1857C3530008E7EE /* 32bit */ = {
 			isa = PBXGroup;
 			children = (
-				88288ABD1857C3F70008E7EE /* libsigc-1.2.a */,
-				884365090D464EDA00E6C1F9 /* libfftw3.a */,
-				884365070D464EBF00E6C1F9 /* librubberband.a */,
-				881935000878E55F008C28C2 /* libsamplerate.a */,
-				881934F80878E4F4008C28C2 /* libsndfile.a */,
-				881934F20878E48B008C28C2 /* liblo.a */,
+				88E4EA7518A15D0C0055D475 /* libfftw3.a */,
+				88E4EA7618A15D0C0055D475 /* liblo.a */,
+				88E4EA7718A15D0C0055D475 /* librubberband.a */,
+				88E4EA7818A15D0C0055D475 /* libsamplerate.a */,
+				88E4EA7918A15D0C0055D475 /* libsigc-2.0.a */,
+				88E4EA7A18A15D0C0055D475 /* libsndfile.a */,
 			);
 			name = 32bit;
+			path = lib32;
 			sourceTree = "<group>";
 		};
 		88288AB01857C35F0008E7EE /* 64bit */ = {
@@ -1323,11 +1154,14 @@
 				88288AB61857C3C30008E7EE /* libsndfile.a */,
 			);
 			name = 64bit;
+			path = lib64;
 			sourceTree = "<group>";
 		};
 		883650451858422D00246E75 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				88E4EA9618A18A2F0055D475 /* CoreAudio.framework */,
+				88E4EA8718A15DE40055D475 /* libjpeg.a */,
 				887ED4351888D3E600F83F8A /* CoreMIDI.framework */,
 				887ED4231888D2F900F83F8A /* Carbon.framework */,
 				887ED4211888D2CA00F83F8A /* libiconv.dylib */,
@@ -1367,6 +1201,7 @@
 		8836504D1858422D00246E75 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				88E4EA9918A18DF60055D475 /* 32bit */,
 				8836504E1858422D00246E75 /* CocoaUI-Info.plist */,
 				8836504F1858422D00246E75 /* InfoPlist.strings */,
 				883650521858422D00246E75 /* CocoaUI-Prefix.pch */,
@@ -1584,6 +1419,13 @@
 			path = AUSource;
 			sourceTree = "<group>";
 		};
+		88E4EA9918A18DF60055D475 /* 32bit */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = 32bit;
+			sourceTree = "<group>";
+		};
 		8B27DB55083B129900A18321 /* UI */ = {
 			isa = PBXGroup;
 			children = (
@@ -1594,6 +1436,8 @@
 				8855A55C08B5732D00B1396A /* launch_slgui.mm */,
 				8855A54F08B571B500B1396A /* TaskWrapper.h */,
 				8855A55008B571B500B1396A /* TaskWrapper.m */,
+				88C571FE18A135DF00FD840A /* TaskWrapperNew.h */,
+				88C571FF18A135DF00FD840A /* TaskWrapperNew.m */,
 				888AC6CC087E2B20001F80AD /* version.h */,
 			);
 			path = UI;
@@ -2081,9 +1925,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		883650431858422D00246E75 /* CocoaUI 64 */ = {
+		883650431858422D00246E75 /* CocoaUI */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 883650531858422D00246E75 /* Build configuration list for PBXNativeTarget "CocoaUI 64" */;
+			buildConfigurationList = 883650531858422D00246E75 /* Build configuration list for PBXNativeTarget "CocoaUI" */;
 			buildPhases = (
 				883650401858422D00246E75 /* Sources */,
 				883650411858422D00246E75 /* Frameworks */,
@@ -2093,7 +1937,7 @@
 			);
 			dependencies = (
 			);
-			name = "CocoaUI 64";
+			name = CocoaUI;
 			productName = CocoaUI;
 			productReference = 883650441858422D00246E75 /* SooperLooperCocoaViewFactory.bundle */;
 			productType = "com.apple.product-type.bundle";
@@ -2129,38 +1973,21 @@
 				88C5712718984DC400FD840A /* Sources */,
 				88C5716B18984DC400FD840A /* Frameworks */,
 				88C5717E18984DC400FD840A /* Rez */,
+				88E4EA8B18A167EB0055D475 /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				88C5719E18A0A6B900FD840A /* PBXTargetDependency */,
 			);
 			name = "SooperLooperAU 32";
 			productInstallPath = "$(HOME)/Library/Bundles";
 			productName = SooperLooperAU;
-			productReference = 88C5718418984DC400FD840A /* SooperLooperAU copy.component */;
+			productReference = 88C5718418984DC400FD840A /* SooperLooperAU.component */;
 			productType = "com.apple.product-type.bundle";
 		};
-		88C571A018A0A75B00FD840A /* CocoaUI 32 */ = {
+		8D01CCC60486CAD60068D4B7 /* SooperLooperAU Old */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 88C571F018A0A75B00FD840A /* Build configuration list for PBXNativeTarget "CocoaUI 32" */;
-			buildPhases = (
-				88C571A118A0A75B00FD840A /* Sources */,
-				88C571D918A0A75B00FD840A /* Frameworks */,
-				88C571ED18A0A75B00FD840A /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "CocoaUI 32";
-			productName = CocoaUI;
-			productReference = 88C571F418A0A75B00FD840A /* CocoaUI 64 copy.bundle */;
-			productType = "com.apple.product-type.bundle";
-		};
-		8D01CCC60486CAD60068D4B7 /* SooperLooperAU */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 885F12420BD25C700069E7EC /* Build configuration list for PBXNativeTarget "SooperLooperAU" */;
+			buildConfigurationList = 885F12420BD25C700069E7EC /* Build configuration list for PBXNativeTarget "SooperLooperAU Old" */;
 			buildPhases = (
 				8D01CCC70486CAD60068D4B7 /* Headers */,
 				8D01CCC90486CAD60068D4B7 /* Resources */,
@@ -2172,7 +1999,7 @@
 			);
 			dependencies = (
 			);
-			name = SooperLooperAU;
+			name = "SooperLooperAU Old";
 			productInstallPath = "$(HOME)/Library/Bundles";
 			productName = SooperLooperAU;
 			productReference = 8D01CCD20486CAD60068D4B7 /* SooperLooperAU.component */;
@@ -2201,11 +2028,10 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8D01CCC60486CAD60068D4B7 /* SooperLooperAU */,
+				8D01CCC60486CAD60068D4B7 /* SooperLooperAU Old */,
 				88C570B018984DC400FD840A /* SooperLooperAU 32 */,
 				885670161813927400AA5367 /* SooperLooperAU 64 */,
-				883650431858422D00246E75 /* CocoaUI 64 */,
-				88C571A018A0A75B00FD840A /* CocoaUI 32 */,
+				883650431858422D00246E75 /* CocoaUI */,
 			);
 		};
 /* End PBXProject section */
@@ -2235,15 +2061,6 @@
 			files = (
 				88C5712518984DC400FD840A /* InfoPlist.strings in Resources */,
 				88C5712618984DC400FD840A /* slgui.icns in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		88C571ED18A0A75B00FD840A /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				88C571EE18A0A75B00FD840A /* SooperLooperCocoaUI.xib in Resources */,
-				88C571EF18A0A75B00FD840A /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2290,61 +2107,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				887ED42F1888D3B100F83F8A /* mmc.cc in Sources */,
-				887ED4131888D0F700F83F8A /* mountpoint.cc in Sources */,
 				8836505F1858447100246E75 /* CAAUParameter.cpp in Sources */,
-				887ED3F91888CC9100F83F8A /* time_panel.cpp in Sources */,
-				887ED3F31888CC9100F83F8A /* midi_bind_panel.cpp in Sources */,
-				887ED4291888D3B100F83F8A /* midichannel.cc in Sources */,
-				8836505B185843C100246E75 /* TaskWrapper.m in Sources */,
-				887ED3F71888CC9100F83F8A /* slider_bar.cpp in Sources */,
-				887ED4281888D3B100F83F8A /* midi.cc in Sources */,
-				887ED3EA1888CC9100F83F8A /* choice_box.cpp in Sources */,
-				887ED3F81888CC9100F83F8A /* spin_box.cpp in Sources */,
-				887ED42C1888D3B100F83F8A /* midimanager.cc in Sources */,
-				887ED3F21888CC9100F83F8A /* main_panel.cpp in Sources */,
-				887ED41A1888D0F700F83F8A /* undo.cc in Sources */,
-				887ED3F11888CC9100F83F8A /* looper_panel.cpp in Sources */,
-				887ED43B1888D7F400F83F8A /* plugin_app.mm in Sources */,
-				887ED4261888D3B100F83F8A /* fd_midiport.cc in Sources */,
-				887ED4171888D0F700F83F8A /* receiver.cc in Sources */,
 				8836505A185843BE00246E75 /* launch_slgui.mm in Sources */,
-				887ED4311888D3B100F83F8A /* port_request.cc in Sources */,
-				887ED42B1888D3B100F83F8A /* midifactory.cc in Sources */,
-				887ED4321888D3B100F83F8A /* version.cc in Sources */,
-				887ED4181888D0F700F83F8A /* textreceiver.cc in Sources */,
-				887ED40F1888D0EE00F83F8A /* basename.cc in Sources */,
-				887ED41D1888D0F700F83F8A /* xml++.cc in Sources */,
-				887ED4251888D3B100F83F8A /* coremidi_midiport.cc in Sources */,
-				887ED4111888D0F700F83F8A /* dmalloc.cc in Sources */,
-				887ED42D1888D3B100F83F8A /* midiparser.cc in Sources */,
-				887ED4341888D3C200F83F8A /* midi_bind.cpp in Sources */,
-				887ED4101888D0F700F83F8A /* dirname.cc in Sources */,
-				887ED3F61888CC9100F83F8A /* prefs_dialog.cpp in Sources */,
-				887ED42A1888D3B100F83F8A /* midicontrollable.cc in Sources */,
 				88365057185843AB00246E75 /* SooperLooperCocoaViewFactory.mm in Sources */,
-				887ED4151888D0F700F83F8A /* pool.cc in Sources */,
-				887ED4301888D3B100F83F8A /* mtc.cc in Sources */,
-				887ED3F01888CC9100F83F8A /* loop_control.cpp in Sources */,
+				88C5720018A135DF00FD840A /* TaskWrapperNew.m in Sources */,
 				88365058185843AF00246E75 /* SooperLooperCocoaView.mm in Sources */,
-				887ED4271888D3B100F83F8A /* fifomidi.cc in Sources */,
-				887ED4141888D0F700F83F8A /* pathscanner.cc in Sources */,
-				887ED41C1888D0F700F83F8A /* version.cc in Sources */,
-				887ED3EF1888CC9100F83F8A /* latency_panel.cpp in Sources */,
-				887ED3E81888CC9100F83F8A /* app_frame.cpp in Sources */,
-				887ED3E91888CC9100F83F8A /* check_box.cpp in Sources */,
-				887ED3EC1888CC9100F83F8A /* help_window.cpp in Sources */,
-				887ED42E1888D3B100F83F8A /* midiport.cc in Sources */,
-				887ED4121888D0F700F83F8A /* ftw.cc in Sources */,
-				887ED3ED1888CC9100F83F8A /* keyboard_target.cpp in Sources */,
-				887ED4161888D0F700F83F8A /* pthread_utils.cc in Sources */,
-				887ED4191888D0F700F83F8A /* transmitter.cc in Sources */,
-				887ED3F41888CC9100F83F8A /* pix_button.cpp in Sources */,
-				887ED3EE1888CC9100F83F8A /* keys_panel.cpp in Sources */,
-				887ED41B1888D0F700F83F8A /* unescape.cc in Sources */,
-				887ED3EB1888CC9100F83F8A /* config_panel.cpp in Sources */,
-				887ED4381888D64300F83F8A /* Globals.cpp in Sources */,
-				887ED4331888D3C200F83F8A /* command_map.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2358,7 +2125,6 @@
 				8856709C1813927400AA5367 /* AUBuffer.cpp in Sources */,
 				8856709E1813927400AA5367 /* CAAudioChannelLayout.cpp in Sources */,
 				8856709F1813927400AA5367 /* CAMutex.cpp in Sources */,
-				88C5719C18A04EA400FD840A /* TaskWrapper.m in Sources */,
 				88288A961857C0A00008E7EE /* AUBase.cpp in Sources */,
 				885670A01813927400AA5367 /* CAStreamBasicDescription.cpp in Sources */,
 				885670A11813927400AA5367 /* CAAUParameter.cpp in Sources */,
@@ -2400,6 +2166,7 @@
 				885670C51813927400AA5367 /* mountpoint.cc in Sources */,
 				885670C61813927400AA5367 /* pathscanner.cc in Sources */,
 				885670C71813927400AA5367 /* pool.cc in Sources */,
+				88C5720218A1360C00FD840A /* TaskWrapperNew.m in Sources */,
 				88288A9A1857C0A00008E7EE /* AUDispatch.cpp in Sources */,
 				885670C81813927400AA5367 /* pthread_utils.cc in Sources */,
 				885670C91813927400AA5367 /* receiver.cc in Sources */,
@@ -2435,11 +2202,11 @@
 				88C5713418984DC400FD840A /* CAMutex.cpp in Sources */,
 				88C5713518984DC400FD840A /* CAStreamBasicDescription.cpp in Sources */,
 				88C5713618984DC400FD840A /* AUOutputElement.cpp in Sources */,
+				88C5720318A1360D00FD840A /* TaskWrapperNew.m in Sources */,
 				88C5713718984DC400FD840A /* CAAUParameter.cpp in Sources */,
 				88C5713918984DC400FD840A /* AUMIDIBase.cpp in Sources */,
 				88C5713A18984DC400FD840A /* AUScopeElement.cpp in Sources */,
 				88C5713B18984DC400FD840A /* AUMIDIEffectBase.cpp in Sources */,
-				88C5713C18984DC400FD840A /* TaskWrapper.m in Sources */,
 				88C5713D18984DC400FD840A /* launch_slgui.mm in Sources */,
 				88C5713E18984DC400FD840A /* audio_driver.cpp in Sources */,
 				88C5713F18984DC400FD840A /* ComponentBase.cpp in Sources */,
@@ -2486,68 +2253,6 @@
 				88C5716818984DC400FD840A /* xml++.cc in Sources */,
 				88C5716918984DC400FD840A /* CAVectorUnit.cpp in Sources */,
 				88C5716A18984DC400FD840A /* CADebugMacros.cpp in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		88C571A118A0A75B00FD840A /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				88C571A218A0A75B00FD840A /* mmc.cc in Sources */,
-				88C571A318A0A75B00FD840A /* mountpoint.cc in Sources */,
-				88C571A418A0A75B00FD840A /* CAAUParameter.cpp in Sources */,
-				88C571A518A0A75B00FD840A /* time_panel.cpp in Sources */,
-				88C571A618A0A75B00FD840A /* midi_bind_panel.cpp in Sources */,
-				88C571A718A0A75B00FD840A /* midichannel.cc in Sources */,
-				88C571A818A0A75B00FD840A /* TaskWrapper.m in Sources */,
-				88C571A918A0A75B00FD840A /* slider_bar.cpp in Sources */,
-				88C571AA18A0A75B00FD840A /* midi.cc in Sources */,
-				88C571AB18A0A75B00FD840A /* choice_box.cpp in Sources */,
-				88C571AC18A0A75B00FD840A /* spin_box.cpp in Sources */,
-				88C571AD18A0A75B00FD840A /* midimanager.cc in Sources */,
-				88C571AE18A0A75B00FD840A /* main_panel.cpp in Sources */,
-				88C571AF18A0A75B00FD840A /* undo.cc in Sources */,
-				88C571B018A0A75B00FD840A /* looper_panel.cpp in Sources */,
-				88C571B118A0A75B00FD840A /* plugin_app.mm in Sources */,
-				88C571B218A0A75B00FD840A /* fd_midiport.cc in Sources */,
-				88C571B318A0A75B00FD840A /* receiver.cc in Sources */,
-				88C571B418A0A75B00FD840A /* launch_slgui.mm in Sources */,
-				88C571B518A0A75B00FD840A /* port_request.cc in Sources */,
-				88C571B618A0A75B00FD840A /* midifactory.cc in Sources */,
-				88C571B718A0A75B00FD840A /* version.cc in Sources */,
-				88C571B818A0A75B00FD840A /* textreceiver.cc in Sources */,
-				88C571B918A0A75B00FD840A /* basename.cc in Sources */,
-				88C571BA18A0A75B00FD840A /* xml++.cc in Sources */,
-				88C571BB18A0A75B00FD840A /* coremidi_midiport.cc in Sources */,
-				88C571BC18A0A75B00FD840A /* dmalloc.cc in Sources */,
-				88C571BD18A0A75B00FD840A /* midiparser.cc in Sources */,
-				88C571BE18A0A75B00FD840A /* midi_bind.cpp in Sources */,
-				88C571BF18A0A75B00FD840A /* dirname.cc in Sources */,
-				88C571C018A0A75B00FD840A /* prefs_dialog.cpp in Sources */,
-				88C571C118A0A75B00FD840A /* midicontrollable.cc in Sources */,
-				88C571C218A0A75B00FD840A /* SooperLooperCocoaViewFactory.mm in Sources */,
-				88C571C318A0A75B00FD840A /* pool.cc in Sources */,
-				88C571C418A0A75B00FD840A /* mtc.cc in Sources */,
-				88C571C518A0A75B00FD840A /* loop_control.cpp in Sources */,
-				88C571C618A0A75B00FD840A /* SooperLooperCocoaView.mm in Sources */,
-				88C571C718A0A75B00FD840A /* fifomidi.cc in Sources */,
-				88C571C818A0A75B00FD840A /* pathscanner.cc in Sources */,
-				88C571C918A0A75B00FD840A /* version.cc in Sources */,
-				88C571CA18A0A75B00FD840A /* latency_panel.cpp in Sources */,
-				88C571CB18A0A75B00FD840A /* app_frame.cpp in Sources */,
-				88C571CC18A0A75B00FD840A /* check_box.cpp in Sources */,
-				88C571CD18A0A75B00FD840A /* help_window.cpp in Sources */,
-				88C571CE18A0A75B00FD840A /* midiport.cc in Sources */,
-				88C571CF18A0A75B00FD840A /* ftw.cc in Sources */,
-				88C571D018A0A75B00FD840A /* keyboard_target.cpp in Sources */,
-				88C571D118A0A75B00FD840A /* pthread_utils.cc in Sources */,
-				88C571D218A0A75B00FD840A /* transmitter.cc in Sources */,
-				88C571D318A0A75B00FD840A /* pix_button.cpp in Sources */,
-				88C571D418A0A75B00FD840A /* keys_panel.cpp in Sources */,
-				88C571D518A0A75B00FD840A /* unescape.cc in Sources */,
-				88C571D618A0A75B00FD840A /* config_panel.cpp in Sources */,
-				88C571D718A0A75B00FD840A /* Globals.cpp in Sources */,
-				88C571D818A0A75B00FD840A /* command_map.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2630,13 +2335,8 @@
 /* Begin PBXTargetDependency section */
 		883650631858450900246E75 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 883650431858422D00246E75 /* CocoaUI 64 */;
+			target = 883650431858422D00246E75 /* CocoaUI */;
 			targetProxy = 883650621858450900246E75 /* PBXContainerItemProxy */;
-		};
-		88C5719E18A0A6B900FD840A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 883650431858422D00246E75 /* CocoaUI 64 */;
-			targetProxy = 88C5719D18A0A6B900FD840A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -2664,6 +2364,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_OBJC_ARC = NO;
@@ -2696,21 +2397,13 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "CocoaUI/CocoaUI-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"/Users/jesse/src/wxWidgets-3.0.0-rc1/build64/lib",
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = (
-					"-D__WXOSX_COCOA__",
-					"-D__WXOSX__",
-					"-D__WXMAC__",
-				);
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "";
 				PRODUCT_NAME = SooperLooperCocoaViewFactory;
 				SDKROOT = macosx10.8;
-				USER_HEADER_SEARCH_PATHS = "/Users/jesse/src/wxWidgets-3.0.0-rc1/build64/lib/wx/include/osx_cocoa-unicode-static-3.0 /Users/jesse/src/wxWidgets-3.0.0-rc1/include /usr/local64/include/sigc++-2.0 /usr/local64/lib/sigc++-2.0/include /usr/local64/include/libxml2 /usr/local64/include ../../libs/midi++ ../../libs/pbd";
+				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = bundle;
 			};
 			name = Development;
@@ -2719,6 +2412,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_OBJC_ARC = NO;
@@ -2746,20 +2440,12 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "CocoaUI/CocoaUI-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"/Users/jesse/src/wxWidgets-3.0.0-rc1/build64/lib",
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				OTHER_CFLAGS = (
-					"-D__WXOSX_COCOA__",
-					"-D__WXOSX__",
-					"-D__WXMAC__",
-				);
+				OTHER_CFLAGS = "";
 				PRODUCT_NAME = SooperLooperCocoaViewFactory;
 				SDKROOT = macosx10.8;
-				USER_HEADER_SEARCH_PATHS = "/Users/jesse/src/wxWidgets-3.0.0-rc1/build64/lib/wx/include/osx_cocoa-unicode-static-3.0 /Users/jesse/src/wxWidgets-3.0.0-rc1/include /usr/local64/include/sigc++-2.0 /usr/local64/lib/sigc++-2.0/include /usr/local64/include/libxml2 /usr/local64/include ../../libs/midi++ ../../libs/pbd";
+				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = bundle;
 			};
 			name = Deployment;
@@ -2768,6 +2454,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_OBJC_ARC = NO;
@@ -2795,20 +2482,12 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "CocoaUI/CocoaUI-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"/Users/jesse/src/wxWidgets-3.0.0-rc1/build64/lib",
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				OTHER_CFLAGS = (
-					"-D__WXOSX_COCOA__",
-					"-D__WXOSX__",
-					"-D__WXMAC__",
-				);
+				OTHER_CFLAGS = "";
 				PRODUCT_NAME = SooperLooperCocoaViewFactory;
 				SDKROOT = macosx10.8;
-				USER_HEADER_SEARCH_PATHS = "/Users/jesse/src/wxWidgets-3.0.0-rc1/build64/lib/wx/include/osx_cocoa-unicode-static-3.0 /Users/jesse/src/wxWidgets-3.0.0-rc1/include /usr/local64/include/sigc++-2.0 /usr/local64/lib/sigc++-2.0/include /usr/local64/include/libxml2 /usr/local64/include ../../libs/midi++ ../../libs/pbd";
+				USER_HEADER_SEARCH_PATHS = "";
 				WRAPPER_EXTENSION = bundle;
 			};
 			name = Default;
@@ -2853,7 +2532,7 @@
 					../../src,
 					/usr/local64/lib,
 					/usr/lib,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
+					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib64,
 				);
 				LIBRARY_STYLE = Bundle;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
@@ -2924,7 +2603,7 @@
 					../../src,
 					/usr/local64/lib,
 					/usr/lib,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
+					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib64,
 				);
 				LIBRARY_STYLE = Bundle;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
@@ -2993,7 +2672,7 @@
 					../../src,
 					/usr/local64/lib,
 					/usr/lib,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
+					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib64,
 				);
 				LIBRARY_STYLE = Bundle;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
@@ -3067,6 +2746,7 @@
 					/usr/local/lib,
 					/opt/local/lib,
 					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
+					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
 				);
 				LIBRARY_STYLE = Bundle;
 				MACOSX_DEPLOYMENT_TARGET = "";
@@ -3137,6 +2817,7 @@
 					/usr/local/lib,
 					/opt/local/lib,
 					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
+					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
 				);
 				LIBRARY_STYLE = Bundle;
 				MACOSX_DEPLOYMENT_TARGET = 10.5;
@@ -3206,6 +2887,7 @@
 					/usr/local/lib,
 					/opt/local/lib,
 					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
+					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
 				);
 				LIBRARY_STYLE = Bundle;
 				MACOSX_DEPLOYMENT_TARGET = "";
@@ -3260,12 +2942,13 @@
 		88C5718118984DC400FD840A /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				BUILD_VARIANTS = normal;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUGGING_SYMBOLS = YES;
 				DEPLOYMENT_LOCATION = NO;
-				EXPORTED_SYMBOLS_FILE = Source/AUSource/SooperLooperAU.exp;
+				EXPORTED_SYMBOLS_FILE = Source/AUSource/SooperLooperAU64.exp;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_TRIGRAPHS = NO;
@@ -3289,16 +2972,12 @@
 					/usr/include/libxml2,
 					/usr/local/include,
 				);
-				INFOPLIST_FILE = "SooperLooperAU copy-Info.plist";
+				INFOPLIST_FILE = "SooperLooperAU-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Audio/Plug-Ins/Components/";
 				LIBRARY_SEARCH_PATHS = (
-					"../../libs/midi++",
-					../../libs/pbd,
 					../../src,
 					/usr/lib,
-					/usr/local/lib,
-					/opt/local/lib,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
+					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
 				);
 				LIBRARY_STYLE = Bundle;
 				MACOSX_DEPLOYMENT_TARGET = "";
@@ -3313,12 +2992,12 @@
 				);
 				OTHER_LDFLAGS = "-bundle";
 				OTHER_REZFLAGS = "-d ppc_YES -d i386_$(i386) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Developer/Examples/CoreAudio/AudioUnits/AUPublic/AUBase";
-				PRODUCT_NAME = "SooperLooperAU copy";
+				PRODUCT_NAME = SooperLooperAU;
 				REZ_SEARCH_PATHS = (
 					/System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers,
 					/Library/Developer/CoreAudio/AudioUnits/AUPublic/AUBase,
 				);
-				SDKROOT = macosx;
+				SDKROOT = macosx10.8;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -3333,11 +3012,12 @@
 		88C5718218984DC400FD840A /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				BUILD_VARIANTS = normal;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEPLOYMENT_LOCATION = NO;
-				EXPORTED_SYMBOLS_FILE = Source/AUSource/SooperLooperAU.exp;
+				EXPORTED_SYMBOLS_FILE = Source/AUSource/SooperLooperAU64.exp;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_ENABLE_TRIGRAPHS = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -3359,19 +3039,15 @@
 					/usr/include/libxml2,
 					/usr/local/include,
 				);
-				INFOPLIST_FILE = "SooperLooperAU copy-Info.plist";
+				INFOPLIST_FILE = "SooperLooperAU-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Audio/Plug-Ins/Components/";
 				LIBRARY_SEARCH_PATHS = (
-					"../../libs/midi++",
-					../../libs/pbd,
 					../../src,
 					/usr/lib,
-					/usr/local/lib,
-					/opt/local/lib,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
+					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
 				);
 				LIBRARY_STYLE = Bundle;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
 				OTHER_CFLAGS = (
 					"-D_FILE_OFFSET_BITS=64",
 					"-D_LARGE_FILES",
@@ -3383,12 +3059,12 @@
 				);
 				OTHER_LDFLAGS = "-bundle";
 				OTHER_REZFLAGS = "-d ppc_YES -d i386_$(i386) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Developer/Examples/CoreAudio/AudioUnits/AUPublic/AUBase";
-				PRODUCT_NAME = "SooperLooperAU copy";
+				PRODUCT_NAME = SooperLooperAU;
 				REZ_SEARCH_PATHS = (
 					/System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers,
 					/Library/Developer/CoreAudio/AudioUnits/AUPublic/AUBase,
 				);
-				SDKROOT = macosx;
+				SDKROOT = macosx10.8;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -3403,10 +3079,11 @@
 		88C5718318984DC400FD840A /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				BUILD_VARIANTS = normal;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEPLOYMENT_LOCATION = NO;
-				EXPORTED_SYMBOLS_FILE = Source/AUSource/SooperLooperAU.exp;
+				EXPORTED_SYMBOLS_FILE = Source/AUSource/SooperLooperAU64.exp;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_ENABLE_TRIGRAPHS = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -3428,16 +3105,12 @@
 					/usr/include/libxml2,
 					/usr/local/include,
 				);
-				INFOPLIST_FILE = "SooperLooperAU copy-Info.plist";
+				INFOPLIST_FILE = "SooperLooperAU-Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Audio/Plug-Ins/Components/";
 				LIBRARY_SEARCH_PATHS = (
-					"../../libs/midi++",
-					../../libs/pbd,
 					../../src,
 					/usr/lib,
-					/usr/local/lib,
-					/opt/local/lib,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
+					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
 				);
 				LIBRARY_STYLE = Bundle;
 				MACOSX_DEPLOYMENT_TARGET = "";
@@ -3452,12 +3125,12 @@
 				);
 				OTHER_LDFLAGS = "-bundle";
 				OTHER_REZFLAGS = "-d ppc_YES -d i386_$(i386) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Developer/Examples/CoreAudio/AudioUnits/AUPublic/AUBase";
-				PRODUCT_NAME = "SooperLooperAU copy";
+				PRODUCT_NAME = SooperLooperAU;
 				REZ_SEARCH_PATHS = (
 					/System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers,
 					/Library/Developer/CoreAudio/AudioUnits/AUPublic/AUBase,
 				);
-				SDKROOT = macosx;
+				SDKROOT = macosx10.8;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -3468,166 +3141,10 @@
 			};
 			name = Default;
 		};
-		88C571F118A0A75B00FD840A /* Development */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
-				CLANG_CXX_LIBRARY = "compiler-default";
-				CLANG_ENABLE_OBJC_ARC = NO;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "CocoaUI/CocoaUI-Prefix.pch";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "CocoaUI 64 copy-Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"/Users/jesse/src/wxWidgets-3.0.0-rc1/build/lib",
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = (
-					"-D__WXOSX_COCOA__",
-					"-D__WXOSX__",
-					"-D__WXMAC__",
-				);
-				PRODUCT_NAME = "CocoaUI 64 copy";
-				SDKROOT = macosx10.8;
-				USER_HEADER_SEARCH_PATHS = "/Users/jesse/src/wxWidgets-3.0.0-rc1/build64/lib/wx/include/osx_cocoa-unicode-static-3.0 /Users/jesse/src/wxWidgets-3.0.0-rc1/include /usr/local/include/sigc++-2.0 /usr/local/lib/sigc++-2.0/include /usr/local/include/libxml2 /usr/local/include ../../libs/midi++ ../../libs/pbd";
-				WRAPPER_EXTENSION = bundle;
-			};
-			name = Development;
-		};
-		88C571F218A0A75B00FD840A /* Deployment */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
-				CLANG_CXX_LIBRARY = "compiler-default";
-				CLANG_ENABLE_OBJC_ARC = NO;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "CocoaUI/CocoaUI-Prefix.pch";
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "CocoaUI 64 copy-Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"/Users/jesse/src/wxWidgets-3.0.0-rc1/build/lib",
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				OTHER_CFLAGS = (
-					"-D__WXOSX_COCOA__",
-					"-D__WXOSX__",
-					"-D__WXMAC__",
-				);
-				PRODUCT_NAME = "CocoaUI 64 copy";
-				SDKROOT = macosx10.8;
-				USER_HEADER_SEARCH_PATHS = "/Users/jesse/src/wxWidgets-3.0.0-rc1/build64/lib/wx/include/osx_cocoa-unicode-static-3.0 /Users/jesse/src/wxWidgets-3.0.0-rc1/include /usr/local/include/sigc++-2.0 /usr/local/lib/sigc++-2.0/include /usr/local/include/libxml2 /usr/local/include ../../libs/midi++ ../../libs/pbd";
-				WRAPPER_EXTENSION = bundle;
-			};
-			name = Deployment;
-		};
-		88C571F318A0A75B00FD840A /* Default */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
-				CLANG_CXX_LIBRARY = "compiler-default";
-				CLANG_ENABLE_OBJC_ARC = NO;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "CocoaUI/CocoaUI-Prefix.pch";
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = "CocoaUI 64 copy-Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"/Users/jesse/src/wxWidgets-3.0.0-rc1/build/lib",
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				OTHER_CFLAGS = (
-					"-D__WXOSX_COCOA__",
-					"-D__WXOSX__",
-					"-D__WXMAC__",
-				);
-				PRODUCT_NAME = "CocoaUI 64 copy";
-				SDKROOT = macosx10.8;
-				USER_HEADER_SEARCH_PATHS = "/Users/jesse/src/wxWidgets-3.0.0-rc1/build64/lib/wx/include/osx_cocoa-unicode-static-3.0 /Users/jesse/src/wxWidgets-3.0.0-rc1/include /usr/local/include/sigc++-2.0 /usr/local/lib/sigc++-2.0/include /usr/local/include/libxml2 /usr/local/include ../../libs/midi++ ../../libs/pbd";
-				WRAPPER_EXTENSION = bundle;
-			};
-			name = Default;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		883650531858422D00246E75 /* Build configuration list for PBXNativeTarget "CocoaUI 64" */ = {
+		883650531858422D00246E75 /* Build configuration list for PBXNativeTarget "CocoaUI" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				883650541858422D00246E75 /* Development */,
@@ -3647,7 +3164,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Default;
 		};
-		885F12420BD25C700069E7EC /* Build configuration list for PBXNativeTarget "SooperLooperAU" */ = {
+		885F12420BD25C700069E7EC /* Build configuration list for PBXNativeTarget "SooperLooperAU Old" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				885F12430BD25C700069E7EC /* Development */,
@@ -3673,16 +3190,6 @@
 				88C5718118984DC400FD840A /* Development */,
 				88C5718218984DC400FD840A /* Deployment */,
 				88C5718318984DC400FD840A /* Default */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Default;
-		};
-		88C571F018A0A75B00FD840A /* Build configuration list for PBXNativeTarget "CocoaUI 32" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				88C571F118A0A75B00FD840A /* Development */,
-				88C571F218A0A75B00FD840A /* Deployment */,
-				88C571F318A0A75B00FD840A /* Default */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Default;

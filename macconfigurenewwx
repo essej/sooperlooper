@@ -1,0 +1,6 @@
+#!/bin/bash
+
+export XML_CFLAGS="-I/usr/include/libxml2"
+export XML_LIBS="-L/usr/lib -lxml2"
+
+PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/opt/local/lib/pkgconfig:/usr/lib/pkgconfig CC="gcc -m32" CXX="g++ -m32" ./configure --prefix=/usr/local --with-wxconfig-path=/Users/jesse/src/wxWidgets-3.0.0/build32/wx-config

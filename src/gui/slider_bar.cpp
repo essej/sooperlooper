@@ -599,8 +599,12 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 	}
 	else if (ev.ButtonUp())
 	{
+        if (_dragging) {
+            ReleaseMouse();
+        }
+        
 		_dragging = false;
-		ReleaseMouse();
+
 
 		if (_use_pending) {
 			// This didn't really work

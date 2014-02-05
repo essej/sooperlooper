@@ -25,7 +25,8 @@
 
 namespace MIDI {
 
-struct PortRequest {
+class PortRequest {
+public:
     enum Status {
 	    Unknown,
 	    OK,

@@ -8,7 +8,7 @@
 			<key>description</key>
 			<string>SooperLooper AU</string>
 			<key>factoryFunction</key>
-			<string>SooperLooperFactory</string>
+			<string>SooperLooperAUFactory</string>
 			<key>manufacturer</key>
 			<string>Soop</string>
 			<key>name</key>
@@ -31,6 +31,8 @@
 	<string>net.essej.audiounit.SooperLooperAU</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>${PRODUCT_NAME}</string>
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersions</key>

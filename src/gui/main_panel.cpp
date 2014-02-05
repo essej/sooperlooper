@@ -123,7 +123,7 @@ END_EVENT_TABLE()
 	_engine_alive = true;
 	_never_timeout = false;
 	_update_timer_time = 11000; // ms
-    _embedded = false;
+    _force_local = false;
     _got_add_custom = false;
     _add_num_loops = 1;
     _add_num_channels = 1;
@@ -1437,7 +1437,7 @@ wxString MainPanel::do_file_selector(const wxString & message, const wxString & 
 
 	_keyboard->set_enabled(false);
 	
-	if (_embedded || _loop_control->is_engine_local()) {
+	if (_force_local || _loop_control->is_engine_local()) {
 		wxFileName filename;
 		if (_last_used_path.IsEmpty()) {
 			_last_used_path = filename.GetHomeDir();

@@ -87,8 +87,8 @@ public:
 	void do_load_session ();
 	void do_save_session (bool write_audio=false);
 	
-	void set_embedded(bool flag) { _embedded = flag; }
-    bool get_embedded() const { return _embedded; }
+	void set_force_local(bool flag) { _force_local = flag; }
+    bool get_force_local() const { return _force_local; }
     
 	void init_loopers (int count);
 
@@ -192,7 +192,8 @@ protected:
 	CheckBox *  _repl_quant_check;
 	CheckBox *  _smart_eighths_check;
 	float _tapdelay_val;
-    bool _embedded;
+
+    bool _force_local;
     
     bool _got_add_custom;
     int _add_num_channels;
