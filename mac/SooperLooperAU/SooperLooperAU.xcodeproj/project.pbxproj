@@ -45,7 +45,6 @@
 		88288AAC1857C0A00008E7EE /* ComponentBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A931857C0A00008E7EE /* ComponentBase.cpp */; };
 		88288AAD1857C0A00008E7EE /* ComponentBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 88288A941857C0A00008E7EE /* ComponentBase.h */; };
 		88288AAE1857C0A00008E7EE /* ComponentBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 88288A941857C0A00008E7EE /* ComponentBase.h */; };
-		88288ABF1857C42B0008E7EE /* libfftw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB11857C3C30008E7EE /* libfftw3.a */; };
 		88288AC01857C42B0008E7EE /* liblo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB21857C3C30008E7EE /* liblo.a */; };
 		88288AC11857C42B0008E7EE /* librubberband.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB31857C3C30008E7EE /* librubberband.a */; };
 		88288AC31857C42B0008E7EE /* libsigc-2.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB51857C3C30008E7EE /* libsigc-2.0.a */; };
@@ -226,7 +225,6 @@
 		885670D51813927400AA5367 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05AFA072074E100365D66 /* AudioUnit.framework */; };
 		885670D61813927400AA5367 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05B01072074F900365D66 /* CoreServices.framework */; };
 		885670DA1813927400AA5367 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935020878E594008C28C2 /* CoreMIDI.framework */; };
-		885670DC1813927400AA5367 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935120878E75A008C28C2 /* libz.dylib */; };
 		885670DD1813927400AA5367 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935180878E7A0008C28C2 /* CoreFoundation.framework */; };
 		885670DE1813927400AA5367 /* libm.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8819351A0878E7CA008C28C2 /* libm.dylib */; };
 		885670DF1813927400AA5367 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 888AC6DA087E2C7C001F80AD /* Cocoa.framework */; };
@@ -363,6 +361,9 @@
 		887ED4241888D2F900F83F8A /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4231888D2F900F83F8A /* Carbon.framework */; };
 		888AC6CD087E2B20001F80AD /* version.h in Headers */ = {isa = PBXBuildFile; fileRef = 888AC6CC087E2B20001F80AD /* version.h */; };
 		888AC6DB087E2C7C001F80AD /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 888AC6DA087E2C7C001F80AD /* Cocoa.framework */; };
+		889B86CF18A42CB100049C98 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 889B86CE18A42CB100049C98 /* Accelerate.framework */; };
+		889B86D018A42CB800049C98 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 889B86CE18A42CB100049C98 /* Accelerate.framework */; };
+		889B86D118A4320300049C98 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935120878E75A008C28C2 /* libz.dylib */; };
 		88A6E11E185962940099FEDF /* SooperLooperCocoaUI.xib in Resources */ = {isa = PBXBuildFile; fileRef = 88A6E11D185962940099FEDF /* SooperLooperCocoaUI.xib */; };
 		88C570B218984DC400FD840A /* SooperLooperAU_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = 32BAE0B30371A71500C91783 /* SooperLooperAU_Prefix.pch */; };
 		88C570B318984DC400FD840A /* SooperLooperAUVersion.h in Headers */ = {isa = PBXBuildFile; fileRef = 8BA05A690720730100365D66 /* SooperLooperAUVersion.h */; };
@@ -563,7 +564,6 @@
 		88C5720218A1360C00FD840A /* TaskWrapperNew.m in Sources */ = {isa = PBXBuildFile; fileRef = 88C571FF18A135DF00FD840A /* TaskWrapperNew.m */; };
 		88C5720318A1360D00FD840A /* TaskWrapperNew.m in Sources */ = {isa = PBXBuildFile; fileRef = 88C571FF18A135DF00FD840A /* TaskWrapperNew.m */; };
 		88E4EA7B18A15D0C0055D475 /* libfftw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7518A15D0C0055D475 /* libfftw3.a */; };
-		88E4EA7C18A15D0C0055D475 /* libfftw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7518A15D0C0055D475 /* libfftw3.a */; };
 		88E4EA7D18A15D0C0055D475 /* liblo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7618A15D0C0055D475 /* liblo.a */; };
 		88E4EA7E18A15D0C0055D475 /* liblo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7618A15D0C0055D475 /* liblo.a */; };
 		88E4EA7F18A15D0C0055D475 /* librubberband.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7718A15D0C0055D475 /* librubberband.a */; };
@@ -887,6 +887,7 @@
 		887ED43A1888D72200F83F8A /* gui_app.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = gui_app.hpp; path = ../../../../src/gui/gui_app.hpp; sourceTree = "<group>"; };
 		888AC6CC087E2B20001F80AD /* version.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = version.h; path = ../../version.h; sourceTree = SOURCE_ROOT; };
 		888AC6DA087E2C7C001F80AD /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		889B86CE18A42CB100049C98 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/System/Library/Frameworks/Accelerate.framework; sourceTree = DEVELOPER_DIR; };
 		88A6E11B185903760099FEDF /* MusicDeviceBase.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MusicDeviceBase.cpp; sourceTree = "<group>"; };
 		88A6E11C185903760099FEDF /* MusicDeviceBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MusicDeviceBase.h; sourceTree = "<group>"; };
 		88A6E11D185962940099FEDF /* SooperLooperCocoaUI.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = SooperLooperCocoaUI.xib; sourceTree = "<group>"; };
@@ -962,13 +963,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				88288ABF1857C42B0008E7EE /* libfftw3.a in Frameworks */,
+				889B86D018A42CB800049C98 /* Accelerate.framework in Frameworks */,
 				885670D41813927400AA5367 /* AudioToolbox.framework in Frameworks */,
 				885670D51813927400AA5367 /* AudioUnit.framework in Frameworks */,
+				889B86D118A4320300049C98 /* libz.dylib in Frameworks */,
 				88365064185845CB00246E75 /* libsamplerate.a in Frameworks */,
 				885670D61813927400AA5367 /* CoreServices.framework in Frameworks */,
 				885670DA1813927400AA5367 /* CoreMIDI.framework in Frameworks */,
-				885670DC1813927400AA5367 /* libz.dylib in Frameworks */,
 				88288AC41857C42B0008E7EE /* libsndfile.a in Frameworks */,
 				885670DD1813927400AA5367 /* CoreFoundation.framework in Frameworks */,
 				885670DE1813927400AA5367 /* libm.dylib in Frameworks */,
@@ -986,13 +987,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				889B86CF18A42CB100049C98 /* Accelerate.framework in Frameworks */,
 				88C5716C18984DC400FD840A /* Carbon.framework in Frameworks */,
 				88E4EA8218A15D0C0055D475 /* libsamplerate.a in Frameworks */,
 				88C5716D18984DC400FD840A /* AudioToolbox.framework in Frameworks */,
 				88C5716E18984DC400FD840A /* AudioUnit.framework in Frameworks */,
 				88C5716F18984DC400FD840A /* CoreServices.framework in Frameworks */,
 				88E4EA8018A15D0C0055D475 /* librubberband.a in Frameworks */,
-				88E4EA7C18A15D0C0055D475 /* libfftw3.a in Frameworks */,
 				88E4EA7E18A15D0C0055D475 /* liblo.a in Frameworks */,
 				88C5717318984DC400FD840A /* CoreMIDI.framework in Frameworks */,
 				88C5717418984DC400FD840A /* libz.dylib in Frameworks */,
@@ -1059,10 +1060,10 @@
 				8810CF680E247C10002155C4 /* ApplicationServices.framework */,
 				886245A408B8E4F3003959C6 /* AppKit.framework */,
 				8855A6F508B59DE600B1396A /* libxml2.dylib */,
-				888AC6DA087E2C7C001F80AD /* Cocoa.framework */,
 				8819351A0878E7CA008C28C2 /* libm.dylib */,
-				881935180878E7A0008C28C2 /* CoreFoundation.framework */,
 				881935120878E75A008C28C2 /* libz.dylib */,
+				888AC6DA087E2C7C001F80AD /* Cocoa.framework */,
+				881935180878E7A0008C28C2 /* CoreFoundation.framework */,
 				881935020878E594008C28C2 /* CoreMIDI.framework */,
 				8B5C7F83076FB26000A15F61 /* CoreAudio.framework */,
 				8BA05B01072074F900365D66 /* CoreServices.framework */,
@@ -1160,6 +1161,7 @@
 		883650451858422D00246E75 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				889B86CE18A42CB100049C98 /* Accelerate.framework */,
 				88E4EA9618A18A2F0055D475 /* CoreAudio.framework */,
 				88E4EA8718A15DE40055D475 /* libjpeg.a */,
 				887ED4351888D3E600F83F8A /* CoreMIDI.framework */,
@@ -2980,7 +2982,7 @@
 					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
 				);
 				LIBRARY_STYLE = Bundle;
-				MACOSX_DEPLOYMENT_TARGET = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				OTHER_CFLAGS = (
 					"-D_FILE_OFFSET_BITS=64",
 					"-D_LARGE_FILES",
@@ -3047,7 +3049,7 @@
 					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
 				);
 				LIBRARY_STYLE = Bundle;
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				OTHER_CFLAGS = (
 					"-D_FILE_OFFSET_BITS=64",
 					"-D_LARGE_FILES",
@@ -3113,7 +3115,7 @@
 					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
 				);
 				LIBRARY_STYLE = Bundle;
-				MACOSX_DEPLOYMENT_TARGET = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				OTHER_CFLAGS = (
 					"-D_FILE_OFFSET_BITS=64",
 					"-D_LARGE_FILES",

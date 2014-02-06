@@ -331,7 +331,7 @@ then
 
         AC_CHECK_FILE(/System/Library/Frameworks/CoreMIDI.framework/Headers/CoreMIDI.h, 
                       [use_coremidi=yes
-                       AUDIO_LIBS="-framework CoreMIDI -framework CoreFoundation -framework CoreServices -framework ApplicationServices"
+                       AUDIO_LIBS="-framework CoreMIDI -framework CoreFoundation -framework CoreServices -framework ApplicationServices -framework Accelerate"
                        AC_DEFINE([WITH_COREMIDI], 1, [Have CoreMIDI Headers])],
                        use_coremidi=no)
         AM_CONDITIONAL(WITH_COREMIDI, test x$use_coremidi = xyes)
