@@ -247,8 +247,9 @@ bool GuiApp::OnInit()
 #endif
 	}
 
+#if wxCHECK_VERSION(2,9,0)
     SetAppDisplayName(wxT("SooperLooper"));
-    
+#endif
 
 	// Create the main application window
 	_frame = new AppFrame (wxString::Format(wxT("SooperLooper v %s"), wxString::FromAscii(sooperlooper_version).c_str()), wxPoint(100, 100), wxDefaultSize, _stay_on_top);
@@ -305,7 +306,7 @@ bool GuiApp::OnInit()
 	_frame->get_main_panel()->set_never_timeout(_never_timeout);
 	
     
-    if (_host == "127.0.0.1" && _never_spawn) {
+    if (_host == wxT("127.0.0.1") && _never_spawn) {
         // special case, force the mainpanel to be local, to avoid some weirdness with network configs
         _frame->get_main_panel()->set_force_local(true);
     }
