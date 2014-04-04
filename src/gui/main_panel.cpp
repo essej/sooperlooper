@@ -832,7 +832,7 @@ MainPanel::do_add_loop (const string & type)
 void
 MainPanel::on_modal_dialog_close (wxCommandEvent & ev)
 {
-    
+#ifdef __WXMAC__    
     AddCustomLoopDialog * dial = (AddCustomLoopDialog *)((wxWindowModalDialogEvent *)&ev)->GetDialog();
     int retcode = ((wxWindowModalDialogEvent *)&ev)->GetReturnCode();
     if (retcode == wxID_OK) {
@@ -843,6 +843,7 @@ MainPanel::on_modal_dialog_close (wxCommandEvent & ev)
 			_loop_control->post_add_loop (dial->num_channels, dial->secs_channel, dial->discrete);
 		}
     }
+#endif
 }
 
 void
