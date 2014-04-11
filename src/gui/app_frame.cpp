@@ -228,7 +228,9 @@ AppFrame::init()
         toolbar->AddTool(ID_AddStereoLoop, wxT("Add Stereo"), bitmap, wxNullBitmap, wxITEM_NORMAL, wxT("Add one default stereo loop"));
         toolbar->AddTool(ID_AddCustomLoop, wxT("Add Custom"), bitmap , wxNullBitmap, wxITEM_NORMAL, wxT("Add one or more custom loops, where loop memory can be specified"));
         toolbar->AddTool(ID_RemoveLoop, wxT("Remove Last"), bitmap, wxNullBitmap, wxITEM_NORMAL, wxT("Remove last loop"));
+#if wxCHECK_VERSION(2,9,0)
         toolbar->AddStretchableSpace();
+#endif
         toolbar->AddTool(ID_LoadSession, wxT("Load"), bitmap, wxNullBitmap, wxITEM_NORMAL, wxT("Load session..."));
         toolbar->AddTool(ID_SaveSession, wxT("Save"), bitmap, wxNullBitmap, wxITEM_NORMAL, wxT("Save session..."));
         toolbar->AddSeparator();
