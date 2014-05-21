@@ -2377,7 +2377,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	   
 	   switch(pLS->state) {
 	      case STATE_REPLACE:
-		      if ((bReplaceQuantized == 0.0f) || fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
+		      if ((bReplaceQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF)) {
 			      pLS->state = STATE_PLAY;
 			      pLS->wasMuted = false;
 			      DBG(fprintf(stderr,"%u:%u  Entering PLAY state\n", pLS->lLoopIndex, pLS->lChannelIndex));
@@ -2413,7 +2413,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 break;
 		 
 	      default:
-		      if ((bReplaceQuantized == 0.0f) || fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF
+		      if (((bReplaceQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF))
 			  && !(pLS->state == STATE_RECORD && bRoundIntegerTempo)) {
 			      if (loop)
 			      {
@@ -2456,7 +2456,7 @@ runSooperLooper(LADSPA_Handle Instance,
 	   
 	   switch(pLS->state) {
 	      case STATE_SUBSTITUTE:
-		      if ((bReplaceQuantized == 0.0f) || fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF) {
+		      if ((bReplaceQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF)) {
 			      pLS->state = STATE_PLAY;
 			      pLS->wasMuted = false;
 			      DBG(fprintf(stderr,"Entering PLAY state\n"));
@@ -2487,7 +2487,7 @@ runSooperLooper(LADSPA_Handle Instance,
 		 break;
 		 
 	      default:
-		      if ((bReplaceQuantized == 0.0f) || fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF
+		      if (((bReplaceQuantized == 0.0f) || (fSyncMode == 0.0f && fQuantizeMode == QUANT_OFF))
 			  && !(pLS->state == STATE_RECORD && bRoundIntegerTempo)) {
 			      if (loop)
 			      {

@@ -85,19 +85,7 @@ SooperLooperAU::SooperLooperAU(AudioUnit component)
 	
 	_engine->set_force_discrete(true); // to avoid confusion
 	
-	char portname[30];
-	if (_plugin_count == 1) {
-		snprintf(portname, sizeof(portname), "SooperLooperAU");
-	} else {
-		snprintf(portname, sizeof(portname), "SooperLooperAU_%d", _plugin_count);	
-	}
-	
-	MIDI::PortRequest portreq (portname, portname,  "duplex", "coremidi");
-	//_midi_bridge = new SooperLooper::MidiBridge("AUmidi");
-	_midi_bridge = new SooperLooper::MidiBridge("AUmidi", portreq);
-	
-	_engine->set_midi_bridge (_midi_bridge);
-	_engine->set_ignore_quit (true);
+    _engine->set_ignore_quit (true);
 	_engine->ParamChanged.connect(mem_fun(*this, &SooperLooperAU::parameter_changed));
 	_engine->LoopAdded.connect(mem_fun(*this, &SooperLooperAU::loop_added));
 	_engine->LoopRemoved.connect(mem_fun(*this, &SooperLooperAU::loop_removed));	
@@ -124,7 +112,6 @@ SooperLooperAU::~SooperLooperAU ()
 	}
 	
 	delete _engine;
-	delete _midi_bridge;
 	
 	--_plugin_count;
 	//sl_fini();
@@ -414,6 +401,27 @@ ComponentResult		SooperLooperAU::Initialize()
 	Globals()->SetParameter(kParam_OSCPort, _engine->get_control_osc()->get_server_port());
 	Globals()->SetParameter(kParam_PressReleaseCommands, _annoyingPressReleaseVal);
 	
+    // now create midi bridge
+    int portnum = _engine->get_control_osc()->get_server_port();
+    int portind = portnum - 10051;
+    
+    char portname[30];
+	//if (_plugin_count == 1) {
+    if (portind == 0) {
+		snprintf(portname, sizeof(portname), "SooperLooperAU");
+	} else {
+		//snprintf(portname, sizeof(portname), "SooperLooperAU_%d", _plugin_count);
+        snprintf(portname, sizeof(portname), "SooperLooperAU_%d", portind+1);
+	}
+	
+	MIDI::PortRequest portreq (portname, portname,  "duplex", "coremidi");
+	//_midi_bridge = new SooperLooper::MidiBridge("AUmidi");
+	_midi_bridge = new SooperLooper::MidiBridge("AUmidi", portreq);
+	
+	_engine->set_midi_bridge (_midi_bridge);
+
+    
+    
 	if (_pending_restore.empty()) {
 		int numloops = 1;
 		float loopsecs = 40.0f;
@@ -457,6 +465,11 @@ void				SooperLooperAU::Cleanup()
 		}
 	
 		_engine->cleanup();
+
+        _engine->set_midi_bridge(0);
+        delete _midi_bridge;
+        _midi_bridge = 0;
+
 	}
 	
 	_pending_restore = "";
@@ -657,7 +670,9 @@ OSStatus 	SooperLooperAU::HandleMidiEvent(UInt8 inStatus, UInt8 inChannel, UInt8
 	UInt8 data1 = inData1;
 	UInt8 data2 = inData2;
 	
-	_midi_bridge->inject_midi (chcmd, data1, data2, inStartFrame);
+    if (_midi_bridge) {
+        _midi_bridge->inject_midi (chcmd, data1, data2, inStartFrame);
+    }
 	
 	return noErr;
 }
@@ -1380,19 +1395,21 @@ ComponentResult SooperLooperAU::SaveState(CFPropertyListRef *outData)
 	
 	
 	// save midi bindings as string
-	MidiBindings & bindings = _midi_bridge->bindings();
-	stringstream midisstr;
-	if (bindings.save_bindings(midisstr)) {
-		CFMutableDataRef cfdata = CFDataCreateMutable(NULL, 0);	
-		unsigned long plaindatasize;
-		const string & midistr = midisstr.str();
-		const UInt8 * plaindata = (const UInt8 *) midistr.c_str();
-		plaindatasize = midistr.size();
-		
-		CFDataAppendBytes(cfdata, plaindata, plaindatasize);
-		CFDictionarySetValue(dict, CFSTR("SLMidiBindings"), cfdata);
-		CFRelease(cfdata);
-	}
+    if (_midi_bridge) {
+        MidiBindings & bindings = _midi_bridge->bindings();
+        stringstream midisstr;
+        if (bindings.save_bindings(midisstr)) {
+            CFMutableDataRef cfdata = CFDataCreateMutable(NULL, 0);
+            unsigned long plaindatasize;
+            const string & midistr = midisstr.str();
+            const UInt8 * plaindata = (const UInt8 *) midistr.c_str();
+            plaindatasize = midistr.size();
+            
+            CFDataAppendBytes(cfdata, plaindata, plaindatasize);
+            CFDictionarySetValue(dict, CFSTR("SLMidiBindings"), cfdata);
+            CFRelease(cfdata);
+        }
+    }
 
 	// save guiapp path
 	{

@@ -1427,7 +1427,10 @@ Engine::load_midi_bindings (std::istream & instream, bool append, CommandMap & c
 {
 	char  line[200];
 
-	
+	if (!_midi_bridge) {
+        return false;
+    }
+    
 	if (!append) {
 		_midi_bridge->bindings().clear_bindings();
 	}
