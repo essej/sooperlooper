@@ -642,7 +642,7 @@ OSStatus			SooperLooperAU::ProcessBufferLists(
 	_out_buflist[0] = 0;
 	
 	for (size_t n=1; n <= _engine->loop_count() && n < SL_MAXLOOPS; ++n) {
-		if (_engine->get_loop_channel_count(n-1, true) == 1) {
+		if (_engine->get_loop_channel_count(n-1, true) == 1 && _out_buflist[n]->mNumberBuffers > 1) {
 			memcpy(_out_buflist[n]->mBuffers[1].mData, _out_buflist[n]->mBuffers[0].mData, sizeof(float) * inFramesToProcess);
 		}
 		

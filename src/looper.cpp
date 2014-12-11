@@ -740,7 +740,7 @@ Looper::get_control_value (Event::control_t ctrl)
 
 void Looper::set_port (ControlPort n, float val)
 {
-	switch (n)
+	switch ((int)n)
 	{
 		case DryLevel:
 			_target_dry = val;

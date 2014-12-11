@@ -554,17 +554,25 @@ Engine::add_loop (unsigned int chans, float loopsecs, bool discrete)
 	float quantize_value = QUANT_OFF;
 	float round_value = 0.0f;
 	float relative_sync = 0.0f;
-	
+    float mutequant = 0.0f;
+    float odubquant = 0.0f;
+    bool replquant = false;
+
 	if (!_instances.empty()) {
 		quantize_value = _instances[0]->get_control_value (Event::Quantize);
 		round_value = _instances[0]->get_control_value (Event::Round);
 		relative_sync = _instances[0]->get_control_value (Event::RelativeSync);
+        mutequant =_instances[0]->get_control_value (Event::MuteQuantized);
+        odubquant =_instances[0]->get_control_value (Event::OverdubQuantized);
+        replquant =_instances[0]->get_control_value (Event::ReplaceQuantized) > 0.0;
 	}
 	
 	instance->set_port (Quantize, quantize_value);
 	instance->set_port (Round, round_value);
 	instance->set_port (RelativeSync, relative_sync);
-	
+	instance->set_port (MuteQuantized, mutequant);
+	instance->set_port (OverdubQuantized, odubquant);
+    instance->set_replace_quantized(replquant);
 	return add_loop (instance);
 }
 
