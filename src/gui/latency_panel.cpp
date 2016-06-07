@@ -150,7 +150,7 @@ void LatencyPanel::init()
 	_input_spin->set_allow_outside_bounds(false);
 	//_input_spin->SetFont (sliderFont);
 	_input_spin->set_decimal_digits(0);
-	_input_spin->value_changed.connect (bind (mem_fun (*this,  &LatencyPanel::on_spin_change), (int) ID_InputLatency));
+	_input_spin->value_changed.connect (sigc::bind(mem_fun (*this,  &LatencyPanel::on_spin_change), (int) ID_InputLatency));
 	rowsizer->Add (_input_spin, 1, wxLEFT|wxEXPAND, 10);
 
 	_output_spin = new SpinBox(this, ID_OutputLatency, 0.0f, 100000.0f, 512.0f, false, wxDefaultPosition, wxSize(200, 35));
@@ -160,7 +160,7 @@ void LatencyPanel::init()
 	_output_spin->set_allow_outside_bounds(false);
 	_output_spin->set_decimal_digits(0);
 	//_output_spin->SetFont (sliderFont);
-	_output_spin->value_changed.connect (bind (mem_fun (*this,  &LatencyPanel::on_spin_change), (int) ID_OutputLatency));
+	_output_spin->value_changed.connect (sigc::bind(mem_fun (*this,  &LatencyPanel::on_spin_change), (int) ID_OutputLatency));
 	rowsizer->Add (_output_spin, 1, wxLEFT|wxRIGHT|wxEXPAND, 10);
 	
 	
