@@ -27,7 +27,7 @@
 #include <list>
 #include <utility>
 
-#include <sigc++/object.h>
+#include <sigc++/trackable.h>
 
 #include "event.hpp"
 #include "event_nonrt.hpp"

@@ -26,7 +26,7 @@
 
 #include <string>
 #include <vector>
-#include <sigc++/object.h>
+#include <sigc++/trackable.h>
 
 class wxListCtrl;
 
