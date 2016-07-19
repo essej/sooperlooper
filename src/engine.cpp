@@ -313,7 +313,7 @@ void Engine::set_midi_bridge (MidiBridge * bridge)
 		_midi_bridge->MidiControlEvent.connect (mem_fun(*this, &Engine::push_midi_control_event));
 		_midi_bridge->MidiSyncEvent.connect (mem_fun(*this, &Engine::push_sync_event));
 
-		ParamChanged.connect(bind (mem_fun(*_midi_bridge, &MidiBridge::parameter_changed), this));
+		ParamChanged.connect(sigc::bind(mem_fun(*_midi_bridge, &MidiBridge::parameter_changed), this));
 
 		_midi_bridge->set_output_midi_clock(_output_midi_clock);
 	}

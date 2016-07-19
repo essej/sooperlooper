@@ -212,8 +212,8 @@ LooperPanel::init()
 	slider->set_show_indicator_bar (false);
 	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
-	slider->value_changed.connect (bind (mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+	slider->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	inthresh_sizer->Add (slider, 1, wxALL|wxEXPAND, 0);
 	
 	_thresh_control = slider = new SliderBar(this, ID_ThreshControl, 0.0f, 1.0f, 0.0f);
@@ -222,8 +222,8 @@ LooperPanel::init()
 	slider->set_show_indicator_bar (true);
 	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
-	slider->value_changed.connect (bind (mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+	slider->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	inthresh_sizer->Add (slider, 1, wxLEFT|wxEXPAND, 3);
 	
 	colsizer->Add (inthresh_sizer, 1, wxEXPAND|wxLEFT, 5);
@@ -232,8 +232,8 @@ LooperPanel::init()
 	slider->set_units(wxT("%"));
 	slider->set_label(wxT("feedback"));
 	slider->SetFont(sliderFont);
-	slider->value_changed.connect (bind (mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+	slider->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 
 	_maininsizer->Add (slider, 1, wxEXPAND|wxTOP, 5);
 
@@ -281,8 +281,8 @@ LooperPanel::init()
 // 	slider->set_label(wxT("dry"));
 // 	slider->set_scale_mode(SliderBar::ZeroGainMode);
 // 	slider->SetFont(sliderFont);
-// 	slider->value_changed.connect (bind (mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-// 	slider->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+// 	slider->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+// 	slider->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 // 	_toppansizer->Add (slider, 1, wxEXPAND, 0);
 
 	// panners are added later
@@ -297,8 +297,8 @@ LooperPanel::init()
 	slider->set_show_indicator_bar (true);
 	slider->set_scale_mode(SliderBar::ZeroGainMode);
 	slider->SetFont(sliderFont);
-	slider->value_changed.connect (bind (mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+	slider->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	_botpansizer->Add (slider, 1, wxEXPAND, 0);
 
 	/*
@@ -307,7 +307,7 @@ LooperPanel::init()
 	_outlatency_spin->set_label(wxT("o.lat"));
 	_outlatency_spin->set_snap_mode (SpinBox::IntegerSnap);
 	_outlatency_spin->set_allow_outside_bounds(true);
-	_outlatency_spin->value_changed.connect (bind (mem_fun (*this, &LooperPanel::slider_events), (int) _outlatency_spin->GetId()));
+	_outlatency_spin->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::slider_events), (int) _outlatency_spin->GetId()));
 	_outlatency_spin->SetFont(sliderFont);
 	_botpansizer->Add (_outlatency_spin, 0, wxALL, 0);
 
@@ -316,7 +316,7 @@ LooperPanel::init()
 	_inlatency_spin->set_label(wxT("i.lat"));
 	_inlatency_spin->set_snap_mode (SpinBox::IntegerSnap);
 	_inlatency_spin->set_allow_outside_bounds(true);
-	_inlatency_spin->value_changed.connect (bind (mem_fun (*this, &LooperPanel::slider_events), (int) _inlatency_spin->GetId()));
+	_inlatency_spin->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::slider_events), (int) _inlatency_spin->GetId()));
 	_inlatency_spin->SetFont(sliderFont);
 	_botpansizer->Add (_inlatency_spin, 0, wxALL, 0);
 	*/
@@ -361,8 +361,8 @@ LooperPanel::init()
 	_sync_check = new CheckBox(this, ID_SyncCheck, wxT("sync"), true, wxDefaultPosition, wxSize(55, 18));
 	_sync_check->SetFont(sliderFont);
 	_sync_check->SetToolTip(wxT("sync operations to quantize source"));
-	_sync_check->value_changed.connect (bind (mem_fun (*this, &LooperPanel::check_events), wxT("sync")));
-	_sync_check->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) _sync_check->GetId()));
+	_sync_check->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::check_events), wxT("sync")));
+	_sync_check->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) _sync_check->GetId()));
 	lilrowsizer->Add (_sync_check, 1, wxLEFT, 3);
 	lilcolsizer->Add (lilrowsizer, 0, wxTOP|wxEXPAND, 0);
 
@@ -370,8 +370,8 @@ LooperPanel::init()
 	_play_sync_check = new CheckBox(this, ID_PlaySyncCheck, wxT("play sync"), true, wxDefaultPosition, wxSize(55, 18));
 	_play_sync_check->SetFont(sliderFont);
 	_play_sync_check->SetToolTip(wxT("sync playback auto-triggering to quantized sync source"));
-	_play_sync_check->value_changed.connect (bind (mem_fun (*this, &LooperPanel::check_events), wxT("playback_sync")));
-	_play_sync_check->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) _play_sync_check->GetId()));
+	_play_sync_check->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::check_events), wxT("playback_sync")));
+	_play_sync_check->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) _play_sync_check->GetId()));
 	lilrowsizer->Add (_play_sync_check, 1, wxLEFT, 3);
 	lilcolsizer->Add (lilrowsizer, 0, wxTOP|wxEXPAND, 0);
 	
@@ -379,15 +379,15 @@ LooperPanel::init()
 	_play_feed_check = new CheckBox(this, ID_UseFeedbackPlayCheck, wxT("p. feedb"), true, wxDefaultPosition, wxSize(55, 18));
 	_play_feed_check->SetFont(sliderFont);
 	_play_feed_check->SetToolTip(wxT("enable feedback during playback"));
-	_play_feed_check->value_changed.connect (bind (mem_fun (*this, &LooperPanel::check_events), wxT("use_feedback_play")));
-	_play_feed_check->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) _play_feed_check->GetId()));
+	_play_feed_check->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::check_events), wxT("use_feedback_play")));
+	_play_feed_check->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) _play_feed_check->GetId()));
 	lilrowsizer->Add (_play_feed_check, 1, wxLEFT, 3);
 
 	_tempo_stretch_check = new CheckBox(this, ID_TempoStretchCheck, wxT("t. stretch"), true, wxDefaultPosition, wxSize(55, 18));
 	_tempo_stretch_check->SetFont(sliderFont);
 	_tempo_stretch_check->SetToolTip(wxT("enable automatic timestretch when tempo changes"));
-	_tempo_stretch_check->value_changed.connect (bind (mem_fun (*this, &LooperPanel::check_events), wxT("tempo_stretch")));
-	_tempo_stretch_check->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) _tempo_stretch_check->GetId()));
+	_tempo_stretch_check->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::check_events), wxT("tempo_stretch")));
+	_tempo_stretch_check->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) _tempo_stretch_check->GetId()));
 	lilrowsizer->Add (_tempo_stretch_check, 1, wxLEFT, 3);
 
 	lilcolsizer->Add (lilrowsizer, 0, wxTOP|wxEXPAND, 0);
@@ -440,8 +440,8 @@ LooperPanel::init()
 	slider->set_show_value(false);
 	slider->set_show_indicator_bar (true);
 	slider->SetFont(sliderFont);
-	slider->value_changed.connect (bind (mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+	slider->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
 
 	// pitch control
@@ -452,8 +452,8 @@ LooperPanel::init()
 	slider->set_decimal_digits (1);
 	slider->set_snap_mode(SliderBar::IntegerSnap);
 	slider->SetFont(sliderFont);
-	slider->value_changed.connect (bind (mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+	slider->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
 
 	// pause
@@ -476,8 +476,8 @@ LooperPanel::init()
 	slider->set_style (SliderBar::CenterStyle);
 	slider->set_decimal_digits (3);
 	slider->SetFont(sliderFont);
-	slider->value_changed.connect (bind (mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+	slider->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
 
 	// stretch control
@@ -487,8 +487,8 @@ LooperPanel::init()
 	slider->set_style (SliderBar::CenterStyle);
 	slider->set_decimal_digits (2);
 	slider->SetFont(sliderFont);
-	slider->value_changed.connect (bind (mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-	slider->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+	slider->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+	slider->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 	rowsizer->Add (slider, 1, wxEXPAND|wxTOP|wxLEFT, 3);
 
 
@@ -498,7 +498,7 @@ LooperPanel::init()
 	_triglatency_spin->set_label(wxT("t.lat"));
 	_triglatency_spin->set_snap_mode (SpinBox::IntegerSnap);
 	_triglatency_spin->set_allow_outside_bounds(true);
-	_triglatency_spin->value_changed.connect (bind (mem_fun (*this, &LooperPanel::slider_events), (int) _triglatency_spin->GetId()));
+	_triglatency_spin->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::slider_events), (int) _triglatency_spin->GetId()));
 	_triglatency_spin->SetFont(sliderFont);
 	rowsizer->Add (_triglatency_spin, 0, wxALL, 0);
 	*/
@@ -555,15 +555,15 @@ LooperPanel::post_init()
 		slider->set_label(wxT("in mon"));
 		slider->set_scale_mode(SliderBar::ZeroGainMode);
 		slider->SetFont(sliderFont);
-		slider->value_changed.connect (bind (mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
-		slider->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
+		slider->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::slider_events), (int) slider->GetId()));
+		slider->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) slider->GetId()));
 		_toppansizer->Add (slider, 1, wxEXPAND, 0);
 
 		_use_main_in_check = new CheckBox(this, ID_UseMainInCheck, wxT("main in"), true, wxDefaultPosition, wxSize(65, 18));
 		_use_main_in_check->SetFont(sliderFont);
 		_use_main_in_check->SetToolTip(wxT("mix input from Main inputs"));
-		_use_main_in_check->value_changed.connect (bind (mem_fun (*this, &LooperPanel::check_events), wxT("use_common_ins")));
-		_use_main_in_check->bind_request.connect (bind (mem_fun (*this, &LooperPanel::control_bind_events), (int) _use_main_in_check->GetId()));
+		_use_main_in_check->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::check_events), wxT("use_common_ins")));
+		_use_main_in_check->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) _use_main_in_check->GetId()));
 		_maininsizer->Add (_use_main_in_check, 0, wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL ,0);
 		_maininsizer->Layout();
 
@@ -595,8 +595,8 @@ LooperPanel::post_init()
 		slider->set_decimal_digits (3);
 		slider->set_show_value (false);
 		slider->SetFont(sliderFont);
-		slider->value_changed.connect (bind (mem_fun (*this, &LooperPanel::pan_events), (int) i));
-		slider->bind_request.connect (bind (mem_fun (*this, &LooperPanel::pan_bind_events), (int) i));
+		slider->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pan_events), (int) i));
+		slider->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::pan_bind_events), (int) i));
 
 		if (!_has_discrete_io) {
 			_toppansizer->Add (slider, 1, (i==0) ? wxEXPAND : wxEXPAND|wxLEFT, 2);
@@ -652,83 +652,83 @@ LooperPanel::set_index(int ind)
 void
 LooperPanel::bind_events()
 {
-	_undo_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("undo"))));
-	_undo_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("undo"))));
-	_undo_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("undo"))));
+	_undo_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("undo"))));
+	_undo_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("undo"))));
+	_undo_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("undo"))));
 
-	_redo_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("redo"))));
-	_redo_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("redo"))));
-	_redo_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("redo"))));
+	_redo_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("redo"))));
+	_redo_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("redo"))));
+	_redo_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("redo"))));
 
-	_record_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("record"))));
-	_record_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("record"))));
-	_record_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("record"))));
+	_record_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("record"))));
+	_record_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("record"))));
+	_record_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("record"))));
 
-	_overdub_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("overdub"))));
-	_overdub_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("overdub"))));
-	_overdub_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("overdub"))));
+	_overdub_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("overdub"))));
+	_overdub_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("overdub"))));
+	_overdub_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("overdub"))));
 
-	_multiply_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("multiply"))));
-	_multiply_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("multiply"))));
-	_multiply_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("multiply"))));
+	_multiply_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("multiply"))));
+	_multiply_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("multiply"))));
+	_multiply_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("multiply"))));
 
-	_replace_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("replace"))));
-	_replace_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("replace"))));
-	_replace_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("replace"))));
+	_replace_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("replace"))));
+	_replace_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("replace"))));
+	_replace_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("replace"))));
 
-	_insert_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("insert"))));
-	_insert_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("insert"))));
-	_insert_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("insert"))));
+	_insert_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("insert"))));
+	_insert_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("insert"))));
+	_insert_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("insert"))));
 
-	_once_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("oneshot"))));
-	_once_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("oneshot"))));
-	_once_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("oneshot"))));
+	_once_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("oneshot"))));
+	_once_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("oneshot"))));
+	_once_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("oneshot"))));
 
-	_trig_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("trigger"))));
-	_trig_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("trigger"))));
-	_trig_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("trigger"))));
+	_trig_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("trigger"))));
+	_trig_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("trigger"))));
+	_trig_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("trigger"))));
 
 	_delay_button->pressed.connect (mem_fun (*this, &LooperPanel::delay_button_press_event));
 	_delay_button->released.connect (mem_fun (*this, &LooperPanel::delay_button_release_event));
-	_delay_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("delay_trigger"))));
+	_delay_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("delay_trigger"))));
 
-	_reverse_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("reverse"))));
-	_reverse_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("reverse"))));
-	_reverse_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("reverse"))));
+	_reverse_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("reverse"))));
+	_reverse_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("reverse"))));
+	_reverse_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("reverse"))));
 
-	_substitute_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("substitute"))));
-	_substitute_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("substitute"))));
-	_substitute_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("substitute"))));
+	_substitute_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("substitute"))));
+	_substitute_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("substitute"))));
+	_substitute_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("substitute"))));
 	
-	_mute_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("mute"))));
-	_mute_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("mute"))));
-	_mute_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("mute"))));
+	_mute_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("mute"))));
+	_mute_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("mute"))));
+	_mute_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("mute"))));
 
-	_pause_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("pause"))));
-	_pause_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("pause"))));
-	_pause_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("pause"))));
+	_pause_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("pause"))));
+	_pause_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("pause"))));
+	_pause_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("pause"))));
 
-	_solo_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("solo"))));
-	_solo_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("solo"))));
-	_solo_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("solo"))));
+	_solo_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("solo"))));
+	_solo_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("solo"))));
+	_solo_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("solo"))));
 
-	_halfx_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::rate_button_event), 0.5f));
-	_halfx_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::rate_bind_events), 0.5f));
-	_1x_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::rate_button_event), 1.0f));
-	_1x_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::rate_bind_events), 1.0f));
-	_2x_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::rate_button_event), 2.0f));
-	_2x_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::rate_bind_events), 2.0f));
+	_halfx_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::rate_button_event), 0.5f));
+	_halfx_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::rate_bind_events), 0.5f));
+	_1x_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::rate_button_event), 1.0f));
+	_1x_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::rate_bind_events), 1.0f));
+	_2x_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::rate_button_event), 2.0f));
+	_2x_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::rate_bind_events), 2.0f));
 
-	_scratch_button->pressed.connect (bind (mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("scratch"))));
-	_scratch_button->released.connect (bind (mem_fun (*this, &LooperPanel::released_events), wxString(wxT("scratch"))));
-	_scratch_button->bind_request.connect (bind (mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("scratch"))));
+	_scratch_button->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::pressed_events), wxString(wxT("scratch"))));
+	_scratch_button->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::released_events), wxString(wxT("scratch"))));
+	_scratch_button->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::button_bind_events), wxString(wxT("scratch"))));
 
-	_save_button->clicked.connect (bind (mem_fun (*this, &LooperPanel::clicked_events), wxString(wxT("save"))));
-	_load_button->clicked.connect (bind (mem_fun (*this, &LooperPanel::clicked_events), wxString(wxT("load"))));
+	_save_button->clicked.connect (sigc::bind(mem_fun (*this, &LooperPanel::clicked_events), wxString(wxT("save"))));
+	_load_button->clicked.connect (sigc::bind(mem_fun (*this, &LooperPanel::clicked_events), wxString(wxT("load"))));
 
 
-	_scratch_control->pressed.connect (bind (mem_fun (*this, &LooperPanel::scratch_events), wxString(wxT("scratch_press"))));
-	_scratch_control->released.connect (bind (mem_fun (*this, &LooperPanel::scratch_events), wxString(wxT("scratch_release"))));
+	_scratch_control->pressed.connect (sigc::bind(mem_fun (*this, &LooperPanel::scratch_events), wxString(wxT("scratch_press"))));
+	_scratch_control->released.connect (sigc::bind(mem_fun (*this, &LooperPanel::scratch_events), wxString(wxT("scratch_release"))));
 
 	
 	_loop_control->MidiBindingChanged.connect (mem_fun (*this, &LooperPanel::got_binding_changed));
