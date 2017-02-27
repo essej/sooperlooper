@@ -237,7 +237,7 @@ CheckBox::OnMouseEvents (wxMouseEvent &ev)
 	}
 	else if (ev.LeftUp())
 	{
-		if (bounds.Inside(ev.GetPosition())) {
+		if (bounds.Contains(ev.GetPosition())) {
 			// toggle value
 			_value = !_value;
 		
