@@ -214,9 +214,10 @@ then
     AC_SUBST(LOSC_CFLAGS)
 
     dnl curses
-    AC_CHECK_LIB(ncurses,initscr,have_ncurses=yes,[AC_MSG_WARN([******** you don't have the ncurses library correctly installed])])
 
-    NCURSES_LIBS="-lncurses -ltinfo"
+    AC_CHECK_LIB(ncurses,initscr,have_ncurses=yes,[AC_MSG_WARN([******** you don't have the ncurses library correctly installed])])
+    NCURSES_LIBS="-lncurses"
+    AC_CHECK_LIB(tinfo,nodelay, NCURSES_LIBS="-lncurses -ltinfo" ,[AC_MSG_WARN([ncurses doesnt need ltinfo])])
     AC_SUBST(NCURSES_LIBS)
 
     dnl sigc++
