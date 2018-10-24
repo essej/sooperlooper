@@ -448,7 +448,7 @@ MainPanel::init_loopers (int count)
 		while (count < (int)_looper_panels.size()) {
 			looperpan = _looper_panels.back();
 			_looper_panels.pop_back();
-			_main_sizer->Remove(looperpan);
+			_main_sizer->Remove((wxBoxSizer*)looperpan);
 			looperpan->Destroy();
 		}
 	}
@@ -1277,7 +1277,7 @@ void MainPanel::misc_action (bool release, wxString cmd)
 		}
 
 
-		wxString filename = do_file_selector (wxT("Choose file to save loop"), wxT("wav"), wxT("WAVE files (*.wav)|*.wav;*.WAV;*.Wav"),  wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
+		wxString filename = do_file_selector (wxT("Choose file to save loop"), wxT("wav"), wxT("WAVE files (*.wav)|*.wav;*.WAV;*.Wav"),  wxFD_SAVE|wxFD_CHANGE_DIR|wxFD_OVERWRITE_PROMPT);
 		
 		if ( !filename.empty() )
 		{
@@ -1296,7 +1296,7 @@ void MainPanel::misc_action (bool release, wxString cmd)
 			index = 0;
 		}
 
-		wxString filename = do_file_selector (wxT("Choose file to open"), wxT(""), wxT("*.slsess"), wxOPEN|wxCHANGE_DIR);
+		wxString filename = do_file_selector (wxT("Choose file to open"), wxT(""), wxT("*.slsess"), wxFD_OPEN|wxFD_CHANGE_DIR);
 		
 		if ( !filename.empty() )
 		{
@@ -1408,7 +1408,7 @@ void MainPanel::set_curr_loop (int index)
 
 void MainPanel::do_load_session ()
 {
-	wxString filename = do_file_selector (wxT("Choose session to load"), wxT("*.slsess"), wxT("*.slsess"), wxOPEN|wxCHANGE_DIR);
+	wxString filename = do_file_selector (wxT("Choose session to load"), wxT("*.slsess"), wxT("*.slsess"), wxFD_OPEN|wxFD_CHANGE_DIR);
 	
 	if ( !filename.empty() )
 	{
@@ -1419,7 +1419,7 @@ void MainPanel::do_load_session ()
 
 void MainPanel::do_save_session (bool write_audio)
 {
-	wxString filename = do_file_selector (wxT("Choose file to save session"), wxT("slsess"), wxT("*.slsess"), wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
+	wxString filename = do_file_selector (wxT("Choose file to save session"), wxT("slsess"), wxT("*.slsess"), wxFD_SAVE|wxFD_CHANGE_DIR|wxFD_OVERWRITE_PROMPT);
 	
 	if ( !filename.empty() )
 	{

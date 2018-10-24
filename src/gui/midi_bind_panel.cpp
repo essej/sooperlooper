@@ -880,7 +880,7 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 	}
 	else if (ev.GetId() == ID_LoadButton)
 	{
-		wxString filename = _parent->do_file_selector(wxT("Choose midi binding file to open"), wxT(""), wxT("*.slb"), wxOPEN|wxCHANGE_DIR);
+		wxString filename = _parent->do_file_selector(wxT("Choose midi binding file to open"), wxT(""), wxT("*.slb"), wxFD_OPEN|wxFD_CHANGE_DIR);
 		if ( !filename.empty() )
 		{
 			_parent->get_loop_control().load_midi_bindings(filename,  _append_check->GetValue());
@@ -888,7 +888,7 @@ void MidiBindPanel::on_button (wxCommandEvent &ev)
 	}
 	else if (ev.GetId() == ID_SaveButton)
 	{
-		wxString filename = _parent->do_file_selector(wxT("Choose midi binding file to save"), wxT(""), wxT("*.slb"), wxSAVE|wxCHANGE_DIR|wxOVERWRITE_PROMPT);
+		wxString filename = _parent->do_file_selector(wxT("Choose midi binding file to save"), wxT(""), wxT("*.slb"), wxFD_SAVE|wxFD_CHANGE_DIR|wxFD_OVERWRITE_PROMPT);
 
 		if ( !filename.empty() )
 		{
