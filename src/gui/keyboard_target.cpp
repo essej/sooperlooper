@@ -553,10 +553,10 @@ KeyboardTarget::keycode_from_name (const wxString &keyn)
                         keycode = WXK_RETURN;
                     }
                     else if ( keyname == wxT("PGUP") ) {
-                        keycode = WXK_PRIOR;
+                        keycode = WXK_PAGEUP;
                     }
                     else if ( keyname == wxT("PGDN") ) {
-                        keycode = WXK_NEXT;
+                        keycode = WXK_PAGEDOWN;
                     }
                     else if ( keyname == wxT("LEFT") ) {
                         keycode = WXK_LEFT;
@@ -630,10 +630,10 @@ wxString KeyboardTarget::name_from_keycode (int key)
 	case WXK_RETURN:
 		text += wxT("return");
 		break;
-	case WXK_PRIOR:
+	case WXK_PAGEUP:
 		text += wxT("pageup");
 		break;
-	case WXK_NEXT:
+	case WXK_PAGEDOWN:
 		text += wxT("pagedown");
 		break;
 	case WXK_LEFT:

@@ -250,7 +250,7 @@ PixButton::OnMouseEvents (wxMouseEvent &ev)
 		pt.x += bounds.x;
 		pt.y += bounds.y;
 
-		if (bounds.Inside(pt)) {
+		if (bounds.Contains(pt)) {
 			clicked (get_mouse_button(ev)); // emit
 
 			if (ev.MiddleUp() && ev.ControlDown()) {
