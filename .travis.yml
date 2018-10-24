@@ -1,0 +1,25 @@
+language: cpp
+sudo: required
+dist: trusty
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - autopoint
+      - g++-5
+      - libjack-jackd2-dev
+      - liblo-dev
+      - librubberband-dev
+      - libsamplerate0-dev
+      - libsigc++-2.0-dev
+      - libsndfile1-dev
+      - libwxgtk2.8-dev
+env:
+  - COMPILER=g++-5
+before_script:
+  - $COMPILER --version
+  - ./autogen.sh
+  - CPPFLAGS=-std=c++11 ./configure
+script:
+  - make
