@@ -22,7 +22,7 @@ without a monitor.
 
 SooperLooper is currently supported on Linux/Unix and OS X platforms.
 Macintosh OS X packages are available, and are usable with the newest
-release of JACK-OS X (http://www.jackosx.com/) or as an AU.  
+release of JACK-OS X (http://jackaudio.org/) or as an AU.  
 Future plans include a VST plugin version for both Windows and Mac.
 
 This software is licensed under the GPL, thus the source code is free,
@@ -97,23 +97,19 @@ starts the GUI and and engine for you.  Before starting SooperLooper,
 be sure to start the JACK system using the JackPilot application that
 came with JACK-OSX.  Then use the Routing features of JackPilot to
 connect the inputs and outputs of SooperLooper to the desired places.
-To connect your MIDI device, you need to use a MIDI patchbay such as
-the one found here: http://pete.yandell.com/software/ .
+To connect your MIDI device, you need to use a MIDI patchbay.
 
 
 BUILD REQUIREMENTS
  
-  JACK  >= 0.80    -- http://jackit.sf.net/
+  JACK  >= 0.80    -- http://jackaudio.org/
   wxWidgets        -- wxGTK preferably built against gtk2 (configured using the --enable-gtk2 option) 
                          or wxMac >= 2.5.3
-  liblo >= 0.18    -- http://plugin.org.uk/liblo/   Lightweight OSC library
-  sigc++ >= 2    -- http://libsigc.sourceforge.net/   You probably already have it....
+  liblo >= 0.18    -- http://liblo.sourceforge.net/   Lightweight OSC library
+  sigc++ >= 2    -- http://libsigcx.sourceforge.net/   You probably already have it....
   libsndfile       -- http://www.mega-nerd.com/libsndfile/
   libsamplerate    -- http://www.mega-nerd.com/SRC/
   ncurses          -- you probably already have it
   libxml2          -- same here
-  RubberBand       -- http://www.breakfastquay.com/rubberband/
-  fftw3            -- www.fftw.org  (needed by rubberband)
-
-
-
+  RubberBand       -- https://www.breakfastquay.com/rubberband/
+  fftw3            -- http://www.fftw.org/  (needed by rubberband)
