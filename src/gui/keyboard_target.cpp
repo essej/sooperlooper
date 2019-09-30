@@ -408,7 +408,7 @@ KeyboardTarget::load_bindings (const XMLNode& node)
 		action = (*niter)->property ("action");
 
 		if (!keys || !action) {
-			cerr << "misformed binding node - ignored" << endl;
+			cerr << "malformed binding node - ignored" << endl;
 			continue;
 		}
 
