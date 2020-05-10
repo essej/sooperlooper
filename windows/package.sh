@@ -28,6 +28,9 @@ cp -r /usr/share/glib-2.0 $usr_share_dir
 cp -r /usr/share/icons $usr_share_dir
 cp -r /usr/share/mime $usr_share_dir
 
+# copy a script for easy start
+cp start_with_gui.cmd $output_dir
+
 # copy executables
 
 cp /usr/local/bin/slconsole.exe $bin_dir
