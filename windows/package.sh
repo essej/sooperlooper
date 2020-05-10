@@ -7,12 +7,22 @@ fi
 
 output_dir=$1
 
-echo Copying files to $output_dir...
-
 bin_dir=$output_dir/bin
 lib_dir=$output_dir/lib
 usr_share_dir=$output_dir/usr/share
 var_lib_dir=$output_dir/var/lib
+
+if [ ! -e /usr/local/bin/sooperlooper.exe ]; then
+	echo "sooperlooper executable not found, did you run make install?"
+	exit 1
+fi
+
+echo "This script will create a portable installation in '$output_dir'"
+echo "Press Enter to continue or Ctrl+C to leave"
+
+read
+
+echo "Copying files..."
 
 mkdir -p $bin_dir
 mkdir -p $lib_dir
@@ -121,3 +131,5 @@ cp /bin/cygxml2-2.dll $bin_dir
 cp /bin/cygXrandr-2.dll $bin_dir
 cp /bin/cygXrender-1.dll $bin_dir
 cp /bin/cygz.dll $bin_dir
+
+echo "Done"
