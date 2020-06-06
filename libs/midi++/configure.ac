@@ -39,6 +39,9 @@ if test "$ac_cv_prog_cxx" = "no" ; then
    AC_MSG_ERROR([*** libmidi is C++. You don't appear to have a C++ compiler])
 fi
 
+dnl We may need C++-11 for some versions of sigc
+AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+
 AM_OPT_FLAGS
 
 AC_OBJEXT

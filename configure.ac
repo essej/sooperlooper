@@ -8,7 +8,7 @@ AC_VALIDATE_CACHED_SYSTEM_TUPLE()
 
 SOOP_MAJOR_VERSION=1
 SOOP_MINOR_VERSION=7
-SOOP_MICRO_VERSION=3
+SOOP_MICRO_VERSION=4
 
 BETA=
 
@@ -45,6 +45,13 @@ if test "$ac_cv_prog_cxx" = "no" ; then
     #fi
 
     #OPT_CXXFLAGS="-D_REENTRANT -O6 -fomit-frame-pointer -ffast-math -fstrength-reduce -funroll-loops -fmove-all-movables"
+
+
+
+   dnl We may need C++-11 for some versions of sigc
+   AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+   dnl AX_CXX_COMPILE_STDCXX_11
+
 
     ORIG_CXXFLAGS=$CXXFLAGS
 
@@ -226,6 +233,10 @@ then
     AC_SUBST(SIGCPP_LIBS)
     AC_SUBST(SIGCPP_CFLAGS)
 
+    PKG_CHECK_MODULES(ICU, icu-i18n, , [AC_MSG_WARN([ICU not found, no problem])])
+    AC_SUBST(ICU_CFLAGS)
+    AC_SUBST(ICU_LIBS)    
+
     dnl LIBXML
     PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.5)
     AC_SUBST(XML_CFLAGS)
@@ -368,9 +379,9 @@ then
         #CXXFLAGS=$CFLAGS
         #LIBS="$LIBS $EXTRA_LIBS"
 
-        #CFLAGS="$CFLAGS -DSAMPLE_MEMORY=200 -I../ardour/libs/sigc++/sigc++/config  -I../ardour/libs/sigc++ -I../ardour/libs/gtkmm -I../ardour/libs/gtkmm/gdk-- -I../ardour/libs/gtkmm/src $GTK_CFLAGS $JACK_CFLAGS $XML_CFLAGS"
-        #CXXFLAGS="$CXXFLAGS -DSAMPLE_MEMORY=200 -I../ardour/libs/sigc++/sigc++/config -I../ardour/libs/sigc++ -I../ardour/libs/gtkmm -I../ardour/libs/gtkmm/gdk-- -I../ardour/libs/gtkmm/src $GTK_CFLAGS $JACK_CFLAGS $XML_CFLAGS"
-        #LIBS="$LIBS -L../ardour/libs/gtkmm/gdk--/gdk--  -L../ardour/libs/sigc++/sigc++ -L../ardour/libs/gtkmm/src/gtk-- -lgtkmm -lgdkmm -lsigc $GTK_LIBS $JACK_LIBS $XML_LIBS $EXTRA_LIBS"
+        #CFLAGS="$CFLAGS -DSAMPLE_MEMORY=200 -I../ardour/libs/sigc++/sigc++/config  -I../ardour/libs/sigc++ -I../ardour/libs/gtkmm -I../ardour/libs/gtkmm/gdk-- -I../ardour/libs/gtkmm/src $GTK_CFLAGS $JACK_CFLAGS $XML_CFLAGS $ICU_CFLAGS"
+        #CXXFLAGS="$CXXFLAGS -DSAMPLE_MEMORY=200 -I../ardour/libs/sigc++/sigc++/config -I../ardour/libs/sigc++ -I../ardour/libs/gtkmm -I../ardour/libs/gtkmm/gdk-- -I../ardour/libs/gtkmm/src $GTK_CFLAGS $JACK_CFLAGS $XML_CFLAGS $ICU_CFLAGS"
+        #LIBS="$LIBS -L../ardour/libs/gtkmm/gdk--/gdk--  -L../ardour/libs/sigc++/sigc++ -L../ardour/libs/gtkmm/src/gtk-- -lgtkmm -lgdkmm -lsigc $GTK_LIBS $JACK_LIBS $XML_LIBS $ICU_LIBS $EXTRA_LIBS"
 
         AC_CONFIG_SUBDIRS(libs)
 

@@ -44,6 +44,8 @@ PATH=$xtra_path$PATH
 export PATH
 
 acmacrodir=$pwd/aclocal
+custmacrodir=$pwd/m4
+
 system_macrodir=`aclocal --print-ac-dir`	
 
 acargs=
@@ -179,7 +181,7 @@ for m4 in $m4copy ; do
    ln -s $m4 $acmacrodir
 done
 
-export ACLOCAL_FLAGS="$ACLOCAL_FLAGS -I $acmacrodir"
+export ACLOCAL_FLAGS="$ACLOCAL_FLAGS -I $acmacrodir -I $custmacrodir"
 
 cat > $acmacrodir/optflags.m4 <<EOF
 AC_DEFUN([AM_OPT_FLAGS],[
@@ -291,7 +293,7 @@ SOOPERLOOPER_TOP=\`cd \$SOOPERLOOPER_TOP; pwd\`
 
 export LIBDIRS="$lib_dirs"
 
-ACLOCAL_FLAGS="-I \$SOOPERLOOPER_TOP/aclocal"
+ACLOCAL_FLAGS="-I \$SOOPERLOOPER_TOP/aclocal -I \$SOOPERLOOPER_TOP/m4"
 ACLOCAL_AMFLAGS="-I \$SOOPERLOOPER_TOP/aclocal \`if test -d m4 ; then echo -I m4; fi\`"
 AC_SUBST(ACLOCAL_FLAGS)
 AC_SUBST(ACLOCAL_AMFLAGS)

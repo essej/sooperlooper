@@ -48,6 +48,9 @@ AC_PROG_RANLIB
 
 AC_LANG_CPLUSPLUS
 
+dnl We may need C++-11 for some versions of sigc
+AX_CXX_COMPILE_STDCXX_11([noext], [mandatory])
+
 AC_MSG_CHECKING([for --with-macosx-sdk])
 AC_ARG_WITH(macosx-sdk,    [  --with-macosx-sdk=PATH  use an OS X SDK at PATH], [
         wxUSE_MACOSX_SDK=$withval
@@ -190,6 +193,8 @@ AC_FUNC_GETMNTENT
 AC_CHECK_FUNCS(regcomp select strdup strerror strtol)
 AC_CHECK_LIB(pthread, pthread_create, ,[AC_MSG_ERROR([you have no POSIX thread support])])
 
+PKG_CHECK_MODULES(ICU, icu-i18n, , [AC_MSG_WARN([ICU not found, no problem])])
+
 PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.5)
 
 dnl sigc++
@@ -198,9 +203,9 @@ PKG_CHECK_MODULES(SIGCPP, sigc++-2.0 >= 2.2.10)
 
 AM_BUILD_ENVIRONMENT
 
-CFLAGS="$CFLAGS $XML_CFLAGS $SIGCPP_CFLAGS"
-CXXFLAGS="$CXXFLAGS $XML_CFLAGS $SIGCPP_CFLAGS"
-LIBS="$LIBS $XML_LIBS $SIGCPP_LIBS"
+CFLAGS="$CFLAGS $XML_CFLAGS $SIGCPP_CFLAGS $ICU_CLFAGS"
+CXXFLAGS="$CXXFLAGS $XML_CFLAGS $SIGCPP_CFLAGS $ICU_CFLAGS"
+LIBS="$LIBS $XML_LIBS $SIGCPP_LIBS $ICU_LIBS"
 
 AC_OUTPUT([Makefile
            version.cc
