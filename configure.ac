@@ -233,7 +233,7 @@ then
     AC_SUBST(SIGCPP_LIBS)
     AC_SUBST(SIGCPP_CFLAGS)
 
-    PKG_CHECK_MODULES(ICU, icu-i18n, , [AC_MSG_WARN([ICU not found, no problem])])
+ dnl   PKG_CHECK_MODULES(ICU, icu-i18n, , [AC_MSG_WARN([ICU not found, no problem])])
     AC_SUBST(ICU_CFLAGS)
     AC_SUBST(ICU_LIBS)    
 

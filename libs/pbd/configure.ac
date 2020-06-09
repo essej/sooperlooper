@@ -193,7 +193,7 @@ AC_FUNC_GETMNTENT
 AC_CHECK_FUNCS(regcomp select strdup strerror strtol)
 AC_CHECK_LIB(pthread, pthread_create, ,[AC_MSG_ERROR([you have no POSIX thread support])])
 
-PKG_CHECK_MODULES(ICU, icu-i18n, , [AC_MSG_WARN([ICU not found, no problem])])
+dnl PKG_CHECK_MODULES(ICU, icu-i18n, , [AC_MSG_WARN([ICU not found, no problem])])
 
 PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.5)
 
