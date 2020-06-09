@@ -185,7 +185,7 @@ void LatencyPanel::init()
 	topsizer->Add (_use_midi_stop_check, 0, wxEXPAND|wxALL, 4);
 
 	_output_clock_check = new wxCheckBox(this, ID_OutputClockCheck, wxT("Output MIDI Clock"));
-	topsizer->Add(_output_clock_check, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 3);
+	topsizer->Add(_output_clock_check, 0, wxALL, 3);
 
 	_send_midi_start_on_trigger_check = new wxCheckBox(this, ID_SendMidiStartOnTrigger, wxT("Send MIDI Start Event on Trigger"));
 	topsizer->Add (_send_midi_start_on_trigger_check, 0, wxEXPAND|wxALL, 4);

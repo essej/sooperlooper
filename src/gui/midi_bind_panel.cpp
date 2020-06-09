@@ -180,7 +180,7 @@ void MidiBindPanel::init()
 	buttsizer->Add (1,-1,1, wxALL, 0);
 	
 	butt = new wxButton (this, ID_ClearAllButton, wxT("Clear All"));
-	buttsizer->Add (butt, 0, wxALL|wxALIGN_RIGHT, 3);
+	buttsizer->Add (butt, 0, wxALL, 3);
 	
 	topsizer->Add (buttsizer, 0, wxLEFT|wxTOP|wxRIGHT|wxEXPAND, 4);
 
@@ -204,7 +204,7 @@ void MidiBindPanel::init()
 	//_control_combo->SetToolTip(wxT("Choose control or command"));
 	populate_controls();
 	//_control_combo->SetSelection(0);
-	colsizer->Add (_control_combo, 0, wxALL|wxALIGN_CENTRE|wxEXPAND, 2);
+	colsizer->Add (_control_combo, 0, wxALL|wxEXPAND, 2);
 	_control_combo->SetWindowVariant(wxWINDOW_VARIANT_NORMAL);
 
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -375,7 +375,7 @@ void MidiBindPanel::init()
 	//buttsizer->Add (butt, 0, wxALL|wxALIGN_CENTRE, 3);
 
 
-	topsizer->Add (buttsizer, 0, wxALL|wxEXPAND|wxALIGN_RIGHT, 4);
+	topsizer->Add (buttsizer, 0, wxALL|wxEXPAND, 4);
 
 
 	_parent->get_loop_control().MidiBindingChanged.connect (mem_fun (*this, &MidiBindPanel::got_binding_changed));

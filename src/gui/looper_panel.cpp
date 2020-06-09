@@ -564,7 +564,8 @@ LooperPanel::post_init()
 		_use_main_in_check->SetToolTip(wxT("mix input from Main inputs"));
 		_use_main_in_check->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::check_events), wxT("use_common_ins")));
 		_use_main_in_check->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) _use_main_in_check->GetId()));
-		_maininsizer->Add (_use_main_in_check, 0, wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL ,0);
+		//_maininsizer->Add (_use_main_in_check, 0, wxALL|wxEXPAND|wxALIGN_CENTRE_VERTICAL ,0);
+		_maininsizer->Add (_use_main_in_check, 0, wxALL|wxALIGN_CENTRE_VERTICAL ,0);
 		_maininsizer->Layout();
 
 		_feedback_control->set_label(wxT("feedb"));

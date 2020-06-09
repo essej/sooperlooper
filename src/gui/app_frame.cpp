@@ -185,13 +185,14 @@ AppFrame::init()
         menuFile->Append(ID_RemoveLoop, wxT("Remove Last Loop\tCtrl-D"), wxT("Remove last loop"));
         
         menuFile->AppendSeparator();
-        menuFile->Append(ID_PreferencesMenu, wxT("&Preferences...\tCtrl-P"), wxT("Preferences..."));
+
+        menuFile->Append(ID_PreferencesMenu, wxT("&Preferences...\tCtrl-,"), wxT("Preferences..."));
         
 #ifndef __WXMAC__
         menuFile->AppendSeparator();
 #endif
         
-        menuFile->Append(ID_Quit, wxT("Quit but Leave Engine Running\tCtrl-Shift-Q"), wxT("Exit from GUI and leave engine running"));
+        menuFile->Append(ID_Quit, wxT("Quit but Leave Engine Running\tCtrl-Alt-Q"), wxT("Exit from GUI and leave engine running"));
         menuFile->Append(ID_QuitStop, wxT("Quit and Stop Engine\tCtrl-Q"), wxT("Exit from GUI and stop engine"));
         
         menuBar->Append(menuFile, wxT("&Session"));

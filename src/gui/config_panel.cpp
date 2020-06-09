@@ -92,14 +92,14 @@ void ConfigPanel::init()
 	wxBoxSizer * rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	
 	wxStaticText * statText = new wxStaticText(this, -1, wxT("Host:"));
-	rowsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL|wxALL, 2);
+	rowsizer->Add (statText, 0, wxALIGN_CENTRE_VERTICAL|wxALL, 2);
 	_host_text = new wxTextCtrl(this, -1,  wxT(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("KeyAware"));
 	_host_text->SetValue (wxString::FromAscii(config.host.c_str()));
 	_host_text->SetToolTip(wxT("hostname of engine to attempt connection to --  leave empty for local machine"));
 	rowsizer->Add (_host_text, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
 	statText = new wxStaticText(this, -1,  wxT("Port:"));
-	rowsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL|wxALL, 2);
+	rowsizer->Add (statText, 0, wxALIGN_CENTRE_VERTICAL|wxALL, 2);
 	_port_text = new wxTextCtrl(this, -1,  wxT(""), wxDefaultPosition, wxSize(70, -1), 0, wxDefaultValidator, wxT("KeyAware"));
 	_port_text->SetValue (wxString::Format(wxT("%ld"), config.port));
 	rowsizer->Add (_port_text, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
@@ -111,7 +111,7 @@ void ConfigPanel::init()
 	
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	statText = new wxStaticText(this, -1,  wxT("Status:"));
-	rowsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL|wxALL, 2);
+	rowsizer->Add (statText, 0, wxALIGN_CENTRE_VERTICAL|wxALL, 2);
 	_status_text = new wxTextCtrl(this, -1,  wxT(""), wxDefaultPosition, wxSize(100, -1), wxTE_READONLY, wxDefaultValidator, wxT("KeyAware"));
 	rowsizer->Add (_status_text, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
@@ -154,14 +154,14 @@ void ConfigPanel::init()
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	
 	statText = new wxStaticText(this, -1, wxT("Host:"));
-	rowsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL|wxALL, 2);
+	rowsizer->Add (statText, 0, wxALIGN_CENTRE_VERTICAL|wxALL, 2);
 	_def_host_text = new wxTextCtrl(this, -1,  wxT(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("KeyAware"));
 	_def_host_text->SetValue (wxString::FromAscii(config.host.c_str()));
 	_def_host_text->SetToolTip(wxT("hostname of engine to attempt connection to --  leave empty for local machine"));
 	rowsizer->Add (_def_host_text, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 
 	statText = new wxStaticText(this, -1,  wxT("Port:"));
-	rowsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL|wxALL, 2);
+	rowsizer->Add (statText, 0, wxALIGN_CENTRE_VERTICAL|wxALL, 2);
 	_def_port_text = new wxTextCtrl(this, -1,  wxT(""), wxDefaultPosition, wxSize(70, -1), 0, wxDefaultValidator, wxT("KeyAware"));
 	_def_port_text->SetValue (wxString::Format(wxT("%ld"), config.port));
 	rowsizer->Add (_def_port_text, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
@@ -211,7 +211,7 @@ void ConfigPanel::init()
 
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	statText = new wxStaticText(this, -1, wxT("Default loaded session:"));
-	rowsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL|wxALL, 2);
+	rowsizer->Add (statText, 0, wxALIGN_CENTRE_VERTICAL|wxALL, 2);
 	_def_session_text = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("KeyAware"));
 	_def_session_text->SetValue (wxString::FromAscii(config.session_path.c_str()));
 	rowsizer->Add (_def_session_text, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
@@ -222,7 +222,7 @@ void ConfigPanel::init()
 	
 	rowsizer = new wxBoxSizer(wxHORIZONTAL);
 	statText = new wxStaticText(this, -1, wxT("Default MIDI bindings:"));
-	rowsizer->Add (statText, 0, wxALIGN_RIGHT|wxALIGN_CENTRE_VERTICAL|wxALL, 2);
+	rowsizer->Add (statText, 0, wxALIGN_CENTRE_VERTICAL|wxALL, 2);
 	_def_midi_bind_text = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("KeyAware"));
 	_def_midi_bind_text->SetValue (wxString::FromAscii(config.midi_bind_path.c_str()));
 	rowsizer->Add (_def_midi_bind_text, 1, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
