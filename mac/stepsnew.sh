@@ -10,6 +10,9 @@ mkdir -p macdist/SooperLooper.app/Contents/Resources
 cp ../src/sooperlooper macdist/SooperLooper.app/Contents/MacOS/
 cp ../src/gui/slgui macdist/SooperLooper.app/Contents/MacOS/
 
+#strip macdist/SooperLooper.app/Contents/MacOS/sooperlooper
+#strip macdist/SooperLooper.app/Contents/MacOS/slgui
+
 cp slgui.icns macdist/SooperLooper.app/Contents/Resources/
 
 
