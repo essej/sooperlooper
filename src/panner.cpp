@@ -573,11 +573,11 @@ Panner::reset (uint32_t nouts, uint32_t npans)
 	uint32_t n;
 	bool changed = false;
 
-	if (nouts < 2 || (nouts == outputs.size() && npans == size())) {
+	if (nouts < 2 || (nouts == outputs.size() && npans == _panners.size())) {
 		return;
 	} 
 
-	n = size();
+	n = _panners.size();
 	clear ();
 
 	if (n != npans) {
@@ -608,7 +608,7 @@ Panner::reset (uint32_t nouts, uint32_t npans)
 		outputs.push_back (Output (1.0, 0));
 
 		for (n = 0; n < npans; ++n) {
-			push_back (new EqualPowerStereoPanner (*this));
+			_panners.push_back (new EqualPowerStereoPanner (*this));
 		}
 		break;
 
@@ -618,7 +618,7 @@ Panner::reset (uint32_t nouts, uint32_t npans)
 		outputs.push_back (Output  (1.0, 1.0));
 
 		for (n = 0; n < npans; ++n) {
-			push_back (new Multi2dPanner (*this));
+			_panners.push_back (new Multi2dPanner (*this));
 		}
 
 		break; 
@@ -630,7 +630,7 @@ Panner::reset (uint32_t nouts, uint32_t npans)
 		outputs.push_back (Output  (0, 1.0));
 
 		for (n = 0; n < npans; ++n) {
-			push_back (new Multi2dPanner (*this));
+			_panners.push_back (new Multi2dPanner (*this));
 		}
 
 		break;	
@@ -643,7 +643,7 @@ Panner::reset (uint32_t nouts, uint32_t npans)
 		outputs.push_back (Output  (0.5, 0.75));
 
 		for (n = 0; n < npans; ++n) {
-			push_back (new Multi2dPanner (*this));
+			_panners.push_back (new Multi2dPanner (*this));
 		}
 
 		break;
@@ -655,13 +655,13 @@ Panner::reset (uint32_t nouts, uint32_t npans)
 		}
 
 		for (n = 0; n < npans; ++n) {
-			push_back (new Multi2dPanner (*this));
+			_panners.push_back (new Multi2dPanner (*this));
 		}
 
 		break;
 	}
 
-	for (iterator x = begin(); x != end(); ++x) {
+	for (vector<StreamPanner*>::iterator x = _panners.begin(); x != _panners.end(); ++x) {
 		(*x)->update ();
 	}
 
@@ -677,14 +677,14 @@ Panner::reset (uint32_t nouts, uint32_t npans)
 		float left;
 		float right;
 
-		front()->get_position (left);
-		back()->get_position (right);
+		_panners.front()->get_position (left);
+		_panners.back()->get_position (right);
 
 		if (changed || ((left == 0.5) && (right == 0.5))) {
 		
-			front()->set_position (0.0);
+			_panners.front()->set_position (0.0);
 			
-			back()->set_position (1.0);
+			_panners.back()->set_position (1.0);
 			
 			changed = true;
 		}
@@ -701,22 +701,23 @@ void
 Panner::remove (uint32_t which)
 {
 	vector<StreamPanner*>::iterator i;
-	for (i = begin(); i != end() && which; ++i, --which);
+	for (i = _panners.begin(); i != _panners.end() && which; ++i, --which);
 
-	if (i != end()) {
+	if (i != _panners.end()) {
 		delete *i;
-		erase (i);
+		_panners.erase (i);
 	}
 }
 
 void
 Panner::clear ()
 {
-	for (vector<StreamPanner*>::iterator i = begin(); i != end(); ++i) {
-		delete *i;
+	for (vector<StreamPanner*>::iterator i = _panners.begin(); i != _panners.end(); ++i) {
+            delete *i;
 	}
 
-	vector<StreamPanner*>::clear ();
+        _panners.clear();
+//	vector<StreamPanner*>::clear ();
 }
 
 
@@ -732,7 +733,7 @@ Panner::set_position (float xpos, StreamPanner& orig)
 	
 	if (_link_direction == SameDirection) {
 
-		for (vector<StreamPanner*>::iterator i = begin(); i != end(); ++i) {
+		for (vector<StreamPanner*>::iterator i = _panners.begin(); i != _panners.end(); ++i) {
 			if (*i == &orig) {
 				(*i)->set_position (xpos, true);
 			} else {
@@ -745,7 +746,7 @@ Panner::set_position (float xpos, StreamPanner& orig)
 
 	} else {
 
-		for (vector<StreamPanner*>::iterator i = begin(); i != end(); ++i) {
+		for (vector<StreamPanner*>::iterator i = _panners.begin(); i != _panners.end(); ++i) {
 			if (*i == &orig) {
 				(*i)->set_position (xpos, true);
 			} else {
@@ -771,7 +772,7 @@ Panner::set_position (float xpos, float ypos, StreamPanner& orig)
 	
 	if (_link_direction == SameDirection) {
 
-		for (vector<StreamPanner*>::iterator i = begin(); i != end(); ++i) {
+		for (vector<StreamPanner*>::iterator i = _panners.begin(); i != _panners.end(); ++i) {
 			if (*i == &orig) {
 				(*i)->set_position (xpos, ypos, true);
 			} else {
@@ -789,7 +790,7 @@ Panner::set_position (float xpos, float ypos, StreamPanner& orig)
 
 	} else {
 
-		for (vector<StreamPanner*>::iterator i = begin(); i != end(); ++i) {
+		for (vector<StreamPanner*>::iterator i = _panners.begin(); i != _panners.end(); ++i) {
 			if (*i == &orig) {
 				(*i)->set_position (xpos, ypos, true);
 			} else {
@@ -821,7 +822,7 @@ Panner::set_position (float xpos, float ypos, float zpos, StreamPanner& orig)
 
 	if (_link_direction == SameDirection) {
 
-		for (vector<StreamPanner*>::iterator i = begin(); i != end(); ++i) {
+		for (vector<StreamPanner*>::iterator i = _panners.begin(); i != _panners.end(); ++i) {
 			if (*i == &orig) {
 				(*i)->set_position (xpos, ypos, zpos, true);
 			} else {
@@ -842,7 +843,7 @@ Panner::set_position (float xpos, float ypos, float zpos, StreamPanner& orig)
 
 	} else {
 
-		for (vector<StreamPanner*>::iterator i = begin(); i != end(); ++i) {
+		for (vector<StreamPanner*>::iterator i = _panners.begin(); i != _panners.end(); ++i) {
 			if (*i == &orig) {
 				(*i)->set_position (xpos, ypos, true);
 			} else {
@@ -887,7 +888,7 @@ Panner::state (bool full)
 	XMLNode* root = new XMLNode ("Panner");
 	char buf[32];
 
-	for (iterator p = begin(); p != end(); ++p) {
+	for (vector<StreamPanner*>::iterator p = _panners.begin(); p != _panners.end(); ++p) {
 		root->add_child_nocopy ((*p)->get_state ());
 	}
 
@@ -971,7 +972,7 @@ Panner::set_state (const XMLNode& node)
 						sp = pan_plugins[i].factory (*this);
 						
 						if (sp->set_state (**niter) == 0) {
-							push_back (sp);
+							_panners.push_back (sp);
 						}
 						
 						break;

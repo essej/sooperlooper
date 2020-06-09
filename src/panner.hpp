@@ -44,7 +44,7 @@ class StreamPanner : public sigc::trackable
 {
   public:
 	StreamPanner (Panner& p);
-	~StreamPanner ();
+	virtual ~StreamPanner ();
 
 	void set_muted (bool yn);
 	bool muted() const { return _muted; }
@@ -160,7 +160,7 @@ class Multi2dPanner : public StreamPanner
 };
 
 
-class Panner : public std::vector<StreamPanner*>, public sigc::trackable
+class Panner : public sigc::trackable
 {
   public:
 	struct Output {
@@ -187,6 +187,9 @@ class Panner : public std::vector<StreamPanner*>, public sigc::trackable
 	void clear ();
 	void reset (uint32_t noutputs, uint32_t npans);
 
+        size_t size() const { return _panners.size(); }
+        StreamPanner * operator[](size_t index) const { return _panners[index]; }
+        
 	XMLNode& get_state (void);
 	XMLNode& state (bool full);
 	int      set_state (const XMLNode&);
@@ -226,6 +229,8 @@ class Panner : public std::vector<StreamPanner*>, public sigc::trackable
 
   private:
 
+        std::vector<StreamPanner*> _panners;
+    
 	uint32_t     current_outs;
 	bool             _linked;
 	bool             _bypassed;
