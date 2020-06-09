@@ -318,7 +318,8 @@ LoopControl::connect()
 	// if the spawn_config host string is 127.0.0.1 or localhost, make our_url match it
 	if (_spawn_config.host == "127.0.0.1" || _spawn_config.host == "localhost") {
 		char tmpbuf[100];
-		snprintf (tmpbuf, sizeof(tmpbuf), "osc.udp://localhost:%d/", _our_port);
+		//snprintf (tmpbuf, sizeof(tmpbuf), "osc.udp://localhost:%d/", _our_port);
+                snprintf (tmpbuf, sizeof(tmpbuf), "osc.udp://127.0.0.1:%d/", _our_port);
 		_our_url = tmpbuf;
 		cerr << "Changing our url to be : " << _our_url << endl;
 	}
@@ -332,12 +333,12 @@ LoopControl::connect()
 		// send off a ping.  set a timer, if we don't have a response, we'll start our own locally
 		_waiting = 0;
 		lo_send(_osc_addr, "/ping", "ssi", _our_url.c_str(), "/pingack", 1);
-		//cerr << "sending ping" << endl;
+		cerr << "sending initial ping" << endl;
 		_updatetimer->Start(700, true);
 	}
 	// spawn now
 	else if (!_spawn_config.never_spawn && spawn_looper()) {
-		//cerr << "immediate spawn" << endl;
+                cerr << "immediate spawn" << endl;
 		_waiting = 1;
 		_updatetimer->Start(100, true);
 	}
@@ -509,7 +510,7 @@ LoopControl::pingtimer_expired()
 	// check state of pingack
 
 	if (_pingack) {
-		// cerr << "got ping response" << endl;
+		 cerr << "got ping response" << endl;
 	}
 	else if (_waiting > 0)
 	{
@@ -533,7 +534,7 @@ LoopControl::pingtimer_expired()
 				snprintf (tmpbuf, sizeof(tmpbuf), "osc.udp://127.0.0.1:%d/", sport);
 				_our_url = tmpbuf;
 
-				//cerr << "last chance effort: with oururl " << _our_url << endl;
+				cerr << "last chance effort: with oururl " << _our_url << endl;
 				
 				// send off a ping.  
 				_pingack = false;
@@ -544,9 +545,11 @@ LoopControl::pingtimer_expired()
 			}
 		}
 		else {
-			// cerr << "waiting" << endl;
+                        cerr << "waiting " << _waiting << endl;
 			_waiting++;
-			// lo_send(_osc_addr, "/ping", "ss", _our_url.c_str(), "/pingack");
+                        if (_waiting == 1 || (_waiting % 2) == 0) {
+                            lo_send(_osc_addr, "/ping", "ssi", _our_url.c_str(), "/pingack", 1);
+                        }
 			_updatetimer->Start(100, true);
 		}
 	}
