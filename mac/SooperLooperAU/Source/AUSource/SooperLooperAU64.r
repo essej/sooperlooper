@@ -39,7 +39,8 @@
 *				IF APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 */
-#include <AudioUnit/AudioUnit.r>
+//#include <AudioUnit/AudioUnit.r>
+#include <AudioUnit.r>
 
 #include "SooperLooperAUVersion.h"
 

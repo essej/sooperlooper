@@ -1,42 +1,48 @@
-/*	Copyright © 2007 Apple Inc. All Rights Reserved.
-	
-	Disclaimer: IMPORTANT:  This Apple software is supplied to you by 
-			Apple Inc. ("Apple") in consideration of your agreement to the
-			following terms, and your use, installation, modification or
-			redistribution of this Apple software constitutes acceptance of these
-			terms.  If you do not agree with these terms, please do not use,
-			install, modify or redistribute this Apple software.
-			
-			In consideration of your agreement to abide by the following terms, and
-			subject to these terms, Apple grants you a personal, non-exclusive
-			license, under Apple's copyrights in this original Apple software (the
-			"Apple Software"), to use, reproduce, modify and redistribute the Apple
-			Software, with or without modifications, in source and/or binary forms;
-			provided that if you redistribute the Apple Software in its entirety and
-			without modifications, you must retain this notice and the following
-			text and disclaimers in all such redistributions of the Apple Software. 
-			Neither the name, trademarks, service marks or logos of Apple Inc. 
-			may be used to endorse or promote products derived from the Apple
-			Software without specific prior written permission from Apple.  Except
-			as expressly stated in this notice, no other rights or licenses, express
-			or implied, are granted by Apple herein, including but not limited to
-			any patent rights that may be infringed by your derivative works or by
-			other works in which the Apple Software may be incorporated.
-			
-			The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
-			MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-			THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
-			FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
-			OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
-			
-			IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
-			OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-			SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-			INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
-			MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
-			AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
-			STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
-			POSSIBILITY OF SUCH DAMAGE.
+/*
+     File: CASettingsStorage.cpp
+ Abstract: CASettingsStorage.h
+  Version: 1.1
+ 
+ Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple
+ Inc. ("Apple") in consideration of your agreement to the following
+ terms, and your use, installation, modification or redistribution of
+ this Apple software constitutes acceptance of these terms.  If you do
+ not agree with these terms, please do not use, install, modify or
+ redistribute this Apple software.
+ 
+ In consideration of your agreement to abide by the following terms, and
+ subject to these terms, Apple grants you a personal, non-exclusive
+ license, under Apple's copyrights in this original Apple software (the
+ "Apple Software"), to use, reproduce, modify and redistribute the Apple
+ Software, with or without modifications, in source and/or binary forms;
+ provided that if you redistribute the Apple Software in its entirety and
+ without modifications, you must retain this notice and the following
+ text and disclaimers in all such redistributions of the Apple Software.
+ Neither the name, trademarks, service marks or logos of Apple Inc. may
+ be used to endorse or promote products derived from the Apple Software
+ without specific prior written permission from Apple.  Except as
+ expressly stated in this notice, no other rights or licenses, express or
+ implied, are granted by Apple herein, including but not limited to any
+ patent rights that may be infringed by your derivative works or by other
+ works in which the Apple Software may be incorporated.
+ 
+ The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
+ MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+ THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
+ FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
+ OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
+ 
+ IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
+ OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
+ MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
+ AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
+ STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+ 
+ Copyright (C) 2014 Apple Inc. All Rights Reserved.
+ 
 */
 //==================================================================================================
 //	Includes
@@ -47,28 +53,39 @@
 
 //	PublicUtility Includes
 #include "CAAutoDisposer.h"
+#include "CACFArray.h"
 #include "CACFData.h"
+#include "CACFDictionary.h"
+#include "CACFDistributedNotification.h"
 #include "CACFNumber.h"
 
 //	Stamdard Library Includes
 #include <string.h>
 #include <sys/fcntl.h>
-#include <sys/stat.h>
 
 //==================================================================================================
 //	CASettingsStorage
 //==================================================================================================
 
-CASettingsStorage::CASettingsStorage(const char* inSettingsFilePath)
+CASettingsStorage::CASettingsStorage(const char* inSettingsFilePath, mode_t inSettingsFileAccessMode, CFPropertyListFormat inSettingsCacheFormat, bool inIsSingleProcessOnly, bool inIsReadOnly)
+:
+	mSettingsFilePath(NULL),
+	mSettingsFileAccessMode(inSettingsFileAccessMode),
+	mSettingsCache(CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks)),
+	mSettingsCacheFormat(inSettingsCacheFormat),
+	mSettingsCacheTime(),
+	mSettingsCacheForceRefresh(true),
+	mIsSingleProcessOnly(inIsSingleProcessOnly),
+	mIsReadOnly(inIsReadOnly)
 {
-	UInt32 theLength = strlen(inSettingsFilePath);
+	size_t theLength = strlen(inSettingsFilePath);
 	mSettingsFilePath = new char[theLength + 2];
-	strcpy(mSettingsFilePath, inSettingsFilePath);
-	
-	mSettingsCache = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+	strlcpy(mSettingsFilePath, inSettingsFilePath, theLength + 2);
 	
 	mSettingsCacheTime.tv_sec = 0;
 	mSettingsCacheTime.tv_nsec = 0;
+	
+	mSettingsCacheForceRefresh = true;
 }
 
 CASettingsStorage::~CASettingsStorage()
@@ -79,6 +96,23 @@ CASettingsStorage::~CASettingsStorage()
 	{
 		CFRelease(mSettingsCache);
 	}
+}
+
+UInt32	CASettingsStorage::GetNumberKeys() const
+{
+	//	make sure our cache is up to date
+	const_cast<CASettingsStorage*>(this)->RefreshSettings();
+
+	return ToUInt32(CFDictionaryGetCount(mSettingsCache));
+}
+
+void	CASettingsStorage::GetKeys(UInt32 inNumberKeys, UInt32& outNumberKeys, CFStringRef* outKeys) const
+{
+	//	make sure our cache is up to date
+	const_cast<CASettingsStorage*>(this)->RefreshSettings();
+
+	CFDictionaryGetKeysAndValues(mSettingsCache, reinterpret_cast<const void**>(outKeys), NULL);
+	outNumberKeys = inNumberKeys;
 }
 
 void	CASettingsStorage::CopyBoolValue(CFStringRef inKey, bool& outValue, bool inDefaultValue) const
@@ -536,15 +570,12 @@ void	CASettingsStorage::RemoveAllValues()
 
 void	CASettingsStorage::SendNotification(CFStringRef inName, CFDictionaryRef inData, bool inPostToAllSessions) const
 {
-	//	initialize the flags for the message
-	CFOptionFlags theFlags = kCFNotificationDeliverImmediately;
-	if(inPostToAllSessions)
-	{
-		theFlags += kCFNotificationPostToAllSessions;
-	}
-	
-	//	send the message
-	CFNotificationCenterPostNotificationWithOptions(CFNotificationCenterGetDistributedCenter(), inName, NULL, inData, theFlags);
+	CACFDistributedNotification::PostNotification(inName, inData, inPostToAllSessions);
+}
+
+void	CASettingsStorage::ForceRefresh()
+{
+	mSettingsCacheForceRefresh = true;
 }
 
 inline bool	operator<(const struct timespec& inX, const struct timespec& inY)
@@ -554,92 +585,114 @@ inline bool	operator<(const struct timespec& inX, const struct timespec& inY)
 
 void	CASettingsStorage::RefreshSettings()
 {
-	//	first, we need to stat the file to check the mod date, this has the side effect of also
-	//	telling us if the file exisits
-	struct stat theFileInfo;
-	int theStatError = stat(mSettingsFilePath, &theFileInfo);
-	
-	//	we use this boolean to make error recovery easier since we need a case for when there's no file anyway
-	bool theSettingsWereCached = false;
-	
-	if(theStatError == 0)
+	//	if this storage is only supporting a single process, there is no need to hit the disk unless
+	//	required to by it being the first time or if the refresh is specifically forced for some reason
+	if(!mIsSingleProcessOnly || (mSettingsCache == NULL) || ((mSettingsCacheTime.tv_sec == 0) && (mSettingsCacheTime.tv_nsec == 0)) || mSettingsCacheForceRefresh)
 	{
-		//	stat says there is something there, only have to do work if we either don't have a cache or the cache is out of date
-		if((mSettingsCache == NULL) || (mSettingsCacheTime < theFileInfo.st_mtimespec))
+		//	first, we need to stat the file to check the mod date, this has the side effect of also
+		//	telling us if the file exisits
+		struct stat theFileInfo;
+		int theStatError = stat(mSettingsFilePath, &theFileInfo);
+		
+		//	we use this boolean to make error recovery easier since we need a case for when there's no file anyway
+		bool theSettingsWereCached = false;
+		bool theSettingsNeedSaving = true;
+		
+		if(theStatError == 0)
 		{
-			//	open the file
-			FILE* theFile = fopen(mSettingsFilePath, "r");
-			if(theFile != NULL)
+			//	stat says there is something there, only have to do work if we either don't have a cache or the cache is out of date
+			if((mSettingsCache == NULL) || (mSettingsCacheTime < theFileInfo.st_mtimespec) || mSettingsCacheForceRefresh)
 			{
-				//	lock the file (this call blocks until the lock is taken)
-				int theError = flock(fileno(theFile), LOCK_EX);
-				if(theError == 0)
+				//	open the file
+				FILE* theFile = fopen(mSettingsFilePath, "r");
+				if(theFile != NULL)
 				{
-					//	get the length of the file
-					fseek(theFile, 0, SEEK_END);
-					UInt32 theFileLength = ftell(theFile);
-					fseek(theFile, 0, SEEK_SET);
-					
-					if(theFileLength > 0)
+					//	lock the file (this call blocks until the lock is taken)
+					int theError = flock(fileno(theFile), LOCK_EX);
+					if(theError == 0)
 					{
-						//	allocate a block of memory to hold the data in the file
-						CAAutoFree<Byte> theRawFileData(theFileLength);
+						//	get the length of the file
+						fseek(theFile, 0, SEEK_END);
+						size_t theFileLength = static_cast<size_t>(ftell(theFile));
+						fseek(theFile, 0, SEEK_SET);
 						
-						//	read all the data in
-						fread(static_cast<Byte*>(theRawFileData), theFileLength, 1, theFile);
-						
-						//	release the lock
-						flock(fileno(theFile), LOCK_UN);
-						
-						//	put it into a CFData object
-						CACFData theRawFileDataCFData(static_cast<Byte*>(theRawFileData), theFileLength);
-						
-						//	get rid of the existing cache
-						if(mSettingsCache != NULL)
+						if(theFileLength > 0)
 						{
-							CFRelease(mSettingsCache);
-							mSettingsCache = NULL;
+							//	allocate a block of memory to hold the data in the file
+							CAAutoFree<Byte> theRawFileData(theFileLength);
+							
+							//	read all the data in
+							fread(static_cast<Byte*>(theRawFileData), theFileLength, 1, theFile);
+							
+							//	release the lock
+							flock(fileno(theFile), LOCK_UN);
+							
+							//	put it into a CFData object
+							CACFData theRawFileDataCFData(static_cast<Byte*>(theRawFileData), static_cast<UInt32>(theFileLength));
+							
+							//	get rid of the existing cache
+							if(mSettingsCache != NULL)
+							{
+								CFRelease(mSettingsCache);
+								mSettingsCache = NULL;
+							}
+							
+							//	parse the data as a property list
+							mSettingsCache = (CFMutableDictionaryRef)CFPropertyListCreateWithData(NULL, theRawFileDataCFData.GetCFData(), kCFPropertyListMutableContainersAndLeaves, NULL, NULL);
+							
+							//	check to be sure we parsed a plist out of the file
+							if(mSettingsCache != NULL)
+							{
+								//	save the date of the cache
+								mSettingsCacheTime = theFileInfo.st_mtimespec;
+								
+								//	mark that we're done
+								theSettingsWereCached = true;
+								theSettingsNeedSaving = false;
+							}
 						}
-						
-						//	parse the data as a property list
-						mSettingsCache = (CFMutableDictionaryRef)CFPropertyListCreateFromXMLData(NULL, theRawFileDataCFData.GetCFData(), kCFPropertyListMutableContainersAndLeaves, NULL);
-						
-						//	save the date of the cache
-						mSettingsCacheTime = theFileInfo.st_mtimespec;
-						
-						//	mark that we're done
-						theSettingsWereCached = true;
 					}
+					
+					//	close the file
+					fclose(theFile);
+					mSettingsCacheForceRefresh = false;
 				}
-				
-				//	close the file
-				fclose(theFile);
+			}
+			else
+			{
+				//	nothing to do since the file was older than the cached data
+				theSettingsNeedSaving = false;
+				theSettingsWereCached = true;
 			}
 		}
-	}
-	
-	if(!theSettingsWereCached && (theFileInfo.st_mtimespec < mSettingsCacheTime))
-	{
-		//	we get here if either there isn't a file or something wacky happenned while parsing it
-		//	all we do here is make sure that the member variables are set to their initial values
-		if(mSettingsCache != NULL)
-		{
-			CFRelease(mSettingsCache);
-			mSettingsCache = NULL;
-		}
-		mSettingsCache = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
 		
-		mSettingsCacheTime.tv_sec = 0;
-		mSettingsCacheTime.tv_nsec = 0;
+		//	if there was a failure, we need to clean up 
+		if((theStatError != 0) || theSettingsNeedSaving || !theSettingsWereCached)
+		{
+			//	we get here if either there isn't a file or something wacky happenned while parsing it
+			//	so, make sure we have a valid cache dictionary
+			if(mSettingsCache == NULL)
+			{
+				mSettingsCache = CFDictionaryCreateMutable(NULL, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+			}
+			
+			mSettingsCacheTime.tv_sec = 0;
+			mSettingsCacheTime.tv_nsec = 0;
+			
+			if((theStatError != 0) || theSettingsNeedSaving)
+			{
+				SaveSettings();
+			}
+		}
 	}
 }
 
 void	CASettingsStorage::SaveSettings()
 {
-	if(mSettingsCache != NULL)
+	if(!mIsReadOnly && (mSettingsCache != NULL))
 	{
 		//	make a CFData that contains the new settings
-		CACFData theNewRawPrefsCFData(CFPropertyListCreateXMLData(NULL, (CFPropertyListRef)mSettingsCache), true);
+		CACFData theNewRawPrefsCFData(CFPropertyListCreateData(NULL, mSettingsCache, mSettingsCacheFormat, 0, NULL), true);
 		
 		//	open the file for writing
 		FILE* theFile = fopen(mSettingsFilePath, "w+");
@@ -649,8 +702,17 @@ void	CASettingsStorage::SaveSettings()
 			int theError = flock(fileno(theFile), LOCK_EX);
 			if(theError == 0)
 			{
+				//	set the file access mode if necessary
+				if(mSettingsFileAccessMode != 0)
+				{
+					fchmod(fileno(theFile), mSettingsFileAccessMode);
+				}
+				
 				//	write the data
 				fwrite(theNewRawPrefsCFData.GetDataPtr(), theNewRawPrefsCFData.GetSize(), 1, theFile);
+				
+				//	flush the file to be sure it is all on disk
+				fflush(theFile);
 				
 				//	release the lock
 				flock(fileno(theFile), LOCK_UN);

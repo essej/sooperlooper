@@ -137,7 +137,7 @@ bool LaunchSLgui::launch()
 			[cargs addObject:sarg];
 		}
 		
-		[launcher runGui:cargs];
+		[((LaunchSLguiCocoa*)launcher) runGui:cargs];
 		
 		return true;
 	}
@@ -147,13 +147,13 @@ bool LaunchSLgui::launch()
 
 bool LaunchSLgui::isRunning()
 {
-		return (bool) [launcher isRunning];
+		return (bool) [((LaunchSLguiCocoa*)launcher) isRunning];
 }
 
 void LaunchSLgui::terminate()
 {
 	if (launcher != nil) {
-		[launcher terminate];
+		[((LaunchSLguiCocoa*)launcher) terminate];
 	}
 }
 

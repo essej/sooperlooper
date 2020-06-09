@@ -1,42 +1,48 @@
-/*	Copyright © 2007 Apple Inc. All Rights Reserved.
-	
-	Disclaimer: IMPORTANT:  This Apple software is supplied to you by 
-			Apple Inc. ("Apple") in consideration of your agreement to the
-			following terms, and your use, installation, modification or
-			redistribution of this Apple software constitutes acceptance of these
-			terms.  If you do not agree with these terms, please do not use,
-			install, modify or redistribute this Apple software.
-			
-			In consideration of your agreement to abide by the following terms, and
-			subject to these terms, Apple grants you a personal, non-exclusive
-			license, under Apple's copyrights in this original Apple software (the
-			"Apple Software"), to use, reproduce, modify and redistribute the Apple
-			Software, with or without modifications, in source and/or binary forms;
-			provided that if you redistribute the Apple Software in its entirety and
-			without modifications, you must retain this notice and the following
-			text and disclaimers in all such redistributions of the Apple Software. 
-			Neither the name, trademarks, service marks or logos of Apple Inc. 
-			may be used to endorse or promote products derived from the Apple
-			Software without specific prior written permission from Apple.  Except
-			as expressly stated in this notice, no other rights or licenses, express
-			or implied, are granted by Apple herein, including but not limited to
-			any patent rights that may be infringed by your derivative works or by
-			other works in which the Apple Software may be incorporated.
-			
-			The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
-			MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-			THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
-			FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
-			OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
-			
-			IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
-			OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-			SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-			INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
-			MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
-			AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
-			STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
-			POSSIBILITY OF SUCH DAMAGE.
+/*
+     File: CAPThread.cpp
+ Abstract: CAPThread.h
+  Version: 1.1
+ 
+ Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple
+ Inc. ("Apple") in consideration of your agreement to the following
+ terms, and your use, installation, modification or redistribution of
+ this Apple software constitutes acceptance of these terms.  If you do
+ not agree with these terms, please do not use, install, modify or
+ redistribute this Apple software.
+ 
+ In consideration of your agreement to abide by the following terms, and
+ subject to these terms, Apple grants you a personal, non-exclusive
+ license, under Apple's copyrights in this original Apple software (the
+ "Apple Software"), to use, reproduce, modify and redistribute the Apple
+ Software, with or without modifications, in source and/or binary forms;
+ provided that if you redistribute the Apple Software in its entirety and
+ without modifications, you must retain this notice and the following
+ text and disclaimers in all such redistributions of the Apple Software.
+ Neither the name, trademarks, service marks or logos of Apple Inc. may
+ be used to endorse or promote products derived from the Apple Software
+ without specific prior written permission from Apple.  Except as
+ expressly stated in this notice, no other rights or licenses, express or
+ implied, are granted by Apple herein, including but not limited to any
+ patent rights that may be infringed by your derivative works or by other
+ works in which the Apple Software may be incorporated.
+ 
+ The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
+ MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+ THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
+ FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
+ OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
+ 
+ IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
+ OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
+ MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
+ AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
+ STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+ 
+ Copyright (C) 2014 Apple Inc. All Rights Reserved.
+ 
 */
 //=============================================================================
 //	Includes
@@ -68,7 +74,7 @@
 
 //#define	Log_SetPriority						1
 
-CAPThread::CAPThread(ThreadRoutine inThreadRoutine, void* inParameter, UInt32 inPriority, bool inFixedPriority, bool inAutoDelete)
+CAPThread::CAPThread(ThreadRoutine inThreadRoutine, void* inParameter, UInt32 inPriority, bool inFixedPriority, bool inAutoDelete, const char* inThreadName)
 :
 #if TARGET_OS_MAC
 	mPThread(0),
@@ -88,9 +94,17 @@ CAPThread::CAPThread(ThreadRoutine inThreadRoutine, void* inParameter, UInt32 in
 	mFixedPriority(inFixedPriority),
 	mAutoDelete(inAutoDelete)
 {
+	if(inThreadName != NULL)
+	{
+		strlcpy(mThreadName, inThreadName, kMaxThreadNameLength);
+	}
+	else
+	{
+		memset(mThreadName, 0, kMaxThreadNameLength);
+	}
 }
 
-CAPThread::CAPThread(ThreadRoutine inThreadRoutine, void* inParameter, UInt32 inPeriod, UInt32 inComputation, UInt32 inConstraint, bool inIsPreemptible, bool inAutoDelete)
+CAPThread::CAPThread(ThreadRoutine inThreadRoutine, void* inParameter, UInt32 inPeriod, UInt32 inComputation, UInt32 inConstraint, bool inIsPreemptible, bool inAutoDelete, const char* inThreadName)
 :
 #if TARGET_OS_MAC
 	mPThread(0),
@@ -110,6 +124,14 @@ CAPThread::CAPThread(ThreadRoutine inThreadRoutine, void* inParameter, UInt32 in
 	mFixedPriority(false),
 	mAutoDelete(inAutoDelete)
 {
+	if(inThreadName != NULL)
+	{
+		strlcpy(mThreadName, inThreadName, kMaxThreadNameLength);
+	}
+	else
+	{
+		memset(mThreadName, 0, kMaxThreadNameLength);
+	}
 }
 
 CAPThread::~CAPThread()
@@ -130,6 +152,15 @@ UInt32	CAPThread::GetScheduledPriority()
 #endif
 }
 
+UInt32	CAPThread::GetScheduledPriority(NativeThread thread)
+{
+#if TARGET_OS_MAC
+    return getScheduledPriority( thread, CAPTHREAD_SCHEDULED_PRIORITY );
+#elif TARGET_OS_WIN32
+	return 0;	// ???
+#endif
+}
+
 void	CAPThread::SetPriority(UInt32 inPriority, bool inFixedPriority)
 {
 	mPriority = inPriority;
@@ -138,20 +169,35 @@ void	CAPThread::SetPriority(UInt32 inPriority, bool inFixedPriority)
 #if TARGET_OS_MAC
 	if(mPThread != 0)
 	{
+		SetPriority(mPThread, mPriority, mFixedPriority);
+    } 
+#elif TARGET_OS_WIN32
+	if(mThreadID != NULL)
+	{
+		SetPriority(mThreadID, mPriority, mFixedPriority);
+	}
+#endif
+}
+
+void	CAPThread::SetPriority(NativeThread inThread, UInt32 inPriority, bool inFixedPriority)
+{
+#if TARGET_OS_MAC
+	if(inThread != 0)
+	{
 		kern_return_t theError = 0;
 		
 		//	set whether or not this is a fixed priority thread
-		if (mFixedPriority)
+		if (inFixedPriority)
 		{
 			thread_extended_policy_data_t theFixedPolicy = { false };
-			theError = thread_policy_set(pthread_mach_thread_np(mPThread), THREAD_EXTENDED_POLICY, (thread_policy_t)&theFixedPolicy, THREAD_EXTENDED_POLICY_COUNT);
+			theError = thread_policy_set(pthread_mach_thread_np(inThread), THREAD_EXTENDED_POLICY, (thread_policy_t)&theFixedPolicy, THREAD_EXTENDED_POLICY_COUNT);
 			AssertNoKernelError(theError, "CAPThread::SetPriority: failed to set the fixed-priority policy");
 		}
 		
 		//	set the thread's absolute priority which is relative to the priority on which thread_policy_set() is called
 		UInt32 theCurrentThreadPriority = getScheduledPriority(pthread_self(), CAPTHREAD_SET_PRIORITY);
-        thread_precedence_policy_data_t thePrecedencePolicy = { mPriority - theCurrentThreadPriority };
-		theError = thread_policy_set(pthread_mach_thread_np(mPThread), THREAD_PRECEDENCE_POLICY, (thread_policy_t)&thePrecedencePolicy, THREAD_PRECEDENCE_POLICY_COUNT);
+        thread_precedence_policy_data_t thePrecedencePolicy = { static_cast<integer_t>(inPriority - theCurrentThreadPriority) };
+		theError = thread_policy_set(pthread_mach_thread_np(inThread), THREAD_PRECEDENCE_POLICY, (thread_policy_t)&thePrecedencePolicy, THREAD_PRECEDENCE_POLICY_COUNT);
         AssertNoKernelError(theError, "CAPThread::SetPriority: failed to set the precedence policy");
 		
 		#if	Log_SetPriority
@@ -159,9 +205,13 @@ void	CAPThread::SetPriority(UInt32 inPriority, bool inFixedPriority)
 		#endif
     } 
 #elif TARGET_OS_WIN32
-	if(mThreadHandle != NULL)
+	if(inThread != NULL)
 	{
-		SetThreadPriority(mThreadHandle, mPriority);
+		HANDLE hThread = OpenThread(NULL, FALSE, inThread);
+		if(hThread != NULL) {
+			SetThreadPriority(hThread, inPriority);
+			CloseHandle(hThread);
+		}
 	}
 #endif
 }
@@ -236,6 +286,19 @@ void*	CAPThread::Entry(CAPThread* inCAPThread)
 {
 	void* theAnswer = NULL;
 
+#if TARGET_OS_MAC
+	inCAPThread->mPThread = pthread_self();
+#elif TARGET_OS_WIN32
+	// do we need to do something here?
+#endif
+	
+#if	!TARGET_OS_IPHONE && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6)
+	if(inCAPThread->mThreadName[0] != 0)
+	{
+		pthread_setname_np(inCAPThread->mThreadName);
+	}
+#endif
+
 	try 
 	{
 		if(inCAPThread->mTimeConstraintSet)
@@ -280,27 +343,27 @@ UInt32 CAPThread::getScheduledPriority(pthread_t inThread, int inPriorityKind)
 			count = POLICY_TIMESHARE_INFO_COUNT;
 			thread_info(pthread_mach_thread_np (inThread), THREAD_SCHED_TIMESHARE_INFO, (thread_info_t)&(thePolicyInfo.ts), &count);
             if (inPriorityKind == CAPTHREAD_SCHEDULED_PRIORITY) {
-                return thePolicyInfo.ts.cur_priority;
+                return static_cast<UInt32>(thePolicyInfo.ts.cur_priority);
             }
-            return thePolicyInfo.ts.base_priority;
+            return static_cast<UInt32>(thePolicyInfo.ts.base_priority);
             break;
             
         case POLICY_FIFO:
 			count = POLICY_FIFO_INFO_COUNT;
 			thread_info(pthread_mach_thread_np (inThread), THREAD_SCHED_FIFO_INFO, (thread_info_t)&(thePolicyInfo.fifo), &count);
             if ( (thePolicyInfo.fifo.depressed) && (inPriorityKind == CAPTHREAD_SCHEDULED_PRIORITY) ) {
-                return thePolicyInfo.fifo.depress_priority;
+                return static_cast<UInt32>(thePolicyInfo.fifo.depress_priority);
             }
-            return thePolicyInfo.fifo.base_priority;
+            return static_cast<UInt32>(thePolicyInfo.fifo.base_priority);
             break;
             
 		case POLICY_RR:
 			count = POLICY_RR_INFO_COUNT;
 			thread_info(pthread_mach_thread_np (inThread), THREAD_SCHED_RR_INFO, (thread_info_t)&(thePolicyInfo.rr), &count);
 			if ( (thePolicyInfo.rr.depressed) && (inPriorityKind == CAPTHREAD_SCHEDULED_PRIORITY) ) {
-                return thePolicyInfo.rr.depress_priority;
+                return static_cast<UInt32>(thePolicyInfo.rr.depress_priority);
             }
-            return thePolicyInfo.rr.base_priority;
+            return static_cast<UInt32>(thePolicyInfo.rr.base_priority);
             break;
 	}
     
@@ -341,11 +404,47 @@ UInt32 WINAPI	CAPThread::Entry(CAPThread* inCAPThread)
 	return theAnswer;
 }
 
-//	a definition of this function here for now
 extern "C"
 Boolean CompareAndSwap(UInt32 inOldValue, UInt32 inNewValue, UInt32* inOldValuePtr)
 {
 	return InterlockedCompareExchange((volatile LONG*)inOldValuePtr, inNewValue, inOldValue) == inOldValue;
 }
 
+#endif
+
+void	CAPThread::SetName(const char* inThreadName)
+{
+	if(inThreadName != NULL)
+	{
+		strlcpy(mThreadName, inThreadName, kMaxThreadNameLength);
+	}
+	else
+	{
+		memset(mThreadName, 0, kMaxThreadNameLength);
+	}
+}
+
+#if CoreAudio_Debug
+void	CAPThread::DebugPriority(const char *label)
+{
+#if !TARGET_OS_WIN32
+	if (mTimeConstraintSet)
+		printf("CAPThread::%s %p: pri=<time constraint>, spawning pri=%d, scheduled pri=%d\n", label, this, 
+		(int)mSpawningThreadPriority, (mPThread != NULL) ? (int)GetScheduledPriority() : -1);
+	else
+		printf("CAPThread::%s %p: pri=%d%s, spawning pri=%d, scheduled pri=%d\n", label, this, (int)mPriority, mFixedPriority ? " fixed" : "", 
+		(int)mSpawningThreadPriority, (mPThread != NULL) ? (int)GetScheduledPriority() : -1);
+#else
+	if (mTimeConstraintSet)
+	{
+		printf("CAPThread::%s %p: pri=<time constraint>, spawning pri=%d, scheduled pri=%d\n", label, this, 
+		(int)mPriority, (mThreadHandle != NULL) ? (int)GetScheduledPriority() : -1);
+	}
+	else
+	{
+		printf("CAPThread::%s %p: pri=%d%s, spawning pri=%d, scheduled pri=%d\n", label, this, (int)mPriority, mFixedPriority ? " fixed" : "", 
+		(int)mPriority, (mThreadHandle != NULL) ? (int)GetScheduledPriority() : -1);
+	}
+#endif
+}
 #endif

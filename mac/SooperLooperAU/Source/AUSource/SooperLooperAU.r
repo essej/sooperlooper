@@ -5,7 +5,7 @@
 * 
 *	Created:	7/2/05
 *	
-*	Copyright:  Copyright © 2005 __MyCompanyName__, All Rights Reserved
+*	Copyright:  Copyright ï¿½ 2005 __MyCompanyName__, All Rights Reserved
 * 
 *	Disclaimer:	IMPORTANT:  This Apple software is supplied to you by Apple Computer, Inc. ("Apple") in 
 *				consideration of your agreement to the following terms, and your use, installation, modification 
@@ -39,7 +39,8 @@
 *				IF APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
 */
-#include <AudioUnit/AudioUnit.r>
+//#include <AudioUnit/AudioUnit.r>
+#include <AudioUnit.r>
 
 #include "SooperLooperAUVersion.h"
 

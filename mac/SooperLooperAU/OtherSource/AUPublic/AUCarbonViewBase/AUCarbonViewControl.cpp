@@ -1,42 +1,48 @@
-/*	Copyright © 2007 Apple Inc. All Rights Reserved.
-	
-	Disclaimer: IMPORTANT:  This Apple software is supplied to you by 
-			Apple Inc. ("Apple") in consideration of your agreement to the
-			following terms, and your use, installation, modification or
-			redistribution of this Apple software constitutes acceptance of these
-			terms.  If you do not agree with these terms, please do not use,
-			install, modify or redistribute this Apple software.
-			
-			In consideration of your agreement to abide by the following terms, and
-			subject to these terms, Apple grants you a personal, non-exclusive
-			license, under Apple's copyrights in this original Apple software (the
-			"Apple Software"), to use, reproduce, modify and redistribute the Apple
-			Software, with or without modifications, in source and/or binary forms;
-			provided that if you redistribute the Apple Software in its entirety and
-			without modifications, you must retain this notice and the following
-			text and disclaimers in all such redistributions of the Apple Software. 
-			Neither the name, trademarks, service marks or logos of Apple Inc. 
-			may be used to endorse or promote products derived from the Apple
-			Software without specific prior written permission from Apple.  Except
-			as expressly stated in this notice, no other rights or licenses, express
-			or implied, are granted by Apple herein, including but not limited to
-			any patent rights that may be infringed by your derivative works or by
-			other works in which the Apple Software may be incorporated.
-			
-			The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
-			MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-			THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
-			FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
-			OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
-			
-			IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
-			OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-			SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-			INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
-			MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
-			AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
-			STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
-			POSSIBILITY OF SUCH DAMAGE.
+/*
+     File: AUCarbonViewControl.cpp
+ Abstract: AUCarbonViewControl.h
+  Version: 1.1
+ 
+ Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple
+ Inc. ("Apple") in consideration of your agreement to the following
+ terms, and your use, installation, modification or redistribution of
+ this Apple software constitutes acceptance of these terms.  If you do
+ not agree with these terms, please do not use, install, modify or
+ redistribute this Apple software.
+ 
+ In consideration of your agreement to abide by the following terms, and
+ subject to these terms, Apple grants you a personal, non-exclusive
+ license, under Apple's copyrights in this original Apple software (the
+ "Apple Software"), to use, reproduce, modify and redistribute the Apple
+ Software, with or without modifications, in source and/or binary forms;
+ provided that if you redistribute the Apple Software in its entirety and
+ without modifications, you must retain this notice and the following
+ text and disclaimers in all such redistributions of the Apple Software.
+ Neither the name, trademarks, service marks or logos of Apple Inc. may
+ be used to endorse or promote products derived from the Apple Software
+ without specific prior written permission from Apple.  Except as
+ expressly stated in this notice, no other rights or licenses, express or
+ implied, are granted by Apple herein, including but not limited to any
+ patent rights that may be infringed by your derivative works or by other
+ works in which the Apple Software may be incorporated.
+ 
+ The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
+ MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+ THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
+ FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
+ OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
+ 
+ IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
+ OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
+ MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
+ AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
+ STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+ 
+ Copyright (C) 2014 Apple Inc. All Rights Reserved.
+ 
 */
 #include "AUCarbonViewControl.h"
 #include "AUCarbonViewBase.h"
@@ -50,10 +56,8 @@ AUCarbonViewControl::AUCarbonViewControl(AUCarbonViewBase *ownerView, AUParamete
 	mControl(control),
 	mInControlInitialization(0)
 {
-#if __LP64__
+#if !__LP64__
 	SetControlReference(control, SRefCon(this));
-#else
-	SetControlReference(control, SInt32(this));
 #endif
 }
 
@@ -66,6 +70,7 @@ AUCarbonViewControl* AUCarbonViewControl::mLastControl = NULL;
 
 void	AUCarbonViewControl::Bind()
 {
+#if !__LP64__
 	mInControlInitialization = 1;   // true
 	AUListenerAddParameter(mListener, this, &mParam);
 		// will cause an almost-immediate callback
@@ -97,10 +102,12 @@ void	AUCarbonViewControl::Bind()
 	
 	Update(true);
 	mInControlInitialization = 0;   // false
+#endif
 }
 
 void	AUCarbonViewControl::ParameterToControl(Float32 paramValue)
 {
+#if !__LP64__
 	++mInControlInitialization;
 	switch (mType) {
 	case kTypeContinuous:
@@ -157,10 +164,12 @@ void	AUCarbonViewControl::ParameterToControl(Float32 paramValue)
 		break;
 	}
 	--mInControlInitialization;
+#endif
 }
 
 void	AUCarbonViewControl::ControlToParameter()
 {
+#if !__LP64__
 	if (mInControlInitialization)
 		return;
 
@@ -213,47 +222,66 @@ void	AUCarbonViewControl::ControlToParameter()
 		}
 		break;
 	}
+#endif
 }
 
 void	AUCarbonViewControl::SetValueFract(double value)
 {
+#if !__LP64__
 	SInt32 minimum = GetControl32BitMinimum(mControl);
 	SInt32 maximum = GetControl32BitMaximum(mControl);
 	SInt32 cval = SInt32(value * (maximum - minimum) + minimum + 0.5);
 	SetControl32BitValue(mControl, cval);
 //	printf("set: value=%lf, min=%ld, max=%ld, ctl value=%ld\n", value, minimum, maximum, cval);
+#endif
 }
 
 double	AUCarbonViewControl::GetValueFract()
 {
+#if !__LP64__
 	SInt32 minimum = GetControl32BitMinimum(mControl);
 	SInt32 maximum = GetControl32BitMaximum(mControl);
 	SInt32 cval = GetControl32BitValue(mControl);
 	double result = double(cval - minimum) / double(maximum - minimum);
 //	printf("get: min=%ld, max=%ld, value=%ld, result=%f\n", minimum, maximum, cval, result);
 	return result;
+#else
+	return 0;
+#endif
 }
 
 void	AUCarbonViewControl::SetTextValue(CFStringRef cfstr)
 {
+#if !__LP64__
 	verify_noerr(SetControlData(mControl, 0, kControlEditTextCFStringTag, sizeof(CFStringRef), &cfstr));
+#endif
 }
 
 CFStringRef	AUCarbonViewControl::GetTextValue()
 {
+#if !__LP64__
 	CFStringRef cfstr;
 	verify_noerr(GetControlData(mControl, 0, kControlEditTextCFStringTag, sizeof(CFStringRef), &cfstr, NULL));
 	return cfstr;
+#else
+	return CFSTR("");
+#endif
 }
 
 void	AUCarbonViewControl::SetValue(long value)
 {
+#if !__LP64__
 	SetControl32BitValue(mControl, value);
+#endif
 }
 
 long	AUCarbonViewControl::GetValue()
 {
+#if !__LP64__
 	return GetControl32BitValue(mControl);
+#else
+	return 0;
+#endif
 }
 
 /* Notes on event handling 
@@ -355,6 +383,7 @@ pascal ControlKeyFilterResult	AUCarbonViewControl::StdKeyFilterCallback(ControlR
 												SInt16 *keyCode, SInt16 *charCode, 
 												EventModifiers *modifiers)
 {
+#if !__LP64__
 	SInt16 c = *charCode;
 	if (c >= ' ' || c == '\b' || c == 0x7F || (c >= 0x1c && c <= 0x1f) || c == '\t')
 		return kControlKeyFilterPassKey;
@@ -364,6 +393,7 @@ pascal ControlKeyFilterResult	AUCarbonViewControl::StdKeyFilterCallback(ControlR
 		SetControlData(This->mControl, 0, kControlEditTextSelectionTag, sizeof(sel), &sel);
 		This->ControlToParameter();
 	}
+#endif
 	return kControlKeyFilterBlockKey;
 }
 
@@ -371,6 +401,7 @@ pascal ControlKeyFilterResult	AUCarbonViewControl::NumericKeyFilterCallback(Cont
 												SInt16 *keyCode, SInt16 *charCode, 
 												EventModifiers *modifiers)
 {
+#if !__LP64__
 	SInt16 c = *charCode;
 	if (isdigit(c) || c == '+' || c == '-' || c == '.' || c == '\b' || c == 0x7F || (c >= 0x1c && c <= 0x1f)
 	|| c == '\t')
@@ -381,11 +412,13 @@ pascal ControlKeyFilterResult	AUCarbonViewControl::NumericKeyFilterCallback(Cont
 		SetControlData(This->mControl, 0, kControlEditTextSelectionTag, sizeof(sel), &sel);
 		This->ControlToParameter();
 	}
+#endif
 	return kControlKeyFilterBlockKey;
 }
 
 Boolean	AUCarbonViewControl::SizeControlToFit(ControlRef inControl, SInt16 *outWidth, SInt16 *outHeight)
 {
+#if !__LP64__
 	if (inControl == 0) return false;
 	
 	Boolean bValue = false;
@@ -417,7 +450,7 @@ Boolean	AUCarbonViewControl::SizeControlToFit(ControlRef inControl, SInt16 *outW
 	
 	if (outHeight)
 		*outHeight = height;
-	
+#endif	
 	return true;
 }
 
@@ -440,11 +473,13 @@ bool	AUPropertyControl::HandleEvent(EventHandlerCallRef inHandlerRef, EventRef e
 
 void	AUPropertyControl::RegisterEvents ()
 {
+#if !__LP64__
 	EventTypeSpec events[] = {
 		{ kEventClassControl, kEventControlValueFieldChanged }	// N.B. OS X only
 	};
 	
 	WantEventTypes(GetControlEventTarget(mControl), GetEventTypeCount(events), events);
+#endif
 }
 
 void	AUPropertyControl::EmbedControl (ControlRef theControl) 
@@ -458,8 +493,10 @@ WindowRef 	AUPropertyControl::GetCarbonWindow()
 }
 
 #pragma mark ___AUVPreset
+#if !__LP64__
 static CFStringRef kStringFactoryPreset = kAUViewLocalizedStringKey_FactoryPreset;
 static bool sAUVPresetLocalized = false;
+#endif
 
 AUVPresets::AUVPresets (AUCarbonViewBase* 		inParentView, 
 						CFArrayRef& 			inPresets,
@@ -471,6 +508,7 @@ AUVPresets::AUVPresets (AUCarbonViewBase* 		inParentView,
 	  mPresets (inPresets),
 	  mView (inParentView)
 {
+#if !__LP64__
 	Rect r;
 	
 	// ok we now have an array of factory presets
@@ -542,7 +580,7 @@ AUVPresets::AUVPresets (AUCarbonViewBase* 		inParentView,
 	// find which menu item is the Default preset
 	UInt32 propertySize = sizeof(AUPreset);
 	AUPreset defaultPreset;
-	ComponentResult result = AudioUnitGetProperty (mView->GetEditAudioUnit(), 
+	OSStatus result = AudioUnitGetProperty (mView->GetEditAudioUnit(), 
 									kAudioUnitProperty_PresentPreset,
 									kAudioUnitScope_Global, 
 									0, 
@@ -550,10 +588,10 @@ AUVPresets::AUVPresets (AUCarbonViewBase* 		inParentView,
 									&propertySize);
 	
 	mPropertyID = kAudioUnitProperty_PresentPreset;
-	
+#endif	
 #ifndef __LP64__
 	if (result != noErr) {	// if the PresentPreset property is not implemented, fall back to the CurrentPreset property
-		ComponentResult result = AudioUnitGetProperty (mView->GetEditAudioUnit(), 
+		OSStatus result = AudioUnitGetProperty (mView->GetEditAudioUnit(), 
 									kAudioUnitProperty_CurrentPreset,
 									kAudioUnitScope_Global, 
 									0, 
@@ -564,12 +602,13 @@ AUVPresets::AUVPresets (AUCarbonViewBase* 		inParentView,
 			CFRetain (defaultPreset.presetName);
 	} 
 #endif
-		
+#if !__LP64__		
 	EmbedControl (mControl);
 	
 	HandlePropertyChange(defaultPreset);
 	
 	RegisterEvents();
+#endif
 }
 
 void	AUVPresets::AddInterest (AUEventListenerRef		inListener,
@@ -600,6 +639,7 @@ void	AUVPresets::RemoveInterest (AUEventListenerRef	inListener,
 
 void	AUVPresets::HandleControlChange ()
 {
+#if !__LP64__
 	SInt32 i = GetControl32BitValue(mControl);
 	if (i > 0)
 	{
@@ -620,10 +660,12 @@ void	AUVPresets::HandleControlChange ()
 		changedUnit.mParameterID = kAUParameterListener_AnyParameter;
 		verify_noerr (AUParameterListenerNotify (NULL, NULL, &changedUnit) );
 	}
+#endif
 }
 
 void	AUVPresets::HandlePropertyChange(AUPreset &preset) 
 {
+#if !__LP64__
 	// check to see if the preset is in our menu
 	int numPresets = CFArrayGetCount(mPresets);
 	if (preset.presetNumber < 0) {	
@@ -640,6 +682,7 @@ void	AUVPresets::HandlePropertyChange(AUPreset &preset)
 	
 	if (preset.presetName)
 		CFRelease (preset.presetName);
+#endif
 }
 
 bool	AUVPresets::HandlePropertyChange (const AudioUnitProperty &inProp)
@@ -649,7 +692,7 @@ bool	AUVPresets::HandlePropertyChange (const AudioUnitProperty &inProp)
 		UInt32 theSize = sizeof(AUPreset);
 		AUPreset currentPreset;
 		
-		ComponentResult result = AudioUnitGetProperty(inProp.mAudioUnit, 
+		OSStatus result = AudioUnitGetProperty(inProp.mAudioUnit, 
 												inProp.mPropertyID, 
 												inProp.mScope, 
 												inProp.mElement, &currentPreset, &theSize);

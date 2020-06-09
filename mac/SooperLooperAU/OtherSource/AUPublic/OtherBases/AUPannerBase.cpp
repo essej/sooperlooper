@@ -1,42 +1,48 @@
-/*	Copyright © 2007 Apple Inc. All Rights Reserved.
-	
-	Disclaimer: IMPORTANT:  This Apple software is supplied to you by 
-			Apple Inc. ("Apple") in consideration of your agreement to the
-			following terms, and your use, installation, modification or
-			redistribution of this Apple software constitutes acceptance of these
-			terms.  If you do not agree with these terms, please do not use,
-			install, modify or redistribute this Apple software.
-			
-			In consideration of your agreement to abide by the following terms, and
-			subject to these terms, Apple grants you a personal, non-exclusive
-			license, under Apple's copyrights in this original Apple software (the
-			"Apple Software"), to use, reproduce, modify and redistribute the Apple
-			Software, with or without modifications, in source and/or binary forms;
-			provided that if you redistribute the Apple Software in its entirety and
-			without modifications, you must retain this notice and the following
-			text and disclaimers in all such redistributions of the Apple Software. 
-			Neither the name, trademarks, service marks or logos of Apple Inc. 
-			may be used to endorse or promote products derived from the Apple
-			Software without specific prior written permission from Apple.  Except
-			as expressly stated in this notice, no other rights or licenses, express
-			or implied, are granted by Apple herein, including but not limited to
-			any patent rights that may be infringed by your derivative works or by
-			other works in which the Apple Software may be incorporated.
-			
-			The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
-			MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-			THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
-			FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
-			OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
-			
-			IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
-			OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-			SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-			INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
-			MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
-			AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
-			STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
-			POSSIBILITY OF SUCH DAMAGE.
+/*
+     File: AUPannerBase.cpp
+ Abstract: AUPannerBase.h
+  Version: 1.1
+ 
+ Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple
+ Inc. ("Apple") in consideration of your agreement to the following
+ terms, and your use, installation, modification or redistribution of
+ this Apple software constitutes acceptance of these terms.  If you do
+ not agree with these terms, please do not use, install, modify or
+ redistribute this Apple software.
+ 
+ In consideration of your agreement to abide by the following terms, and
+ subject to these terms, Apple grants you a personal, non-exclusive
+ license, under Apple's copyrights in this original Apple software (the
+ "Apple Software"), to use, reproduce, modify and redistribute the Apple
+ Software, with or without modifications, in source and/or binary forms;
+ provided that if you redistribute the Apple Software in its entirety and
+ without modifications, you must retain this notice and the following
+ text and disclaimers in all such redistributions of the Apple Software.
+ Neither the name, trademarks, service marks or logos of Apple Inc. may
+ be used to endorse or promote products derived from the Apple Software
+ without specific prior written permission from Apple.  Except as
+ expressly stated in this notice, no other rights or licenses, express or
+ implied, are granted by Apple herein, including but not limited to any
+ patent rights that may be infringed by your derivative works or by other
+ works in which the Apple Software may be incorporated.
+ 
+ The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
+ MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+ THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
+ FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
+ OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
+ 
+ IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
+ OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
+ MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
+ AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
+ STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+ 
+ Copyright (C) 2014 Apple Inc. All Rights Reserved.
+ 
 */
 #include "AUPannerBase.h"
 #include "CABundleLocker.h"
@@ -63,7 +69,7 @@ static Float32 kPannerParamDefault_Gain = 1.;
 
 //_____________________________________________________________________________
 //
-AUPannerBase::AUPannerBase(AudioUnit inAudioUnit)
+AUPannerBase::AUPannerBase(AudioComponentInstance inAudioUnit)
     : AUBase(inAudioUnit, 1, 1), mBypassEffect(false)
 {
 	{
@@ -108,9 +114,9 @@ AUPannerBase::~AUPannerBase()
 //_____________________________________________________________________________
 //
 /*! @method Initialize */
-ComponentResult		AUPannerBase::Initialize()
+OSStatus			AUPannerBase::Initialize()
 {
-	ComponentResult err = noErr;
+	OSStatus err = noErr;
 	AllocBypassMatrix();
 	err = UpdateBypassMatrix();
 	return err;
@@ -144,9 +150,9 @@ static AudioChannelLayoutTag DefaultTagForNumberOfChannels(UInt32 inNumberChanne
 //_____________________________________________________________________________
 //
 /*! @method UpdateBypassMatrix */
-ComponentResult		AUPannerBase::SetDefaultChannelLayoutsIfNone()
+OSStatus			AUPannerBase::SetDefaultChannelLayoutsIfNone()
 {
-	ComponentResult err = noErr;
+	OSStatus err = noErr;
 	
 	// if layout has not been set, then guess layout from number of channels
 	UInt32 inChannels = GetNumberOfInputChannels();
@@ -183,9 +189,9 @@ ComponentResult		AUPannerBase::SetDefaultChannelLayoutsIfNone()
 
 
 	
-ComponentResult		AUPannerBase::UpdateBypassMatrix()
+OSStatus			AUPannerBase::UpdateBypassMatrix()
 {
-	ComponentResult err = SetDefaultChannelLayoutsIfNone();
+	OSStatus err = SetDefaultChannelLayoutsIfNone();
 	if (err) return err;
 	
 	UInt32 inChannels = GetNumberOfInputChannels();
@@ -226,7 +232,7 @@ void				AUPannerBase::Cleanup()
 //_____________________________________________________________________________
 //
 /*! @method Reset */
-ComponentResult		AUPannerBase::Reset(		AudioUnitScope 				inScope,
+OSStatus			AUPannerBase::Reset(		AudioUnitScope 				inScope,
 										AudioUnitElement 			inElement)
 {
     return AUBase::Reset(inScope, inElement);
@@ -235,11 +241,11 @@ ComponentResult		AUPannerBase::Reset(		AudioUnitScope 				inScope,
 //_____________________________________________________________________________
 //
 /*! @method GetParameterInfo */
-ComponentResult		AUPannerBase::GetParameterInfo(	AudioUnitScope			inScope,
+OSStatus			AUPannerBase::GetParameterInfo(	AudioUnitScope			inScope,
 												AudioUnitParameterID	inParameterID,
 												AudioUnitParameterInfo	&outParameterInfo )
 {
-	ComponentResult result = noErr;
+	OSStatus result = noErr;
 
 	outParameterInfo.flags = 	kAudioUnitParameterFlag_IsWritable
 						+		kAudioUnitParameterFlag_IsReadable;
@@ -313,7 +319,7 @@ ComponentResult		AUPannerBase::GetParameterInfo(	AudioUnitScope			inScope,
 
 //_____________________________________________________________________________
 //
-ComponentResult 	AUPannerBase::GetParameter(		AudioUnitParameterID			inParamID,
+OSStatus 	AUPannerBase::GetParameter(		AudioUnitParameterID			inParamID,
 													AudioUnitScope 					inScope,
 													AudioUnitElement 				inElement,
 													Float32 &						outValue)
@@ -329,7 +335,7 @@ ComponentResult 	AUPannerBase::GetParameter(		AudioUnitParameterID			inParamID,
 											
 //_____________________________________________________________________________
 //
-ComponentResult 	AUPannerBase::SetParameter(		AudioUnitParameterID			inParamID,
+OSStatus 	AUPannerBase::SetParameter(		AudioUnitParameterID			inParamID,
 													AudioUnitScope 					inScope,
 													AudioUnitElement 				inElement,
 													Float32							inValue,
@@ -348,13 +354,13 @@ ComponentResult 	AUPannerBase::SetParameter(		AudioUnitParameterID			inParamID,
 //_____________________________________________________________________________
 //
 /*! @method GetPropertyInfo */
-ComponentResult		AUPannerBase::GetPropertyInfo (AudioUnitPropertyID	inID,
+OSStatus			AUPannerBase::GetPropertyInfo (AudioUnitPropertyID	inID,
 										AudioUnitScope				inScope,
 										AudioUnitElement			inElement,
 										UInt32 &					outDataSize,
 										Boolean &					outWritable)
 {
-	ComponentResult err = noErr;
+	OSStatus err = noErr;
 	switch (inID) {
 		case kAudioUnitProperty_BypassEffect:
 			if (inScope != kAudioUnitScope_Global)
@@ -372,12 +378,12 @@ ComponentResult		AUPannerBase::GetPropertyInfo (AudioUnitPropertyID	inID,
 //_____________________________________________________________________________
 //
 /*! @method GetProperty */
-ComponentResult		AUPannerBase::GetProperty (AudioUnitPropertyID 		inID,
+OSStatus			AUPannerBase::GetProperty (AudioUnitPropertyID 		inID,
 										AudioUnitScope 				inScope,
 										AudioUnitElement	 		inElement,
 										void *						outData)
 {
-	ComponentResult err = noErr;
+	OSStatus err = noErr;
 	switch (inID) 
 	{
 		case kAudioUnitProperty_BypassEffect:
@@ -395,7 +401,7 @@ ComponentResult		AUPannerBase::GetProperty (AudioUnitPropertyID 		inID,
 //_____________________________________________________________________________
 //
 /*! @method SetProperty */
-ComponentResult		AUPannerBase::SetProperty(AudioUnitPropertyID 		inID,
+OSStatus			AUPannerBase::SetProperty(AudioUnitPropertyID 		inID,
 										AudioUnitScope 				inScope,
 										AudioUnitElement 			inElement,
 										const void *				inData,
@@ -432,7 +438,7 @@ bool				AUPannerBase::StreamFormatWritable (AudioUnitScope	scope,
 //_____________________________________________________________________________
 //
 /*! @method ChangeStreamFormat */
-ComponentResult		AUPannerBase::ChangeStreamFormat (
+OSStatus			AUPannerBase::ChangeStreamFormat (
 									AudioUnitScope						inScope,
 									AudioUnitElement					inElement,
 									const CAStreamBasicDescription & 	inPrevFormat,
@@ -453,7 +459,7 @@ ComponentResult		AUPannerBase::ChangeStreamFormat (
 //_____________________________________________________________________________
 //
 /*! @method Render */
-ComponentResult 	AUPannerBase::Render(AudioUnitRenderActionFlags &		ioActionFlags,
+OSStatus 	AUPannerBase::Render(AudioUnitRenderActionFlags &		ioActionFlags,
 									const AudioTimeStamp &			inTimeStamp,
 									UInt32							inNumberFrames)
 {
@@ -466,12 +472,12 @@ ComponentResult 	AUPannerBase::Render(AudioUnitRenderActionFlags &		ioActionFlag
 //_____________________________________________________________________________
 //
 /*! @method Render */
-ComponentResult 	AUPannerBase::BypassRender(AudioUnitRenderActionFlags &		ioActionFlags,
+OSStatus 	AUPannerBase::BypassRender(AudioUnitRenderActionFlags &		ioActionFlags,
 									const AudioTimeStamp &			inTimeStamp,
 									UInt32							inNumberFrames)
 {
 	AudioUnitRenderActionFlags xflags = 0;
-	ComponentResult result = PullInput(0, xflags, inTimeStamp, inNumberFrames);
+	OSStatus result = PullInput(0, xflags, inTimeStamp, inNumberFrames);
 	if (result) return false;
 	bool isSilent = xflags & kAudioUnitRenderAction_OutputIsSilence;
 
@@ -621,9 +627,10 @@ UInt32 AUPannerBase::GetChannelLayoutTags(		AudioUnitScope				inScope,
 				outTags[2] = kAudioChannelLayoutTag_AudioUnit_5_0;
 				outTags[3] = kAudioChannelLayoutTag_AudioUnit_6_0;
 				outTags[4] = kAudioChannelLayoutTag_AudioUnit_7_0;
-				outTags[5] = kAudioChannelLayoutTag_AudioUnit_8;
+				outTags[5] = kAudioChannelLayoutTag_AudioUnit_7_0_Front;
+				outTags[6] = kAudioChannelLayoutTag_AudioUnit_8;
 			}
-			return 6;
+			return 7;
 		default: {
 			OSStatus err = kAudioUnitErr_InvalidScope;
 			throw err;

@@ -1,4 +1,4 @@
-/*	Copyright © 2007 Apple Inc. All Rights Reserved.
+/*	Copyright ï¿½ 2007 Apple Inc. All Rights Reserved.
 	
 	Disclaimer: IMPORTANT:  This Apple software is supplied to you by 
 			Apple Inc. ("Apple") in consideration of your agreement to the
@@ -124,7 +124,7 @@ void	CASMPTETimeBase::SecondsToSMPTETime(Float64					inSeconds,
 	outSMPTETime.mSubframes = absBits %= inSubframeDivisor;
 	outSMPTETime.mSubframeDivisor = inSubframeDivisor;
 	
-	outSMPTETime.mType = mFormat;
+	outSMPTETime.mType = (SMPTETimeType) mFormat;
 }
 
 

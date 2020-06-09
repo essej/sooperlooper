@@ -1,42 +1,48 @@
-/*	Copyright © 2007 Apple Inc. All Rights Reserved.
-	
-	Disclaimer: IMPORTANT:  This Apple software is supplied to you by 
-			Apple Inc. ("Apple") in consideration of your agreement to the
-			following terms, and your use, installation, modification or
-			redistribution of this Apple software constitutes acceptance of these
-			terms.  If you do not agree with these terms, please do not use,
-			install, modify or redistribute this Apple software.
-			
-			In consideration of your agreement to abide by the following terms, and
-			subject to these terms, Apple grants you a personal, non-exclusive
-			license, under Apple's copyrights in this original Apple software (the
-			"Apple Software"), to use, reproduce, modify and redistribute the Apple
-			Software, with or without modifications, in source and/or binary forms;
-			provided that if you redistribute the Apple Software in its entirety and
-			without modifications, you must retain this notice and the following
-			text and disclaimers in all such redistributions of the Apple Software. 
-			Neither the name, trademarks, service marks or logos of Apple Inc. 
-			may be used to endorse or promote products derived from the Apple
-			Software without specific prior written permission from Apple.  Except
-			as expressly stated in this notice, no other rights or licenses, express
-			or implied, are granted by Apple herein, including but not limited to
-			any patent rights that may be infringed by your derivative works or by
-			other works in which the Apple Software may be incorporated.
-			
-			The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
-			MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
-			THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
-			FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
-			OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
-			
-			IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
-			OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-			SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-			INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
-			MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
-			AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
-			STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
-			POSSIBILITY OF SUCH DAMAGE.
+/*
+     File: CAExtAudioFile.h
+ Abstract: Part of CoreAudio Utility Classes
+  Version: 1.1
+ 
+ Disclaimer: IMPORTANT:  This Apple software is supplied to you by Apple
+ Inc. ("Apple") in consideration of your agreement to the following
+ terms, and your use, installation, modification or redistribution of
+ this Apple software constitutes acceptance of these terms.  If you do
+ not agree with these terms, please do not use, install, modify or
+ redistribute this Apple software.
+ 
+ In consideration of your agreement to abide by the following terms, and
+ subject to these terms, Apple grants you a personal, non-exclusive
+ license, under Apple's copyrights in this original Apple software (the
+ "Apple Software"), to use, reproduce, modify and redistribute the Apple
+ Software, with or without modifications, in source and/or binary forms;
+ provided that if you redistribute the Apple Software in its entirety and
+ without modifications, you must retain this notice and the following
+ text and disclaimers in all such redistributions of the Apple Software.
+ Neither the name, trademarks, service marks or logos of Apple Inc. may
+ be used to endorse or promote products derived from the Apple Software
+ without specific prior written permission from Apple.  Except as
+ expressly stated in this notice, no other rights or licenses, express or
+ implied, are granted by Apple herein, including but not limited to any
+ patent rights that may be infringed by your derivative works or by other
+ works in which the Apple Software may be incorporated.
+ 
+ The Apple Software is provided by Apple on an "AS IS" basis.  APPLE
+ MAKES NO WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION
+ THE IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS
+ FOR A PARTICULAR PURPOSE, REGARDING THE APPLE SOFTWARE OR ITS USE AND
+ OPERATION ALONE OR IN COMBINATION WITH YOUR PRODUCTS.
+ 
+ IN NO EVENT SHALL APPLE BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL
+ OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) ARISING IN ANY WAY OUT OF THE USE, REPRODUCTION,
+ MODIFICATION AND/OR DISTRIBUTION OF THE APPLE SOFTWARE, HOWEVER CAUSED
+ AND WHETHER UNDER THEORY OF CONTRACT, TORT (INCLUDING NEGLIGENCE),
+ STRICT LIABILITY OR OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+ 
+ Copyright (C) 2014 Apple Inc. All Rights Reserved.
+ 
 */
 #ifndef __CAExtAudioFile_h__
 #define __CAExtAudioFile_h__
@@ -51,7 +57,7 @@
 	#include "AudioConverter.h"
 #endif
 #include "CAXException.h"
-#include "CAAutoDisposer.h"
+//#include "CAAutoDisposer.h"
 #include "CAStreamBasicDescription.h"
 #include "CAAudioChannelLayout.h"
 #include "CACFObject.h"
@@ -69,6 +75,20 @@ public:
 		Close();
 	}
 	
+	bool IsValid() const { return mExtAudioFile != NULL; }
+	
+	void	Open(const char* filename)
+	{
+		Close();
+		CFURLRef url = CFURLCreateFromFileSystemRepresentation(kCFAllocatorDefault, (const UInt8*)filename, strlen(filename), false);
+		XThrowIf(!url, -1, "couldn't convert path to CFURLRef");
+		OSStatus res = ExtAudioFileOpenURL(url, &mExtAudioFile);
+		if (res)
+			CFRelease(url);
+		Check(res, "ExtAudioFileOpenURL");
+		CFRelease (url);
+	}
+	
 	// this group of methods maps directly to the API other than OSStatus results translating into exceptions.
 	// you must explicitly open, wrap or create a file.
 	void	OpenURL(CFURLRef url)
@@ -76,17 +96,23 @@ public:
 		Close();
 		Check(ExtAudioFileOpenURL(url, &mExtAudioFile), "ExtAudioFileOpenURL");
 	}
-	
-	/*void	Open(const FSRef &fsref)
-	{
-		Close();
-		Check(ExtAudioFileOpen(&fsref, &mExtAudioFile), "ExtAudioFileOpen");
-	}*/
-	
+		
 	void	WrapAudioFileID(AudioFileID inFileID, Boolean forWriting)
 	{
 		Close();
 		Check(ExtAudioFileWrapAudioFileID(inFileID, forWriting, &mExtAudioFile), "ExtAudioFileWrapAudioFileID");
+	}
+
+	void	Create(const char *filePath, AudioFileTypeID filetype, const AudioStreamBasicDescription &streamDesc, const AudioChannelLayout *channelLayout, UInt32 flags)
+	{
+		CFURLRef url = CFURLCreateFromFileSystemRepresentation(NULL, (const UInt8 *)filePath, strlen(filePath), false);
+		XThrowIf(!url, -1, "couldn't convert path to CFURLRef");
+		Close();
+		OSStatus res = ExtAudioFileCreateWithURL(url, filetype, &streamDesc, channelLayout, flags, &mExtAudioFile);
+		if (res)
+			CFRelease(url);
+		Check(res, "ExtAudioFileCreateWithURL");
+		CFRelease(url);
 	}
 	
 	void	CreateWithURL(CFURLRef url, AudioFileTypeID filetype, const AudioStreamBasicDescription &streamDesc, const AudioChannelLayout *channelLayout, UInt32 flags)
@@ -94,18 +120,12 @@ public:
 		Close();
 		Check(ExtAudioFileCreateWithURL(url, filetype, &streamDesc, channelLayout, flags, &mExtAudioFile), "ExtAudioFileCreateWithURL");
 	}
-	/*
-	void	CreateNew(const FSRef &parentDir, CFStringRef filename, AudioFileTypeID filetype, const AudioStreamBasicDescription &streamDesc, const AudioChannelLayout *channelLayout=NULL)
-	{
-		Close();
-		Check(ExtAudioFileCreateNew(&parentDir, filename, filetype, &streamDesc, channelLayout, &mExtAudioFile), "ExtAudioFileCreateNew");
-	}*/
-	
+
 	// you may explicitly close a file, or have it closed automatically by the destructor.
 	void	Close()
 	{
 		if (mExtAudioFile != NULL) {
-			ExtAudioFileDispose(mExtAudioFile);
+			Check(ExtAudioFileDispose(mExtAudioFile), "ExtAudioFileClose");
 			mExtAudioFile = NULL;
 		}
 	}
@@ -115,9 +135,24 @@ public:
 		Check(ExtAudioFileRead(mExtAudioFile, &ioNumberFrames, ioData), "ExtAudioFileRead");
 	}
 	
-	void	Write(UInt32 inNumberFrames, const AudioBufferList *ioData)
+	OSStatus	Write(UInt32 inNumberFrames, const AudioBufferList *ioData)
 	{
-		Check(ExtAudioFileWrite(mExtAudioFile, inNumberFrames, ioData), "ExtAudioFileWrite");
+		OSStatus err = ExtAudioFileWrite(mExtAudioFile, inNumberFrames, ioData);
+		switch (err) {
+			// noErr and certain special errors are returned without an exception
+		case noErr:
+			break;
+	#if TARGET_OS_IPHONE
+		case kExtAudioFileError_CodecUnavailableInputConsumed:
+		case kExtAudioFileError_CodecUnavailableInputNotConsumed:
+			break;
+	#endif
+		default:
+			// throw an exception
+			Check(err, "ExtAudioFileWrite");
+			break;
+		}
+		return err;
 	}
 	
 	void	WriteAsync(UInt32 inNumberFrames, const AudioBufferList *ioData)
@@ -153,28 +188,7 @@ public:
 	{
 		CheckProperty(ExtAudioFileSetProperty(mExtAudioFile, propid, size, inData), "ExtAudioFileSetProperty", propid);
 	}
-
-	// higher-level methods
 	
-	/*void	Open(const char *filePath) {
-		FSRef fsref;
-		XThrowIfError(FSPathMakeRef((UInt8 *)filePath, &fsref, NULL), "couldn't locate audio file");
-		Open(fsref);
-	}*/
-	
-	void	Open(const char *filePath)
-	{
-		CACFURL url = CFURLCreateFromFileSystemRepresentation(NULL, (const Byte *)filePath, strlen(filePath), false);
-		OpenURL(url.GetCFObject());
-	}
-	
-	void	Create(const char *filePath, AudioFileTypeID filetype, const AudioStreamBasicDescription &streamDesc, const AudioChannelLayout *channelLayout, UInt32 flags)
-	{
-		CACFURL url = CFURLCreateFromFileSystemRepresentation(NULL, (const Byte *)filePath, strlen(filePath), false);
-		XThrowIf(!url.IsValid(), -1, "couldn't convert path to CFURLRef");
-		CreateWithURL(url.GetCFObject(), filetype, streamDesc, channelLayout, flags);
-	}
-
 	const CAAudioChannelLayout &GetFileChannelLayout()
 	{
 		return FetchChannelLayout(mFileChannelLayout, kExtAudioFileProperty_FileChannelLayout);
@@ -198,7 +212,9 @@ public:
 	}
 	
 
-	void	SetClientFormat(const CAStreamBasicDescription &dataFormat, const CAAudioChannelLayout *layout=NULL) {
+	void	SetClientFormat(const CAStreamBasicDescription &dataFormat, const CAAudioChannelLayout *layout=NULL, UInt32 codecManuf=0) {
+		if (codecManuf != 0)
+			SetProperty('cman' /*kExtAudioFileProperty_CodecManufacturer*/, sizeof(codecManuf), &codecManuf);
 		SetProperty(kExtAudioFileProperty_ClientDataFormat, sizeof(dataFormat), &dataFormat);
 		if (layout)
 			SetClientChannelLayout(*layout);
@@ -243,7 +259,7 @@ protected:
 	{
 		if (err) {
 			char txt[128];
-			sprintf(txt, "%s failed", func);
+			snprintf(txt, sizeof(txt), "%s failed", func);
 			throw CAXException(txt, err);
 		}
 	}
@@ -253,7 +269,7 @@ protected:
 		if (err) {
 			char txt[128];
 			char propstr[] = CA4CCToCString(propid);
-			sprintf(txt, "%s ('%s') failed", func, propstr);
+			snprintf(txt, sizeof(txt), "%s ('%s') failed", func, propstr);
 			throw CAXException(txt, err);
 		}
 	}
@@ -268,8 +284,8 @@ protected:
 	}
 
 private:
-	CAExtAudioFile(const CAExtAudioFile &a) { }	// prohibit
-	CAExtAudioFile & operator = (const CAExtAudioFile &a) { return *this; } // prohibit
+	CAExtAudioFile(const CAExtAudioFile &) { }	// prohibit
+	CAExtAudioFile & operator = (const CAExtAudioFile &) { return *this; } // prohibit
 
 private:
 	ExtAudioFileRef				mExtAudioFile;
