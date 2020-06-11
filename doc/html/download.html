@@ -44,7 +44,12 @@
 
 	  <b>Mac OS X</b>
 	   <ul>
-	     <li>  In order to run the JACK (non-plugin version), you <b>must</b> install a release of JACK-OSX version of at least 0.7 found at <a href="http://jackosx.com">jackosx.com</a>.
+	     <li>  In order to run the JACK (non-plugin version), you must install
+	     the release of JackOSX (JACK2) version of at least
+	     0.9 found at <a
+	     href="http://jackaudio.org/downloads/">jackaudio.org</a>. You do not need
+	     to install JACK if you only intend on using the AudioUnit
+	     plugin version.
 
 		<li> The latest release includes an
 AudioUnit plugin version in addition to the standalone JACK version.  You still need the
@@ -56,14 +61,15 @@ README_AudioUnit.txt inside the package for more details.
 
    <li><a href="SooperLooper-64bit-1.7.4.dmg">SooperLooper-64bit-1.7.4.dmg
 (Intel only - 64bit)</a>  &nbsp; <small>[26 MB]</small> &nbsp; &nbsp; <b>This
-version includes ONLY the 64bit application and AU plugin and should work on OS X 10.8
-and above.</b>      
+version includes ONLY the 64bit application and AU plugin and should work on OS X
+10.9
+and above, including Catalina.</b>      
 
   
    <li><a href="SooperLooper-1.7.3.dmg">SooperLooper-1.7.3.dmg
 (Intel only)</a>  &nbsp; <small>[11 MB]</small> &nbsp; &nbsp; <b>This
-version includes both 32bit and 64bit AU plugins and should work on OS X 10.7
-and above. v1.6.18 is the last version that works on OS X 10.6, for the
+version includes both 32bit and 64bit AU plugins (but only 32 bit UI)  and should work on OS X 10.7
+and above (but not Catalina). v1.6.18 is the last version that works on OS X 10.6, for the
 moment.</b>      
 
    <li><a href="SooperLooper-1.7.2.dmg">SooperLooper-1.7.2.dmg
@@ -136,12 +142,6 @@ compensation features that that &ge; 1.1.0 have.
 <p>
   <b>Linux</b> <br>
 	  Check your distribution for prebuilt binary packages.
-	  <ul>
-	    <li>
-	      RedHat/Fedora - from
-	      <a href="http://www-ccrma.stanford.edu/planetccrma/software/soundapps.html#sooperlooper">Planet CCRMA</a>.
-	    </li>
-	  </ul>
 
 </div>
 	
@@ -307,7 +307,7 @@ GitHub</a>
 	  libraries installed:
 	  
 	    <ul class="smaller">
-	      <li> <a href="http://jackit.sf.net">JACK</a> -- version &ge; 0.80.0 <br>
+	      <li> <a href="http://jackaudio.org">JACK</a> -- version &ge; 0.80.0 <br>
 		providing
 		real-time low-latency audio interconnection and
 		delivery.   If you haven't used JACK before
@@ -315,18 +315,16 @@ GitHub</a>
 		  Audio User Guide</a> and make sure to read the
 		section on JACK.  You'll also need ALSA on linux for now.
 	      <li> <a href="http://www.wxwidgets.org">wxWidgets</a>
-		(wxGTK or wxMac) -- the toolkit I've chosen to use for the GUI.
-		It should work with the most recent 2.4.x,
-		2.5.x, and 2.6.x versions.  For best look on Linux, you will want wxGTK compiled
+		the toolkit I've chosen to use for the GUI.
+		It should work with the 2.6.x, 2.8, or 3.x versions.  For best look on Linux, you will want wxGTK compiled
 			against gtk2 using the --enable-gtk2 option to
-			configure.  For OS X you will want at least the 2.6.1 version of wxMac.
+			configure.  For OS X you will want at least the 2.6.1 version of
+			wxMac.
 
-	      <li><a href="http://libsigc.sourceforge.net/">libsigc++
-			  1.2</a>
+	      <li><a
+	      href="https://libsigcplusplus.github.io/libsigcplusplus/">libsigc++-2.0</a>
 			-- this library is usually already on recent
-			systems, but if not get it and install it. Note that you might have v 2.x installed,
-	      but you must additionally install v1.2.x, which coexists peacefully with the newer version.
-
+			systems, but if not get it and install it.
 	      <li><a
 			  href="http://www.mega-nerd.com/libsndfile/">libsndfile
 			  </a> --
@@ -336,7 +334,7 @@ GitHub</a>
 			  </a> --
 			audio sample rate conversion.  <i>This is optional, but rate changing is disabled without it</i>
 			
-	      <li><a href="http://plugin.org.uk/liblo/">liblo &ge; 0.17</a>
+	      <li><a href="http://liblo.sourceforge.net">liblo &ge; 0.17</a>
 			--
 			
 			Lightweight OSC library
