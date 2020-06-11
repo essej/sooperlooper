@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AudioComponents</key>
+	<array>
+		<dict>
+			<key>description</key>
+			<string>SooperLooper 64bit AU</string>
+			<key>factoryFunction</key>
+			<string>SooperLooperAUFactory</string>
+			<key>manufacturer</key>
+			<string>Soop</string>
+			<key>name</key>
+			<string>essej.net: SooperLooperAU 64bit</string>
+			<key>subtype</key>
+			<string>loop</string>
+			<key>type</key>
+			<string>aumf</string>
+			<key>version</key>
+			<integer>65536</integer>
+		</dict>
+	</array>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>SooperLooperAU64</string>
+	<key>CFBundleIconFile</key>
+	<string>slgui.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>net.essej.audiounit.SooperLooperAU64</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>${PRODUCT_NAME}</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleShortVersions</key>
+	<string>1.7.4</string>
+	<key>CFBundleSignature</key>
+	<string>Soop</string>
+	<key>CFBundleVersion</key>
+	<string>1.7.4</string>
+	<key>CSResourcesFileMapped</key>
+	<true/>
+</dict>
+</plist>
