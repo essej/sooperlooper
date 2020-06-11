@@ -103,10 +103,9 @@ To connect your MIDI device, you need to use a MIDI patchbay.
 BUILD REQUIREMENTS
  
   JACK  >= 0.80    -- http://jackaudio.org/
-  wxWidgets        -- wxGTK preferably built against gtk2 (configured using the --enable-gtk2 option) 
-                         or wxMac >= 2.5.3
+  wxWidgets        -- 	It should work with the 2.6.x, 2.8, or 3.x versions. For OS X you will want at least the 2.6.1 version of wxMac.
   liblo >= 0.18    -- http://liblo.sourceforge.net/   Lightweight OSC library
-  sigc++ >= 2    -- http://libsigcx.sourceforge.net/   You probably already have it....
+  sigc++ >= 2      -- https://libsigcplusplus.github.io/libsigcplusplus/   You probably already have it....
   libsndfile       -- http://www.mega-nerd.com/libsndfile/
   libsamplerate    -- http://www.mega-nerd.com/SRC/
   ncurses          -- you probably already have it
