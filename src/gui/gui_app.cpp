@@ -101,6 +101,7 @@ static const wxCmdLineEntryDesc cmdLineDesc[] =
 	{ wxCMD_LINE_OPTION, wxT_2("J"), wxT_2("jack-name"), wxT_2("jack client name, default is sooperlooper_1")},
 	{ wxCMD_LINE_OPTION, wxT_2("S"), wxT_2("jack-server-name"), wxT_2("specify JACK server name")},
 	{ wxCMD_LINE_SWITCH, wxT_2("T"), wxT_2("stay-on-top"), wxT_2("keep main window on top of other applications")},
+	{ wxCMD_LINE_OPTION, wxT_2("X"), wxT_2("screen-location"), wxT_2("location on screen to place the window, use format <xpos>:<ypos> (default 100:100)") },
 	{ wxCMD_LINE_SWITCH, wxT_2("n"), wxT_2("never-timeout"), wxT_2("Never timeout if an engine stops responding")},
 	{ wxCMD_LINE_NONE }
 };
@@ -182,6 +183,20 @@ GuiApp::parse_options (int argc, wxChar **argv)
 
 	_stay_on_top = parser.Found (wxT("T"));
 
+        wxString posstr;
+	if (parser.Found (wxT("X"), &posstr)) {
+            // parse X:Y
+            wxArrayString strarr = wxSplit(posstr, wxChar(':'));
+            if (strarr.size() == 2) {
+                long x = 100, y = 100;
+                strarr[0].ToLong(&x);
+                strarr[1].ToLong(&y);
+                _screen_pos = wxPoint(x,y);
+                _override_screenpos = true;
+            }
+        }
+
+        
 	return true;
 }
 	
@@ -200,6 +215,8 @@ GuiApp::GuiApp()
 	_channels = 0;
 	_mem_secs = 0.0f;
 	_stay_on_top = false;
+        _override_screenpos = false;
+        _screen_pos = wxPoint(100, 100);
 	_never_timeout = false;
 	_inited = false;
 }
@@ -255,7 +272,7 @@ bool GuiApp::OnInit()
 #endif
 
 	// Create the main application window
-	_frame = new AppFrame (wxString::Format(wxT("SooperLooper v %s"), wxString::FromAscii(sooperlooper_version).c_str()), wxPoint(100, 100), wxDefaultSize, _stay_on_top);
+	_frame = new AppFrame (wxString::Format(wxT("SooperLooper v %s"), wxString::FromAscii(sooperlooper_version).c_str()), _screen_pos, wxDefaultSize, _stay_on_top);
 
 #ifdef __WXMAC__
 	if (_exec_name.empty()) {
@@ -304,7 +321,13 @@ bool GuiApp::OnInit()
 	if (_mem_secs != 0) {
 		loopctrl.get_spawn_config().mem_secs = _mem_secs;
 	}
-	
+        if (_override_screenpos) {
+                _frame->get_main_panel()->set_default_position(_screen_pos);
+        }
+        else {
+                _screen_pos = _frame->get_main_panel()->get_default_position();
+        }
+        
 	loopctrl.get_spawn_config().never_timeout = _never_timeout;
 	_frame->get_main_panel()->set_never_timeout(_never_timeout);
 	
@@ -320,8 +343,7 @@ bool GuiApp::OnInit()
 
 	// Show it and tell the application that it's our main window
 	_frame->SetSizeHints(850, 210);
-	_frame->SetSize(860, 215);
-
+	_frame->SetSize(_screen_pos.x, _screen_pos.y, 860, 215);
 
 	SetTopWindow(_frame);
 

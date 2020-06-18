@@ -142,6 +142,8 @@ AppFrame::AppFrame(const wxString& title, const wxPoint& pos, const wxSize& size
 
 AppFrame::~AppFrame()
 {
+	get_main_panel()->set_default_position(GetScreenPosition());
+                
 	_mainpanel->save_rc();
     
     //wxLogWarning(wxT("appframe destroy"));

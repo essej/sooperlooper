@@ -72,6 +72,9 @@ class LoopControl
 		std::string   jack_name;
 		std::string   jack_serv_name;
 		std::string   session_path;
+                // default gui positioning, put here cause it's easy
+                long  window_x_pos;
+                long  window_y_pos;
 	};
 	
 	// ctor(s)

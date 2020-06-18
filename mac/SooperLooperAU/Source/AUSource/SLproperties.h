@@ -11,7 +11,8 @@
 
 enum {
 	kSLguiAppPathProperty = 80000,
-	kSLguiStayOnTopProperty
+	kSLguiStayOnTopProperty,
+    kSLguiWindowPositionProperty
 };
 
 enum {

@@ -185,6 +185,45 @@ static bool gWxIsInitialized = false;
 	
 }
 
+-(void)init_winpos
+{
+    string posstr;
+    
+    _slwindow_pos = @"";
+    
+    // use non-empty value from AU property first
+    AudioUnit slau = mAU;
+    UInt32 datasize;
+    Boolean writable;
+    if (AudioUnitGetPropertyInfo(slau, kSLguiWindowPositionProperty, kAudioUnitScope_Global, 0, &datasize, &writable) == noErr)
+    {
+        char * tmpbuf = new char[datasize + 1];
+        AudioUnitGetProperty(slau, kSLguiWindowPositionProperty, kAudioUnitScope_Global, 0, tmpbuf, &datasize);
+        tmpbuf[datasize] = '\0';
+        posstr = tmpbuf;
+        delete [] tmpbuf;
+    }
+    
+    if (!posstr.empty()) {
+        _slwindow_pos = [NSString stringWithUTF8String:posstr.c_str()];
+        return;
+    }
+}
+
+
+-(void) set_winpos_property:(NSString *) posstr
+{
+    AudioUnit slau = mAU;
+    UInt32 datasize;
+    Boolean writable;
+    if (AudioUnitGetPropertyInfo(slau, kSLguiWindowPositionProperty, kAudioUnitScope_Global, 0, &datasize, &writable) == noErr)
+    {
+        if (writable) {
+            AudioUnitSetProperty(slau, kSLguiWindowPositionProperty, kAudioUnitScope_Global, 0, [posstr UTF8String], (UInt32)[posstr length]);
+        }
+    }
+    
+}
 
 #ifdef EMBEDWX
 
@@ -555,6 +594,8 @@ static bool gWxIsInitialized = false;
         // NSLog(@"SLapppath: %@", _slapp_path);
     }
     
+    [self update_winpos];
+    
     string slguipath = [_slapp_path UTF8String];
     
     // slguipath += "/Contents/MacOS/slgui";
@@ -583,6 +624,11 @@ static bool gWxIsInitialized = false;
 		args.push_back("-T");
 	}
     
+    if (_slwindow_pos && [_slwindow_pos length] > 0) {
+        args.push_back("-X");
+        args.push_back([_slwindow_pos UTF8String]);        
+    }
+    
     //cerr << "launching " << slguipath << endl;
     if (_launcher == 0)
     {
@@ -599,6 +645,8 @@ static bool gWxIsInitialized = false;
         [self set_app_path_property:_slapp_path];
         _stay_on_top = ([uiStayOnTopCheck state] == NSOnState) ? 1 : 0;
         [self set_stay_on_top_property:_stay_on_top ];
+        
+        [self set_winpos_property:_slwindow_pos];
         //cerr << "set path property" << endl;
     }
     
@@ -653,6 +701,18 @@ static bool gWxIsInitialized = false;
     _stay_on_top =  ([uiStayOnTopCheck state] == NSOnState) ? 1 : 0;
 	//_stay_on_top = GetControlValue(_stayOnTopCheck);
 	[self set_stay_on_top_property:_stay_on_top];
+}
+
+-(void) update_winpos
+{
+    _slwindow_pos = [uiPositionTextField stringValue] ;
+    if (_slwindow_pos) {
+        _slwindow_pos = [_slwindow_pos stringByReplacingOccurrencesOfString:@" " withString:@""];
+        [self set_winpos_property:_slwindow_pos];
+    }
+    else {
+        [self set_winpos_property:@""];        
+    }
 }
 
 
@@ -716,6 +776,7 @@ void ParameterListenerDispatcher (void *inRefCon, void *inObject, const AudioUni
 	
     [uiPathTextField setStringValue:_slapp_path];
     [uiStayOnTopCheck setState:(_stay_on_top ? NSOnState: NSOffState)];
+    [uiPositionTextField setStringValue:_slwindow_pos];
     
     CAAUParameter auvp(mAU,  kParam_OSCPort, kAudioUnitScope_Global, 0);
     [uiPortTextField setStringValue:[NSString stringWithFormat:@"%d",(int)auvp.GetValue()]];
@@ -751,9 +812,11 @@ void ParameterListenerDispatcher (void *inRefCon, void *inObject, const AudioUni
         // NSLog(@"Cocoa GUI init");
         [self init_app_path];
         [self init_stay_on_top];
+        [self init_winpos];
         
         // NSLog(@"Init app path: %@", _slapp_path);
 
+        uiPositionTextField.editable = YES;
         
 		// initial setup
 		[self _synchronizeUIWithParameterValues];

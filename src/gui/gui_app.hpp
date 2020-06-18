@@ -82,7 +82,10 @@ class GuiApp : public wxApp
 	wxString _server_name;
 	wxString _client_name;
 	bool  _stay_on_top;
-	wxString _load_session;
+        wxPoint   _screen_pos;
+        bool _override_screenpos;
+        
+        wxString _load_session;
 	bool _inited;
 	
 	wxChar ** _engine_argv;

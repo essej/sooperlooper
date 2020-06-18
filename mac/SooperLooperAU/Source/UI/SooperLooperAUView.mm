@@ -100,6 +100,8 @@ OSStatus	SooperLooperAUView::CreateUI(Float32 xoffset, Float32 yoffset)
 	
 #define kCheckWidth 120
 #define kLabelWidth 220
+#define kButtonWidth 180
+#define kPosWidth 100
 #define kLabelHeight 16
 #define kEditTextWidth 40
 #define kMinMaxWidth 32
@@ -121,7 +123,8 @@ OSStatus	SooperLooperAUView::CreateUI(Float32 xoffset, Float32 yoffset)
 	// initialize slapp path
 	init_app_path();
 	init_stay_on_top();
-	
+    init_winpos();
+    
 	//cerr << "INITIAL APP PATH is : " << _slapp_path << endl;
 	
 	/*
@@ -197,13 +200,34 @@ OSStatus	SooperLooperAUView::CreateUI(Float32 xoffset, Float32 yoffset)
 		SetControlCommandID (_stayOnTopCheck, kSLstayOnTopCmd);
 		
 		r.left = 6 + kCheckWidth + xoff;
-		r.right = r.left + kLabelWidth;
+		r.right = r.left + kButtonWidth;
 		verify_noerr(CreatePushButtonControl (mCarbonWindow, &r, CFSTR("Start GUI"), &newControl));
 		verify_noerr(EmbedControl(newControl));
 		_startGuiButton = newControl;
 		SetControlCommandID (_startGuiButton, kSLstartCmd);
-		ypos = r.bottom + 8;
-	}
+        
+        
+        // add window pos
+        r.top = ypos + yoff;
+        r.bottom = r.top + kLabelHeight;
+        r.left = r.right + 10;
+        r.right = r.left + 84;
+        fontStyle.just = teFlushRight;
+        verify_noerr(CreateStaticTextControl(mCarbonWindow, &r, CFSTR("Pos (X:Y)"), &fontStyle, &newControl));
+        verify_noerr(EmbedControl(newControl));
+        r.left = r.right + 4;
+        r.right = r.left + kPosWidth;
+
+        fontStyle.just = teFlushLeft;
+        
+        verify_noerr(CreateEditTextControl (mCarbonWindow, &r, CFStringCreateWithCString(0, _slwindow_pos.c_str(), CFStringGetSystemEncoding()),
+                                            false, true, &fontStyle, &_positionText));
+        verify_noerr(EmbedControl(_positionText));
+
+        
+        ypos = r.bottom + 8;
+
+    }
 		
 	EventTypeSpec myEventSpec = {kEventClassCommand, kEventCommandProcess};
 	
@@ -321,6 +345,44 @@ void SooperLooperAUView::set_app_path_property(std::string guipath)
 	}
 }
 
+void SooperLooperAUView::init_winpos()
+{
+    string posstr;
+    
+    // use non-empty value from AU property first
+    AudioUnit slau = GetEditAudioUnit();
+    UInt32 datasize;
+    Boolean writable;
+    if (AudioUnitGetPropertyInfo(slau, kSLguiWindowPositionProperty, kAudioUnitScope_Global, 0, &datasize, &writable) == noErr)
+    {
+        char * tmpbuf = new char[datasize + 1];
+        AudioUnitGetProperty(slau, kSLguiWindowPositionProperty, kAudioUnitScope_Global, 0, tmpbuf, &datasize);
+        tmpbuf[datasize] = '\0';
+        posstr = tmpbuf;
+        delete [] tmpbuf;
+    }
+    
+    if (!posstr.empty()) {
+        _slwindow_pos = posstr;
+        return;
+    }
+    
+}
+
+void SooperLooperAUView::set_winpos_property(std::string posstr)
+{
+    AudioUnit slau = GetEditAudioUnit();
+    UInt32 datasize;
+    Boolean writable;
+    if (AudioUnitGetPropertyInfo(slau, kSLguiWindowPositionProperty, kAudioUnitScope_Global, 0, &datasize, &writable) == noErr)
+    {
+        if (writable) {
+            AudioUnitSetProperty(slau, kSLguiWindowPositionProperty, kAudioUnitScope_Global, 0, guipath.c_str(), guipath.size());
+        }
+    }
+    
+}
+
 void SooperLooperAUView::init_stay_on_top()
 {
 	short value = 0;
@@ -412,6 +474,14 @@ void SooperLooperAUView::create_slgui()
 	  
 	  snprintf(portbuf, sizeof(portbuf), "%d", (int) auvp.GetValue()); 
 
+    
+    char posbuf[500];
+    Size gotsize = 0 ;
+    posbuf[0] = 0;
+    verify_noerr(GetControlData(_positionText, kControlEditTextPart, kControlStaticTextTextTag, sizeof(pathbuf), pathbuf, &gotsize));
+    posbuf[gotsize] = 0;
+    _slwindow_pos = posbuf;
+    
 	vector<string> args;
 	args.push_back("-H");
 	args.push_back("127.0.0.1");
@@ -422,6 +492,11 @@ void SooperLooperAUView::create_slgui()
 	if (GetControlValue(_stayOnTopCheck)) {
 		args.push_back("-T");
 	}
+    
+    if (!_slwindow_pos.empty()) {
+        args.push_back("-X");
+        args.push_back(_slwindow_pos);        
+    }
 		
   //cerr << "launching " << slguipath << endl;
   if (_launcher == 0)
@@ -439,6 +514,9 @@ void SooperLooperAUView::create_slgui()
 	  set_app_path_property(_slapp_path);  
 	  _stay_on_top = GetControlValue(_stayOnTopCheck);
 	  set_stay_on_top_property(_stay_on_top);
+      
+      set_winpos_property(_slwindow_pos);
+      
 	  //cerr << "set path property" << endl;
   }
 	//_slgui_thread(this);

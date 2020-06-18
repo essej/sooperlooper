@@ -218,6 +218,7 @@ protected:
 	float    _annoyingPressReleaseVal;
     
 	std::string  _guiapp_path;
+    std::string  _guiwindow_pos;
 	
 	// instance, controlid
 	typedef std::pair<int, int> InstancePair;

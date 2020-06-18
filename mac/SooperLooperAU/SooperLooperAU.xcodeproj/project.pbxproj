@@ -944,8 +944,8 @@
 				887292DF2490008E00783614 /* libxml2.a in Frameworks */,
 				887292DA248FFFAB00783614 /* libfftw3.a in Frameworks */,
 				889B86D018A42CB800049C98 /* Accelerate.framework in Frameworks */,
-				885670D41813927400AA5367 /* AudioToolbox.framework in Frameworks */,
 				885670D51813927400AA5367 /* AudioUnit.framework in Frameworks */,
+				885670D41813927400AA5367 /* AudioToolbox.framework in Frameworks */,
 				88365064185845CB00246E75 /* libsamplerate.a in Frameworks */,
 				885670D61813927400AA5367 /* CoreServices.framework in Frameworks */,
 				885670DA1813927400AA5367 /* CoreMIDI.framework in Frameworks */,
@@ -968,8 +968,8 @@
 				889B86CF18A42CB100049C98 /* Accelerate.framework in Frameworks */,
 				88C5716C18984DC400FD840A /* Carbon.framework in Frameworks */,
 				88E4EA8218A15D0C0055D475 /* libsamplerate.a in Frameworks */,
-				88C5716D18984DC400FD840A /* AudioToolbox.framework in Frameworks */,
 				88C5716E18984DC400FD840A /* AudioUnit.framework in Frameworks */,
+				88C5716D18984DC400FD840A /* AudioToolbox.framework in Frameworks */,
 				88C5716F18984DC400FD840A /* CoreServices.framework in Frameworks */,
 				88E4EA8018A15D0C0055D475 /* librubberband.a in Frameworks */,
 				88E4EA7E18A15D0C0055D475 /* liblo.a in Frameworks */,
@@ -1948,9 +1948,13 @@
 			attributes = {
 				LastUpgradeCheck = 0460;
 				TargetAttributes = {
+					883650431858422D00246E75 = {
+						DevelopmentTeam = XCS435894D;
+						ProvisioningStyle = Manual;
+					};
 					885670161813927400AA5367 = {
 						DevelopmentTeam = XCS435894D;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 				};
 			};
@@ -2338,8 +2342,11 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
+				DEVELOPMENT_TEAM = XCS435894D;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -2363,6 +2370,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "";
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_NAME = SooperLooperCocoaViewFactory;
 				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = "";
@@ -2386,9 +2394,12 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = XCS435894D;
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -2405,6 +2416,7 @@
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				OTHER_CFLAGS = "";
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_NAME = SooperLooperCocoaViewFactory;
 				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = "";
@@ -2428,9 +2440,12 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = XCS435894D;
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -2447,6 +2462,7 @@
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				OTHER_CFLAGS = "";
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_NAME = SooperLooperCocoaViewFactory;
 				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = "";
@@ -2461,8 +2477,8 @@
 				BUILD_VARIANTS = normal;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = NO;
 				COPY_PHASE_STRIP = YES;
 				DEBUGGING_SYMBOLS = YES;
@@ -2514,6 +2530,7 @@
 					"-DWITH_COREMIDI",
 					"-D__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=1",
 				);
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				OTHER_LDFLAGS = "-bundle";
 				OTHER_REZFLAGS = "-d x86_64_$(x86_64) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Library/Developer/CoreAudio/AudioUnits/AUPublic/AUBase";
 				PRODUCT_BUNDLE_IDENTIFIER = net.essej.audiounit.SooperLooperAU64;
@@ -2545,8 +2562,8 @@
 				BUILD_VARIANTS = normal;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = NO;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -2596,6 +2613,7 @@
 					"-DWITH_COREMIDI",
 					"-D__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=1",
 				);
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				OTHER_LDFLAGS = "-bundle";
 				OTHER_REZFLAGS = "-d x86_64_$(x86_64) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Library/Developer/CoreAudio/AudioUnits/AUPublic/AUBase";
 				PRODUCT_BUNDLE_IDENTIFIER = net.essej.audiounit.SooperLooperAU64;
@@ -2627,8 +2645,8 @@
 				BUILD_VARIANTS = normal;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = NO;
 				DEPLOYMENT_LOCATION = NO;
 				DEVELOPMENT_TEAM = XCS435894D;
@@ -2676,6 +2694,7 @@
 					"-DWITH_COREMIDI",
 					"-D__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=1",
 				);
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				OTHER_LDFLAGS = "-bundle";
 				OTHER_REZFLAGS = "-d x86_64_$(x86_64) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Library/Developer/CoreAudio/AudioUnits/AUPublic/AUBase";
 				PRODUCT_BUNDLE_IDENTIFIER = net.essej.audiounit.SooperLooperAU64;

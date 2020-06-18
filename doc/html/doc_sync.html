@@ -141,7 +141,7 @@ overdubs in the right place, irregardless of your buffer size.  Please
 note that if you are currently playing software instruments or using
 SW effects inline for monitoring, then you probably won't use the
 compensation feature because you are hearing what you get when you
-play with the loop, and you're only real choice is to use small buffer
+play with the loop, and your only real choice is to use small buffer
 sizes to get low latency.  This might not be strictly true with regard
 to initial loop record/playback and triggering, we'll see.
 </p>
@@ -163,8 +163,24 @@ aligned with the existing loop audio the way you heard it when
 playing, then adjust the Output Latency.  There is an excellent
 description of this in Mobius' documentation in the
 <a href="http://zonemobius.com/mobiusdoc.htm#Latency%20Calibration">latency calibration</a> section.
-Check out the last 3 paragraphs of that section especially.
+Check out the last 3 paragraphs of that section especially, which I have
+included here:
 </p>
+
+<div class="textbox">
+<p><i>
+If you want to tweak the latency values manually, start by increasing the values for both latencies by 10 until it sounds right. You normally shouldn't have to add more than a few hundred frames. If it is still way out of alignment, stop adding to the input latency and start making more radical adjustments to the output latency, up or down in increments of 500. If that is required, submit a bug report with information about your computer and sound card.
+</i></p>
+<p><i>
+To get a better understanding of what these values mean, you can think that at any moment in time
+the software is receiving sound that was performed a few milliseconds in the past, and is playing sound that will be heard a few milliseconds in the future. Input latency is the number of frames it takes a sound to "get into"
+the software. If you set input latency too low, you will be recording sound that was performed before the time you triggered the record function. If you set input latency too high, you will lose some of the sound immediately after you triggered the record function. It is more critical that input latency be correct because miscalibration can result in unwanted sound or loss of sound at the record start point. If an overdub sounds like it has the right content but isn't aligned properly, then adjust output latency not input latency.
+</i></p>
+<p><i>
+If you set output latency too low, overdubs will sound like they are playing too late. If output latency is too high, overdubs will sound like they are playing too early. Deliberately adjusting output latency too low can actually be useful to compensate for monitoring latency. If you perform live using monitor speakers some distance away, it will take a noticeable amount of time for the sound to travel from the speakers to your ears. If you are overdubbing to this sound, it may not be aligned properly on playback. Raising output latency can help bring the overdubs back into alignment.
+</i></p>
+</div>
+
   <p>
 The Latency tab also has a "Automatically Disable Compensation when
 Monitoring input" option, which when enabled automatically turns off

@@ -3,6 +3,8 @@
 version=`grep const ../version.h | cut -d" " -f7 | sed -e 's/[";]//g'`
 echo Version is $version
 
+rm -rf macdist/SooperLooper.app
+
 mkdir -p macdist/SooperLooper.app/Contents/MacOS/
 mkdir -p macdist/SooperLooper.app/Contents/Frameworks
 mkdir -p macdist/SooperLooper.app/Contents/Resources

@@ -129,6 +129,9 @@ END_EVENT_TABLE()
     _add_num_channels = 1;
     _add_discrete = true;
     _add_secs_channel = 40.0f;
+
+    _default_position.x = 100;    
+    _default_position.y = 100;
     
 	_rcdir = wxGetHomeDir() + wxFileName::GetPathSeparator() + wxT(".sooperlooper");
 
@@ -1324,6 +1327,17 @@ bool MainPanel::load_rc()
 		return false;
 	}
 
+        XMLProperty *prop;
+
+        if ((prop = rootNode->property ("window_x_pos")) != 0) {
+                _default_position.x = atol (prop->value().c_str());
+        }
+        if ((prop = rootNode->property ("window_y_pos")) != 0) {
+                _default_position.y = atol (prop->value().c_str());
+        }
+
+
+        
 	XMLNode * bindingsNode = rootNode->find_named_node ("KeyBindings");
 	if (!bindingsNode ) {
 		fprintf(stderr, "Preset Channels node not found in %s!\n", configfname.c_str()); 
@@ -1362,6 +1376,15 @@ bool MainPanel::save_rc()
 	XMLTree configdoc;
 	XMLNode * rootNode = new XMLNode("SLConfig");
 	rootNode->add_property("version", sooperlooper_version);
+
+        char buf[40];
+
+        snprintf(buf, sizeof(buf), "%ld",_default_position.x);
+        rootNode->add_property ("window_x_pos", buf);
+        snprintf(buf, sizeof(buf), "%ld", _default_position.y);
+        rootNode->add_property ("window_y_pos", buf);
+
+        
 	configdoc.set_root (rootNode);
 	
 	XMLNode * bindingsNode = rootNode->add_child ("KeyBindings");

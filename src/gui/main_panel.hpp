@@ -95,6 +95,9 @@ public:
 	bool load_rc();
 	bool save_rc();
 
+        wxPoint get_default_position() const { return _default_position; }
+        void set_default_position(wxPoint pos) { _default_position = pos; }
+    
 	void set_never_timeout(bool flag);
 	bool get_never_timeout() const { return _never_timeout; }
 
@@ -201,6 +204,7 @@ protected:
     float _add_secs_channel;
     bool _add_discrete;
     
+    wxPoint _default_position;
     
 	// keybindings
 

@@ -5,7 +5,7 @@
 * 
 *	Created:	7/2/05
 *	
-*	Copyright:  Copyright © 2005 Jesse Chappell, All Rights Reserved
+*	Copyright:  Copyright ï¿½ 2005 Jesse Chappell, All Rights Reserved
 * 
 */
 #include "SooperLooperAU.h"
@@ -697,6 +697,11 @@ ComponentResult		SooperLooperAU::GetPropertyInfo (AudioUnitPropertyID	inID,
 		outWritable = true;
 		return noErr;
 	}
+    else if (inID == kSLguiWindowPositionProperty) {
+        outDataSize = _guiwindow_pos.size() + 1;
+        outWritable = true;
+        return noErr;
+    }
     else if (inID == kAudioUnitProperty_CocoaUI) {
         outWritable = false;
         outDataSize = sizeof (AudioUnitCocoaViewInfo);
@@ -720,6 +725,10 @@ ComponentResult		SooperLooperAU::GetProperty(	AudioUnitPropertyID inID,
 		strcpy ((char *)outData, _guiapp_path.c_str());
 		return noErr;
 	}
+    else if (inID == kSLguiWindowPositionProperty) {
+        strcpy ((char *)outData, _guiwindow_pos.c_str());
+        return noErr;
+    }
 	else if (inID == kSLguiStayOnTopProperty) {
 		*((short *)outData) = _stay_on_top;
 		return noErr;
@@ -779,6 +788,11 @@ ComponentResult		SooperLooperAU::SetProperty(AudioUnitPropertyID 		inID,
 		//cerr << "set app path in AU to: " << _guiapp_path << endl;
 		return noErr;
 	}
+    else if (inID == kSLguiWindowPositionProperty) {
+        _guiwindow_pos = (char *) inData;
+        //cerr << "set app path in AU to: " << _guiapp_path << endl;
+        return noErr;
+    }
 	return AUMIDIEffectBase::SetProperty (inID, inScope, inElement, inData, inDataSize);
 }
 
@@ -913,6 +927,10 @@ ComponentResult  SooperLooperAU::SetParameter(			AudioUnitParameterID			inID,
 		return noErr;
 	}
 	
+    if (!_engine->is_ok()) {
+        return noErr;
+    }
+    
 	int instance;
 	int ctrl;
 
@@ -1422,6 +1440,18 @@ ComponentResult SooperLooperAU::SaveState(CFPropertyListRef *outData)
 		CFDictionarySetValue(dict, CFSTR("SLAppPath"), cfdata);
 		CFRelease(cfdata);	
 	}
+    
+    // save guiwindow pos
+    {
+        CFMutableDataRef cfdata = CFDataCreateMutable(NULL, 0);    
+        unsigned long plaindatasize;
+        const UInt8 * plaindata = (const UInt8 *) _guiwindow_pos.c_str();
+        plaindatasize = _guiwindow_pos.size();
+        
+        CFDataAppendBytes(cfdata, plaindata, plaindatasize);
+        CFDictionarySetValue(dict, CFSTR("SLWindowPos"), cfdata);
+        CFRelease(cfdata);    
+    }
 		
 	// save stay on top
 	{
@@ -1505,6 +1535,18 @@ ComponentResult SooperLooperAU::RestoreState(CFPropertyListRef inData)
 		_guiapp_path.assign((const char *) plaindata, plaindatasize);
 	}
 	
+    // restore window pos
+    CFDataRef app_wposdata =
+        reinterpret_cast<CFDataRef>(CFDictionaryGetValue((CFDictionaryRef)inData,
+                                                         CFSTR("SLWindowPos")));
+    if (app_wposdata != NULL)
+    {
+        const UInt8 * plaindata = CFDataGetBytePtr(app_wposdata);
+        unsigned long plaindatasize = CFDataGetLength(app_wposdata);
+
+        _guiwindow_pos.assign((const char *) plaindata, plaindatasize);
+    }
+    
 	// restore stay on top
 	CFDataRef stayontop_data =
 		reinterpret_cast<CFDataRef>(CFDictionaryGetValue((CFDictionaryRef)inData,

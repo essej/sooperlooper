@@ -70,6 +70,7 @@ namespace SooperLooperGui {
     IBOutlet NSButton *				uiStartGuiButton;
     IBOutlet NSTextField *			uiPathTextField;
     IBOutlet NSButton *				uiStayOnTopCheck;
+    IBOutlet NSTextField *          uiPositionTextField;
 
     IBOutlet NSView *				uiPluginView;
 
@@ -80,6 +81,7 @@ namespace SooperLooperGui {
              AUParameterListenerRef	mParameterListener;
 
     NSString * _slapp_path;
+    NSString * _slwindow_pos;
     short  _stay_on_top;
     LaunchSLgui * _launcher;
 

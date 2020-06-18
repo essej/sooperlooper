@@ -42,7 +42,8 @@ LoopControl::SpawnConfig::SpawnConfig(const wxString & nm)
 	: name(nm), host(""), port(DEFAULT_OSC_PORT), num_loops(1), num_channels(2),
 	  mem_secs(40.0f), discrete_io(true), exec_name("sooperlooper"), midi_bind_path(""), force_spawn(false), never_spawn(false),
 	  never_timeout(false),
-	  jack_name("")
+	  jack_name(""),
+          window_x_pos(100), window_y_pos(100)
 {
 }
 
@@ -78,7 +79,8 @@ XMLNode& LoopControl::SpawnConfig::get_state () const
 
 	node->add_property ("force_spawn", force_spawn ? "yes": "no");
 	node->add_property ("never_timeout", never_timeout ? "yes": "no");
-	
+
+
 	return *node;
 }
 
@@ -145,6 +147,7 @@ int LoopControl::SpawnConfig::set_state (const XMLNode& node)
 					force_spawn = false;
 				}
 			}
+                        
 			/*
 			if ((prop = child_node->property ("never_timeout")) != 0) {
 				if (prop->value() == "yes") {

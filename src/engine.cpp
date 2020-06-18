@@ -1283,7 +1283,9 @@ Engine::push_midi_command_event (Event::type_t type, Event::command_t cmd, int8_
 bool
 Engine::do_push_command_event (RingBuffer<Event> * evqueue, Event::type_t type, Event::command_t cmd, int8_t instance, long framepos)
 {
-	// todo support more than one simulataneous pusher safely
+    if (!is_ok()) return false;
+    
+    // todo support more than one simulataneous pusher safely
 	RingBuffer<Event>::rw_vector vec;
 
 	evqueue->get_write_vector (&vec);
@@ -1312,6 +1314,7 @@ bool
 Engine::do_push_control_event (RingBuffer<Event> * evqueue, Event::type_t type, Event::control_t ctrl, float val, int8_t instance, long framepos, int src)
 {
 	// todo support more than one simulataneous pusher safely
+    if (!is_ok()) return false;
 
 	RingBuffer<Event>::rw_vector vec;
 
@@ -1374,6 +1377,8 @@ Engine::push_midi_control_event (Event::type_t type, Event::control_t ctrl, floa
 void
 Engine::push_sync_event (Event::control_t ctrl, long framepos, MIDI::timestamp_t timestamp)
 {
+    if (!is_ok()) return;
+
 	// todo support more than one simulataneous pusher safely
 
 	if (_sync_source != MidiClockSync 

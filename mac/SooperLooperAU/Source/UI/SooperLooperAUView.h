@@ -81,6 +81,9 @@ protected:
 		void init_stay_on_top();
 	    void set_stay_on_top_property(short value);
 
+    void init_winpos();
+    void set_winpos_property(std::string winpos);
+
 		bool DisplayOpenFileDialog();
 
 		static void * _slgui_thread(void * arg);
@@ -90,10 +93,12 @@ protected:
 	ControlRef _browseButton;
 	ControlRef _pathText;
 	ControlRef _stayOnTopCheck;
+    ControlRef _positionText;
 	EventHandlerRef _winHandler;
 	
 	LaunchSLgui * _launcher;
 	std::string _slapp_path;
+    std::string _slwindow_pos;
 	short    _stay_on_top;
 };
 
