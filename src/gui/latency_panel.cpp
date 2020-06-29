@@ -43,7 +43,8 @@ enum {
 	ID_UseMidiStart,
 	ID_UseMidiStop,
 	ID_SendMidiStartOnTrigger,
-	ID_OutputClockCheck
+	ID_OutputClockCheck,
+        ID_SliderMousewheelCheck
 };
 
 BEGIN_EVENT_TABLE(SooperLooperGui::LatencyPanel, wxPanel)
@@ -55,6 +56,7 @@ BEGIN_EVENT_TABLE(SooperLooperGui::LatencyPanel, wxPanel)
 	EVT_CHECKBOX (ID_UseMidiStop, SooperLooperGui::LatencyPanel::on_check)
 	EVT_CHECKBOX (ID_SendMidiStartOnTrigger, SooperLooperGui::LatencyPanel::on_check)
         EVT_CHECKBOX(ID_OutputClockCheck, SooperLooperGui::LatencyPanel::on_check)
+        EVT_CHECKBOX(ID_SliderMousewheelCheck, SooperLooperGui::LatencyPanel::on_check)
 	EVT_TIMER(ID_UpdateTimer, SooperLooperGui::LatencyPanel::OnUpdateTimer)
 
 	EVT_SIZE (SooperLooperGui::LatencyPanel::onSize)
@@ -190,6 +192,9 @@ void LatencyPanel::init()
 	_send_midi_start_on_trigger_check = new wxCheckBox(this, ID_SendMidiStartOnTrigger, wxT("Send MIDI Start Event on Trigger"));
 	topsizer->Add (_send_midi_start_on_trigger_check, 0, wxEXPAND|wxALL, 4);
 
+	_slider_mousewheel_check = new wxCheckBox(this, ID_SliderMousewheelCheck, wxT("Allow mouse scroll wheel to change sliders"));
+	topsizer->Add(_slider_mousewheel_check, 0, wxALL, 3);
+        
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
 	_update_timer->Start(5000, true);
 
@@ -251,6 +256,9 @@ void LatencyPanel::refresh_state()
 		_output_clock_check->SetValue(retval > 0.0f ? true : false);
 	}
 
+        _slider_mousewheel_check->SetValue(_parent->get_sliders_allow_mousewheel() );
+
+        
 	if (_auto_check->GetValue()) {
 		_input_spin->Enable(false);
 		_output_spin->Enable(false);
@@ -288,7 +296,10 @@ void LatencyPanel::on_check (wxCommandEvent &ev)
 	else if (ev.GetId() == ID_OutputClockCheck) {
 		lcontrol.post_global_ctrl_change(wxT("output_midi_clock"), _output_clock_check->GetValue() ? 1.0f : 0.0f);
 	}
-	else {
+        else if (ev.GetId() == ID_SliderMousewheelCheck) {
+            _parent->set_sliders_allow_mousewheel ( _slider_mousewheel_check->GetValue());
+        }
+	else if (ev.GetId() == ID_AutoDisableCheck) {
 		lcontrol.post_ctrl_change (-2, wxT("auto_disable_latency"), _auto_disable_check->GetValue() ? 1.0f : 0.0f);
 	}
 

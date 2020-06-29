@@ -132,7 +132,12 @@ END_EVENT_TABLE()
 
     _default_position.x = 100;    
     _default_position.y = 100;
-    
+
+    _sliders_allow_mousewheel = false;
+    SliderBar::set_use_mousewheel_default(_sliders_allow_mousewheel);    
+    SpinBox::set_use_mousewheel_default(_sliders_allow_mousewheel);
+    ChoiceBox::set_use_mousewheel_default(_sliders_allow_mousewheel);
+
 	_rcdir = wxGetHomeDir() + wxFileName::GetPathSeparator() + wxT(".sooperlooper");
 
 	_loop_control = new LoopControl(_rcdir);
@@ -492,6 +497,15 @@ MainPanel::init_loopers (int count)
 
 	set_curr_loop (_curr_loop);
 	_engine_alive = true;
+}
+
+void
+MainPanel::set_sliders_allow_mousewheel (bool flag)
+{
+    _sliders_allow_mousewheel = flag;
+    SliderBar::set_use_mousewheel_default(_sliders_allow_mousewheel);
+    SpinBox::set_use_mousewheel_default(_sliders_allow_mousewheel);
+    ChoiceBox::set_use_mousewheel_default(_sliders_allow_mousewheel);
 }
 
 void
@@ -1336,6 +1350,10 @@ bool MainPanel::load_rc()
                 _default_position.y = atol (prop->value().c_str());
         }
 
+        if ((prop = rootNode->property ("sliders_allow_mousewheel")) != 0) {
+            set_sliders_allow_mousewheel( (bool) atoi (prop->value().c_str()));
+        }
+
 
         
 	XMLNode * bindingsNode = rootNode->find_named_node ("KeyBindings");
@@ -1379,10 +1397,12 @@ bool MainPanel::save_rc()
 
         char buf[40];
 
-        snprintf(buf, sizeof(buf), "%ld",_default_position.x);
+        snprintf(buf, sizeof(buf), "%d",_default_position.x);
         rootNode->add_property ("window_x_pos", buf);
-        snprintf(buf, sizeof(buf), "%ld", _default_position.y);
+        snprintf(buf, sizeof(buf), "%d", _default_position.y);
         rootNode->add_property ("window_y_pos", buf);
+        snprintf(buf, sizeof(buf), "%d", (int)_sliders_allow_mousewheel);
+        rootNode->add_property ("sliders_allow_mousewheel", buf);
 
         
 	configdoc.set_root (rootNode);

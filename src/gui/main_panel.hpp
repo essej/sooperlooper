@@ -107,7 +107,9 @@ public:
 	
 	sigc::signal2<void,int, int> PreferredSizeChange;
 
-	
+    void set_sliders_allow_mousewheel (bool flag);
+    bool get_sliders_allow_mousewheel () const { return _sliders_allow_mousewheel; }
+    
 protected:
 
 	void init();
@@ -221,6 +223,8 @@ protected:
 	int           _update_timer_time;
 
 	wxString      _last_used_path;
+
+    bool _sliders_allow_mousewheel;
 
 private:
     // any class wishing to process wxWindows events must use this macro

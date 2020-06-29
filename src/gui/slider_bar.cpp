@@ -80,6 +80,9 @@ BEGIN_EVENT_TABLE(SliderBar, wxWindow)
 	
 END_EVENT_TABLE()
 
+
+bool SliderBar::s_use_wheel_def = false;
+
 SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, float val, bool midibindable, const wxPoint& pos, const wxSize& size)
 	: wxWindow(parent, id, pos, size)
 {
@@ -98,7 +101,9 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_ind_value = 0.0f;
 	_use_pending = false;
 	_pending_val = 0.0f;
-	
+        _override_def_use_wheel = false;
+        _use_wheel = s_use_wheel_def;
+        
 	_bgcolor.Set(30,30,30);
 	_bgbrush.SetColour (_bgcolor);
 	SetBackgroundColour (_bgcolor);
@@ -530,6 +535,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 	}
 	else if (ev.GetEventType() == wxEVT_MOUSEWHEEL)
 	{
+            if ((_override_def_use_wheel ? _use_wheel : s_use_wheel_def )) {
 		float fscale = 0.02f * (ev.ControlDown() ? 0.5f: 1.0f);
 		float newval;
 		
@@ -559,6 +565,7 @@ SliderBar::OnMouseEvents (wxMouseEvent &ev)
 		
 		update_value_str();
 		do_redraw();
+            }
 	}
 	else if (ev.RightDown()) {
 		this->PopupMenu ( _popup_menu, ev.GetX(), ev.GetY());

@@ -103,7 +103,14 @@ class SpinBox
 	
 	float get_increment () { return _increment; }
 	void set_increment (float val) { _increment = val; }
-	
+
+    void set_use_mousewheel (bool flag) { _use_wheel = flag; _override_def_use_wheel = true; }
+    bool get_use_mousewheel () const { return _use_wheel; }
+    
+    static void set_use_mousewheel_default (bool flag) { s_use_wheel_def = flag; }
+    static bool get_use_mousewheel_default () { return s_use_wheel_def; }
+
+    
 	sigc::signal0<void> pressed;
 	sigc::signal0<void> released;
 	sigc::signal1<void, float> value_changed;
@@ -179,7 +186,11 @@ class SpinBox
 	bool _dragging;
 	bool _ignoretext;
 	long _press_time;
-	
+
+     bool _override_def_use_wheel;
+    bool _use_wheel;
+    static bool s_use_wheel_def;
+    
 	float _val_scale;
 	ScaleMode  _scale_mode;
 	SnapMode   _snap_mode;

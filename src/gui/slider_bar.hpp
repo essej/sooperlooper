@@ -118,8 +118,13 @@ class SliderBar
 	
 	void set_decimal_digits (int num);
 	int get_decimal_digits () { return _decimal_digits; }
-	
-	
+
+    void set_use_mousewheel (bool flag) { _use_wheel = flag; _override_def_use_wheel = true; }
+    bool get_use_mousewheel () const { return _use_wheel; }
+    
+    static void set_use_mousewheel_default (bool flag) { s_use_wheel_def = flag; }
+    static bool get_use_mousewheel_default () { return s_use_wheel_def; }
+    
 	sigc::signal0<void> pressed;
 	sigc::signal0<void> released;
 	sigc::signal1<void, float> value_changed;
@@ -180,7 +185,11 @@ class SliderBar
 
 	bool _use_pending;
 	float _pending_val;
-	
+
+    bool _override_def_use_wheel;
+    bool _use_wheel;
+    static bool s_use_wheel_def;
+    
 	wxString _value_str;
 	wxString _label_str;
 	wxString _units_str;

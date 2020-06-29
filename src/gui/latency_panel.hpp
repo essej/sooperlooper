@@ -80,7 +80,9 @@ class LatencyPanel
 	wxCheckBox  * _send_midi_start_on_trigger_check;
 	wxCheckBox * _output_clock_check;
 
-	MainPanel * _parent;
+	wxCheckBox * _slider_mousewheel_check;
+
+        MainPanel * _parent;
 	bool       _justResized;
 
 	wxTimer   * _update_timer;

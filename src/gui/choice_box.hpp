@@ -75,7 +75,13 @@ class ChoiceBox
  	void set_border_color (const wxColour & col);
 	wxColour & get_border_color () { return _bordercolor; }
 	
-	
+    void set_use_mousewheel (bool flag) { _use_wheel = flag; _override_def_use_wheel = true; }
+    bool get_use_mousewheel () const { return _use_wheel; }
+    
+    static void set_use_mousewheel_default (bool flag) { s_use_wheel_def = flag; }
+    static bool get_use_mousewheel_default () { return s_use_wheel_def; }
+
+    
 	sigc::signal2<void, int, wxString> value_changed;
 	sigc::signal0<void> bind_request;
 	
@@ -121,7 +127,11 @@ class ChoiceBox
 	wxString _value_str;
 	wxString _label_str;
 	long  _data_value;
-	
+
+     bool _override_def_use_wheel;
+    bool _use_wheel;
+    static bool s_use_wheel_def;
+    
 	ChoiceList _choices;
 	wxMenu * _popup_menu;
 	bool _bindable;

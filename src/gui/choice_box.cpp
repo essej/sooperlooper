@@ -47,6 +47,8 @@ BEGIN_EVENT_TABLE(ChoiceBox, wxWindow)
 	
 END_EVENT_TABLE()
 
+bool ChoiceBox::s_use_wheel_def = false;
+
 ChoiceBox::ChoiceBox(wxWindow * parent, wxWindowID id, bool bindable, const wxPoint& pos, const wxSize& size)
 	: wxWindow(parent, id, pos, size)
 {
@@ -77,6 +79,9 @@ ChoiceBox::ChoiceBox(wxWindow * parent, wxWindowID id, bool bindable, const wxPo
 
 	_linebrush.SetColour(wxColour(154, 245, 168));
 
+        _override_def_use_wheel = false;
+        _use_wheel = s_use_wheel_def;
+        
 	update_size();
 }
 
@@ -340,7 +345,8 @@ ChoiceBox::OnMouseEvents (wxMouseEvent &ev)
 	if (ev.GetEventType() == wxEVT_MOUSEWHEEL)
 	{
 		// don't get the events right now
-		
+            if ((_override_def_use_wheel ? _use_wheel : s_use_wheel_def )) {
+                                
 		
 		if (!_choices.empty()) {
 			if (ev.GetWheelRotation() > 0) {
@@ -360,6 +366,7 @@ ChoiceBox::OnMouseEvents (wxMouseEvent &ev)
 			
 			Refresh(false);
 		}
+            }
 	}
 	else if (ev.RightDown())
 	{

@@ -79,6 +79,9 @@ BEGIN_EVENT_TABLE(SpinBox, wxWindow)
 	
 END_EVENT_TABLE()
 
+bool SpinBox::s_use_wheel_def = false;
+
+
 SpinBox::SpinBox(wxWindow * parent, wxWindowID id,  float lb, float ub, float val, bool midibindable, const wxPoint& pos, const wxSize& size)
 	: wxWindow(parent, id, pos, size)
 {
@@ -94,7 +97,10 @@ SpinBox::SpinBox(wxWindow * parent, wxWindowID id,  float lb, float ub, float va
 	_showval_flag = true;
 	_increment = 1.0f;
 	_direction = 0.0f;
-	
+
+        _override_def_use_wheel = false;
+        _use_wheel = s_use_wheel_def;
+        
 	_bgcolor.Set(30,30,30);
 	_disabled_bgcolor.Set(60,60,60);
 	_bgbrush.SetColour (_bgcolor);
@@ -475,6 +481,7 @@ SpinBox::OnMouseEvents (wxMouseEvent &ev)
 	}
 	else if (ev.GetEventType() == wxEVT_MOUSEWHEEL)
 	{
+            if ((_override_def_use_wheel ? _use_wheel : s_use_wheel_def )) {
 		float fscale = (ev.ShiftDown() ? 10.0f : 1.0f) * (ev.ControlDown() ? 2.0f: 1.0f);
 		float newval;
 		
@@ -500,6 +507,7 @@ SpinBox::OnMouseEvents (wxMouseEvent &ev)
 		
 		update_value_str();
 		Refresh(false);
+            }
 	}
 	else if (ev.RightDown()) {
 		this->PopupMenu ( _popup_menu, ev.GetX(), ev.GetY());
