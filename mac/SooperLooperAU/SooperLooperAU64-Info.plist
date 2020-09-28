@@ -40,7 +40,7 @@
 	<key>CFBundleSignature</key>
 	<string>Soop</string>
 	<key>CFBundleVersion</key>
-	<string>1.7.4</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>CSResourcesFileMapped</key>
 	<true/>
 </dict>

@@ -212,7 +212,8 @@ AC_CHECK_HEADER(alsa/asoundlib.h,
 	use_alsa_midi=no)
 AM_CONDITIONAL(WITH_ALSA, test x$use_alsa_midi = xyes)
 
-AC_CHECK_FILE(/System/Library/Frameworks/CoreMIDI.framework/Headers/CoreMIDI.h, 
+dnl AC_CHECK_FILE(/System/Library/Frameworks/CoreMIDI.framework/Headers/CoreMIDI.h, 
+AC_CHECK_FILE(/System/Library/Frameworks/CoreMIDI.framework/CoreMIDI, 
 		[use_coremidi=yes
 		AUDIO_LIBS="-framework CoreMIDI"
 		AC_DEFINE([WITH_COREMIDI], 1, [Have CoreMIDI Headers])],

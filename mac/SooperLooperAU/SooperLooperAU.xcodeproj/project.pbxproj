@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		880070372522758F0006E20D /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 880070362522758F0006E20D /* AudioToolbox.framework */; };
 		880FCEBC0877364D004384B4 /* slgui.icns in Resources */ = {isa = PBXBuildFile; fileRef = 880FCEBB0877364D004384B4 /* slgui.icns */; };
 		8810CF690E247C10002155C4 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8810CF680E247C10002155C4 /* ApplicationServices.framework */; };
 		881935030878E594008C28C2 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935020878E594008C28C2 /* CoreMIDI.framework */; };
@@ -162,7 +163,6 @@
 		885670CD1813927400AA5367 /* unescape.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13190BD260A70069E7EC /* unescape.cc */; };
 		885670CE1813927400AA5367 /* version.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F131A0BD260A70069E7EC /* version.cc */; };
 		885670CF1813927400AA5367 /* xml++.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F131B0BD260A70069E7EC /* xml++.cc */; };
-		885670D41813927400AA5367 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05AF9072074E100365D66 /* AudioToolbox.framework */; };
 		885670D51813927400AA5367 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05AFA072074E100365D66 /* AudioUnit.framework */; };
 		885670D61813927400AA5367 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05B01072074F900365D66 /* CoreServices.framework */; };
 		885670DA1813927400AA5367 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935020878E594008C28C2 /* CoreMIDI.framework */; };
@@ -609,6 +609,8 @@
 		089C167EFE841241C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		08EA7FFBFE8413EDC02AAC07 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		32BAE0B30371A71500C91783 /* SooperLooperAU_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SooperLooperAU_Prefix.pch; sourceTree = "<group>"; };
+		88007034252275440006E20D /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
+		880070362522758F0006E20D /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		880FCEBB0877364D004384B4 /* slgui.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = slgui.icns; sourceTree = "<group>"; };
 		880FCF2A0878CA09004384B4 /* AUMIDIBase.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = AUMIDIBase.cpp; sourceTree = "<group>"; };
 		880FCF2B0878CA09004384B4 /* AUMIDIBase.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = AUMIDIBase.h; sourceTree = "<group>"; };
@@ -945,7 +947,7 @@
 				887292DA248FFFAB00783614 /* libfftw3.a in Frameworks */,
 				889B86D018A42CB800049C98 /* Accelerate.framework in Frameworks */,
 				885670D51813927400AA5367 /* AudioUnit.framework in Frameworks */,
-				885670D41813927400AA5367 /* AudioToolbox.framework in Frameworks */,
+				880070372522758F0006E20D /* AudioToolbox.framework in Frameworks */,
 				88365064185845CB00246E75 /* libsamplerate.a in Frameworks */,
 				885670D61813927400AA5367 /* CoreServices.framework in Frameworks */,
 				885670DA1813927400AA5367 /* CoreMIDI.framework in Frameworks */,
@@ -1139,6 +1141,8 @@
 		883650451858422D00246E75 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				880070362522758F0006E20D /* AudioToolbox.framework */,
+				88007034252275440006E20D /* AudioUnit.framework */,
 				887292DD2490008D00783614 /* libxml2.a */,
 				887292DE2490008D00783614 /* libz.a */,
 				889B86CE18A42CB100049C98 /* Accelerate.framework */,
@@ -2481,6 +2485,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = NO;
 				COPY_PHASE_STRIP = YES;
+				CURRENT_PROJECT_VERSION = 1.7.6;
 				DEBUGGING_SYMBOLS = YES;
 				DEPLOYMENT_LOCATION = NO;
 				DEVELOPMENT_TEAM = XCS435894D;
@@ -2566,6 +2571,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = NO;
 				COPY_PHASE_STRIP = YES;
+				CURRENT_PROJECT_VERSION = 1.7.6;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_LOCATION = NO;
 				DEVELOPMENT_TEAM = XCS435894D;
@@ -2648,6 +2654,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = NO;
+				CURRENT_PROJECT_VERSION = 1.7.6;
 				DEPLOYMENT_LOCATION = NO;
 				DEVELOPMENT_TEAM = XCS435894D;
 				EXPORTED_SYMBOLS_FILE = Source/AUSource/SooperLooperAU64.exp;
