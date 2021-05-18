@@ -115,8 +115,11 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	_last_input_latency = 0.0f;
 	_last_output_latency = 0.0f;
 	_have_discrete_io = discrete;
+    _discrete_prefader = true;
 	_curr_dry = 0.0f;
 	_target_dry = 0.0f;
+    _curr_wet = 1.0f;
+    _target_wet = 1.0f;
 	_curr_input_gain = 1.0f;
 	_targ_input_gain = 1.0f;
 	_input_peak = 0.0f;
@@ -194,7 +197,11 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	
 	// set some rational defaults
 	ports[DryLevel] = 0.0f;
-	ports[WetLevel] = 1.0f;
+    if (_have_discrete_io && _discrete_prefader) {
+        ports[WetLevel] = 1.0f;
+    } else {
+        ports[WetLevel] = _curr_wet;
+    }
 	ports[Feedback] = 1.0f;
 	ports[Rate] = 1.0f;
 	ports[Multi] = -1.0f;
@@ -414,6 +421,18 @@ void
 Looper::set_use_common_outs (bool val)
 {
 	_use_common_outs = val;
+}
+
+void
+Looper::set_discrete_outs_prefader (bool val)
+{
+    _discrete_prefader = val;
+
+    if (_have_discrete_io && _discrete_prefader) {
+        ports[WetLevel] = 1.0f;
+    } else {
+        ports[WetLevel] = _target_wet;
+    }
 }
 
 void
@@ -662,6 +681,9 @@ Looper::get_control_value (Event::control_t ctrl)
 		//return _curr_dry;
 		return _target_dry;
 	}
+    else if (ctrl == Event::WetLevel) {
+        return _target_wet;
+    }
 	else if (index >= 0 && index < LASTPORT) {
 		return ports[index];
 	}
@@ -691,6 +713,9 @@ Looper::get_control_value (Event::control_t ctrl)
 	else if (ctrl == Event::HasDiscreteIO) {
 		return _have_discrete_io;
 	}
+    else if (ctrl == Event::DiscretePreFader) {
+        return _discrete_prefader;
+    }
 	else if (ctrl == Event::AutosetLatency) {
 		return _auto_latency;
 	}
@@ -745,6 +770,14 @@ void Looper::set_port (ControlPort n, float val)
 		case DryLevel:
 			_target_dry = val;
 			break;
+        case WetLevel:
+            _target_wet = val;
+            if (_have_discrete_io && _discrete_prefader) {
+                ports[n] = 1.0f;
+            } else {
+                ports[n] = val;
+            }
+            break;
 		case RelativeSync:
 			_relative_sync = val;
 			break;
@@ -904,6 +937,14 @@ Looper::do_event (Event *ev)
 			case Event::DryLevel:
 				_target_dry = ev->Value;
 				break;
+            case Event::WetLevel:
+                _target_wet = ev->Value;
+                if (_have_discrete_io && _discrete_prefader) {
+                    ports[ev->Control] = 1.0f;
+                } else {
+                    ports[ev->Control] = ev->Value;
+                }
+                break;
 			case  Event::Quantize:
 				ev->Value = roundf(ev->Value);
 				// passthru is intentional
@@ -935,6 +976,10 @@ Looper::do_event (Event *ev)
 			_auto_latency = ev->Value > 0.0f;
 			recompute_latencies();
 		}
+        else if (ev->Control == Event::DiscretePreFader)
+        {
+            set_discrete_outs_prefader(ev->Value > 0.0f);
+        }
 		else if (ev->Control == Event::PanChannel1) {
 			if (_panner && _panner->size() > 0) {
 				(*_panner)[0]->set_position (ev->Value);
@@ -1098,9 +1143,11 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 	//LADSPA_Data * inbuf = 0 , *outbuf = 0, *real_inbuf = 0;
 	nframes_t alt_frames = nframes;
 	float currdry = _curr_dry;
+    float currwet = _curr_wet;
 	float curr_ing = _curr_input_gain;
 	float ing_delta = flush_to_zero (_targ_input_gain - _curr_input_gain) / max((nframes_t) 1, (nframes - 1));
 	float dry_delta = flush_to_zero (_target_dry - _curr_dry) / max((nframes_t) 1, (nframes - 1));
+    float wet_delta = flush_to_zero (_target_wet - _curr_wet) / max((nframes_t) 1, (nframes - 1));
 	bool  resampled = ports[Rate] != 1.0f;
 	bool  stretched = _stretch_ratio != 1.0;
 	bool  pitched = _pitch_shift != 0.0;
@@ -1381,8 +1428,6 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		
 	for (unsigned int i=0; i < _chan_count; ++i)
 	{
-
-
 		if (_have_discrete_io && real_inbufs[i]) {
 			// just mix the dry into the outputs
 			currdry = _curr_dry;
@@ -1395,9 +1440,10 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		}
 
 		if (_panner && _use_common_outs) {
-			// mix this output into common outputs
-			(*_panner)[i]->distribute (outbufs[i], com_obufs, 1.0f, nframes);
-		} 
+            float withgain = (_have_discrete_io && _discrete_prefader) ? _target_wet : 1.0f;
+            // mix this output into common outputs
+            (*_panner)[i]->distribute (outbufs[i], com_obufs, withgain, nframes);
+		}
 
 		// calculate output peak post mixing with dry
 		compute_peak (outbufs[i], nframes, _output_peak);
@@ -1417,6 +1463,10 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		if (dry_delta <= 0.00003f) {
 			_curr_dry = _target_dry;
 		}
+        _curr_wet = flush_to_zero (currwet);
+        if (wet_delta <= 0.00003f) {
+            _curr_wet = _target_wet;
+        }
 	}
 	
 	_curr_input_gain = flush_to_zero (curr_ing);
@@ -1430,6 +1480,11 @@ Looper::run_loops (nframes_t offset, nframes_t nframes)
 		// force to == target
 		_curr_dry = _target_dry;
 	}
+    _curr_wet = flush_to_zero (currwet);
+    if (wet_delta <= 0.00003f) {
+        // force to == target
+        _curr_wet = _target_wet;
+    }
 
 }
 
@@ -1767,6 +1822,9 @@ Looper::get_state () const
 	snprintf(buf, sizeof(buf), "%s", _have_discrete_io ? "yes": "no");
 	node->add_property ("discrete_io", buf);
 
+    snprintf(buf, sizeof(buf), "%s", _discrete_prefader ? "yes": "no");
+    node->add_property ("discrete_prefader", buf);
+
 	snprintf(buf, sizeof(buf), "%s", _use_common_ins ? "yes": "no");
 	node->add_property ("use_common_ins", buf);
 
@@ -1812,6 +1870,9 @@ Looper::get_state () const
 		if (n == DryLevel) {
 			val = _curr_dry;
 		}
+        else if (n == WetLevel) {
+            val = _target_wet;
+        }
 		
 		snprintf(buf, sizeof(buf), "%.20g", val);
 		child->add_property ("value", buf);
@@ -1856,9 +1917,14 @@ Looper::set_state (const XMLNode& node)
 		_have_discrete_io = (prop->value() == "yes");
 	}
 
+
 	// initialize self
 	initialize (_index, _chan_count, _loopsecs, _have_discrete_io);
 
+
+    if ((prop = node.property ("discrete_prefader")) != 0) {
+        _discrete_prefader = (prop->value() == "yes");
+    }
 
 	if ((prop = node.property ("use_common_ins")) != 0) {
 		_use_common_ins = (prop->value() == "yes");
@@ -1931,6 +1997,15 @@ Looper::set_state (const XMLNode& node)
 		if (ctrl == Event::DryLevel) {
 			_curr_dry = _target_dry = val;
 		}
+        else if (ctrl == Event::WetLevel) {
+            _curr_wet = _target_wet = val;
+            if (_have_discrete_io && _discrete_prefader) {
+                ports[WetLevel] = 1.0f;
+            } else {
+                ports[WetLevel] = val;
+            }
+            cerr << "set " << ctrl << " to " << val << endl;
+        }
 		else if (ctrl != Event::Unknown) {
 			//cerr << "set " << ctrl << " to " << val << endl;
 			ports[ctrl] = val;

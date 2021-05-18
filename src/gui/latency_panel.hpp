@@ -82,6 +82,8 @@ class LatencyPanel
 
 	wxCheckBox * _slider_mousewheel_check;
 
+    wxCheckBox * _discrete_prefader_check;
+
         MainPanel * _parent;
 	bool       _justResized;
 
