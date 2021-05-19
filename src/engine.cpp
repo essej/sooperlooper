@@ -2603,7 +2603,9 @@ Engine::generate_sync (nframes_t offset, nframes_t nframes)
 			if (_quarter_note_frames > 0.0) {
 				nframes_t currpos  = (nframes_t) (_rt_instances[_sync_source-1]->get_control_value(Event::LoopPosition) * _driver->get_samplerate());
 				nframes_t loopframes = (nframes_t) (_rt_instances[_sync_source-1]->get_control_value(Event::LoopLength) * _driver->get_samplerate());
-				if (loopframes > 0) {
+				int inst_stt = (int)(_rt_instances[_sync_source-1]->get_control_value(Event::State));
+				bool inst_paused = (inst_stt == LooperStateOff || inst_stt == LooperStatePaused || inst_stt == LooperStateOffMuted);
+				if ((loopframes > 0) && !inst_paused) {
 					nframes_t testval = (((currpos + nframes) % loopframes) % (nframes_t)_quarter_note_frames);
 					
 					if (testval <= nframes || testval == 0) {
