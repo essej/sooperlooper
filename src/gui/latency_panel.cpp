@@ -44,8 +44,7 @@ enum {
 	ID_UseMidiStop,
 	ID_SendMidiStartOnTrigger,
 	ID_OutputClockCheck,
-    ID_SliderMousewheelCheck,
-    ID_DiscretePrefaderCheck
+    ID_SliderMousewheelCheck
 };
 
 BEGIN_EVENT_TABLE(SooperLooperGui::LatencyPanel, wxPanel)
@@ -58,7 +57,6 @@ BEGIN_EVENT_TABLE(SooperLooperGui::LatencyPanel, wxPanel)
 	EVT_CHECKBOX (ID_SendMidiStartOnTrigger, SooperLooperGui::LatencyPanel::on_check)
     EVT_CHECKBOX(ID_OutputClockCheck, SooperLooperGui::LatencyPanel::on_check)
     EVT_CHECKBOX(ID_SliderMousewheelCheck, SooperLooperGui::LatencyPanel::on_check)
-    EVT_CHECKBOX(ID_DiscretePrefaderCheck, SooperLooperGui::LatencyPanel::on_check)
 	EVT_TIMER(ID_UpdateTimer, SooperLooperGui::LatencyPanel::OnUpdateTimer)
 
 	EVT_SIZE (SooperLooperGui::LatencyPanel::onSize)
@@ -197,9 +195,6 @@ void LatencyPanel::init()
 	_slider_mousewheel_check = new wxCheckBox(this, ID_SliderMousewheelCheck, wxT("Allow mouse scroll wheel to change sliders"));
 	topsizer->Add(_slider_mousewheel_check, 0, wxALL, 3);
 
-    _discrete_prefader_check = new wxCheckBox(this, ID_DiscretePrefaderCheck, wxT("Discrete outputs are pre-fader"));
-    topsizer->Add(_discrete_prefader_check, 0, wxALL, 3);
-
 
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
 	_update_timer->Start(5000, true);
@@ -264,9 +259,6 @@ void LatencyPanel::refresh_state()
 
     _slider_mousewheel_check->SetValue(_parent->get_sliders_allow_mousewheel() );
 
-    if (lcontrol.get_value (0, wxT("discrete_prefader"), retval)) {
-        _discrete_prefader_check->SetValue(retval > 0.0f);
-    }
         
 	if (_auto_check->GetValue()) {
 		_input_spin->Enable(false);
@@ -311,9 +303,7 @@ void LatencyPanel::on_check (wxCommandEvent &ev)
 	else if (ev.GetId() == ID_AutoDisableCheck) {
 		lcontrol.post_ctrl_change (-2, wxT("auto_disable_latency"), _auto_disable_check->GetValue() ? 1.0f : 0.0f);
 	}
-    else if (ev.GetId() == ID_DiscretePrefaderCheck) {
-        lcontrol.post_ctrl_change (-1, wxT("discrete_prefader"), _discrete_prefader_check->GetValue() ? 1.0f : 0.0f);
-    }
+    
 
 
 	_do_request = true;

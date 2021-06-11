@@ -92,6 +92,7 @@ enum {
 	ID_PlaySyncCheck,
 	ID_UseMainInCheck,
 	ID_Panner,
+	ID_PrefaderCheck,
 
 	ID_FlashTimer
 
@@ -373,6 +374,14 @@ LooperPanel::init()
 	_play_sync_check->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::check_events), wxT("playback_sync")));
 	_play_sync_check->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) _play_sync_check->GetId()));
 	lilrowsizer->Add (_play_sync_check, 1, wxLEFT, 3);
+    
+	_prefader_check = new CheckBox(this, ID_PrefaderCheck, wxT("prefader"), true, wxDefaultPosition, wxSize(55, 18));
+	_prefader_check->SetFont(sliderFont);
+	_prefader_check->SetToolTip(wxT("discrete outputs are pre-fader"));
+	_prefader_check->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::check_events), wxT("discrete_prefader")));
+	_prefader_check->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) _prefader_check->GetId()));
+	lilrowsizer->Add (_prefader_check, 1, wxLEFT, 3);
+    
 	lilcolsizer->Add (lilrowsizer, 0, wxTOP|wxEXPAND, 0);
 	
 	lilrowsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1019,7 +1028,11 @@ LooperPanel::update_controls()
 		_loop_control->get_value(_index, wxT("tempo_stretch"), val);
 		_tempo_stretch_check->set_value (val > 0.0f);
 	}
-
+	if (_loop_control->is_updated(_index, wxT("discrete_prefader"))) {
+		_loop_control->get_value(_index, wxT("discrete_prefader"), val);
+		_prefader_check->set_value (val > 0.0f);
+	}
+    
 	if (_loop_control->is_updated(_index, wxT("is_soloed"))) {
 		_loop_control->get_value(_index, wxT("is_soloed"), val);
 		_solo_button->set_active(val > 0.0f);
@@ -1585,6 +1598,10 @@ LooperPanel::control_bind_events(int id)
 		info.control = "playback_sync";
 		info.style = MidiBindInfo::NormalStyle;
 		break;
+    case ID_PrefaderCheck:
+    	info.control = "discrete_prefader";
+    	info.style = MidiBindInfo::NormalStyle;
+    	break;
 	case ID_UseFeedbackPlayCheck:
 		info.control = "use_feedback_play";
 		info.style = MidiBindInfo::NormalStyle;
