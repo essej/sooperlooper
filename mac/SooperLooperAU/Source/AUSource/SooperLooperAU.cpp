@@ -580,7 +580,7 @@ OSStatus			SooperLooperAU::ProcessBufferLists(
 	_in_buflist[0] = (AudioBufferList *) &inBuffer;
 	_out_buflist[0] = &outBuffer;
 
-//cerr << "main bus:  " << _out_buflist[0] << " count: " << outBuffer.mNumberBuffers << endl;
+    // cerr << "main bus:  " << _out_buflist[0] << " count: " << outBuffer.mNumberBuffers << endl;
 
 	// this is called with the main bus (0) buffers
 	// we really should subclass Render here, but instead
@@ -592,7 +592,7 @@ OSStatus			SooperLooperAU::ProcessBufferLists(
 			AUOutputElement *theOutput = GetOutput(n);	// throws if error
 			AUInputElement *theInput = GetInput(n);
 			if (theOutput && theInput) {
-				OSStatus result = theInput->PullInput(ioActionFlags, _curr_stamp, 0 /* element */, inFramesToProcess);
+				OSStatus result = theInput->PullInput(ioActionFlags, _curr_stamp, n /* element */, inFramesToProcess);
 			
 				if (result == noErr) {
 					if(ProcessesInPlace() )
@@ -607,6 +607,7 @@ OSStatus			SooperLooperAU::ProcessBufferLists(
 				else {
 					// no input, just do output
 					theOutput->PrepareBuffer(inFramesToProcess);
+                    // cerr << "no input for loop " << n << endl;
 				}
 				
 				if (n > _engine->loop_count()) {
@@ -619,7 +620,8 @@ OSStatus			SooperLooperAU::ProcessBufferLists(
 				
 								
 				_out_buflist[n] = &theOutput->GetBufferList();
-				//cerr << "got bus output: " << n <<  "  " << _out_buflist[n] << " count: " << theOutput->GetBufferList().mNumberBuffers << endl;
+				//cerr << "got bus output: " << n <<  "  " << _out_buflist[n] << " count: " << theOutput->GetBufferList().mNumberBuffers
+                 //    << " inbuf: " <<  _in_buflist[n] << endl;
 
 								
 			}
@@ -1207,7 +1209,7 @@ sample_t * SooperLooperAU::get_input_port_buffer (port_id_t port, nframes_t nfra
 		return (sample_t *) _in_buflist[bus]->mBuffers[chan].mData;
 	}
 	
-	//cerr << "null input for " << port << endl;	
+	// cerr << "null input for " << port << endl;
 	/*
 	if (!_in_buflist) return 0;
 	
