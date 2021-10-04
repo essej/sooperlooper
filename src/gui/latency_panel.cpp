@@ -203,7 +203,7 @@ void LatencyPanel::init()
 	
 	this->SetAutoLayout( true );     // tell dialog to use sizer
 	this->SetSizer( topsizer );      // actually set the sizer
-	//topsizer->Fit( this );            // set size to minimum size as calculated by the sizer
+	topsizer->Fit( this );            // set size to minimum size as calculated by the sizer
 	//topsizer->SetSizeHints( this );   // set size hints to honour mininum size
 }
 
