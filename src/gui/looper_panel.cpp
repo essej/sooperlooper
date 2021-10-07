@@ -168,7 +168,7 @@ LooperPanel::init()
 	_bottomSelbar->SetBackgroundColour (_bgcolor);
 
 	
-        mainVSizer->Add (_topSelbar, 0, wxEXPAND|wxBOTTOM|wxLEFT, 0);
+	mainVSizer->Add (_topSelbar, 0, wxEXPAND|wxBOTTOM|wxLEFT, 0);
 	mainSizer->Add (_leftSelbar, 0, wxEXPAND|wxBOTTOM|wxLEFT, 0);
 
 
@@ -177,7 +177,7 @@ LooperPanel::init()
 	// before adding to sizer
 	create_buttons();
 	
-        int edgegap = 0;
+	int edgegap = 0;
 
  	colsizer->Add (_undo_button, 0, 0, 0);
 
@@ -517,11 +517,11 @@ LooperPanel::init()
 	
 	mainSizer->Add (colsizer, 1, wxEXPAND|wxRIGHT, 0);
 
-        mainSizer->Add (_rightSelbar, 0, wxEXPAND|wxLEFT, 0);
+	mainSizer->Add (_rightSelbar, 0, wxEXPAND|wxLEFT, 0);
 
 
-        mainVSizer->Add (mainSizer, 1, wxEXPAND, 0);
-        mainVSizer->Add (_bottomSelbar, 0, wxEXPAND|wxLEFT, 0);
+	mainVSizer->Add (mainSizer, 1, wxEXPAND, 0);
+	mainVSizer->Add (_bottomSelbar, 0, wxEXPAND|wxLEFT, 0);
 
 
 	// add an index static text fixed position

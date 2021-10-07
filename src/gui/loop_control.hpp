@@ -72,9 +72,9 @@ class LoopControl
 		std::string   jack_name;
 		std::string   jack_serv_name;
 		std::string   session_path;
-                // default gui positioning, put here cause it's easy
-                long  window_x_pos;
-                long  window_y_pos;
+		// default gui positioning, put here cause it's easy
+		long  window_x_pos;
+		long  window_y_pos;
 	};
 	
 	// ctor(s)
@@ -207,14 +207,14 @@ class LoopControl
 
 	typedef std::map<wxString, float> ControlValMap;
 	typedef std::vector<ControlValMap> ControlValMapList;
-        ControlValMapList _params_val_map;
+	ControlValMapList _params_val_map;
 	ControlValMap     _global_val_map;
 	
 	std::map<SooperLooper::LooperState, wxString> state_map;
 
-        typedef std::map<int, bool> RegisteredLoopMap;
-        RegisteredLoopMap  _registeredin_loop_map;
-        RegisteredLoopMap  _registeredauto_loop_map;
+	typedef std::map<int, bool> RegisteredLoopMap;
+	RegisteredLoopMap  _registeredin_loop_map;
+	RegisteredLoopMap  _registeredauto_loop_map;
 
 	typedef std::map<wxString, bool> UpdatedCtrlMap;
 	typedef std::vector<ControlValMap> UpdatedCtrlMapList;

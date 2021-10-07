@@ -1,20 +1,20 @@
 /*
 ** Copyright (C) 2004 Jesse Chappell <jesse@essej.net>
-**  
+**
 ** This program is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
 ** the Free Software Foundation; either version 2 of the License, or
 ** (at your option) any later version.
-**  
+**
 ** This program is distributed in the hope that it will be useful,
 ** but WITHOUT ANY WARRANTY; without even the implied warranty of
 ** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ** GNU General Public License for more details.
-**  
+**
 ** You should have received a copy of the GNU General Public License
 ** along with this program; if not, write to the Free Software
 ** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-**  
+**
 */
 
 
@@ -42,7 +42,7 @@ wxString GetExecutablePath(wxString argv0);
 // for all others, include the necessary headers (this file is usually all you
 // need because it includes almost all "standard" wxWindows headers
 #ifndef WX_PRECOMP
-    #include "wx/wx.h"
+	#include "wx/wx.h"
 #endif
 
 #include <wx/cmdline.h>
@@ -71,7 +71,7 @@ BEGIN_EVENT_TABLE(SooperLooperGui::GuiApp, wxApp)
 
 END_EVENT_TABLE()
 
-	
+
 // ============================================================================
 // implementation
 // ============================================================================
@@ -105,7 +105,7 @@ static const wxCmdLineEntryDesc cmdLineDesc[] =
 	{ wxCMD_LINE_SWITCH, wxT_2("n"), wxT_2("never-timeout"), wxT_2("Never timeout if an engine stops responding")},
 	{ wxCMD_LINE_NONE }
 };
-	
+
 
 bool
 GuiApp::parse_options (int argc, wxChar **argv)
@@ -137,7 +137,7 @@ GuiApp::parse_options (int argc, wxChar **argv)
 		fprintf(stderr, "%s\n", (const char *) logotext.ToAscii());
 		return false;
 	}
-	
+
 	if (parser.Found (wxT("c"), &longval)) {
 		if (longval < 1) {
 			fprintf(stderr, "Error: channel count must be > 0\n");
@@ -183,29 +183,29 @@ GuiApp::parse_options (int argc, wxChar **argv)
 
 	_stay_on_top = parser.Found (wxT("T"));
 
-        wxString posstr;
+	wxString posstr;
 	if (parser.Found (wxT("X"), &posstr)) {
-            // parse X:Y
-            wxArrayString strarr = wxSplit(posstr, wxChar(':'));
-            if (strarr.size() == 2) {
-                long x = 100, y = 100;
-                strarr[0].ToLong(&x);
-                strarr[1].ToLong(&y);
-                _screen_pos = wxPoint(x,y);
-                _override_screenpos = true;
-            }
-        }
+			// parse X:Y
+			wxArrayString strarr = wxSplit(posstr, wxChar(':'));
+			if (strarr.size() == 2) {
+				long x = 100, y = 100;
+				strarr[0].ToLong(&x);
+				strarr[1].ToLong(&y);
+				_screen_pos = wxPoint(x,y);
+				_override_screenpos = true;
+			}
+		}
 
-        
+
 	return true;
 }
-	
-	
+
+
 GuiApp::GuiApp()
 	: _frame(0),
-          //_host(wxT("localhost")),
-          _host(wxT("127.0.0.1")),
-          _port(0)
+		  //_host(wxT("localhost")),
+		  _host(wxT("127.0.0.1")),
+		  _port(0)
 {
 	_show_usage = 0;
 	_show_version = 0;
@@ -215,8 +215,8 @@ GuiApp::GuiApp()
 	_channels = 0;
 	_mem_secs = 0.0f;
 	_stay_on_top = false;
-        _override_screenpos = false;
-        _screen_pos = wxPoint(100, 100);
+	_override_screenpos = false;
+	_screen_pos = wxPoint(100, 100);
 	_never_timeout = false;
 	_inited = false;
 }
@@ -230,7 +230,7 @@ void GuiApp::MacOpenFile(const wxString &fileName)
 {
 	//cerr << "OPEN SESSION: " << (const char *) fileName.ToAscii() << endl;
 	_load_session = fileName;
-	
+
 	if (_frame) {
 		LoopControl & loopctrl = _frame->get_main_panel()->get_loop_control();
 		loopctrl.get_spawn_config().session_path = (const char *) _load_session.ToAscii();
@@ -250,16 +250,16 @@ bool GuiApp::OnInit()
 	wxString preset;
 	wxString rcdir;
 	wxString jackdir;
-	
+
 	SetExitOnFrameDelete(TRUE);
 
-	
+
 	// use stderr as log
 	wxLog *logger=new wxLogStderr();
 	logger->SetTimestamp(wxT(""));
 	wxLog::SetActiveTarget(logger);
-	
-	
+
+
 	if (!parse_options(argc, argv)) {
 		// do not continue on non macs
 #ifndef __WXMAC__
@@ -268,7 +268,7 @@ bool GuiApp::OnInit()
 	}
 
 #if wxCHECK_VERSION(2,9,0)
-    SetAppDisplayName(wxT("SooperLooper"));
+	SetAppDisplayName(wxT("SooperLooper"));
 #endif
 
 	// Create the main application window
@@ -281,8 +281,8 @@ bool GuiApp::OnInit()
 #endif
 	// escape all spaces with
 	_exec_name.Replace (wxT(" "), wxT("\\ "), true);
-	
-	
+
+
 	// override defaults
 	LoopControl & loopctrl = _frame->get_main_panel()->get_loop_control();
 	if (!_host.empty()) {
@@ -321,22 +321,22 @@ bool GuiApp::OnInit()
 	if (_mem_secs != 0) {
 		loopctrl.get_spawn_config().mem_secs = _mem_secs;
 	}
-        if (_override_screenpos) {
-                _frame->get_main_panel()->set_default_position(_screen_pos);
-        }
-        else {
-                _screen_pos = _frame->get_main_panel()->get_default_position();
-        }
-        
+		if (_override_screenpos) {
+				_frame->get_main_panel()->set_default_position(_screen_pos);
+		}
+		else {
+				_screen_pos = _frame->get_main_panel()->get_default_position();
+		}
+
 	loopctrl.get_spawn_config().never_timeout = _never_timeout;
 	_frame->get_main_panel()->set_never_timeout(_never_timeout);
-	
-    
-    if (_host == wxT("127.0.0.1") && _never_spawn) {
-        // special case, force the mainpanel to be local, to avoid some weirdness with network configs
-        _frame->get_main_panel()->set_force_local(true);
-    }
-    
+
+
+	if (_host == wxT("127.0.0.1") && _never_spawn) {
+		// special case, force the mainpanel to be local, to avoid some weirdness with network configs
+		_frame->get_main_panel()->set_force_local(true);
+	}
+
 	//cerr << "OnInit" << endl;
 	// connect
 	//loopctrl.connect();
@@ -351,7 +351,7 @@ bool GuiApp::OnInit()
 	_frame->Raise();
 	_frame->Show(TRUE);
 
-		
+
 	// success: wxApp::OnRun() will be called which will enter the main message
 	// loop and the application will run. If we returned FALSE here, the
 	// application would exit immediately.
@@ -382,23 +382,23 @@ GuiApp::process_key_event (wxKeyEvent &ev)
 wxString
 GetExecutablePath(wxString argv0)
 {
-    wxString path;
+	wxString path;
 
-    if (wxIsAbsolutePath(argv0))
-        path = argv0;
-    else {
-        wxPathList pathlist;
-        pathlist.AddEnvList(wxT("PATH"));
-        path = pathlist.FindAbsoluteValidPath(argv0);
-    }
+	if (wxIsAbsolutePath(argv0))
+		path = argv0;
+	else {
+		wxPathList pathlist;
+		pathlist.AddEnvList(wxT("PATH"));
+		path = pathlist.FindAbsoluteValidPath(argv0);
+	}
 
-    wxFileName filename(path);
-    filename.Normalize();
+	wxFileName filename(path);
+	filename.Normalize();
 
-    path = filename.GetFullPath();
-    path = path.BeforeLast('/') + wxT("/");
+	path = filename.GetFullPath();
+	path = path.BeforeLast('/') + wxT("/");
 
-    return path;
+	return path;
 }
 #endif // __WXMAC__
 

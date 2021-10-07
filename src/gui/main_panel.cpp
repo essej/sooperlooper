@@ -110,7 +110,7 @@ BEGIN_EVENT_TABLE(MainPanel, wxPanel)
 	
 END_EVENT_TABLE()
 
-	MainPanel::MainPanel(wxWindow * parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
+MainPanel::MainPanel(wxWindow * parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
 	: wxPanel(parent, id, pos, size)
 
 {
