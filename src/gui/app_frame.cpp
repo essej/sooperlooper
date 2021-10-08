@@ -274,25 +274,17 @@ AppFrame::OnActivate(wxActivateEvent &ev)
 void
 AppFrame::on_preferred_size(int w, int h)
 {
-	int topheight = 0;
-#ifndef __WXMAC__
-	if (GetMenuBar()) {
-		topheight += GetMenuBar()->GetSize().GetHeight();
+	int clientWidth, clientHeight, entireWidth, entireHeight;
+	GetClientSize( &clientWidth, &clientHeight );
+	GetSize( &entireWidth, &entireHeight );
+	int topheight = entireHeight - clientHeight;
+
+	if (_embedded && _toolbar) {
+		topheight += _toolbar->GetSize().GetHeight();
 	}
-#else
-	topheight += 32;
 
-    if (_embedded && _toolbar) {
-        topheight += _toolbar->GetSize().GetHeight();
-    }
-
-#endif
-
-	//if (!_embedded) {
-        SetSize (w, h + topheight);
-    //}
+	SetSize (w, h + topheight);
 }
-
 
 void
 AppFrame::OnClose(wxCloseEvent &event)
