@@ -283,6 +283,7 @@ AppFrame::on_preferred_size(int w, int h)
 		topheight += _toolbar->GetSize().GetHeight();
 	}
 
+	SetSizeHints (w, h + topheight);
 	SetSize (w, h + topheight);
 }
 
