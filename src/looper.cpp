@@ -555,6 +555,8 @@ Looper::set_buffer_size (nframes_t bufsize)
 {
 	if (_buffersize != bufsize) {
 		//cerr << "setting buffer size to " << bufsize << endl;
+		_buffersize = bufsize;
+
 		if (_use_sync_buf == _our_syncin_buf) {
 			_use_sync_buf = 0;
 		}
@@ -576,8 +578,6 @@ Looper::set_buffer_size (nframes_t bufsize)
 
 			_tmp_io_bufs[i] = new float[_buffersize];
 		}
-		
-		_buffersize = bufsize;
 		
 		_our_syncin_buf = new float[_buffersize];
 		_our_syncout_buf = new float[_buffersize];
