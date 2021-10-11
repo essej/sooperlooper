@@ -176,8 +176,6 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 					     RubberBandStretcher::OptionProcessRealTime | RubberBandStretcher::OptionTransientsCrisp);
 
 	
-	set_buffer_size(_driver->get_buffersize());
-	
 	memset (_instances, 0, sizeof(LADSPA_Handle) * _chan_count);
 	memset (_input_ports, 0, sizeof(port_id_t) * _chan_count);
 	memset (_output_ports, 0, sizeof(port_id_t) * _chan_count);
@@ -189,6 +187,8 @@ Looper::initialize (unsigned int index, unsigned int chan_count, float loopsecs,
 	  _down_stamps[i] = 1 << 31;
 	}
         */
+
+	set_buffer_size(_driver->get_buffersize());
 
 	_longpress_frames = (nframes_t) lrint (srate * 1.0); // more than 1 secs is SUS
 	_doubletap_frames = (nframes_t) lrint (srate * 0.5); // less than 0.5 sec is double tap
