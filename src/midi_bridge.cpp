@@ -723,6 +723,7 @@ void * MidiBridge::clock_thread_entry()
 
 	//cerr << "entering clock thread" << endl;
 	
+	FD_ZERO(&pfd);
 	while (!_clockdone) {
 		nfds = 0;
 
