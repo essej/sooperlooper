@@ -104,8 +104,6 @@ public:
 	void save_default_midibindings ();
 
 	wxString do_file_selector(const wxString & message, const wxString & ext, const wxString & wc, int style);
-	
-	sigc::signal2<void,int, int> PreferredSizeChange;
 
     void set_sliders_allow_mousewheel (bool flag);
     bool get_sliders_allow_mousewheel () const { return _sliders_allow_mousewheel; }
@@ -178,7 +176,7 @@ protected:
 	wxTimer * _taptempo_button_timer;
 
 	wxScrolledWindow * _scroller;
-	wxBoxSizer * _main_sizer;
+	wxBoxSizer * _scroller_sizer;
 	wxBoxSizer * _topsizer;
 	wxPanel    * _top_panel;
 
