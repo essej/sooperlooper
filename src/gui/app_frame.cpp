@@ -161,10 +161,7 @@ AppFrame::init()
 	
 	wxFont sliderFont = *wxSMALL_FONT;
 
-	
 	_mainpanel = new MainPanel(this, -1, wxDefaultPosition, wxDefaultSize);
-
-	_mainpanel->PreferredSizeChange.connect (mem_fun (*this,  &AppFrame::on_preferred_size));
 
 	_mainpanel->set_force_local(_embedded);
 	
@@ -248,12 +245,8 @@ AppFrame::init()
 
 
     _topsizer->Add (_mainpanel, 1, wxEXPAND);
-
-	
-	this->SetAutoLayout( true );     // tell dialog to use sizer
-	this->SetSizer( _topsizer );      // actually set the sizer
-	_topsizer->Fit( this );            // set size to minimum size as calculated by the sizer
-	_topsizer->SetSizeHints( this );   // set size hints to honour mininum size
+    
+    SetSizerAndFit(_topsizer);
 }
 
 
@@ -270,29 +263,6 @@ AppFrame::OnActivate(wxActivateEvent &ev)
 	ev.Skip();
 	
 }
-
-void
-AppFrame::on_preferred_size(int w, int h)
-{
-	int topheight = 0;
-#ifndef __WXMAC__
-	if (GetMenuBar()) {
-		topheight += GetMenuBar()->GetSize().GetHeight();
-	}
-#else
-	topheight += 32;
-
-    if (_embedded && _toolbar) {
-        topheight += _toolbar->GetSize().GetHeight();
-    }
-
-#endif
-
-	//if (!_embedded) {
-        SetSize (w, h + topheight);
-    //}
-}
-
 
 void
 AppFrame::OnClose(wxCloseEvent &event)

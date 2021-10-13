@@ -341,17 +341,13 @@ bool GuiApp::OnInit()
 	// connect
 	//loopctrl.connect();
 
-	// Show it and tell the application that it's our main window
-	_frame->SetSizeHints(850, 210);
-	_frame->SetSize(_screen_pos.x, _screen_pos.y, 860, 215);
-
+	// Show it with minimum size and tell the application that it's our main window
+	_frame->SetSize(_screen_pos.x, _screen_pos.y, _frame->GetMinWidth(), _frame->GetMinHeight());
 	SetTopWindow(_frame);
-
 	_frame->Show(FALSE);
 	_frame->Raise();
 	_frame->Show(TRUE);
 
-		
 	// success: wxApp::OnRun() will be called which will enter the main message
 	// loop and the application will run. If we returned FALSE here, the
 	// application would exit immediately.

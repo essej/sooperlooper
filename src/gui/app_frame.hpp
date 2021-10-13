@@ -67,8 +67,6 @@ public:
 protected:
 
 	void init();
-
-	void on_preferred_size(int w, int h);
 	
 	void on_add_loop (wxCommandEvent &ev);
 	void on_add_custom_loop (wxCommandEvent &ev);
