@@ -1542,6 +1542,12 @@ Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 		else if (ctrl == Event::JackTimebaseMaster) {
 			return _jack_timebase_master ? 1.0f: 0.0f;
 		}
+		else if (ctrl == Event::GlobalCycleLen) {
+			return _tempo_frames / _driver->get_samplerate();
+		}
+		else if (ctrl == Event::GlobalCyclePos) {
+			return _tempo_counter / _driver->get_samplerate();
+		}
 
 	}
 

@@ -220,7 +220,9 @@ namespace SooperLooper {
 		    // Put all new controls at the end to avoid screwing up the order of existing AU sessions (who store these numbers)
 		    ReplaceQuantized,
 		    SendMidiStartOnTrigger,
-            DiscretePreFader
+		    DiscretePreFader,
+		    GlobalCycleLen,
+		    GlobalCyclePos
 	    } Control;
 	    
 	    int8_t  Instance;
