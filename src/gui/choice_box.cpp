@@ -58,6 +58,7 @@ ChoiceBox::ChoiceBox(wxWindow * parent, wxWindowID id, bool bindable, const wxPo
 	_popup_menu = 0;
 	_data_value = 0;
 	_bindable = bindable;
+	_bar_value = 0.0f;
 	
 	_bgcolor.Set(0,0,0);
 	_bgbrush.SetColour (_bgcolor);
@@ -69,7 +70,7 @@ ChoiceBox::ChoiceBox(wxWindow * parent, wxWindowID id, bool bindable, const wxPo
 	_textcolor = *wxWHITE;
 	_barcolor.Set(14, 50, 89);
 	_overbarcolor.Set(20, 40, 50);
-	_barbrush.SetColour(_bgcolor);
+	_barbrush.SetColour(_barcolor);
 	
 	_bgbordercolor.Set(30,30,30);
 	_bordercolor.Set(67, 83, 103);
@@ -429,6 +430,11 @@ void ChoiceBox::draw_area(wxDC & dc)
 	shape[5].x = _width -1;  shape[5].y = _height -1;
 
 	dc.DrawPolygon (6, shape);
+
+	if (_bar_value > 0.0f) {
+		dc.SetBrush(_barbrush);
+		dc.DrawRectangle (1, 1, (wxCoord)(_width*_bar_value-1), _height-2);
+	}
 	
 	dc.SetPen(*wxTRANSPARENT_PEN);
 
@@ -442,4 +448,15 @@ void ChoiceBox::draw_area(wxDC & dc)
 	dc.DrawText (_value_str, _width - w - 3, _height - h - 3);
 	
 
+}
+
+void ChoiceBox::set_bar_value(float val) {
+	if(val >= 0.0f && val <= 1.0f && _bar_value != val) {
+		_bar_value = val;
+		Refresh(false);
+	}
+}
+
+float ChoiceBox::get_bar_value() {
+	return _bar_value;
 }

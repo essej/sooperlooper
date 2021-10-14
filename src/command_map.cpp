@@ -173,6 +173,8 @@ CommandMap::CommandMap()
 	add_global_control("use_midi_start", Event::UseMidiStart, UnitBoolean, 0.0f, 1.0f, 1.0f);
 	add_global_control("use_midi_stop", Event::UseMidiStop, UnitBoolean, 0.0f, 1.0f, 1.0f);
 	add_global_control("send_midi_start_on_trigger", Event::SendMidiStartOnTrigger, UnitBoolean, 0.0f, 1.0f, 1.0f);
+	add_global_control("global_cycle_len", Event::GlobalCycleLen, UnitSeconds, 0.0f, 1e6);
+	add_global_control("global_cycle_pos", Event::GlobalCyclePos, UnitSeconds, 0.0f, 1e6);
 	_str_ctrl_map.insert (_global_controls.begin(), _global_controls.end());
 
 	// reverse it

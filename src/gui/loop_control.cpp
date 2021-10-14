@@ -385,10 +385,14 @@ LoopControl::register_global_updates(bool unreg)
 	if (unreg) {
 		lo_send(_osc_addr, "/unregister_auto_update", "siss", "in_peak_meter", 100, _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/unregister_auto_update", "siss", "out_peak_meter", 100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/unregister_auto_update", "siss", "global_cycle_len", 100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/unregister_auto_update", "siss", "global_cycle_pos", 100, _our_url.c_str(), "/ctrl");
 	}
 	else {
 		lo_send(_osc_addr, "/register_auto_update", "siss", "in_peak_meter", 100, _our_url.c_str(), "/ctrl");
 		lo_send(_osc_addr, "/register_auto_update", "siss", "out_peak_meter", 100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/register_auto_update", "siss", "global_cycle_len", 100, _our_url.c_str(), "/ctrl");
+		lo_send(_osc_addr, "/register_auto_update", "siss", "global_cycle_pos", 100, _our_url.c_str(), "/ctrl");
 	}
 }
 

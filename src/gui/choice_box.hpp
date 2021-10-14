@@ -81,6 +81,8 @@ class ChoiceBox
     static void set_use_mousewheel_default (bool flag) { s_use_wheel_def = flag; }
     static bool get_use_mousewheel_default () { return s_use_wheel_def; }
 
+    void set_bar_value (float val);
+    float get_bar_value ();
     
 	sigc::signal2<void, int, wxString> value_changed;
 	sigc::signal0<void> bind_request;
@@ -138,6 +140,7 @@ class ChoiceBox
 
 	bool _dragging;
 	int _last_x;
+	float _bar_value;
 	
   private:
     // any class wishing to process wxWindows events must use this macro

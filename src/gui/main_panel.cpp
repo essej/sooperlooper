@@ -92,7 +92,8 @@ enum {
 	ID_MuteQuantCheck,
 	ID_OdubQuantCheck,
 	ID_SmartEighthCheck,
-	ID_ReplQuantCheck
+	ID_ReplQuantCheck,
+	ID_GlobalCyclePos
 };
 
 
@@ -293,7 +294,6 @@ MainPanel::init()
 	_repl_quant_check->value_changed.connect (mem_fun (*this, &MainPanel::on_repl_quant_check));
 	_repl_quant_check->bind_request.connect (sigc::bind(mem_fun (*this, &MainPanel::on_bind_request), wxT("replace_quantized")));
 	rowsizer->Add (_repl_quant_check, 0, wxALL|wxEXPAND, 2);
-
 
 	rowsizer->Add (1, 1, 1);
 
@@ -740,6 +740,18 @@ MainPanel::update_controls()
 		_loop_control->get_global_value(wxT("selected_loop_num"), val);
 		set_curr_loop ((int) val);
 	}
+
+	if (_loop_control->is_global_updated(wxT("global_cycle_pos"))) {
+		float gclen, gcpos;
+		_loop_control->get_global_value(wxT("global_cycle_len"), gclen);
+		_loop_control->get_global_value(wxT("global_cycle_pos"), gcpos);
+		val = 0.0f;
+		// only display global cycle len if it is >= 1s to reduce visual noise
+		if(gclen >= 1.0f)
+			val = gcpos / gclen;
+		_quantize_choice->set_bar_value(val);
+	}
+
 }
 
 void
