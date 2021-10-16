@@ -44,7 +44,8 @@ enum {
 	ID_UseMidiStop,
 	ID_SendMidiStartOnTrigger,
 	ID_OutputClockCheck,
-    ID_SliderMousewheelCheck
+    ID_SliderMousewheelCheck,
+    ID_CopyLoopValuesOnCreateCheck
 };
 
 BEGIN_EVENT_TABLE(SooperLooperGui::LatencyPanel, wxPanel)
@@ -57,6 +58,7 @@ BEGIN_EVENT_TABLE(SooperLooperGui::LatencyPanel, wxPanel)
 	EVT_CHECKBOX (ID_SendMidiStartOnTrigger, SooperLooperGui::LatencyPanel::on_check)
     EVT_CHECKBOX(ID_OutputClockCheck, SooperLooperGui::LatencyPanel::on_check)
     EVT_CHECKBOX(ID_SliderMousewheelCheck, SooperLooperGui::LatencyPanel::on_check)
+    EVT_CHECKBOX(ID_CopyLoopValuesOnCreateCheck, SooperLooperGui::LatencyPanel::on_check)
 	EVT_TIMER(ID_UpdateTimer, SooperLooperGui::LatencyPanel::OnUpdateTimer)
 
 	EVT_SIZE (SooperLooperGui::LatencyPanel::onSize)
@@ -195,6 +197,8 @@ void LatencyPanel::init()
 	_slider_mousewheel_check = new wxCheckBox(this, ID_SliderMousewheelCheck, wxT("Allow mouse scroll wheel to change sliders"));
 	topsizer->Add(_slider_mousewheel_check, 0, wxALL, 3);
 
+	_copy_loop_values_on_create_check = new wxCheckBox(this, ID_CopyLoopValuesOnCreateCheck, wxT("Copy loop flags from last loop when creating a new one"));
+	topsizer->Add(_copy_loop_values_on_create_check, 0, wxALL, 3);
 
 	_update_timer = new wxTimer(this, ID_UpdateTimer);
 	_update_timer->Start(5000, true);
@@ -258,6 +262,7 @@ void LatencyPanel::refresh_state()
 	}
 
     _slider_mousewheel_check->SetValue(_parent->get_sliders_allow_mousewheel() );
+    _copy_loop_values_on_create_check->SetValue(_parent->get_copy_loop_values() );
 
         
 	if (_auto_check->GetValue()) {
@@ -302,6 +307,9 @@ void LatencyPanel::on_check (wxCommandEvent &ev)
         }
 	else if (ev.GetId() == ID_AutoDisableCheck) {
 		lcontrol.post_ctrl_change (-2, wxT("auto_disable_latency"), _auto_disable_check->GetValue() ? 1.0f : 0.0f);
+	}
+	else if (ev.GetId() == ID_CopyLoopValuesOnCreateCheck) {
+		_parent->set_copy_loop_values (_copy_loop_values_on_create_check->GetValue());
 	}
     
 

@@ -129,6 +129,8 @@ END_EVENT_TABLE()
     _add_num_channels = 1;
     _add_discrete = true;
     _add_secs_channel = 40.0f;
+    _copy_loop_values = false;
+    _copy_loop_values_counter = 0;
 
     _default_position.x = 100;    
     _default_position.y = 100;
@@ -450,6 +452,23 @@ MainPanel::init_loopers (int count)
 			looperpan->set_index(_looper_panels.size());
 			_main_sizer->Add (looperpan, 0, wxEXPAND|wxALL, 0);
 			_looper_panels.push_back (looperpan);
+
+			// copy settings of last loop (but only if we created it and if there is more than one loop)
+			if (_copy_loop_values && _looper_panels.size() > 1 && _copy_loop_values_counter > 0) {
+				long curr_loop = _looper_panels.size() - 1;
+				float val;
+
+				const wchar_t *sync_settings[] = {wxT("sync"), wxT("playback_sync"), wxT("use_feedback_play"),
+												  wxT("tempo_stretch"), wxT("discrete_prefader")};
+				for(int i=0; i<5; i++) {
+					_loop_control->get_value(curr_loop-1, sync_settings[i], val);
+					if(val > 0.0f || i == 4) // disable val check for prefader, as it's default is "on"
+						_loop_control->post_ctrl_change(curr_loop, sync_settings[i], 1.0f);
+
+				}
+				_copy_loop_values_counter--;
+			}
+
 		}
 	}
 	else if (count < (int)_looper_panels.size()) {
@@ -832,15 +851,21 @@ MainPanel::do_add_loop (const string & type)
 {
 
 	LoopControl::SpawnConfig & sconf = _loop_control->get_spawn_config();
+	bool loop_created;
+	long num_loops = sconf.num_loops;
 
 	if (type == "mono") {
-		_loop_control->post_add_loop (1, sconf.mem_secs, sconf.discrete_io);
+		loop_created = _loop_control->post_add_loop (1, sconf.mem_secs, sconf.discrete_io);
 	}
 	else if (type == "stereo") {
-		_loop_control->post_add_loop (2, sconf.mem_secs, sconf.discrete_io);
+		loop_created = _loop_control->post_add_loop (2, sconf.mem_secs, sconf.discrete_io);
 	}
 	else {
-		_loop_control->post_add_loop();
+		loop_created = _loop_control->post_add_loop();
+	}
+
+	if (_copy_loop_values && loop_created && num_loops >= 1) {
+		_copy_loop_values_counter++;
 	}
 }
 
@@ -1354,6 +1379,10 @@ bool MainPanel::load_rc()
             set_sliders_allow_mousewheel( (bool) atoi (prop->value().c_str()));
         }
 
+        if ((prop = rootNode->property ("copy_loop_values_on_create")) != 0) {
+            set_copy_loop_values( (bool) atoi (prop->value().c_str()));
+        }
+
 
         
 	XMLNode * bindingsNode = rootNode->find_named_node ("KeyBindings");
@@ -1403,6 +1432,8 @@ bool MainPanel::save_rc()
         rootNode->add_property ("window_y_pos", buf);
         snprintf(buf, sizeof(buf), "%d", (int)_sliders_allow_mousewheel);
         rootNode->add_property ("sliders_allow_mousewheel", buf);
+        snprintf(buf, sizeof(buf), "%d", (int)_copy_loop_values);
+        rootNode->add_property ("copy_loop_values_on_create", buf);
 
         
 	configdoc.set_root (rootNode);

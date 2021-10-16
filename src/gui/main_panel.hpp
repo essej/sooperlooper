@@ -89,6 +89,8 @@ public:
 	
 	void set_force_local(bool flag) { _force_local = flag; }
     bool get_force_local() const { return _force_local; }
+    void set_copy_loop_values(bool flag) { _copy_loop_values = flag; }
+    bool get_copy_loop_values() { return _copy_loop_values; }
     
 	void init_loopers (int count);
 
@@ -226,6 +228,8 @@ protected:
 	wxString      _last_used_path;
 
     bool _sliders_allow_mousewheel;
+    bool _copy_loop_values;
+    int _copy_loop_values_counter;
 
 private:
     // any class wishing to process wxWindows events must use this macro
