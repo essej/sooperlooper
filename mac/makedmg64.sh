@@ -5,6 +5,8 @@ echo Version is ${version}$1
 
 #./lipo.sh
 
+# can't notarize it yet because the embedded sooperlooper binary links to libjack so we can't use hardened runtime
+
 if [ -f ./codesign.sh ] ; then
   ./codesign.sh
  # (cd macdist; ../notarize-app.sh SooperLooper.app )

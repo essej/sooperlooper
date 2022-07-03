@@ -8,12 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		880070372522758F0006E20D /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 880070362522758F0006E20D /* AudioToolbox.framework */; };
-		880FCEBC0877364D004384B4 /* slgui.icns in Resources */ = {isa = PBXBuildFile; fileRef = 880FCEBB0877364D004384B4 /* slgui.icns */; };
-		8810CF690E247C10002155C4 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8810CF680E247C10002155C4 /* ApplicationServices.framework */; };
-		881935030878E594008C28C2 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935020878E594008C28C2 /* CoreMIDI.framework */; };
-		881935130878E75A008C28C2 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935120878E75A008C28C2 /* libz.dylib */; };
-		881935190878E7A0008C28C2 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935180878E7A0008C28C2 /* CoreFoundation.framework */; };
-		8819351B0878E7CA008C28C2 /* libm.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8819351A0878E7CA008C28C2 /* libm.dylib */; };
 		88288AC01857C42B0008E7EE /* liblo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB21857C3C30008E7EE /* liblo.a */; };
 		88288AC11857C42B0008E7EE /* librubberband.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB31857C3C30008E7EE /* librubberband.a */; };
 		88288AC31857C42B0008E7EE /* libsigc-2.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB51857C3C30008E7EE /* libsigc-2.0.a */; };
@@ -28,12 +22,6 @@
 		8836505E1858445B00246E75 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 888AC6DA087E2C7C001F80AD /* Cocoa.framework */; };
 		88365061185844F800246E75 /* SooperLooperCocoaViewFactory.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 883650441858422D00246E75 /* SooperLooperCocoaViewFactory.bundle */; };
 		88365064185845CB00246E75 /* libsamplerate.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB41857C3C30008E7EE /* libsamplerate.a */; };
-		8855A55108B571B500B1396A /* TaskWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 8855A54F08B571B500B1396A /* TaskWrapper.h */; };
-		8855A55208B571B500B1396A /* TaskWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 8855A55008B571B500B1396A /* TaskWrapper.m */; };
-		8855A55D08B5732D00B1396A /* launch_slgui.h in Headers */ = {isa = PBXBuildFile; fileRef = 8855A55B08B5732D00B1396A /* launch_slgui.h */; };
-		8855A55E08B5732D00B1396A /* launch_slgui.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8855A55C08B5732D00B1396A /* launch_slgui.mm */; };
-		8855A6F608B59DE600B1396A /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8855A6F508B59DE600B1396A /* libxml2.dylib */; };
-		8855A8EA08B77BBB00B1396A /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = 8855A8E908B77BBB00B1396A /* config.h */; };
 		885670181813927400AA5367 /* SooperLooperAU_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = 32BAE0B30371A71500C91783 /* SooperLooperAU_Prefix.pch */; };
 		885670191813927400AA5367 /* SooperLooperAUVersion.h in Headers */ = {isa = PBXBuildFile; fileRef = 8BA05A690720730100365D66 /* SooperLooperAUVersion.h */; };
 		8856702F1813927400AA5367 /* SooperLooperAU.h in Headers */ = {isa = PBXBuildFile; fileRef = 8BC6025B073B072D006C4272 /* SooperLooperAU.h */; };
@@ -171,197 +159,28 @@
 		885670DF1813927400AA5367 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 888AC6DA087E2C7C001F80AD /* Cocoa.framework */; };
 		885670E11813927400AA5367 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 886245A408B8E4F3003959C6 /* AppKit.framework */; };
 		885670E41813927400AA5367 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8810CF680E247C10002155C4 /* ApplicationServices.framework */; };
-		885F12700BD25EC60069E7EC /* atomic.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12540BD25EC60069E7EC /* atomic.h */; };
-		885F12710BD25EC60069E7EC /* audio_driver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12550BD25EC60069E7EC /* audio_driver.cpp */; };
-		885F12720BD25EC60069E7EC /* audio_driver.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F12560BD25EC60069E7EC /* audio_driver.hpp */; };
-		885F12730BD25EC60069E7EC /* command_map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12570BD25EC60069E7EC /* command_map.cpp */; };
-		885F12740BD25EC60069E7EC /* command_map.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F12580BD25EC60069E7EC /* command_map.hpp */; };
-		885F12750BD25EC60069E7EC /* control_osc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12590BD25EC60069E7EC /* control_osc.cpp */; };
-		885F12760BD25EC60069E7EC /* control_osc.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F125A0BD25EC60069E7EC /* control_osc.hpp */; };
-		885F12770BD25EC60069E7EC /* engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F125B0BD25EC60069E7EC /* engine.cpp */; };
-		885F12780BD25EC60069E7EC /* engine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F125C0BD25EC60069E7EC /* engine.hpp */; };
-		885F12790BD25EC60069E7EC /* event_nonrt.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F125D0BD25EC60069E7EC /* event_nonrt.hpp */; };
-		885F127A0BD25EC60069E7EC /* event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F125E0BD25EC60069E7EC /* event.cpp */; };
-		885F127B0BD25EC60069E7EC /* event.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F125F0BD25EC60069E7EC /* event.hpp */; };
-		885F127C0BD25EC60069E7EC /* filter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12600BD25EC60069E7EC /* filter.cpp */; };
-		885F127D0BD25EC60069E7EC /* filter.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F12610BD25EC60069E7EC /* filter.hpp */; };
-		885F127E0BD25EC60069E7EC /* lockmonitor.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F12620BD25EC60069E7EC /* lockmonitor.hpp */; };
-		885F127F0BD25EC60069E7EC /* looper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12630BD25EC60069E7EC /* looper.cpp */; };
-		885F12800BD25EC60069E7EC /* looper.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F12640BD25EC60069E7EC /* looper.hpp */; };
-		885F12810BD25EC60069E7EC /* midi_bind.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12650BD25EC60069E7EC /* midi_bind.cpp */; };
-		885F12820BD25EC60069E7EC /* midi_bind.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F12660BD25EC60069E7EC /* midi_bind.hpp */; };
-		885F12830BD25EC60069E7EC /* midi_bridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12670BD25EC60069E7EC /* midi_bridge.cpp */; };
-		885F12840BD25EC60069E7EC /* midi_bridge.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F12680BD25EC60069E7EC /* midi_bridge.hpp */; };
-		885F12850BD25EC60069E7EC /* panner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12690BD25EC60069E7EC /* panner.cpp */; };
-		885F12860BD25EC60069E7EC /* panner.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F126A0BD25EC60069E7EC /* panner.hpp */; };
-		885F12870BD25EC60069E7EC /* plugin.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F126B0BD25EC60069E7EC /* plugin.cc */; };
-		885F12880BD25EC60069E7EC /* plugin.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F126C0BD25EC60069E7EC /* plugin.hpp */; };
-		885F12890BD25EC60069E7EC /* ringbuffer.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F126D0BD25EC60069E7EC /* ringbuffer.hpp */; };
-		885F128A0BD25EC60069E7EC /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F126E0BD25EC60069E7EC /* utils.cpp */; };
-		885F128B0BD25EC60069E7EC /* utils.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F126F0BD25EC60069E7EC /* utils.hpp */; };
-		885F128D0BD25F290069E7EC /* ladspa.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F128C0BD25F290069E7EC /* ladspa.h */; };
-		885F12A20BD25FD90069E7EC /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12900BD25FD90069E7EC /* config.h */; };
-		885F12A30BD25FD90069E7EC /* coremidi_midiport.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12910BD25FD90069E7EC /* coremidi_midiport.cc */; };
-		885F12A40BD25FD90069E7EC /* fd_midiport.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12920BD25FD90069E7EC /* fd_midiport.cc */; };
-		885F12A50BD25FD90069E7EC /* fifomidi.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12930BD25FD90069E7EC /* fifomidi.cc */; };
-		885F12A60BD25FD90069E7EC /* midi.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12940BD25FD90069E7EC /* midi.cc */; };
-		885F12A70BD25FD90069E7EC /* midichannel.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12950BD25FD90069E7EC /* midichannel.cc */; };
-		885F12A80BD25FD90069E7EC /* midicontrollable.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12960BD25FD90069E7EC /* midicontrollable.cc */; };
-		885F12A90BD25FD90069E7EC /* midifactory.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12970BD25FD90069E7EC /* midifactory.cc */; };
-		885F12AA0BD25FD90069E7EC /* midimanager.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12980BD25FD90069E7EC /* midimanager.cc */; };
-		885F12AB0BD25FD90069E7EC /* midiparser.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12990BD25FD90069E7EC /* midiparser.cc */; };
-		885F12AC0BD25FD90069E7EC /* midiport.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129A0BD25FD90069E7EC /* midiport.cc */; };
-		885F12AE0BD25FD90069E7EC /* mmc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129C0BD25FD90069E7EC /* mmc.cc */; };
-		885F12B00BD25FD90069E7EC /* mtc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129E0BD25FD90069E7EC /* mtc.cc */; };
-		885F12B10BD25FD90069E7EC /* port_request.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129F0BD25FD90069E7EC /* port_request.cc */; };
-		885F12B20BD25FD90069E7EC /* version.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12A00BD25FD90069E7EC /* version.cc */; };
-		885F12C60BD260270069E7EC /* channel.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12B60BD260270069E7EC /* channel.h */; };
-		885F12C70BD260270069E7EC /* controllable.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12B70BD260270069E7EC /* controllable.h */; };
-		885F12C80BD260270069E7EC /* coremidi_midiport.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12B80BD260270069E7EC /* coremidi_midiport.h */; };
-		885F12C90BD260270069E7EC /* factory.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12B90BD260270069E7EC /* factory.h */; };
-		885F12CA0BD260270069E7EC /* fd_midiport.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12BA0BD260270069E7EC /* fd_midiport.h */; };
-		885F12CB0BD260270069E7EC /* fifomidi.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12BB0BD260270069E7EC /* fifomidi.h */; };
-		885F12CC0BD260270069E7EC /* manager.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12BC0BD260270069E7EC /* manager.h */; };
-		885F12CD0BD260270069E7EC /* mmc.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12BD0BD260270069E7EC /* mmc.h */; };
-		885F12CE0BD260270069E7EC /* nullmidi.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12BE0BD260270069E7EC /* nullmidi.h */; };
-		885F12CF0BD260270069E7EC /* parser.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12BF0BD260270069E7EC /* parser.h */; };
-		885F12D00BD260270069E7EC /* port_request.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12C00BD260270069E7EC /* port_request.h */; };
-		885F12D10BD260270069E7EC /* port.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12C10BD260270069E7EC /* port.h */; };
-		885F12D20BD260270069E7EC /* types.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12C20BD260270069E7EC /* types.h */; };
-		885F12D30BD260270069E7EC /* version.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12C30BD260270069E7EC /* version.h */; };
-		885F131C0BD260A70069E7EC /* basename.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D50BD260A70069E7EC /* basename.cc */; };
-		885F131D0BD260A70069E7EC /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12D60BD260A70069E7EC /* config.h */; };
-		885F131E0BD260A70069E7EC /* dirname.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D70BD260A70069E7EC /* dirname.cc */; };
-		885F131F0BD260A70069E7EC /* dmalloc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D80BD260A70069E7EC /* dmalloc.cc */; };
-		885F13200BD260A70069E7EC /* ftw.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D90BD260A70069E7EC /* ftw.cc */; };
-		885F13210BD260A70069E7EC /* mountpoint.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12DA0BD260A70069E7EC /* mountpoint.cc */; };
-		885F13220BD260A70069E7EC /* pathscanner.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12DB0BD260A70069E7EC /* pathscanner.cc */; };
-		885F13230BD260A70069E7EC /* abstract_ui.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12DD0BD260A70069E7EC /* abstract_ui.h */; };
-		885F13240BD260A70069E7EC /* atomic.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12DE0BD260A70069E7EC /* atomic.h */; };
-		885F13250BD260A70069E7EC /* basename.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12DF0BD260A70069E7EC /* basename.h */; };
-		885F13260BD260A70069E7EC /* compose.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E00BD260A70069E7EC /* compose.h */; };
-		885F13280BD260A70069E7EC /* datum.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E20BD260A70069E7EC /* datum.h */; };
-		885F13290BD260A70069E7EC /* dirname.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E30BD260A70069E7EC /* dirname.h */; };
-		885F132A0BD260A70069E7EC /* ellipsoid.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E40BD260A70069E7EC /* ellipsoid.h */; };
-		885F132B0BD260A70069E7EC /* error.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E50BD260A70069E7EC /* error.h */; };
-		885F132C0BD260A70069E7EC /* failed_constructor.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E60BD260A70069E7EC /* failed_constructor.h */; };
-		885F132D0BD260A70069E7EC /* fastlog.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E70BD260A70069E7EC /* fastlog.h */; };
-		885F132E0BD260A70069E7EC /* foreach.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E80BD260A70069E7EC /* foreach.h */; };
-		885F132F0BD260A70069E7EC /* forkexec.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E90BD260A70069E7EC /* forkexec.h */; };
-		885F13300BD260A70069E7EC /* ftw.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12EA0BD260A70069E7EC /* ftw.h */; };
-		885F13330BD260A70069E7EC /* lock_free_fifo.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12ED0BD260A70069E7EC /* lock_free_fifo.h */; };
-		885F13340BD260A70069E7EC /* lockmonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12EE0BD260A70069E7EC /* lockmonitor.h */; };
-		885F13380BD260A70069E7EC /* mountpoint.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F20BD260A70069E7EC /* mountpoint.h */; };
-		885F13390BD260A70069E7EC /* pathscanner.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F30BD260A70069E7EC /* pathscanner.h */; };
-		885F133A0BD260A70069E7EC /* platform.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F40BD260A70069E7EC /* platform.h */; };
-		885F133B0BD260A70069E7EC /* platform_factory.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F50BD260A70069E7EC /* platform_factory.h */; };
-		885F133C0BD260A70069E7EC /* pool.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F60BD260A70069E7EC /* pool.h */; };
-		885F133D0BD260A70069E7EC /* position.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F70BD260A70069E7EC /* position.h */; };
-		885F133E0BD260A70069E7EC /* precision_timer.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F80BD260A70069E7EC /* precision_timer.h */; };
-		885F133F0BD260A70069E7EC /* pthread_spinlock.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F90BD260A70069E7EC /* pthread_spinlock.h */; };
-		885F13400BD260A70069E7EC /* pthread_utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12FA0BD260A70069E7EC /* pthread_utils.h */; };
-		885F13410BD260A70069E7EC /* rcpointer.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12FB0BD260A70069E7EC /* rcpointer.h */; };
-		885F13420BD260A70069E7EC /* receiver.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12FC0BD260A70069E7EC /* receiver.h */; };
-		885F13430BD260A70069E7EC /* relation.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12FD0BD260A70069E7EC /* relation.h */; };
-		885F13440BD260A70069E7EC /* restartable_rw.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12FE0BD260A70069E7EC /* restartable_rw.h */; };
-		885F13450BD260A70069E7EC /* ringbuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12FF0BD260A70069E7EC /* ringbuffer.h */; };
-		885F13460BD260A70069E7EC /* rt.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13000BD260A70069E7EC /* rt.h */; };
-		885F13470BD260A70069E7EC /* rtthread.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13010BD260A70069E7EC /* rtthread.h */; };
-		885F13480BD260A70069E7EC /* scale.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13020BD260A70069E7EC /* scale.h */; };
-		885F13490BD260A70069E7EC /* selectable.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13030BD260A70069E7EC /* selectable.h */; };
-		885F134C0BD260A70069E7EC /* stl_delete.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13060BD260A70069E7EC /* stl_delete.h */; };
-		885F134D0BD260A70069E7EC /* stl_functors.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13070BD260A70069E7EC /* stl_functors.h */; };
-		885F134E0BD260A70069E7EC /* strsub.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13080BD260A70069E7EC /* strsub.h */; };
-		885F134F0BD260A70069E7EC /* textreceiver.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13090BD260A70069E7EC /* textreceiver.h */; };
-		885F13500BD260A70069E7EC /* thread.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F130A0BD260A70069E7EC /* thread.h */; };
-		885F13510BD260A70069E7EC /* thrown_error.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F130B0BD260A70069E7EC /* thrown_error.h */; };
-		885F13520BD260A70069E7EC /* touchable.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F130C0BD260A70069E7EC /* touchable.h */; };
-		885F13530BD260A70069E7EC /* transmitter.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F130D0BD260A70069E7EC /* transmitter.h */; };
-		885F13540BD260A70069E7EC /* types.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F130E0BD260A70069E7EC /* types.h */; };
-		885F13550BD260A70069E7EC /* undo.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F130F0BD260A70069E7EC /* undo.h */; };
-		885F13560BD260A70069E7EC /* unescape.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13100BD260A70069E7EC /* unescape.h */; };
-		885F13570BD260A70069E7EC /* version.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13110BD260A70069E7EC /* version.h */; };
-		885F13580BD260A70069E7EC /* xml++.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13120BD260A70069E7EC /* xml++.h */; };
-		885F13590BD260A70069E7EC /* pool.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13130BD260A70069E7EC /* pool.cc */; };
-		885F135A0BD260A70069E7EC /* pthread_utils.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13140BD260A70069E7EC /* pthread_utils.cc */; };
-		885F135B0BD260A70069E7EC /* receiver.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13150BD260A70069E7EC /* receiver.cc */; };
-		885F135C0BD260A70069E7EC /* textreceiver.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13160BD260A70069E7EC /* textreceiver.cc */; };
-		885F135D0BD260A70069E7EC /* transmitter.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13170BD260A70069E7EC /* transmitter.cc */; };
-		885F135E0BD260A70069E7EC /* undo.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13180BD260A70069E7EC /* undo.cc */; };
-		885F135F0BD260A70069E7EC /* unescape.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13190BD260A70069E7EC /* unescape.cc */; };
-		885F13600BD260A70069E7EC /* version.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F131A0BD260A70069E7EC /* version.cc */; };
-		885F13610BD260A70069E7EC /* xml++.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F131B0BD260A70069E7EC /* xml++.cc */; };
-		885F13630BD2613B0069E7EC /* jack_audio_driver.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F13620BD2613B0069E7EC /* jack_audio_driver.hpp */; };
-		886245A508B8E4F3003959C6 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 886245A408B8E4F3003959C6 /* AppKit.framework */; };
-		8862462308B95927003959C6 /* SLproperties.h in Headers */ = {isa = PBXBuildFile; fileRef = 8862462208B95927003959C6 /* SLproperties.h */; };
-		88728F95248D886000783614 /* AUPlugInDispatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88728F93248D886000783614 /* AUPlugInDispatch.cpp */; };
-		88728F96248D886000783614 /* AUPlugInDispatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88728F93248D886000783614 /* AUPlugInDispatch.cpp */; };
 		88728F97248D886000783614 /* AUPlugInDispatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88728F93248D886000783614 /* AUPlugInDispatch.cpp */; };
-		88728FA7248D887900783614 /* AUOutputBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88728F9D248D887900783614 /* AUOutputBase.cpp */; };
-		88728FA8248D887900783614 /* AUOutputBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88728F9D248D887900783614 /* AUOutputBase.cpp */; };
 		88728FA9248D887900783614 /* AUOutputBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88728F9D248D887900783614 /* AUOutputBase.cpp */; };
-		88728FAD248D887900783614 /* AUInlineEffectBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88728F9F248D887900783614 /* AUInlineEffectBase.cpp */; };
-		88728FAE248D887900783614 /* AUInlineEffectBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88728F9F248D887900783614 /* AUInlineEffectBase.cpp */; };
 		88728FAF248D887900783614 /* AUInlineEffectBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88728F9F248D887900783614 /* AUInlineEffectBase.cpp */; };
-		88728FCE248D889E00783614 /* AUEffectBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BA05A9A072073D200365D66 /* AUEffectBase.cpp */; };
-		88728FD0248D889E00783614 /* AUMIDIBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 880FCF2A0878CA09004384B4 /* AUMIDIBase.cpp */; };
-		88728FD2248D889E00783614 /* AUMIDIEffectBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 880FCF2C0878CA09004384B4 /* AUMIDIEffectBase.cpp */; };
-		88728FD4248D889E00783614 /* MusicDeviceBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88A6E11B185903760099FEDF /* MusicDeviceBase.cpp */; };
-		88728FD6248D889E00783614 /* AUEffectBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BA05A9A072073D200365D66 /* AUEffectBase.cpp */; };
-		88728FD8248D889E00783614 /* AUMIDIBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 880FCF2A0878CA09004384B4 /* AUMIDIBase.cpp */; };
-		88728FDA248D889E00783614 /* AUMIDIEffectBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 880FCF2C0878CA09004384B4 /* AUMIDIEffectBase.cpp */; };
-		88728FDC248D889E00783614 /* MusicDeviceBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88A6E11B185903760099FEDF /* MusicDeviceBase.cpp */; };
 		88728FDE248D889F00783614 /* AUEffectBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BA05A9A072073D200365D66 /* AUEffectBase.cpp */; };
 		88728FE0248D889F00783614 /* AUMIDIBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 880FCF2A0878CA09004384B4 /* AUMIDIBase.cpp */; };
 		88728FE2248D889F00783614 /* AUMIDIEffectBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 880FCF2C0878CA09004384B4 /* AUMIDIEffectBase.cpp */; };
 		88728FE4248D889F00783614 /* MusicDeviceBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88A6E11B185903760099FEDF /* MusicDeviceBase.cpp */; };
-		88728FE6248D88A200783614 /* AUBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BA05AA7072073D200365D66 /* AUBuffer.cpp */; };
-		88728FEB248D88A200783614 /* AUBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BA05AA7072073D200365D66 /* AUBuffer.cpp */; };
 		88728FF0248D88A300783614 /* AUBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BA05AA7072073D200365D66 /* AUBuffer.cpp */; };
-		88728FF5248D88AA00783614 /* AUBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A881857C0A00008E7EE /* AUBase.cpp */; };
-		88728FF7248D88AA00783614 /* AUDispatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A8A1857C0A00008E7EE /* AUDispatch.cpp */; };
-		88728FF9248D88AA00783614 /* AUInputElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A8C1857C0A00008E7EE /* AUInputElement.cpp */; };
-		88728FFB248D88AA00783614 /* AUOutputElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A8E1857C0A00008E7EE /* AUOutputElement.cpp */; };
-		88728FFE248D88AA00783614 /* AUScopeElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A911857C0A00008E7EE /* AUScopeElement.cpp */; };
-		88729000248D88AA00783614 /* ComponentBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A931857C0A00008E7EE /* ComponentBase.cpp */; };
-		88729002248D88AA00783614 /* AUBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A881857C0A00008E7EE /* AUBase.cpp */; };
-		88729004248D88AA00783614 /* AUDispatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A8A1857C0A00008E7EE /* AUDispatch.cpp */; };
-		88729006248D88AA00783614 /* AUInputElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A8C1857C0A00008E7EE /* AUInputElement.cpp */; };
-		88729008248D88AA00783614 /* AUOutputElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A8E1857C0A00008E7EE /* AUOutputElement.cpp */; };
-		8872900B248D88AA00783614 /* AUScopeElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A911857C0A00008E7EE /* AUScopeElement.cpp */; };
-		8872900D248D88AA00783614 /* ComponentBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A931857C0A00008E7EE /* ComponentBase.cpp */; };
 		8872900F248D88AA00783614 /* AUBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A881857C0A00008E7EE /* AUBase.cpp */; };
 		88729011248D88AA00783614 /* AUDispatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A8A1857C0A00008E7EE /* AUDispatch.cpp */; };
 		88729013248D88AA00783614 /* AUInputElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A8C1857C0A00008E7EE /* AUInputElement.cpp */; };
 		88729015248D88AA00783614 /* AUOutputElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A8E1857C0A00008E7EE /* AUOutputElement.cpp */; };
 		88729018248D88AA00783614 /* AUScopeElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A911857C0A00008E7EE /* AUScopeElement.cpp */; };
 		8872901A248D88AA00783614 /* ComponentBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88288A931857C0A00008E7EE /* ComponentBase.cpp */; };
-		8872926A248D8C2000783614 /* AUDebugDispatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729264248D8C2000783614 /* AUDebugDispatcher.cpp */; };
-		8872926B248D8C2000783614 /* AUDebugDispatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729264248D8C2000783614 /* AUDebugDispatcher.cpp */; };
 		8872926C248D8C2000783614 /* AUDebugDispatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729264248D8C2000783614 /* AUDebugDispatcher.cpp */; };
-		8872926D248D8C2000783614 /* AUBaseHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729265248D8C2000783614 /* AUBaseHelper.cpp */; };
-		8872926E248D8C2000783614 /* AUBaseHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729265248D8C2000783614 /* AUBaseHelper.cpp */; };
 		8872926F248D8C2100783614 /* AUBaseHelper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729265248D8C2000783614 /* AUBaseHelper.cpp */; };
-		88729276248D8C2100783614 /* AUTimestampGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729268248D8C2000783614 /* AUTimestampGenerator.cpp */; };
-		88729277248D8C2100783614 /* AUTimestampGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729268248D8C2000783614 /* AUTimestampGenerator.cpp */; };
 		88729278248D8C2100783614 /* AUTimestampGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729268248D8C2000783614 /* AUTimestampGenerator.cpp */; };
-		88729299248D8F1D00783614 /* CAAUParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8872928B248D8F1C00783614 /* CAAUParameter.cpp */; };
-		8872929A248D8F1D00783614 /* CAAUParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8872928B248D8F1C00783614 /* CAAUParameter.cpp */; };
 		8872929B248D8F1D00783614 /* CAAUParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8872928B248D8F1C00783614 /* CAAUParameter.cpp */; };
-		8872929C248D8F1D00783614 /* CADebugMacros.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8872928C248D8F1C00783614 /* CADebugMacros.cpp */; };
-		8872929D248D8F1D00783614 /* CADebugMacros.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8872928C248D8F1C00783614 /* CADebugMacros.cpp */; };
 		8872929E248D8F1D00783614 /* CADebugMacros.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8872928C248D8F1C00783614 /* CADebugMacros.cpp */; };
-		887292A2248D8F1D00783614 /* CAAudioChannelLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8872928E248D8F1C00783614 /* CAAudioChannelLayout.cpp */; };
-		887292A3248D8F1D00783614 /* CAAudioChannelLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8872928E248D8F1C00783614 /* CAAudioChannelLayout.cpp */; };
 		887292A4248D8F1D00783614 /* CAAudioChannelLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8872928E248D8F1C00783614 /* CAAudioChannelLayout.cpp */; };
-		887292AB248D8F1D00783614 /* CAMutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729291248D8F1C00783614 /* CAMutex.cpp */; };
-		887292AC248D8F1D00783614 /* CAMutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729291248D8F1C00783614 /* CAMutex.cpp */; };
 		887292AD248D8F1D00783614 /* CAMutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729291248D8F1C00783614 /* CAMutex.cpp */; };
-		887292B4248D8F1D00783614 /* CAStreamBasicDescription.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729294248D8F1C00783614 /* CAStreamBasicDescription.cpp */; };
-		887292B5248D8F1D00783614 /* CAStreamBasicDescription.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729294248D8F1C00783614 /* CAStreamBasicDescription.cpp */; };
 		887292B6248D8F1D00783614 /* CAStreamBasicDescription.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729294248D8F1C00783614 /* CAStreamBasicDescription.cpp */; };
-		887292B7248D8F1D00783614 /* CAVectorUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729295248D8F1C00783614 /* CAVectorUnit.cpp */; };
-		887292B8248D8F1D00783614 /* CAVectorUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729295248D8F1C00783614 /* CAVectorUnit.cpp */; };
 		887292B9248D8F1D00783614 /* CAVectorUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729295248D8F1C00783614 /* CAVectorUnit.cpp */; };
 		887292BA248D8F7500783614 /* CAAUParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8872928B248D8F1C00783614 /* CAAUParameter.cpp */; };
 		887292BB248D8F7F00783614 /* CAAudioChannelLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8872928E248D8F1C00783614 /* CAAudioChannelLayout.cpp */; };
@@ -369,19 +188,11 @@
 		887292BD248D8F7F00783614 /* CAMutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729291248D8F1C00783614 /* CAMutex.cpp */; };
 		887292BE248D8F8000783614 /* CAStreamBasicDescription.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729294248D8F1C00783614 /* CAStreamBasicDescription.cpp */; };
 		887292BF248D8F8000783614 /* CAVectorUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 88729295248D8F1C00783614 /* CAVectorUnit.cpp */; };
-		887292C2248D907000783614 /* CAHostTimeBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 887292C0248D906F00783614 /* CAHostTimeBase.h */; };
-		887292C3248D907000783614 /* CAHostTimeBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 887292C0248D906F00783614 /* CAHostTimeBase.h */; };
 		887292C4248D907000783614 /* CAHostTimeBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 887292C0248D906F00783614 /* CAHostTimeBase.h */; };
-		887292C5248D907000783614 /* CAHostTimeBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887292C1248D907000783614 /* CAHostTimeBase.cpp */; };
-		887292C6248D907000783614 /* CAHostTimeBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887292C1248D907000783614 /* CAHostTimeBase.cpp */; };
 		887292C7248D907000783614 /* CAHostTimeBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887292C1248D907000783614 /* CAHostTimeBase.cpp */; };
 		887292C8248D907000783614 /* CAHostTimeBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887292C1248D907000783614 /* CAHostTimeBase.cpp */; };
-		887292CB248D90B000783614 /* CABundleLocker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887292C9248D90B000783614 /* CABundleLocker.cpp */; };
-		887292CC248D90B000783614 /* CABundleLocker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887292C9248D90B000783614 /* CABundleLocker.cpp */; };
 		887292CD248D90B000783614 /* CABundleLocker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887292C9248D90B000783614 /* CABundleLocker.cpp */; };
 		887292CE248D90B000783614 /* CABundleLocker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 887292C9248D90B000783614 /* CABundleLocker.cpp */; };
-		887292D7248D976C00783614 /* CAAutoDisposer.h in Headers */ = {isa = PBXBuildFile; fileRef = 887292D6248D976C00783614 /* CAAutoDisposer.h */; };
-		887292D8248D976C00783614 /* CAAutoDisposer.h in Headers */ = {isa = PBXBuildFile; fileRef = 887292D6248D976C00783614 /* CAAutoDisposer.h */; };
 		887292D9248D976C00783614 /* CAAutoDisposer.h in Headers */ = {isa = PBXBuildFile; fileRef = 887292D6248D976C00783614 /* CAAutoDisposer.h */; };
 		887292DA248FFFAB00783614 /* libfftw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88288AB11857C3C30008E7EE /* libfftw3.a */; };
 		887292DF2490008E00783614 /* libxml2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 887292DD2490008D00783614 /* libxml2.a */; };
@@ -389,187 +200,13 @@
 		887ED40B1888CE0B00F83F8A /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4081888CE0B00F83F8A /* IOKit.framework */; };
 		887ED40C1888CE0B00F83F8A /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4091888CE0B00F83F8A /* OpenGL.framework */; };
 		887ED4241888D2F900F83F8A /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 887ED4231888D2F900F83F8A /* Carbon.framework */; };
-		888AC6CD087E2B20001F80AD /* version.h in Headers */ = {isa = PBXBuildFile; fileRef = 888AC6CC087E2B20001F80AD /* version.h */; };
-		888AC6DB087E2C7C001F80AD /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 888AC6DA087E2C7C001F80AD /* Cocoa.framework */; };
-		889B86CF18A42CB100049C98 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 889B86CE18A42CB100049C98 /* Accelerate.framework */; };
 		889B86D018A42CB800049C98 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 889B86CE18A42CB100049C98 /* Accelerate.framework */; };
 		88A6E11E185962940099FEDF /* SooperLooperCocoaUI.xib in Resources */ = {isa = PBXBuildFile; fileRef = 88A6E11D185962940099FEDF /* SooperLooperCocoaUI.xib */; };
-		88C570B218984DC400FD840A /* SooperLooperAU_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = 32BAE0B30371A71500C91783 /* SooperLooperAU_Prefix.pch */; };
-		88C570B318984DC400FD840A /* SooperLooperAUVersion.h in Headers */ = {isa = PBXBuildFile; fileRef = 8BA05A690720730100365D66 /* SooperLooperAUVersion.h */; };
-		88C570C318984DC400FD840A /* SooperLooperAU.h in Headers */ = {isa = PBXBuildFile; fileRef = 8BC6025B073B072D006C4272 /* SooperLooperAU.h */; };
-		88C570C718984DC400FD840A /* version.h in Headers */ = {isa = PBXBuildFile; fileRef = 888AC6CC087E2B20001F80AD /* version.h */; };
-		88C570C818984DC400FD840A /* TaskWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = 8855A54F08B571B500B1396A /* TaskWrapper.h */; };
-		88C570C918984DC400FD840A /* launch_slgui.h in Headers */ = {isa = PBXBuildFile; fileRef = 8855A55B08B5732D00B1396A /* launch_slgui.h */; };
-		88C570CA18984DC400FD840A /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = 8855A8E908B77BBB00B1396A /* config.h */; };
-		88C570CB18984DC400FD840A /* SLproperties.h in Headers */ = {isa = PBXBuildFile; fileRef = 8862462208B95927003959C6 /* SLproperties.h */; };
-		88C570CC18984DC400FD840A /* atomic.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12540BD25EC60069E7EC /* atomic.h */; };
-		88C570CD18984DC400FD840A /* audio_driver.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F12560BD25EC60069E7EC /* audio_driver.hpp */; };
-		88C570D018984DC400FD840A /* command_map.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F12580BD25EC60069E7EC /* command_map.hpp */; };
-		88C570D118984DC400FD840A /* control_osc.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F125A0BD25EC60069E7EC /* control_osc.hpp */; };
-		88C570D218984DC400FD840A /* engine.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F125C0BD25EC60069E7EC /* engine.hpp */; };
-		88C570D318984DC400FD840A /* event_nonrt.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F125D0BD25EC60069E7EC /* event_nonrt.hpp */; };
-		88C570D418984DC400FD840A /* event.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F125F0BD25EC60069E7EC /* event.hpp */; };
-		88C570D518984DC400FD840A /* filter.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F12610BD25EC60069E7EC /* filter.hpp */; };
-		88C570D618984DC400FD840A /* lockmonitor.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F12620BD25EC60069E7EC /* lockmonitor.hpp */; };
-		88C570D718984DC400FD840A /* looper.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F12640BD25EC60069E7EC /* looper.hpp */; };
-		88C570D818984DC400FD840A /* midi_bind.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F12660BD25EC60069E7EC /* midi_bind.hpp */; };
-		88C570D918984DC400FD840A /* midi_bridge.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F12680BD25EC60069E7EC /* midi_bridge.hpp */; };
-		88C570DA18984DC400FD840A /* panner.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F126A0BD25EC60069E7EC /* panner.hpp */; };
-		88C570DB18984DC400FD840A /* plugin.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F126C0BD25EC60069E7EC /* plugin.hpp */; };
-		88C570DC18984DC400FD840A /* ringbuffer.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F126D0BD25EC60069E7EC /* ringbuffer.hpp */; };
-		88C570DD18984DC400FD840A /* utils.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F126F0BD25EC60069E7EC /* utils.hpp */; };
-		88C570DF18984DC400FD840A /* ladspa.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F128C0BD25F290069E7EC /* ladspa.h */; };
-		88C570E018984DC400FD840A /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12900BD25FD90069E7EC /* config.h */; };
-		88C570E118984DC400FD840A /* channel.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12B60BD260270069E7EC /* channel.h */; };
-		88C570E218984DC400FD840A /* controllable.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12B70BD260270069E7EC /* controllable.h */; };
-		88C570E318984DC400FD840A /* coremidi_midiport.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12B80BD260270069E7EC /* coremidi_midiport.h */; };
-		88C570E418984DC400FD840A /* factory.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12B90BD260270069E7EC /* factory.h */; };
-		88C570E518984DC400FD840A /* fd_midiport.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12BA0BD260270069E7EC /* fd_midiport.h */; };
-		88C570E618984DC400FD840A /* fifomidi.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12BB0BD260270069E7EC /* fifomidi.h */; };
-		88C570E718984DC400FD840A /* manager.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12BC0BD260270069E7EC /* manager.h */; };
-		88C570E818984DC400FD840A /* mmc.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12BD0BD260270069E7EC /* mmc.h */; };
-		88C570E918984DC400FD840A /* nullmidi.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12BE0BD260270069E7EC /* nullmidi.h */; };
-		88C570EA18984DC400FD840A /* parser.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12BF0BD260270069E7EC /* parser.h */; };
-		88C570EB18984DC400FD840A /* port_request.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12C00BD260270069E7EC /* port_request.h */; };
-		88C570EC18984DC400FD840A /* port.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12C10BD260270069E7EC /* port.h */; };
-		88C570ED18984DC400FD840A /* types.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12C20BD260270069E7EC /* types.h */; };
-		88C570EE18984DC400FD840A /* version.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12C30BD260270069E7EC /* version.h */; };
-		88C570EF18984DC400FD840A /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12D60BD260A70069E7EC /* config.h */; };
-		88C570F018984DC400FD840A /* abstract_ui.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12DD0BD260A70069E7EC /* abstract_ui.h */; };
-		88C570F118984DC400FD840A /* atomic.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12DE0BD260A70069E7EC /* atomic.h */; };
-		88C570F218984DC400FD840A /* basename.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12DF0BD260A70069E7EC /* basename.h */; };
-		88C570F318984DC400FD840A /* compose.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E00BD260A70069E7EC /* compose.h */; };
-		88C570F418984DC400FD840A /* datum.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E20BD260A70069E7EC /* datum.h */; };
-		88C570F518984DC400FD840A /* dirname.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E30BD260A70069E7EC /* dirname.h */; };
-		88C570F618984DC400FD840A /* ellipsoid.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E40BD260A70069E7EC /* ellipsoid.h */; };
-		88C570F718984DC400FD840A /* error.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E50BD260A70069E7EC /* error.h */; };
-		88C570F818984DC400FD840A /* failed_constructor.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E60BD260A70069E7EC /* failed_constructor.h */; };
-		88C570F918984DC400FD840A /* fastlog.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E70BD260A70069E7EC /* fastlog.h */; };
-		88C570FA18984DC400FD840A /* foreach.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E80BD260A70069E7EC /* foreach.h */; };
-		88C570FB18984DC400FD840A /* forkexec.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12E90BD260A70069E7EC /* forkexec.h */; };
-		88C570FC18984DC400FD840A /* ftw.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12EA0BD260A70069E7EC /* ftw.h */; };
-		88C570FD18984DC400FD840A /* lock_free_fifo.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12ED0BD260A70069E7EC /* lock_free_fifo.h */; };
-		88C570FE18984DC400FD840A /* lockmonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12EE0BD260A70069E7EC /* lockmonitor.h */; };
-		88C570FF18984DC400FD840A /* mountpoint.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F20BD260A70069E7EC /* mountpoint.h */; };
-		88C5710018984DC400FD840A /* pathscanner.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F30BD260A70069E7EC /* pathscanner.h */; };
-		88C5710118984DC400FD840A /* platform.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F40BD260A70069E7EC /* platform.h */; };
-		88C5710218984DC400FD840A /* platform_factory.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F50BD260A70069E7EC /* platform_factory.h */; };
-		88C5710318984DC400FD840A /* pool.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F60BD260A70069E7EC /* pool.h */; };
-		88C5710418984DC400FD840A /* position.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F70BD260A70069E7EC /* position.h */; };
-		88C5710518984DC400FD840A /* precision_timer.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F80BD260A70069E7EC /* precision_timer.h */; };
-		88C5710618984DC400FD840A /* pthread_spinlock.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12F90BD260A70069E7EC /* pthread_spinlock.h */; };
-		88C5710718984DC400FD840A /* pthread_utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12FA0BD260A70069E7EC /* pthread_utils.h */; };
-		88C5710818984DC400FD840A /* rcpointer.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12FB0BD260A70069E7EC /* rcpointer.h */; };
-		88C5710A18984DC400FD840A /* receiver.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12FC0BD260A70069E7EC /* receiver.h */; };
-		88C5710B18984DC400FD840A /* relation.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12FD0BD260A70069E7EC /* relation.h */; };
-		88C5710D18984DC400FD840A /* restartable_rw.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12FE0BD260A70069E7EC /* restartable_rw.h */; };
-		88C5710E18984DC400FD840A /* ringbuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F12FF0BD260A70069E7EC /* ringbuffer.h */; };
-		88C5710F18984DC400FD840A /* rt.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13000BD260A70069E7EC /* rt.h */; };
-		88C5711018984DC400FD840A /* rtthread.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13010BD260A70069E7EC /* rtthread.h */; };
-		88C5711118984DC400FD840A /* scale.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13020BD260A70069E7EC /* scale.h */; };
-		88C5711218984DC400FD840A /* selectable.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13030BD260A70069E7EC /* selectable.h */; };
-		88C5711318984DC400FD840A /* stl_delete.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13060BD260A70069E7EC /* stl_delete.h */; };
-		88C5711418984DC400FD840A /* stl_functors.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13070BD260A70069E7EC /* stl_functors.h */; };
-		88C5711518984DC400FD840A /* strsub.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13080BD260A70069E7EC /* strsub.h */; };
-		88C5711718984DC400FD840A /* textreceiver.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13090BD260A70069E7EC /* textreceiver.h */; };
-		88C5711818984DC400FD840A /* thread.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F130A0BD260A70069E7EC /* thread.h */; };
-		88C5711918984DC400FD840A /* thrown_error.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F130B0BD260A70069E7EC /* thrown_error.h */; };
-		88C5711A18984DC400FD840A /* touchable.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F130C0BD260A70069E7EC /* touchable.h */; };
-		88C5711B18984DC400FD840A /* transmitter.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F130D0BD260A70069E7EC /* transmitter.h */; };
-		88C5711C18984DC400FD840A /* types.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F130E0BD260A70069E7EC /* types.h */; };
-		88C5711D18984DC400FD840A /* undo.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F130F0BD260A70069E7EC /* undo.h */; };
-		88C5711E18984DC400FD840A /* unescape.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13100BD260A70069E7EC /* unescape.h */; };
-		88C5711F18984DC400FD840A /* version.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13110BD260A70069E7EC /* version.h */; };
-		88C5712018984DC400FD840A /* xml++.h in Headers */ = {isa = PBXBuildFile; fileRef = 885F13120BD260A70069E7EC /* xml++.h */; };
-		88C5712118984DC400FD840A /* jack_audio_driver.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 885F13620BD2613B0069E7EC /* jack_audio_driver.hpp */; };
-		88C5712518984DC400FD840A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C167DFE841241C02AAC07 /* InfoPlist.strings */; };
-		88C5712618984DC400FD840A /* slgui.icns in Resources */ = {isa = PBXBuildFile; fileRef = 880FCEBB0877364D004384B4 /* slgui.icns */; };
-		88C5712818984DC400FD840A /* SooperLooperAU.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BA05A660720730100365D66 /* SooperLooperAU.cpp */; };
-		88C5713D18984DC400FD840A /* launch_slgui.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8855A55C08B5732D00B1396A /* launch_slgui.mm */; };
-		88C5713E18984DC400FD840A /* audio_driver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12550BD25EC60069E7EC /* audio_driver.cpp */; };
-		88C5714018984DC400FD840A /* command_map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12570BD25EC60069E7EC /* command_map.cpp */; };
-		88C5714118984DC400FD840A /* control_osc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12590BD25EC60069E7EC /* control_osc.cpp */; };
-		88C5714218984DC400FD840A /* engine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F125B0BD25EC60069E7EC /* engine.cpp */; };
-		88C5714318984DC400FD840A /* event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F125E0BD25EC60069E7EC /* event.cpp */; };
-		88C5714418984DC400FD840A /* filter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12600BD25EC60069E7EC /* filter.cpp */; };
-		88C5714518984DC400FD840A /* looper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12630BD25EC60069E7EC /* looper.cpp */; };
-		88C5714618984DC400FD840A /* midi_bind.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12650BD25EC60069E7EC /* midi_bind.cpp */; };
-		88C5714718984DC400FD840A /* midi_bridge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12670BD25EC60069E7EC /* midi_bridge.cpp */; };
-		88C5714818984DC400FD840A /* panner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F12690BD25EC60069E7EC /* panner.cpp */; };
-		88C5714918984DC400FD840A /* plugin.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F126B0BD25EC60069E7EC /* plugin.cc */; };
-		88C5714A18984DC400FD840A /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 885F126E0BD25EC60069E7EC /* utils.cpp */; };
-		88C5714B18984DC400FD840A /* coremidi_midiport.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12910BD25FD90069E7EC /* coremidi_midiport.cc */; };
-		88C5714C18984DC400FD840A /* fd_midiport.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12920BD25FD90069E7EC /* fd_midiport.cc */; };
-		88C5714D18984DC400FD840A /* fifomidi.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12930BD25FD90069E7EC /* fifomidi.cc */; };
-		88C5714E18984DC400FD840A /* midi.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12940BD25FD90069E7EC /* midi.cc */; };
-		88C5714F18984DC400FD840A /* midichannel.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12950BD25FD90069E7EC /* midichannel.cc */; };
-		88C5715018984DC400FD840A /* midicontrollable.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12960BD25FD90069E7EC /* midicontrollable.cc */; };
-		88C5715118984DC400FD840A /* midifactory.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12970BD25FD90069E7EC /* midifactory.cc */; };
-		88C5715218984DC400FD840A /* midimanager.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12980BD25FD90069E7EC /* midimanager.cc */; };
-		88C5715318984DC400FD840A /* midiparser.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12990BD25FD90069E7EC /* midiparser.cc */; };
-		88C5715418984DC400FD840A /* midiport.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129A0BD25FD90069E7EC /* midiport.cc */; };
-		88C5715518984DC400FD840A /* mmc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129C0BD25FD90069E7EC /* mmc.cc */; };
-		88C5715618984DC400FD840A /* mtc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129E0BD25FD90069E7EC /* mtc.cc */; };
-		88C5715718984DC400FD840A /* port_request.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F129F0BD25FD90069E7EC /* port_request.cc */; };
-		88C5715818984DC400FD840A /* version.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12A00BD25FD90069E7EC /* version.cc */; };
-		88C5715918984DC400FD840A /* basename.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D50BD260A70069E7EC /* basename.cc */; };
-		88C5715B18984DC400FD840A /* dirname.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D70BD260A70069E7EC /* dirname.cc */; };
-		88C5715C18984DC400FD840A /* dmalloc.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D80BD260A70069E7EC /* dmalloc.cc */; };
-		88C5715D18984DC400FD840A /* ftw.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12D90BD260A70069E7EC /* ftw.cc */; };
-		88C5715E18984DC400FD840A /* mountpoint.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12DA0BD260A70069E7EC /* mountpoint.cc */; };
-		88C5715F18984DC400FD840A /* pathscanner.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F12DB0BD260A70069E7EC /* pathscanner.cc */; };
-		88C5716018984DC400FD840A /* pool.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13130BD260A70069E7EC /* pool.cc */; };
-		88C5716118984DC400FD840A /* pthread_utils.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13140BD260A70069E7EC /* pthread_utils.cc */; };
-		88C5716218984DC400FD840A /* receiver.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13150BD260A70069E7EC /* receiver.cc */; };
-		88C5716318984DC400FD840A /* textreceiver.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13160BD260A70069E7EC /* textreceiver.cc */; };
-		88C5716418984DC400FD840A /* transmitter.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13170BD260A70069E7EC /* transmitter.cc */; };
-		88C5716518984DC400FD840A /* undo.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13180BD260A70069E7EC /* undo.cc */; };
-		88C5716618984DC400FD840A /* unescape.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F13190BD260A70069E7EC /* unescape.cc */; };
-		88C5716718984DC400FD840A /* version.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F131A0BD260A70069E7EC /* version.cc */; };
-		88C5716818984DC400FD840A /* xml++.cc in Sources */ = {isa = PBXBuildFile; fileRef = 885F131B0BD260A70069E7EC /* xml++.cc */; };
-		88C5716C18984DC400FD840A /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08EA7FFBFE8413EDC02AAC07 /* Carbon.framework */; };
-		88C5716D18984DC400FD840A /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05AF9072074E100365D66 /* AudioToolbox.framework */; };
-		88C5716E18984DC400FD840A /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05AFA072074E100365D66 /* AudioUnit.framework */; };
-		88C5716F18984DC400FD840A /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05B01072074F900365D66 /* CoreServices.framework */; };
-		88C5717318984DC400FD840A /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935020878E594008C28C2 /* CoreMIDI.framework */; };
-		88C5717418984DC400FD840A /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935120878E75A008C28C2 /* libz.dylib */; };
-		88C5717518984DC400FD840A /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 881935180878E7A0008C28C2 /* CoreFoundation.framework */; };
-		88C5717718984DC400FD840A /* libm.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8819351A0878E7CA008C28C2 /* libm.dylib */; };
-		88C5717818984DC400FD840A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 888AC6DA087E2C7C001F80AD /* Cocoa.framework */; };
-		88C5717918984DC400FD840A /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8855A6F508B59DE600B1396A /* libxml2.dylib */; };
-		88C5717A18984DC400FD840A /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 886245A408B8E4F3003959C6 /* AppKit.framework */; };
-		88C5717D18984DC400FD840A /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8810CF680E247C10002155C4 /* ApplicationServices.framework */; };
 		88C571861898A13100FD840A /* SooperLooperAU64.r in Rez */ = {isa = PBXBuildFile; fileRef = 88288AC71857C69D0008E7EE /* SooperLooperAU64.r */; };
 		88C5719B18A04E9F00FD840A /* launch_slgui.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8855A55C08B5732D00B1396A /* launch_slgui.mm */; };
-		88C5719F18A0A6EA00FD840A /* SooperLooperAU64.r in Rez */ = {isa = PBXBuildFile; fileRef = 88288AC71857C69D0008E7EE /* SooperLooperAU64.r */; };
 		88C5720018A135DF00FD840A /* TaskWrapperNew.m in Sources */ = {isa = PBXBuildFile; fileRef = 88C571FF18A135DF00FD840A /* TaskWrapperNew.m */; };
 		88C5720218A1360C00FD840A /* TaskWrapperNew.m in Sources */ = {isa = PBXBuildFile; fileRef = 88C571FF18A135DF00FD840A /* TaskWrapperNew.m */; };
-		88C5720318A1360D00FD840A /* TaskWrapperNew.m in Sources */ = {isa = PBXBuildFile; fileRef = 88C571FF18A135DF00FD840A /* TaskWrapperNew.m */; };
-		88E4EA7B18A15D0C0055D475 /* libfftw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7518A15D0C0055D475 /* libfftw3.a */; };
-		88E4EA7D18A15D0C0055D475 /* liblo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7618A15D0C0055D475 /* liblo.a */; };
-		88E4EA7E18A15D0C0055D475 /* liblo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7618A15D0C0055D475 /* liblo.a */; };
-		88E4EA7F18A15D0C0055D475 /* librubberband.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7718A15D0C0055D475 /* librubberband.a */; };
-		88E4EA8018A15D0C0055D475 /* librubberband.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7718A15D0C0055D475 /* librubberband.a */; };
-		88E4EA8118A15D0C0055D475 /* libsamplerate.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7818A15D0C0055D475 /* libsamplerate.a */; };
-		88E4EA8218A15D0C0055D475 /* libsamplerate.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7818A15D0C0055D475 /* libsamplerate.a */; };
-		88E4EA8318A15D0C0055D475 /* libsigc-2.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7918A15D0C0055D475 /* libsigc-2.0.a */; };
-		88E4EA8418A15D0C0055D475 /* libsigc-2.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7918A15D0C0055D475 /* libsigc-2.0.a */; };
-		88E4EA8518A15D0C0055D475 /* libsndfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7A18A15D0C0055D475 /* libsndfile.a */; };
-		88E4EA8618A15D0C0055D475 /* libsndfile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA7A18A15D0C0055D475 /* libsndfile.a */; };
-		88E4EA8C18A168010055D475 /* SooperLooperCocoaViewFactory.bundle in CopyFiles */ = {isa = PBXBuildFile; fileRef = 883650441858422D00246E75 /* SooperLooperCocoaViewFactory.bundle */; };
 		88E4EA9818A18A370055D475 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 88E4EA9618A18A2F0055D475 /* CoreAudio.framework */; };
-		8B4119230749635800361ABE /* SooperLooperAU.r in Rez */ = {isa = PBXBuildFile; fileRef = 8BA05A680720730100365D66 /* SooperLooperAU.r */; };
-		8B43D4AB073C1138003F6C3C /* SooperLooperAUView.h in Headers */ = {isa = PBXBuildFile; fileRef = 8B43D4A9073C1138003F6C3C /* SooperLooperAUView.h */; };
-		8B43D4AC073C1138003F6C3C /* SooperLooperAUView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 8B43D4AA073C1138003F6C3C /* SooperLooperAUView.mm */; };
-		8BA05A6B0720730100365D66 /* SooperLooperAU.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BA05A660720730100365D66 /* SooperLooperAU.cpp */; };
-		8BA05A6E0720730100365D66 /* SooperLooperAUVersion.h in Headers */ = {isa = PBXBuildFile; fileRef = 8BA05A690720730100365D66 /* SooperLooperAUVersion.h */; };
-		8BA05AFC072074E100365D66 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05AF9072074E100365D66 /* AudioToolbox.framework */; };
-		8BA05AFD072074E100365D66 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05AFA072074E100365D66 /* AudioUnit.framework */; };
-		8BA05B02072074F900365D66 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BA05B01072074F900365D66 /* CoreServices.framework */; };
-		8BC6025C073B072D006C4272 /* SooperLooperAU.h in Headers */ = {isa = PBXBuildFile; fileRef = 8BC6025B073B072D006C4272 /* SooperLooperAU.h */; };
-		8D01CCC80486CAD60068D4B7 /* SooperLooperAU_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = 32BAE0B30371A71500C91783 /* SooperLooperAU_Prefix.pch */; };
-		8D01CCCA0486CAD60068D4B7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C167DFE841241C02AAC07 /* InfoPlist.strings */; };
-		8D01CCCE0486CAD60068D4B7 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08EA7FFBFE8413EDC02AAC07 /* Carbon.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -590,16 +227,6 @@
 			dstSubfolderSpec = 7;
 			files = (
 				88365061185844F800246E75 /* SooperLooperCocoaViewFactory.bundle in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		88E4EA8B18A167EB0055D475 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 7;
-			files = (
-				88E4EA8C18A168010055D475 /* SooperLooperCocoaViewFactory.bundle in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -878,7 +505,6 @@
 		88A6E11B185903760099FEDF /* MusicDeviceBase.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MusicDeviceBase.cpp; sourceTree = "<group>"; };
 		88A6E11C185903760099FEDF /* MusicDeviceBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MusicDeviceBase.h; sourceTree = "<group>"; };
 		88A6E11D185962940099FEDF /* SooperLooperCocoaUI.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = SooperLooperCocoaUI.xib; sourceTree = "<group>"; };
-		88C5718418984DC400FD840A /* SooperLooperAU.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SooperLooperAU.component; sourceTree = BUILT_PRODUCTS_DIR; };
 		88C5718518984DC800FD840A /* SooperLooperAU-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "SooperLooperAU-Info.plist"; sourceTree = SOURCE_ROOT; };
 		88C571F518A0A75C00FD840A /* CocoaUI 32-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "CocoaUI 32-Info.plist"; path = "/Users/jesse/src/sooperlooper/mac/SooperLooperAU/CocoaUI 32-Info.plist"; sourceTree = "<absolute>"; };
 		88C571FE18A135DF00FD840A /* TaskWrapperNew.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TaskWrapperNew.h; sourceTree = "<group>"; };
@@ -920,7 +546,6 @@
 		8BA05B01072074F900365D66 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		8BC6025B073B072D006C4272 /* SooperLooperAU.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = SooperLooperAU.h; sourceTree = "<group>"; };
 		8D01CCD10486CAD60068D4B7 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		8D01CCD20486CAD60068D4B7 /* SooperLooperAU.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SooperLooperAU.component; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -960,56 +585,6 @@
 				885670E11813927400AA5367 /* AppKit.framework in Frameworks */,
 				88288AC01857C42B0008E7EE /* liblo.a in Frameworks */,
 				885670E41813927400AA5367 /* ApplicationServices.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		88C5716B18984DC400FD840A /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				889B86CF18A42CB100049C98 /* Accelerate.framework in Frameworks */,
-				88C5716C18984DC400FD840A /* Carbon.framework in Frameworks */,
-				88E4EA8218A15D0C0055D475 /* libsamplerate.a in Frameworks */,
-				88C5716E18984DC400FD840A /* AudioUnit.framework in Frameworks */,
-				88C5716D18984DC400FD840A /* AudioToolbox.framework in Frameworks */,
-				88C5716F18984DC400FD840A /* CoreServices.framework in Frameworks */,
-				88E4EA8018A15D0C0055D475 /* librubberband.a in Frameworks */,
-				88E4EA7E18A15D0C0055D475 /* liblo.a in Frameworks */,
-				88C5717318984DC400FD840A /* CoreMIDI.framework in Frameworks */,
-				88C5717418984DC400FD840A /* libz.dylib in Frameworks */,
-				88C5717518984DC400FD840A /* CoreFoundation.framework in Frameworks */,
-				88E4EA8618A15D0C0055D475 /* libsndfile.a in Frameworks */,
-				88C5717718984DC400FD840A /* libm.dylib in Frameworks */,
-				88C5717818984DC400FD840A /* Cocoa.framework in Frameworks */,
-				88C5717918984DC400FD840A /* libxml2.dylib in Frameworks */,
-				88E4EA8418A15D0C0055D475 /* libsigc-2.0.a in Frameworks */,
-				88C5717A18984DC400FD840A /* AppKit.framework in Frameworks */,
-				88C5717D18984DC400FD840A /* ApplicationServices.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8D01CCCD0486CAD60068D4B7 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8D01CCCE0486CAD60068D4B7 /* Carbon.framework in Frameworks */,
-				88E4EA8118A15D0C0055D475 /* libsamplerate.a in Frameworks */,
-				8BA05AFC072074E100365D66 /* AudioToolbox.framework in Frameworks */,
-				8BA05AFD072074E100365D66 /* AudioUnit.framework in Frameworks */,
-				8BA05B02072074F900365D66 /* CoreServices.framework in Frameworks */,
-				88E4EA7F18A15D0C0055D475 /* librubberband.a in Frameworks */,
-				88E4EA7B18A15D0C0055D475 /* libfftw3.a in Frameworks */,
-				88E4EA7D18A15D0C0055D475 /* liblo.a in Frameworks */,
-				881935030878E594008C28C2 /* CoreMIDI.framework in Frameworks */,
-				881935130878E75A008C28C2 /* libz.dylib in Frameworks */,
-				881935190878E7A0008C28C2 /* CoreFoundation.framework in Frameworks */,
-				88E4EA8518A15D0C0055D475 /* libsndfile.a in Frameworks */,
-				8819351B0878E7CA008C28C2 /* libm.dylib in Frameworks */,
-				888AC6DB087E2C7C001F80AD /* Cocoa.framework in Frameworks */,
-				8855A6F608B59DE600B1396A /* libxml2.dylib in Frameworks */,
-				88E4EA8318A15D0C0055D475 /* libsigc-2.0.a in Frameworks */,
-				886245A508B8E4F3003959C6 /* AppKit.framework in Frameworks */,
-				8810CF690E247C10002155C4 /* ApplicationServices.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1080,10 +655,8 @@
 		19C28FB4FE9D528D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D01CCD20486CAD60068D4B7 /* SooperLooperAU.component */,
 				885670EB1813927400AA5367 /* SooperLooperAU64.component */,
 				883650441858422D00246E75 /* SooperLooperCocoaViewFactory.bundle */,
-				88C5718418984DC400FD840A /* SooperLooperAU.component */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1666,201 +1239,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		88C570B118984DC400FD840A /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				88C570B218984DC400FD840A /* SooperLooperAU_Prefix.pch in Headers */,
-				88C570B318984DC400FD840A /* SooperLooperAUVersion.h in Headers */,
-				88C570C318984DC400FD840A /* SooperLooperAU.h in Headers */,
-				88C570C718984DC400FD840A /* version.h in Headers */,
-				88C570C818984DC400FD840A /* TaskWrapper.h in Headers */,
-				88C570C918984DC400FD840A /* launch_slgui.h in Headers */,
-				887292D8248D976C00783614 /* CAAutoDisposer.h in Headers */,
-				88C570CA18984DC400FD840A /* config.h in Headers */,
-				88C570CB18984DC400FD840A /* SLproperties.h in Headers */,
-				88C570CC18984DC400FD840A /* atomic.h in Headers */,
-				88C570CD18984DC400FD840A /* audio_driver.hpp in Headers */,
-				88C570D018984DC400FD840A /* command_map.hpp in Headers */,
-				88C570D118984DC400FD840A /* control_osc.hpp in Headers */,
-				88C570D218984DC400FD840A /* engine.hpp in Headers */,
-				88C570D318984DC400FD840A /* event_nonrt.hpp in Headers */,
-				88C570D418984DC400FD840A /* event.hpp in Headers */,
-				88C570D518984DC400FD840A /* filter.hpp in Headers */,
-				88C570D618984DC400FD840A /* lockmonitor.hpp in Headers */,
-				88C570D718984DC400FD840A /* looper.hpp in Headers */,
-				88C570D818984DC400FD840A /* midi_bind.hpp in Headers */,
-				88C570D918984DC400FD840A /* midi_bridge.hpp in Headers */,
-				887292C3248D907000783614 /* CAHostTimeBase.h in Headers */,
-				88C570DA18984DC400FD840A /* panner.hpp in Headers */,
-				88C570DB18984DC400FD840A /* plugin.hpp in Headers */,
-				88C570DC18984DC400FD840A /* ringbuffer.hpp in Headers */,
-				88C570DD18984DC400FD840A /* utils.hpp in Headers */,
-				88C570DF18984DC400FD840A /* ladspa.h in Headers */,
-				88C570E018984DC400FD840A /* config.h in Headers */,
-				88C570E118984DC400FD840A /* channel.h in Headers */,
-				88C570E218984DC400FD840A /* controllable.h in Headers */,
-				88C570E318984DC400FD840A /* coremidi_midiport.h in Headers */,
-				88C570E418984DC400FD840A /* factory.h in Headers */,
-				88C570E518984DC400FD840A /* fd_midiport.h in Headers */,
-				88C570E618984DC400FD840A /* fifomidi.h in Headers */,
-				88C570E718984DC400FD840A /* manager.h in Headers */,
-				88C570E818984DC400FD840A /* mmc.h in Headers */,
-				88C570E918984DC400FD840A /* nullmidi.h in Headers */,
-				88C570EA18984DC400FD840A /* parser.h in Headers */,
-				88C570EB18984DC400FD840A /* port_request.h in Headers */,
-				88C570EC18984DC400FD840A /* port.h in Headers */,
-				88C570ED18984DC400FD840A /* types.h in Headers */,
-				88C570EE18984DC400FD840A /* version.h in Headers */,
-				88C570EF18984DC400FD840A /* config.h in Headers */,
-				88C570F018984DC400FD840A /* abstract_ui.h in Headers */,
-				88C570F118984DC400FD840A /* atomic.h in Headers */,
-				88C570F218984DC400FD840A /* basename.h in Headers */,
-				88C570F318984DC400FD840A /* compose.h in Headers */,
-				88C570F418984DC400FD840A /* datum.h in Headers */,
-				88C570F518984DC400FD840A /* dirname.h in Headers */,
-				88C570F618984DC400FD840A /* ellipsoid.h in Headers */,
-				88C570F718984DC400FD840A /* error.h in Headers */,
-				88C570F818984DC400FD840A /* failed_constructor.h in Headers */,
-				88C570F918984DC400FD840A /* fastlog.h in Headers */,
-				88C570FA18984DC400FD840A /* foreach.h in Headers */,
-				88C570FB18984DC400FD840A /* forkexec.h in Headers */,
-				88C570FC18984DC400FD840A /* ftw.h in Headers */,
-				88C570FD18984DC400FD840A /* lock_free_fifo.h in Headers */,
-				88C570FE18984DC400FD840A /* lockmonitor.h in Headers */,
-				88C570FF18984DC400FD840A /* mountpoint.h in Headers */,
-				88C5710018984DC400FD840A /* pathscanner.h in Headers */,
-				88C5710118984DC400FD840A /* platform.h in Headers */,
-				88C5710218984DC400FD840A /* platform_factory.h in Headers */,
-				88C5710318984DC400FD840A /* pool.h in Headers */,
-				88C5710418984DC400FD840A /* position.h in Headers */,
-				88C5710518984DC400FD840A /* precision_timer.h in Headers */,
-				88C5710618984DC400FD840A /* pthread_spinlock.h in Headers */,
-				88C5710718984DC400FD840A /* pthread_utils.h in Headers */,
-				88C5710818984DC400FD840A /* rcpointer.h in Headers */,
-				88C5710A18984DC400FD840A /* receiver.h in Headers */,
-				88C5710B18984DC400FD840A /* relation.h in Headers */,
-				88C5710D18984DC400FD840A /* restartable_rw.h in Headers */,
-				88C5710E18984DC400FD840A /* ringbuffer.h in Headers */,
-				88C5710F18984DC400FD840A /* rt.h in Headers */,
-				88C5711018984DC400FD840A /* rtthread.h in Headers */,
-				88C5711118984DC400FD840A /* scale.h in Headers */,
-				88C5711218984DC400FD840A /* selectable.h in Headers */,
-				88C5711318984DC400FD840A /* stl_delete.h in Headers */,
-				88C5711418984DC400FD840A /* stl_functors.h in Headers */,
-				88C5711518984DC400FD840A /* strsub.h in Headers */,
-				88C5711718984DC400FD840A /* textreceiver.h in Headers */,
-				88C5711818984DC400FD840A /* thread.h in Headers */,
-				88C5711918984DC400FD840A /* thrown_error.h in Headers */,
-				88C5711A18984DC400FD840A /* touchable.h in Headers */,
-				88C5711B18984DC400FD840A /* transmitter.h in Headers */,
-				88C5711C18984DC400FD840A /* types.h in Headers */,
-				88C5711D18984DC400FD840A /* undo.h in Headers */,
-				88C5711E18984DC400FD840A /* unescape.h in Headers */,
-				88C5711F18984DC400FD840A /* version.h in Headers */,
-				88C5712018984DC400FD840A /* xml++.h in Headers */,
-				88C5712118984DC400FD840A /* jack_audio_driver.hpp in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8D01CCC70486CAD60068D4B7 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8D01CCC80486CAD60068D4B7 /* SooperLooperAU_Prefix.pch in Headers */,
-				8BA05A6E0720730100365D66 /* SooperLooperAUVersion.h in Headers */,
-				8BC6025C073B072D006C4272 /* SooperLooperAU.h in Headers */,
-				8B43D4AB073C1138003F6C3C /* SooperLooperAUView.h in Headers */,
-				888AC6CD087E2B20001F80AD /* version.h in Headers */,
-				8855A55108B571B500B1396A /* TaskWrapper.h in Headers */,
-				8855A55D08B5732D00B1396A /* launch_slgui.h in Headers */,
-				8855A8EA08B77BBB00B1396A /* config.h in Headers */,
-				8862462308B95927003959C6 /* SLproperties.h in Headers */,
-				885F12700BD25EC60069E7EC /* atomic.h in Headers */,
-				885F12720BD25EC60069E7EC /* audio_driver.hpp in Headers */,
-				885F12740BD25EC60069E7EC /* command_map.hpp in Headers */,
-				885F12760BD25EC60069E7EC /* control_osc.hpp in Headers */,
-				885F12780BD25EC60069E7EC /* engine.hpp in Headers */,
-				885F12790BD25EC60069E7EC /* event_nonrt.hpp in Headers */,
-				885F127B0BD25EC60069E7EC /* event.hpp in Headers */,
-				885F127D0BD25EC60069E7EC /* filter.hpp in Headers */,
-				885F127E0BD25EC60069E7EC /* lockmonitor.hpp in Headers */,
-				887292C2248D907000783614 /* CAHostTimeBase.h in Headers */,
-				885F12800BD25EC60069E7EC /* looper.hpp in Headers */,
-				885F12820BD25EC60069E7EC /* midi_bind.hpp in Headers */,
-				885F12840BD25EC60069E7EC /* midi_bridge.hpp in Headers */,
-				885F12860BD25EC60069E7EC /* panner.hpp in Headers */,
-				885F12880BD25EC60069E7EC /* plugin.hpp in Headers */,
-				885F12890BD25EC60069E7EC /* ringbuffer.hpp in Headers */,
-				885F128B0BD25EC60069E7EC /* utils.hpp in Headers */,
-				885F128D0BD25F290069E7EC /* ladspa.h in Headers */,
-				885F12A20BD25FD90069E7EC /* config.h in Headers */,
-				885F12C60BD260270069E7EC /* channel.h in Headers */,
-				885F12C70BD260270069E7EC /* controllable.h in Headers */,
-				885F12C80BD260270069E7EC /* coremidi_midiport.h in Headers */,
-				885F12C90BD260270069E7EC /* factory.h in Headers */,
-				885F12CA0BD260270069E7EC /* fd_midiport.h in Headers */,
-				885F12CB0BD260270069E7EC /* fifomidi.h in Headers */,
-				885F12CC0BD260270069E7EC /* manager.h in Headers */,
-				885F12CD0BD260270069E7EC /* mmc.h in Headers */,
-				885F12CE0BD260270069E7EC /* nullmidi.h in Headers */,
-				885F12CF0BD260270069E7EC /* parser.h in Headers */,
-				885F12D00BD260270069E7EC /* port_request.h in Headers */,
-				885F12D10BD260270069E7EC /* port.h in Headers */,
-				887292D7248D976C00783614 /* CAAutoDisposer.h in Headers */,
-				885F12D20BD260270069E7EC /* types.h in Headers */,
-				885F12D30BD260270069E7EC /* version.h in Headers */,
-				885F131D0BD260A70069E7EC /* config.h in Headers */,
-				885F13230BD260A70069E7EC /* abstract_ui.h in Headers */,
-				885F13240BD260A70069E7EC /* atomic.h in Headers */,
-				885F13250BD260A70069E7EC /* basename.h in Headers */,
-				885F13260BD260A70069E7EC /* compose.h in Headers */,
-				885F13280BD260A70069E7EC /* datum.h in Headers */,
-				885F13290BD260A70069E7EC /* dirname.h in Headers */,
-				885F132A0BD260A70069E7EC /* ellipsoid.h in Headers */,
-				885F132B0BD260A70069E7EC /* error.h in Headers */,
-				885F132C0BD260A70069E7EC /* failed_constructor.h in Headers */,
-				885F132D0BD260A70069E7EC /* fastlog.h in Headers */,
-				885F132E0BD260A70069E7EC /* foreach.h in Headers */,
-				885F132F0BD260A70069E7EC /* forkexec.h in Headers */,
-				885F13300BD260A70069E7EC /* ftw.h in Headers */,
-				885F13330BD260A70069E7EC /* lock_free_fifo.h in Headers */,
-				885F13340BD260A70069E7EC /* lockmonitor.h in Headers */,
-				885F13380BD260A70069E7EC /* mountpoint.h in Headers */,
-				885F13390BD260A70069E7EC /* pathscanner.h in Headers */,
-				885F133A0BD260A70069E7EC /* platform.h in Headers */,
-				885F133B0BD260A70069E7EC /* platform_factory.h in Headers */,
-				885F133C0BD260A70069E7EC /* pool.h in Headers */,
-				885F133D0BD260A70069E7EC /* position.h in Headers */,
-				885F133E0BD260A70069E7EC /* precision_timer.h in Headers */,
-				885F133F0BD260A70069E7EC /* pthread_spinlock.h in Headers */,
-				885F13400BD260A70069E7EC /* pthread_utils.h in Headers */,
-				885F13410BD260A70069E7EC /* rcpointer.h in Headers */,
-				885F13420BD260A70069E7EC /* receiver.h in Headers */,
-				885F13430BD260A70069E7EC /* relation.h in Headers */,
-				885F13440BD260A70069E7EC /* restartable_rw.h in Headers */,
-				885F13450BD260A70069E7EC /* ringbuffer.h in Headers */,
-				885F13460BD260A70069E7EC /* rt.h in Headers */,
-				885F13470BD260A70069E7EC /* rtthread.h in Headers */,
-				885F13480BD260A70069E7EC /* scale.h in Headers */,
-				885F13490BD260A70069E7EC /* selectable.h in Headers */,
-				885F134C0BD260A70069E7EC /* stl_delete.h in Headers */,
-				885F134D0BD260A70069E7EC /* stl_functors.h in Headers */,
-				885F134E0BD260A70069E7EC /* strsub.h in Headers */,
-				885F134F0BD260A70069E7EC /* textreceiver.h in Headers */,
-				885F13500BD260A70069E7EC /* thread.h in Headers */,
-				885F13510BD260A70069E7EC /* thrown_error.h in Headers */,
-				885F13520BD260A70069E7EC /* touchable.h in Headers */,
-				885F13530BD260A70069E7EC /* transmitter.h in Headers */,
-				885F13540BD260A70069E7EC /* types.h in Headers */,
-				885F13550BD260A70069E7EC /* undo.h in Headers */,
-				885F13560BD260A70069E7EC /* unescape.h in Headers */,
-				885F13570BD260A70069E7EC /* version.h in Headers */,
-				885F13580BD260A70069E7EC /* xml++.h in Headers */,
-				885F13630BD2613B0069E7EC /* jack_audio_driver.hpp in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
@@ -1903,47 +1281,6 @@
 			productReference = 885670EB1813927400AA5367 /* SooperLooperAU64.component */;
 			productType = "com.apple.product-type.bundle";
 		};
-		88C570B018984DC400FD840A /* SooperLooperAU 32 */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 88C5718018984DC400FD840A /* Build configuration list for PBXNativeTarget "SooperLooperAU 32" */;
-			buildPhases = (
-				88C570B118984DC400FD840A /* Headers */,
-				88C5712418984DC400FD840A /* Resources */,
-				88C5712718984DC400FD840A /* Sources */,
-				88C5716B18984DC400FD840A /* Frameworks */,
-				88C5717E18984DC400FD840A /* Rez */,
-				88E4EA8B18A167EB0055D475 /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "SooperLooperAU 32";
-			productInstallPath = "$(HOME)/Library/Bundles";
-			productName = SooperLooperAU;
-			productReference = 88C5718418984DC400FD840A /* SooperLooperAU.component */;
-			productType = "com.apple.product-type.bundle";
-		};
-		8D01CCC60486CAD60068D4B7 /* SooperLooperAU Old */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 885F12420BD25C700069E7EC /* Build configuration list for PBXNativeTarget "SooperLooperAU Old" */;
-			buildPhases = (
-				8D01CCC70486CAD60068D4B7 /* Headers */,
-				8D01CCC90486CAD60068D4B7 /* Resources */,
-				8D01CCCB0486CAD60068D4B7 /* Sources */,
-				8D01CCCD0486CAD60068D4B7 /* Frameworks */,
-				8D01CCCF0486CAD60068D4B7 /* Rez */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "SooperLooperAU Old";
-			productInstallPath = "$(HOME)/Library/Bundles";
-			productName = SooperLooperAU;
-			productReference = 8D01CCD20486CAD60068D4B7 /* SooperLooperAU.component */;
-			productType = "com.apple.product-type.bundle";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -1977,8 +1314,6 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8D01CCC60486CAD60068D4B7 /* SooperLooperAU Old */,
-				88C570B018984DC400FD840A /* SooperLooperAU 32 */,
 				885670161813927400AA5367 /* SooperLooperAU 64 */,
 				883650431858422D00246E75 /* CocoaUI */,
 			);
@@ -2004,24 +1339,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		88C5712418984DC400FD840A /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				88C5712518984DC400FD840A /* InfoPlist.strings in Resources */,
-				88C5712618984DC400FD840A /* slgui.icns in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8D01CCC90486CAD60068D4B7 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8D01CCCA0486CAD60068D4B7 /* InfoPlist.strings in Resources */,
-				880FCEBC0877364D004384B4 /* slgui.icns in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXRezBuildPhase section */
@@ -2030,22 +1347,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				88C571861898A13100FD840A /* SooperLooperAU64.r in Rez */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		88C5717E18984DC400FD840A /* Rez */ = {
-			isa = PBXRezBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				88C5719F18A0A6EA00FD840A /* SooperLooperAU64.r in Rez */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8D01CCCF0486CAD60068D4B7 /* Rez */ = {
-			isa = PBXRezBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8B4119230749635800361ABE /* SooperLooperAU.r in Rez */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2147,159 +1448,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		88C5712718984DC400FD840A /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				88728FDC248D889E00783614 /* MusicDeviceBase.cpp in Sources */,
-				88C5712818984DC400FD840A /* SooperLooperAU.cpp in Sources */,
-				88C5720318A1360D00FD840A /* TaskWrapperNew.m in Sources */,
-				88C5713D18984DC400FD840A /* launch_slgui.mm in Sources */,
-				88C5713E18984DC400FD840A /* audio_driver.cpp in Sources */,
-				88C5714018984DC400FD840A /* command_map.cpp in Sources */,
-				88C5714118984DC400FD840A /* control_osc.cpp in Sources */,
-				88C5714218984DC400FD840A /* engine.cpp in Sources */,
-				88C5714318984DC400FD840A /* event.cpp in Sources */,
-				88C5714418984DC400FD840A /* filter.cpp in Sources */,
-				887292C6248D907000783614 /* CAHostTimeBase.cpp in Sources */,
-				887292B5248D8F1D00783614 /* CAStreamBasicDescription.cpp in Sources */,
-				88C5714518984DC400FD840A /* looper.cpp in Sources */,
-				8872926B248D8C2000783614 /* AUDebugDispatcher.cpp in Sources */,
-				88C5714618984DC400FD840A /* midi_bind.cpp in Sources */,
-				88729004248D88AA00783614 /* AUDispatch.cpp in Sources */,
-				88C5714718984DC400FD840A /* midi_bridge.cpp in Sources */,
-				88C5714818984DC400FD840A /* panner.cpp in Sources */,
-				88C5714918984DC400FD840A /* plugin.cc in Sources */,
-				88C5714A18984DC400FD840A /* utils.cpp in Sources */,
-				887292AC248D8F1D00783614 /* CAMutex.cpp in Sources */,
-				88729008248D88AA00783614 /* AUOutputElement.cpp in Sources */,
-				88C5714B18984DC400FD840A /* coremidi_midiport.cc in Sources */,
-				88728FD8248D889E00783614 /* AUMIDIBase.cpp in Sources */,
-				88C5714C18984DC400FD840A /* fd_midiport.cc in Sources */,
-				88729277248D8C2100783614 /* AUTimestampGenerator.cpp in Sources */,
-				8872929A248D8F1D00783614 /* CAAUParameter.cpp in Sources */,
-				88C5714D18984DC400FD840A /* fifomidi.cc in Sources */,
-				88C5714E18984DC400FD840A /* midi.cc in Sources */,
-				88C5714F18984DC400FD840A /* midichannel.cc in Sources */,
-				887292CC248D90B000783614 /* CABundleLocker.cpp in Sources */,
-				88728FAE248D887900783614 /* AUInlineEffectBase.cpp in Sources */,
-				88C5715018984DC400FD840A /* midicontrollable.cc in Sources */,
-				88C5715118984DC400FD840A /* midifactory.cc in Sources */,
-				88728FA8248D887900783614 /* AUOutputBase.cpp in Sources */,
-				88C5715218984DC400FD840A /* midimanager.cc in Sources */,
-				88C5715318984DC400FD840A /* midiparser.cc in Sources */,
-				88728FD6248D889E00783614 /* AUEffectBase.cpp in Sources */,
-				88C5715418984DC400FD840A /* midiport.cc in Sources */,
-				88C5715518984DC400FD840A /* mmc.cc in Sources */,
-				88729002248D88AA00783614 /* AUBase.cpp in Sources */,
-				88C5715618984DC400FD840A /* mtc.cc in Sources */,
-				88C5715718984DC400FD840A /* port_request.cc in Sources */,
-				88728F96248D886000783614 /* AUPlugInDispatch.cpp in Sources */,
-				8872929D248D8F1D00783614 /* CADebugMacros.cpp in Sources */,
-				88C5715818984DC400FD840A /* version.cc in Sources */,
-				88728FDA248D889E00783614 /* AUMIDIEffectBase.cpp in Sources */,
-				88C5715918984DC400FD840A /* basename.cc in Sources */,
-				88C5715B18984DC400FD840A /* dirname.cc in Sources */,
-				88C5715C18984DC400FD840A /* dmalloc.cc in Sources */,
-				88C5715D18984DC400FD840A /* ftw.cc in Sources */,
-				88C5715E18984DC400FD840A /* mountpoint.cc in Sources */,
-				887292B8248D8F1D00783614 /* CAVectorUnit.cpp in Sources */,
-				8872900D248D88AA00783614 /* ComponentBase.cpp in Sources */,
-				887292A3248D8F1D00783614 /* CAAudioChannelLayout.cpp in Sources */,
-				88C5715F18984DC400FD840A /* pathscanner.cc in Sources */,
-				88C5716018984DC400FD840A /* pool.cc in Sources */,
-				88728FEB248D88A200783614 /* AUBuffer.cpp in Sources */,
-				88C5716118984DC400FD840A /* pthread_utils.cc in Sources */,
-				88C5716218984DC400FD840A /* receiver.cc in Sources */,
-				88C5716318984DC400FD840A /* textreceiver.cc in Sources */,
-				88C5716418984DC400FD840A /* transmitter.cc in Sources */,
-				8872900B248D88AA00783614 /* AUScopeElement.cpp in Sources */,
-				8872926E248D8C2000783614 /* AUBaseHelper.cpp in Sources */,
-				88C5716518984DC400FD840A /* undo.cc in Sources */,
-				88C5716618984DC400FD840A /* unescape.cc in Sources */,
-				88C5716718984DC400FD840A /* version.cc in Sources */,
-				88C5716818984DC400FD840A /* xml++.cc in Sources */,
-				88729006248D88AA00783614 /* AUInputElement.cpp in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8D01CCCB0486CAD60068D4B7 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8BA05A6B0720730100365D66 /* SooperLooperAU.cpp in Sources */,
-				8B43D4AC073C1138003F6C3C /* SooperLooperAUView.mm in Sources */,
-				88728FFB248D88AA00783614 /* AUOutputElement.cpp in Sources */,
-				8872926A248D8C2000783614 /* AUDebugDispatcher.cpp in Sources */,
-				8855A55208B571B500B1396A /* TaskWrapper.m in Sources */,
-				8855A55E08B5732D00B1396A /* launch_slgui.mm in Sources */,
-				887292B4248D8F1D00783614 /* CAStreamBasicDescription.cpp in Sources */,
-				885F12710BD25EC60069E7EC /* audio_driver.cpp in Sources */,
-				885F12730BD25EC60069E7EC /* command_map.cpp in Sources */,
-				885F12750BD25EC60069E7EC /* control_osc.cpp in Sources */,
-				88728FF7248D88AA00783614 /* AUDispatch.cpp in Sources */,
-				885F12770BD25EC60069E7EC /* engine.cpp in Sources */,
-				885F127A0BD25EC60069E7EC /* event.cpp in Sources */,
-				885F127C0BD25EC60069E7EC /* filter.cpp in Sources */,
-				88728FD0248D889E00783614 /* AUMIDIBase.cpp in Sources */,
-				885F127F0BD25EC60069E7EC /* looper.cpp in Sources */,
-				885F12810BD25EC60069E7EC /* midi_bind.cpp in Sources */,
-				885F12830BD25EC60069E7EC /* midi_bridge.cpp in Sources */,
-				885F12850BD25EC60069E7EC /* panner.cpp in Sources */,
-				885F12870BD25EC60069E7EC /* plugin.cc in Sources */,
-				885F128A0BD25EC60069E7EC /* utils.cpp in Sources */,
-				885F12A30BD25FD90069E7EC /* coremidi_midiport.cc in Sources */,
-				88729000248D88AA00783614 /* ComponentBase.cpp in Sources */,
-				885F12A40BD25FD90069E7EC /* fd_midiport.cc in Sources */,
-				88728FE6248D88A200783614 /* AUBuffer.cpp in Sources */,
-				88728FA7248D887900783614 /* AUOutputBase.cpp in Sources */,
-				88729276248D8C2100783614 /* AUTimestampGenerator.cpp in Sources */,
-				885F12A50BD25FD90069E7EC /* fifomidi.cc in Sources */,
-				88728FF9248D88AA00783614 /* AUInputElement.cpp in Sources */,
-				885F12A60BD25FD90069E7EC /* midi.cc in Sources */,
-				88728FFE248D88AA00783614 /* AUScopeElement.cpp in Sources */,
-				885F12A70BD25FD90069E7EC /* midichannel.cc in Sources */,
-				88728FD4248D889E00783614 /* MusicDeviceBase.cpp in Sources */,
-				885F12A80BD25FD90069E7EC /* midicontrollable.cc in Sources */,
-				885F12A90BD25FD90069E7EC /* midifactory.cc in Sources */,
-				88728FAD248D887900783614 /* AUInlineEffectBase.cpp in Sources */,
-				885F12AA0BD25FD90069E7EC /* midimanager.cc in Sources */,
-				885F12AB0BD25FD90069E7EC /* midiparser.cc in Sources */,
-				885F12AC0BD25FD90069E7EC /* midiport.cc in Sources */,
-				88729299248D8F1D00783614 /* CAAUParameter.cpp in Sources */,
-				885F12AE0BD25FD90069E7EC /* mmc.cc in Sources */,
-				885F12B00BD25FD90069E7EC /* mtc.cc in Sources */,
-				885F12B10BD25FD90069E7EC /* port_request.cc in Sources */,
-				885F12B20BD25FD90069E7EC /* version.cc in Sources */,
-				885F131C0BD260A70069E7EC /* basename.cc in Sources */,
-				887292B7248D8F1D00783614 /* CAVectorUnit.cpp in Sources */,
-				885F131E0BD260A70069E7EC /* dirname.cc in Sources */,
-				8872926D248D8C2000783614 /* AUBaseHelper.cpp in Sources */,
-				887292AB248D8F1D00783614 /* CAMutex.cpp in Sources */,
-				885F131F0BD260A70069E7EC /* dmalloc.cc in Sources */,
-				887292C5248D907000783614 /* CAHostTimeBase.cpp in Sources */,
-				885F13200BD260A70069E7EC /* ftw.cc in Sources */,
-				885F13210BD260A70069E7EC /* mountpoint.cc in Sources */,
-				885F13220BD260A70069E7EC /* pathscanner.cc in Sources */,
-				885F13590BD260A70069E7EC /* pool.cc in Sources */,
-				88728FCE248D889E00783614 /* AUEffectBase.cpp in Sources */,
-				885F135A0BD260A70069E7EC /* pthread_utils.cc in Sources */,
-				88728F95248D886000783614 /* AUPlugInDispatch.cpp in Sources */,
-				88728FD2248D889E00783614 /* AUMIDIEffectBase.cpp in Sources */,
-				887292CB248D90B000783614 /* CABundleLocker.cpp in Sources */,
-				887292A2248D8F1D00783614 /* CAAudioChannelLayout.cpp in Sources */,
-				88728FF5248D88AA00783614 /* AUBase.cpp in Sources */,
-				885F135B0BD260A70069E7EC /* receiver.cc in Sources */,
-				885F135C0BD260A70069E7EC /* textreceiver.cc in Sources */,
-				885F135D0BD260A70069E7EC /* transmitter.cc in Sources */,
-				885F135E0BD260A70069E7EC /* undo.cc in Sources */,
-				885F135F0BD260A70069E7EC /* unescape.cc in Sources */,
-				885F13600BD260A70069E7EC /* version.cc in Sources */,
-				8872929C248D8F1D00783614 /* CADebugMacros.cpp in Sources */,
-				885F13610BD260A70069E7EC /* xml++.cc in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -2333,6 +1481,7 @@
 		883650541858422D00246E75 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
@@ -2371,7 +1520,7 @@
 				INFOPLIST_FILE = "CocoaUI/CocoaUI-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "";
 				OTHER_CODE_SIGN_FLAGS = "--timestamp";
@@ -2385,6 +1534,7 @@
 		883650551858422D00246E75 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
@@ -2418,7 +1568,7 @@
 				INFOPLIST_FILE = "CocoaUI/CocoaUI-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CFLAGS = "";
 				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_NAME = SooperLooperCocoaViewFactory;
@@ -2431,6 +1581,7 @@
 		883650561858422D00246E75 /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_CXX_LANGUAGE_STANDARD = "compiler-default";
@@ -2464,7 +1615,7 @@
 				INFOPLIST_FILE = "CocoaUI/CocoaUI-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CFLAGS = "";
 				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_NAME = SooperLooperCocoaViewFactory;
@@ -2477,6 +1628,7 @@
 		885670E81813927400AA5367 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
 				ARCHS = "$(ARCHS_STANDARD)";
 				BUILD_VARIANTS = normal;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
@@ -2485,7 +1637,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = NO;
 				COPY_PHASE_STRIP = YES;
-				CURRENT_PROJECT_VERSION = 1.7.6;
+				CURRENT_PROJECT_VERSION = 1.7.8;
 				DEBUGGING_SYMBOLS = YES;
 				DEPLOYMENT_LOCATION = NO;
 				DEVELOPMENT_TEAM = XCS435894D;
@@ -2524,7 +1676,7 @@
 					"$(PROJECT_DIR)/lib64",
 				);
 				LIBRARY_STYLE = Bundle;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CFLAGS = (
 					"-D_FILE_OFFSET_BITS=64",
 					"-D_LARGE_FILES",
@@ -2549,7 +1701,6 @@
 				);
 				SDKROOT = macosx;
 				SECTORDER_FLAGS = "";
-				VALID_ARCHS = "i386 x86_64";
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
@@ -2563,6 +1714,7 @@
 		885670E91813927400AA5367 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
 				ARCHS = "$(ARCHS_STANDARD)";
 				BUILD_VARIANTS = normal;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
@@ -2571,7 +1723,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = NO;
 				COPY_PHASE_STRIP = YES;
-				CURRENT_PROJECT_VERSION = 1.7.6;
+				CURRENT_PROJECT_VERSION = 1.7.8;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEPLOYMENT_LOCATION = NO;
 				DEVELOPMENT_TEAM = XCS435894D;
@@ -2608,7 +1760,7 @@
 					"$(PROJECT_DIR)/lib64",
 				);
 				LIBRARY_STYLE = Bundle;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CFLAGS = (
 					"-D_FILE_OFFSET_BITS=64",
 					"-D_LARGE_FILES",
@@ -2633,7 +1785,6 @@
 				);
 				SDKROOT = macosx;
 				SECTORDER_FLAGS = "";
-				VALID_ARCHS = "i386 x86_64";
 				WARNING_CFLAGS = (
 					"-Wmost",
 					"-Wno-four-char-constants",
@@ -2647,6 +1798,7 @@
 		885670EA1813927400AA5367 /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
 				ARCHS = "$(ARCHS_STANDARD)";
 				BUILD_VARIANTS = normal;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
@@ -2654,7 +1806,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = NO;
-				CURRENT_PROJECT_VERSION = 1.7.6;
+				CURRENT_PROJECT_VERSION = 1.7.8;
 				DEPLOYMENT_LOCATION = NO;
 				DEVELOPMENT_TEAM = XCS435894D;
 				EXPORTED_SYMBOLS_FILE = Source/AUSource/SooperLooperAU64.exp;
@@ -2690,7 +1842,7 @@
 					"$(PROJECT_DIR)/lib64",
 				);
 				LIBRARY_STYLE = Bundle;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CFLAGS = (
 					"-D_FILE_OFFSET_BITS=64",
 					"-D_LARGE_FILES",
@@ -2712,221 +1864,6 @@
 					"$(DEVELOPER_DIR)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/AudioUnit.framework/Headers",
 					"$(DEVELOPER_DIR)/Extras/CoreAudio/AudioUnits/AUPublic/AUBase",
 					OtherSource/AUPublic/AUBase,
-				);
-				SDKROOT = macosx;
-				SECTORDER_FLAGS = "";
-				VALID_ARCHS = "i386 x86_64";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = component;
-			};
-			name = Default;
-		};
-		885F12430BD25C700069E7EC /* Development */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUILD_VARIANTS = normal;
-				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUGGING_SYMBOLS = YES;
-				DEPLOYMENT_LOCATION = NO;
-				EXPORTED_SYMBOLS_FILE = Source/AUSource/SooperLooperAU.exp;
-				FRAMEWORK_SEARCH_PATHS = "";
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_TRIGRAPHS = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = "";
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = Source/SooperLooperAU_Prefix.pch;
-				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
-				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
-				GCC_WARN_UNKNOWN_PRAGMAS = NO;
-				GENERATE_PKGINFO_FILE = YES;
-				HEADER_SEARCH_PATHS = (
-					"../../libs/midi++",
-					../../libs/pbd,
-					../../src,
-					../..,
-					/opt/local/include,
-					"/usr/local/include/sigc++-2.0",
-					"/usr/local/lib/sigc++-2.0/include",
-					/usr/include/libxml2,
-					/usr/local/include,
-				);
-				INFOPLIST_FILE = Resources/Info.plist;
-				INSTALL_PATH = "$(HOME)/Library/Audio/Plug-Ins/Components/";
-				LIBRARY_SEARCH_PATHS = (
-					"../../libs/midi++",
-					../../libs/pbd,
-					../../src,
-					/usr/lib,
-					/usr/local/lib,
-					/opt/local/lib,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
-				);
-				LIBRARY_STYLE = Bundle;
-				MACOSX_DEPLOYMENT_TARGET = "";
-				OTHER_CFLAGS = (
-					"-D_FILE_OFFSET_BITS=64",
-					"-D_LARGE_FILES",
-					"-DNO_GCC_PRAGMA",
-					"-DHAVE_STRCASECMP_IN_STRING_H",
-					"-DHAVE_SAMPLERATE",
-					"-DHAVE_SNDFILE",
-					"-DWITH_COREMIDI",
-				);
-				OTHER_LDFLAGS = "-bundle";
-				OTHER_REZFLAGS = "-d ppc_YES -d i386_$(i386) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Developer/Examples/CoreAudio/AudioUnits/AUPublic/AUBase";
-				PRODUCT_NAME = SooperLooperAU;
-				REZ_SEARCH_PATHS = (
-					/System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers,
-					/Library/Developer/CoreAudio/AudioUnits/AUPublic/AUBase,
-				);
-				SDKROOT = macosx;
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = component;
-				ZERO_LINK = NO;
-			};
-			name = Development;
-		};
-		885F12440BD25C700069E7EC /* Deployment */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUILD_VARIANTS = normal;
-				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = YES;
-				DEPLOYMENT_LOCATION = NO;
-				EXPORTED_SYMBOLS_FILE = Source/AUSource/SooperLooperAU.exp;
-				FRAMEWORK_SEARCH_PATHS = "";
-				GCC_ENABLE_TRIGRAPHS = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = "";
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = Source/SooperLooperAU_Prefix.pch;
-				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
-				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
-				GCC_WARN_UNKNOWN_PRAGMAS = NO;
-				GENERATE_PKGINFO_FILE = YES;
-				HEADER_SEARCH_PATHS = (
-					"../../libs/midi++",
-					../../libs/pbd,
-					../../src,
-					../..,
-					/opt/local/include,
-					"/usr/local/include/sigc++-2.0",
-					"/usr/local/lib/sigc++-2.0/include",
-					/usr/include/libxml2,
-					/usr/local/include,
-				);
-				INFOPLIST_FILE = Resources/Info.plist;
-				INSTALL_PATH = "$(HOME)/Library/Audio/Plug-Ins/Components/";
-				LIBRARY_SEARCH_PATHS = (
-					"../../libs/midi++",
-					../../libs/pbd,
-					../../src,
-					/usr/lib,
-					/usr/local/lib,
-					/opt/local/lib,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
-				);
-				LIBRARY_STYLE = Bundle;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
-				OTHER_CFLAGS = (
-					"-D_FILE_OFFSET_BITS=64",
-					"-D_LARGE_FILES",
-					"-DNO_GCC_PRAGMA",
-					"-DHAVE_STRCASECMP_IN_STRING_H",
-					"-DHAVE_SAMPLERATE",
-					"-DHAVE_SNDFILE",
-					"-DWITH_COREMIDI",
-				);
-				OTHER_LDFLAGS = "-bundle";
-				OTHER_REZFLAGS = "-d ppc_YES -d i386_$(i386) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Developer/Examples/CoreAudio/AudioUnits/AUPublic/AUBase";
-				PRODUCT_NAME = SooperLooperAU;
-				REZ_SEARCH_PATHS = (
-					/System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers,
-					/Library/Developer/CoreAudio/AudioUnits/AUPublic/AUBase,
-				);
-				SDKROOT = macosx;
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = component;
-				ZERO_LINK = NO;
-			};
-			name = Deployment;
-		};
-		885F12450BD25C700069E7EC /* Default */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUILD_VARIANTS = normal;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEPLOYMENT_LOCATION = NO;
-				EXPORTED_SYMBOLS_FILE = Source/AUSource/SooperLooperAU.exp;
-				FRAMEWORK_SEARCH_PATHS = "";
-				GCC_ENABLE_TRIGRAPHS = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = "";
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = Source/SooperLooperAU_Prefix.pch;
-				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
-				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
-				GCC_WARN_UNKNOWN_PRAGMAS = NO;
-				GENERATE_PKGINFO_FILE = YES;
-				HEADER_SEARCH_PATHS = (
-					"../../libs/midi++",
-					../../libs/pbd,
-					../../src,
-					../..,
-					/opt/local/include,
-					"/usr/local/include/sigc++-2.0",
-					"/usr/local/lib/sigc++-2.0/include",
-					/usr/include/libxml2,
-					/usr/local/include,
-				);
-				INFOPLIST_FILE = Resources/Info.plist;
-				INSTALL_PATH = "$(HOME)/Library/Audio/Plug-Ins/Components/";
-				LIBRARY_SEARCH_PATHS = (
-					"../../libs/midi++",
-					../../libs/pbd,
-					../../src,
-					/usr/lib,
-					/usr/local/lib,
-					/opt/local/lib,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
-				);
-				LIBRARY_STYLE = Bundle;
-				MACOSX_DEPLOYMENT_TARGET = "";
-				OTHER_CFLAGS = (
-					"-D_FILE_OFFSET_BITS=64",
-					"-D_LARGE_FILES",
-					"-DNO_GCC_PRAGMA",
-					"-DHAVE_STRCASECMP_IN_STRING_H",
-					"-DHAVE_SAMPLERATE",
-					"-DHAVE_SNDFILE",
-					"-DWITH_COREMIDI",
-				);
-				OTHER_LDFLAGS = "-bundle";
-				OTHER_REZFLAGS = "-d ppc_YES -d i386_$(i386) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Developer/Examples/CoreAudio/AudioUnits/AUPublic/AUBase";
-				PRODUCT_NAME = SooperLooperAU;
-				REZ_SEARCH_PATHS = (
-					/System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers,
-					/Library/Developer/CoreAudio/AudioUnits/AUPublic/AUBase,
 				);
 				SDKROOT = macosx;
 				SECTORDER_FLAGS = "";
@@ -2942,223 +1879,21 @@
 		885F12470BD25C700069E7EC /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 			};
 			name = Development;
 		};
 		885F12480BD25C700069E7EC /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 			};
 			name = Deployment;
 		};
 		885F12490BD25C700069E7EC /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-			};
-			name = Default;
-		};
-		88C5718118984DC400FD840A /* Development */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				BUILD_VARIANTS = normal;
-				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUGGING_SYMBOLS = YES;
-				DEPLOYMENT_LOCATION = NO;
-				EXPORTED_SYMBOLS_FILE = Source/AUSource/SooperLooperAU64.exp;
-				FRAMEWORK_SEARCH_PATHS = "";
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_TRIGRAPHS = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
-				GCC_MODEL_TUNING = "";
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = Source/SooperLooperAU_Prefix.pch;
-				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
-				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
-				GCC_WARN_UNKNOWN_PRAGMAS = NO;
-				GENERATE_PKGINFO_FILE = YES;
-				HEADER_SEARCH_PATHS = (
-					"../../libs/midi++",
-					../../libs/pbd,
-					../../src,
-					../..,
-					/opt/local/include,
-					"/usr/local/include/sigc++-2.0",
-					"/usr/local/lib/sigc++-2.0/include",
-					/usr/include/libxml2,
-					/usr/local/include,
-				);
-				INFOPLIST_FILE = "SooperLooperAU-Info.plist";
-				INSTALL_PATH = "$(HOME)/Library/Audio/Plug-Ins/Components/";
-				LIBRARY_SEARCH_PATHS = (
-					../../src,
-					/usr/lib,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
-				);
-				LIBRARY_STYLE = Bundle;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				OTHER_CFLAGS = (
-					"-D_FILE_OFFSET_BITS=64",
-					"-D_LARGE_FILES",
-					"-DNO_GCC_PRAGMA",
-					"-DHAVE_STRCASECMP_IN_STRING_H",
-					"-DHAVE_SAMPLERATE",
-					"-DHAVE_SNDFILE",
-					"-DWITH_COREMIDI",
-				);
-				OTHER_LDFLAGS = "-bundle";
-				OTHER_REZFLAGS = "-d ppc_YES -d i386_$(i386) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Developer/Examples/CoreAudio/AudioUnits/AUPublic/AUBase";
-				PRODUCT_NAME = SooperLooperAU;
-				REZ_SEARCH_PATHS = (
-					/System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers,
-					/Library/Developer/CoreAudio/AudioUnits/AUPublic/AUBase,
-				);
-				SDKROOT = macosx;
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = component;
-				ZERO_LINK = NO;
-			};
-			name = Development;
-		};
-		88C5718218984DC400FD840A /* Deployment */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				BUILD_VARIANTS = normal;
-				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = YES;
-				DEPLOYMENT_LOCATION = NO;
-				EXPORTED_SYMBOLS_FILE = Source/AUSource/SooperLooperAU64.exp;
-				FRAMEWORK_SEARCH_PATHS = "";
-				GCC_ENABLE_TRIGRAPHS = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = "";
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = Source/SooperLooperAU_Prefix.pch;
-				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
-				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
-				GCC_WARN_UNKNOWN_PRAGMAS = NO;
-				GENERATE_PKGINFO_FILE = YES;
-				HEADER_SEARCH_PATHS = (
-					"../../libs/midi++",
-					../../libs/pbd,
-					../../src,
-					../..,
-					/opt/local/include,
-					"/usr/local/include/sigc++-2.0",
-					"/usr/local/lib/sigc++-2.0/include",
-					/usr/include/libxml2,
-					/usr/local/include,
-				);
-				INFOPLIST_FILE = "SooperLooperAU-Info.plist";
-				INSTALL_PATH = "$(HOME)/Library/Audio/Plug-Ins/Components/";
-				LIBRARY_SEARCH_PATHS = (
-					../../src,
-					/usr/lib,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
-				);
-				LIBRARY_STYLE = Bundle;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				OTHER_CFLAGS = (
-					"-D_FILE_OFFSET_BITS=64",
-					"-D_LARGE_FILES",
-					"-DNO_GCC_PRAGMA",
-					"-DHAVE_STRCASECMP_IN_STRING_H",
-					"-DHAVE_SAMPLERATE",
-					"-DHAVE_SNDFILE",
-					"-DWITH_COREMIDI",
-				);
-				OTHER_LDFLAGS = "-bundle";
-				OTHER_REZFLAGS = "-d ppc_YES -d i386_$(i386) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Developer/Examples/CoreAudio/AudioUnits/AUPublic/AUBase";
-				PRODUCT_NAME = SooperLooperAU;
-				REZ_SEARCH_PATHS = (
-					/System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers,
-					/Library/Developer/CoreAudio/AudioUnits/AUPublic/AUBase,
-				);
-				SDKROOT = macosx;
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = component;
-				ZERO_LINK = NO;
-			};
-			name = Deployment;
-		};
-		88C5718318984DC400FD840A /* Default */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				BUILD_VARIANTS = normal;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEPLOYMENT_LOCATION = NO;
-				EXPORTED_SYMBOLS_FILE = Source/AUSource/SooperLooperAU64.exp;
-				FRAMEWORK_SEARCH_PATHS = "";
-				GCC_ENABLE_TRIGRAPHS = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_MODEL_TUNING = "";
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = Source/SooperLooperAU_Prefix.pch;
-				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
-				GCC_WARN_FOUR_CHARACTER_CONSTANTS = NO;
-				GCC_WARN_UNKNOWN_PRAGMAS = NO;
-				GENERATE_PKGINFO_FILE = YES;
-				HEADER_SEARCH_PATHS = (
-					"../../libs/midi++",
-					../../libs/pbd,
-					../../src,
-					../..,
-					/opt/local/include,
-					"/usr/local/include/sigc++-2.0",
-					"/usr/local/lib/sigc++-2.0/include",
-					/usr/include/libxml2,
-					/usr/local/include,
-				);
-				INFOPLIST_FILE = "SooperLooperAU-Info.plist";
-				INSTALL_PATH = "$(HOME)/Library/Audio/Plug-Ins/Components/";
-				LIBRARY_SEARCH_PATHS = (
-					../../src,
-					/usr/lib,
-					/Users/jesse/src/sooperlooper/mac/SooperLooperAU/lib32,
-				);
-				LIBRARY_STYLE = Bundle;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				OTHER_CFLAGS = (
-					"-D_FILE_OFFSET_BITS=64",
-					"-D_LARGE_FILES",
-					"-DNO_GCC_PRAGMA",
-					"-DHAVE_STRCASECMP_IN_STRING_H",
-					"-DHAVE_SAMPLERATE",
-					"-DHAVE_SNDFILE",
-					"-DWITH_COREMIDI",
-				);
-				OTHER_LDFLAGS = "-bundle";
-				OTHER_REZFLAGS = "-d ppc_YES -d i386_$(i386) -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers -I /Developer/Examples/CoreAudio/AudioUnits/AUPublic/AUBase";
-				PRODUCT_NAME = SooperLooperAU;
-				REZ_SEARCH_PATHS = (
-					/System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/A/Headers,
-					/Library/Developer/CoreAudio/AudioUnits/AUPublic/AUBase,
-				);
-				SDKROOT = macosx;
-				SECTORDER_FLAGS = "";
-				WARNING_CFLAGS = (
-					"-Wmost",
-					"-Wno-four-char-constants",
-					"-Wno-unknown-pragmas",
-				);
-				WRAPPER_EXTENSION = component;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 			};
 			name = Default;
 		};
@@ -3185,32 +1920,12 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Default;
 		};
-		885F12420BD25C700069E7EC /* Build configuration list for PBXNativeTarget "SooperLooperAU Old" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				885F12430BD25C700069E7EC /* Development */,
-				885F12440BD25C700069E7EC /* Deployment */,
-				885F12450BD25C700069E7EC /* Default */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Default;
-		};
 		885F12460BD25C700069E7EC /* Build configuration list for PBXProject "SooperLooperAU" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				885F12470BD25C700069E7EC /* Development */,
 				885F12480BD25C700069E7EC /* Deployment */,
 				885F12490BD25C700069E7EC /* Default */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Default;
-		};
-		88C5718018984DC400FD840A /* Build configuration list for PBXNativeTarget "SooperLooperAU 32" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				88C5718118984DC400FD840A /* Development */,
-				88C5718218984DC400FD840A /* Deployment */,
-				88C5718318984DC400FD840A /* Default */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Default;

@@ -16,7 +16,7 @@ cd SooperLooperAU
 #xcodebuild -configuration Deployment
 
 #xcodebuild -configuration Deployment -scheme "SooperLooperAU 32" -derivedDataPath .
-xcodebuild -configuration Deployment -scheme "SooperLooperAU 64" -derivedDataPath .
+xcodebuild -configuration Deployment -scheme "SooperLooperAU 64" -destination "generic/platform=macOS" -derivedDataPath .
 
 
 cd ..

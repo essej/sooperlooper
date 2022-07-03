@@ -739,7 +739,7 @@ ComponentResult		SooperLooperAU::GetProperty(	AudioUnitPropertyID inID,
     {
         
         // Look for a resource in the main bundle by name and type.
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__aarch64__)
         CFBundleRef bundle = CFBundleGetBundleWithIdentifier( CFSTR("net.essej.audiounit.SooperLooperAU64") );
 #else
         CFBundleRef bundle = CFBundleGetBundleWithIdentifier( CFSTR("net.essej.audiounit.SooperLooperAU") );
