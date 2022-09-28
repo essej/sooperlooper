@@ -119,6 +119,7 @@ class BaseStereoPanner : public StreamPanner
 	float desired_right;
 	float left_interp;
 	float right_interp;
+    float last_gain;
 };
 
 class EqualPowerStereoPanner : public BaseStereoPanner

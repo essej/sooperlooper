@@ -1000,6 +1000,7 @@ LoopControl::request_all_values(int index)
 	lo_send(_osc_addr, buf, "sss", "output_latency", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "trigger_latency", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "autoset_latency", _our_url.c_str(), "/ctrl");
+    lo_send(_osc_addr, buf, "sss", "discrete_prefader", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "mute_quantized", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "overdub_quantized", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "replace_quantized", _our_url.c_str(), "/ctrl");
@@ -1238,6 +1239,7 @@ LoopControl::register_input_controls(int index, bool unreg)
 	lo_send(_osc_addr, buf, "sss", "output_latency", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "trigger_latency", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "autoset_latency", _our_url.c_str(), "/ctrl");
+    lo_send(_osc_addr, buf, "sss", "discrete_prefader", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "mute_quantized", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "overdub_quantized", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "replace_quantized", _our_url.c_str(), "/ctrl");

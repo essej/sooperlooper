@@ -91,7 +91,6 @@ CheckBox::CheckBox(wxWindow * parent, wxWindowID id, const wxString & label, boo
 	
 	int w,h;
 	GetTextExtent(_label_str, &w, &h);
-	SetVirtualSizeHints (6 + _boxsize + w, max(_boxsize, h));
 	SetVirtualSize (6 + _boxsize + w, max(_boxsize, h));
 
 	update_size();
@@ -134,7 +133,6 @@ CheckBox::set_label (const wxString & label)
 	GetTextExtent(_label_str, &w, &h);
 
 	SetVirtualSize (6 + _boxsize + w, max(_boxsize, h));
-	SetVirtualSizeHints (6 + _boxsize + w, max(_boxsize, h));
 	Refresh(false);	
 }
 

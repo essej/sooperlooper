@@ -200,7 +200,8 @@ void MidiBindPanel::init()
 	wxStaticText * staticText;
 	//colsizer->Add (staticText, 0, wxALL|wxALIGN_CENTRE, 2);
 
-	_control_combo = new wxChoice(_edit_panel, ID_ControlCombo,  wxDefaultPosition, wxSize(100, -1), 0, 0);
+	_control_combo = new wxChoice(_edit_panel, ID_ControlCombo,  wxDefaultPosition, wxDefaultSize, 0, 0);
+	_control_combo->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	//_control_combo->SetToolTip(wxT("Choose control or command"));
 	populate_controls();
 	//_control_combo->SetSelection(0);
@@ -252,7 +253,7 @@ void MidiBindPanel::init()
 	_chan_spin->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	rowsizer->Add (_chan_spin, 0, wxALL|wxALIGN_CENTRE_VERTICAL, 2);
 	
-	_type_combo = new wxChoice(_edit_panel, ID_TypeCombo,  wxDefaultPosition, wxSize(100, -1), 0, 0);
+	_type_combo = new wxChoice(_edit_panel, ID_TypeCombo,  wxDefaultPosition, wxDefaultSize, 0, 0);
 	_type_combo->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
 	//_control_combo->SetToolTip(wxT("Choose control or command"));
 	_type_combo->Append (NoteString);

@@ -147,6 +147,8 @@ class LooperPanel
 	CheckBox * _play_feed_check;
 	CheckBox * _play_sync_check;
 	CheckBox * _tempo_stretch_check;
+	CheckBox * _prefader_check;
+
 	wxBoxSizer * _maininsizer;
 	CheckBox * _use_main_in_check;
 

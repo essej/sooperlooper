@@ -155,6 +155,7 @@ BaseStereoPanner::distribute (sample_t* src, sample_t** obufs, gain_t gain_coeff
 	pan_t delta;
 	sample_t* dst;
 	pan_t pan;
+    gain_t gaindelta;
 
 	if (_muted) {
 		return;
@@ -164,31 +165,39 @@ BaseStereoPanner::distribute (sample_t* src, sample_t** obufs, gain_t gain_coeff
 
 	dst = obufs[0];
 
-	if (fabsf ((delta = (left - desired_left))) > 0.002) { // about 1 degree of arc 
+    delta = (left - desired_left);
+    gaindelta = (gain_coeff - last_gain);
+
+	if (fabsf (delta) > 0.002 || fabsf(gaindelta) > 0.00001f) { // about 1 degree of arc
 		
 		/* interpolate over 64 frames or nframes, whichever is smaller */
 		
 		nframes_t limit = min ((nframes_t)64, nframes);
 		nframes_t n;
 
+        gain_t usegain = last_gain;
+
 		delta = -(delta / (float) (limit));
-		
+        gaindelta = (gaindelta / (float) (limit));
+
 		for (n = 0; n < limit; n++) {
 			left_interp = left_interp + delta;
 			left = left_interp + 0.9 * (left - left_interp);
-			dst[n] += src[n] * left * gain_coeff;
+			dst[n] += src[n] * left * usegain;
+            usegain += gaindelta;
 		}
 		
 		pan = left * gain_coeff;
-		
+
 		for (; n < nframes; ++n) {
 			dst[n] += src[n] * pan;
 		}
 		
 	} else {
-		
+
 		left = desired_left;
 		left_interp = left;
+
 
 		if ((pan = (left * gain_coeff)) != 1.0f) {
 			
@@ -218,20 +227,26 @@ BaseStereoPanner::distribute (sample_t* src, sample_t** obufs, gain_t gain_coeff
 	/* RIGHT */
 
 	dst = obufs[1];
-	
-	if (fabsf ((delta = (right - desired_right))) > 0.002) { // about 1 degree of arc 
+
+    delta = (right - desired_right);
+    gaindelta = (gain_coeff - last_gain);
+
+	if (fabsf (delta) > 0.002 || fabsf(gaindelta) > 0.00001f) { // about 1 degree of arc
 		
 		/* interpolate over 64 frames or nframes, whichever is smaller */
 		
 		nframes_t limit = min ((nframes_t)64, nframes);
 		nframes_t n;
+        gain_t usegain = last_gain;
 
 		delta = -(delta / (float) (limit));
+        gaindelta = (gaindelta / (float) (limit));
 
 		for (n = 0; n < limit; n++) {
 			right_interp = right_interp + delta;
 			right = right_interp + 0.9 * (right - right_interp);
-			dst[n] += src[n] * right * gain_coeff;
+			dst[n] += src[n] * right * usegain;
+            usegain += gaindelta;
 		}
 		
 		pan = right * gain_coeff;
@@ -267,6 +282,8 @@ BaseStereoPanner::distribute (sample_t* src, sample_t** obufs, gain_t gain_coeff
 			/* XXX it would be nice to mark the buffer as written to */
 		}
 	}
+
+    last_gain = gain_coeff;
 }
 
 /*---------------------------------------------------------------------- */
@@ -280,6 +297,7 @@ EqualPowerStereoPanner::EqualPowerStereoPanner (Panner& p)
 	right = desired_right;
 	left_interp = left;
 	right_interp = right;
+    last_gain = 1.0f;
 }
 
 EqualPowerStereoPanner::~EqualPowerStereoPanner ()
@@ -462,7 +480,7 @@ Multi2dPanner::distribute (sample_t* src, sample_t** obufs, gain_t gain_coeff, n
 		}
 #endif
 	}
-	
+
 	return;
 }
 

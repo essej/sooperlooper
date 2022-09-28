@@ -110,6 +110,7 @@ CommandMap::CommandMap()
 	add_input_control("output_latency", Event::OutputLatency, UnitSamples, 0.0f, 32768.0f, 0.0f);
 	add_input_control("trigger_latency", Event::TriggerLatency, UnitSamples, 0.0f, 32768.0f, 0.0f);
 	add_input_control("autoset_latency", Event::AutosetLatency, UnitBoolean, 0.0f, 1.0f, 1.0f);
+    add_input_control("discrete_prefader", Event::DiscretePreFader, UnitBoolean, 0.0f, 1.0f, 0.0f);
 	add_input_control("mute_quantized", Event::MuteQuantized, UnitBoolean);
 	add_input_control("overdub_quantized", Event::OverdubQuantized, UnitBoolean);
 	add_input_control("replace_quantized", Event::ReplaceQuantized, UnitBoolean);

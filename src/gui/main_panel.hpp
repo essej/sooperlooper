@@ -109,7 +109,8 @@ public:
 
     void set_sliders_allow_mousewheel (bool flag);
     bool get_sliders_allow_mousewheel () const { return _sliders_allow_mousewheel; }
-    
+
+
 protected:
 
 	void init();

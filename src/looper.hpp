@@ -89,6 +89,9 @@ class Looper
 	void set_use_common_outs (bool val);
 	bool get_use_common_outs () const { return _use_common_outs; }
 
+    void set_discrete_outs_prefader (bool val);
+    bool get_discrete_outs_prefader () const { return _discrete_prefader; }
+
 	bool get_have_discrete_io () const { return _have_discrete_io; }
 
 	void set_auto_latency (bool val) { _auto_latency = val; }
@@ -156,9 +159,14 @@ class Looper
 
 	float              _curr_input_gain;
 	float              _targ_input_gain;
-	
+
+    float              _curr_wet;
+    float              _target_wet;
+
 	bool               _relative_sync;
-	
+
+    bool               _discrete_prefader;
+
 	// keeps track of down/up commands for SUS purposes
 	nframes_t          _down_stamps[Event::LAST_COMMAND+1];
 	nframes_t          _longpress_frames;
