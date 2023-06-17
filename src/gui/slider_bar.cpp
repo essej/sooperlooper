@@ -101,8 +101,8 @@ SliderBar::SliderBar(wxWindow * parent, wxWindowID id,  float lb, float ub, floa
 	_ind_value = 0.0f;
 	_use_pending = false;
 	_pending_val = 0.0f;
-        _override_def_use_wheel = false;
-        _use_wheel = s_use_wheel_def;
+	_override_def_use_wheel = false;
+	_use_wheel = s_use_wheel_def;
         
 	_bgcolor.Set(30,30,30);
 	_bgbrush.SetColour (_bgcolor);

@@ -1554,6 +1554,27 @@ Engine::get_control_value (Event::control_t ctrl, int8_t instance)
 	return 0.0f;
 }
 
+std::string 
+Engine::get_property_value (std::string prop, int8_t instance)
+{
+	if (instance >= 0 && instance < (int) _instances.size()) {
+		if (prop == "name") {
+			return _instances[instance]->get_name();
+		}
+	}
+	return {};
+}
+
+void 
+Engine::set_property_value (std::string prop, int8_t instance, std::string value)
+{
+	if (instance >= 0 && instance < (int) _instances.size()) {
+		if (prop == "name") {
+			_instances[instance]->set_name(value);
+		}
+	}
+}
+
 
 bool
 Engine::push_nonrt_event (EventNonRT * event)
@@ -1806,6 +1827,8 @@ Engine::process_nonrt_event (EventNonRT * event)
 {
 	ConfigUpdateEvent * cu_event;
 	GetParamEvent *     gp_event;
+	GetPropertyEvent *  gprop_event;
+	SetPropertyEvent *  sprop_event;
 	ConfigLoopEvent *   cl_event;
 	PingEvent *         ping_event;
 	RegisterConfigEvent * rc_event;
@@ -1821,6 +1844,15 @@ Engine::process_nonrt_event (EventNonRT * event)
 	{
 		gp_event->ret_value = get_control_value (gp_event->control, gp_event->instance);
 		_osc->finish_get_event (*gp_event);
+	}
+	else if ((gprop_event = dynamic_cast<GetPropertyEvent*> (event)) != 0)
+	{
+		gprop_event->ret_value = get_property_value (gprop_event->property, gprop_event->instance);
+		_osc->finish_get_property_event (*gprop_event);
+	}
+	else if ((sprop_event = dynamic_cast<SetPropertyEvent*> (event)) != 0)
+	{
+		set_property_value (sprop_event->property, sprop_event->instance, sprop_event->value);
 	}
 	else if ((gg_event = dynamic_cast<GlobalGetEvent*> (event)) != 0)
 	{

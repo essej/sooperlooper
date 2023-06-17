@@ -194,6 +194,7 @@ LoopControl::LoopControl (const wxString & rcdir)
 	
 	/* add handler for control param callbacks, first is loop index , 2nd arg ctrl string, 3nd arg value */
 	lo_server_add_method(_osc_server, "/ctrl", "isf", LoopControl::_control_handler, this);
+	lo_server_add_method(_osc_server, "/prop", "iss", LoopControl::_property_handler, this);
 
 	// pingack expects: s:engine_url s:version i:loopcount
 	lo_server_add_method(_osc_server, "/pingack", "ssi", LoopControl::_pingack_handler, this);
@@ -856,6 +857,42 @@ LoopControl::control_handler(const char *path, const char *types, lo_arg **argv,
 }
 
 int
+LoopControl::_property_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			      void *data, void *user_data)
+{
+	LoopControl * lc = static_cast<LoopControl*> (user_data);
+	return lc->property_handler (path, types, argv, argc, data);
+}
+
+
+int
+LoopControl::property_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+{
+// loop instance is 1st arg, 2nd is ctrl string, 3rd is float value
+
+	int  index = argv[0]->i;
+	wxString prop = wxString::FromAscii(&argv[1]->s);
+	wxString val  = wxString::FromAscii(&argv[2]->s);
+
+	// cerr << "got prop " << prop.ToAscii() << " = " << val.ToAscii() << "  index=" << index << endl;
+
+	if (index >= (int) _properties_val_map.size()) {
+		_properties_val_map.resize(index + 1);
+		_updated.resize(index + 1);
+	}
+
+	if (_properties_val_map[index].find(prop) == _properties_val_map[index].end()
+	    || _properties_val_map[index][prop] != val)
+	{
+		_updated[index][prop] = true;
+	}
+
+	_properties_val_map[index][prop] = val;
+
+	return 0;
+}
+
+int
 LoopControl::_midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc,
 			      void *data, void *user_data)
 {
@@ -1016,6 +1053,9 @@ LoopControl::request_all_values(int index)
 	lo_send(_osc_addr, buf, "sss", "pan_2", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "pan_3", _our_url.c_str(), "/ctrl");
 	lo_send(_osc_addr, buf, "sss", "pan_4", _our_url.c_str(), "/ctrl");
+
+	snprintf(buf, sizeof(buf), "/sl/%d/get_prop", index);
+	lo_send(_osc_addr, buf, "sss", "name", _our_url.c_str(), "/prop");
 
 }
 
@@ -1377,6 +1417,27 @@ LoopControl::post_global_ctrl_change (wxString ctrl, float val)
 }
 
 bool
+LoopControl::post_property_change (int index, wxString ctrl, wxString val)
+{
+	if (!_osc_addr) return false;
+	char buf[50];
+
+	// go ahead and update our local copy
+	if (index >= 0 && index < (int) _properties_val_map.size()) {
+		_properties_val_map[index][ctrl] = val;
+	}
+
+	snprintf(buf, sizeof(buf), "/sl/%d/set_prop", index);
+
+	if (lo_send(_osc_addr, buf, "ss", (const char *) ctrl.ToAscii(), (const char *) val.ToAscii()) == -1) {
+		return false;
+	}
+
+	return true;
+}
+
+
+bool
 LoopControl::post_save_loop(int index, wxString fname, wxString format, wxString endian)
 {
 	if (!_osc_addr) return false;
@@ -1506,6 +1567,26 @@ LoopControl::get_value (int index, wxString ctrl, float & retval)
 			retval = (*iter).second;
 			// set updated to false
 			_updated[index][ctrl] = false;
+			ret = true;
+		}
+	}
+
+	return ret;
+}
+
+bool
+LoopControl::get_property (int index, wxString prop, wxString & retval)
+{
+	bool ret = false;
+	
+	if (index >= 0 && index < (int) _properties_val_map.size())
+	{
+		PropertyValMap::iterator iter = _properties_val_map[index].find (prop);
+
+		if (iter != _properties_val_map[index].end()) {
+			retval = (*iter).second;
+			// set updated to false
+			_updated[index][prop] = false;
 			ret = true;
 		}
 	}

@@ -93,6 +93,8 @@ class LooperPanel
 	
 	void on_quantize_change (int index, wxString strval);
 
+	void on_text_event (wxCommandEvent &ev);
+
 	void on_flash_timer (wxTimerEvent &ev);
 	
 	void got_binding_changed(SooperLooper::MidiBindInfo & info);
@@ -148,6 +150,7 @@ class LooperPanel
 	CheckBox * _play_sync_check;
 	CheckBox * _tempo_stretch_check;
 	CheckBox * _prefader_check;
+    wxTextCtrl * _name_text;
 
 	wxBoxSizer * _maininsizer;
 	CheckBox * _use_main_in_check;

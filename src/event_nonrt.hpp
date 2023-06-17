@@ -129,6 +129,33 @@ namespace SooperLooper {
 		float            ret_value;
 	};
 
+	class GetPropertyEvent : public EventNonRT
+	{
+	public:
+		GetPropertyEvent( int8_t inst, std::string prop, std::string returl, std::string retpath)
+			: property(prop), instance(inst), ret_url(returl), ret_path(retpath) {}
+		virtual ~GetPropertyEvent() {}
+
+		std::string      property;
+		int8_t           instance;
+		std::string      ret_url;
+		std::string      ret_path;
+
+		std::string      ret_value;
+	};
+
+	class SetPropertyEvent : public EventNonRT
+	{
+	public:
+		SetPropertyEvent(int8_t inst, std::string par, std::string val)
+			: property(par), instance(inst), value(val) {}
+		virtual ~SetPropertyEvent() {}
+
+		std::string      property;
+		int8_t           instance;
+		std::string      value;
+	};
+
 	class ConfigUpdateEvent : public EventNonRT
 	{
 	public:

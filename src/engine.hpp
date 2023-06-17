@@ -111,7 +111,9 @@ class Engine
 	bool load_midi_bindings (std::istream & instream, bool append, CommandMap & cmdmap);
 
 	float get_control_value (Event::control_t, int8_t instance);
-	
+	std::string get_property_value (std::string prop, int8_t instance);
+	void set_property_value (std::string prop, int8_t instance, std::string value);
+
 	sigc::signal2<void, int, bool> LoopAdded;
 	sigc::signal0<void> LoopRemoved;
 

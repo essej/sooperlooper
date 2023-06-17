@@ -116,6 +116,9 @@ class Looper
 	
 	bool is_longpress (int command);
 
+	void set_name(const std::string & name) { _name = name; }
+	const std::string & get_name() const { return _name; }
+
 	XMLNode& get_state () const;
 	int set_state (const XMLNode&);
 
@@ -201,6 +204,8 @@ class Looper
 
 	bool                _pre_solo_muted;
 	bool                _is_soloed;
+
+	std::string         _name;
 
 	// SRC stuff
 	SRC_STATE**            _in_src_states;

@@ -93,6 +93,7 @@ enum {
 	ID_UseMainInCheck,
 	ID_Panner,
 	ID_PrefaderCheck,
+	ID_NameText,
 
 	ID_FlashTimer
 
@@ -106,7 +107,8 @@ enum {
 BEGIN_EVENT_TABLE(LooperPanel, wxPanel)
 
 	EVT_TIMER(ID_FlashTimer, LooperPanel::on_flash_timer)
-	
+	EVT_TEXT_ENTER (ID_NameText, LooperPanel::on_text_event)
+
 END_EVENT_TABLE()
 
 	LooperPanel::LooperPanel(MainPanel * mainpan, LoopControl * control, wxWindow * parent, wxWindowID id, const wxPoint& pos, const wxSize& size)
@@ -168,7 +170,7 @@ LooperPanel::init()
 	_bottomSelbar->SetBackgroundColour (_bgcolor);
 
 	
-        mainVSizer->Add (_topSelbar, 0, wxEXPAND|wxBOTTOM|wxLEFT, 0);
+	mainVSizer->Add (_topSelbar, 0, wxEXPAND|wxBOTTOM|wxLEFT, 0);
 	mainSizer->Add (_leftSelbar, 0, wxEXPAND|wxBOTTOM|wxLEFT, 0);
 
 
@@ -177,7 +179,7 @@ LooperPanel::init()
 	// before adding to sizer
 	create_buttons();
 	
-        int edgegap = 0;
+	int edgegap = 0;
 
  	colsizer->Add (_undo_button, 0, 0, 0);
 
@@ -365,6 +367,13 @@ LooperPanel::init()
 	_sync_check->value_changed.connect (sigc::bind(mem_fun (*this, &LooperPanel::check_events), wxT("sync")));
 	_sync_check->bind_request.connect (sigc::bind(mem_fun (*this, &LooperPanel::control_bind_events), (int) _sync_check->GetId()));
 	lilrowsizer->Add (_sync_check, 1, wxLEFT, 3);
+
+	_name_text = new wxTextCtrl(this, ID_NameText, wxT(""), wxDefaultPosition, wxSize(40, 18), wxTE_PROCESS_ENTER|wxTE_LEFT, wxDefaultValidator, wxT("KeyAware"));
+	_name_text->SetWindowVariant(wxWINDOW_VARIANT_SMALL);
+	_name_text->SetToolTip(wxT("loop name"));
+	_name_text->SetFont(sliderFont);
+	lilrowsizer->Add (_name_text, 1, wxLEFT|wxALIGN_CENTRE_VERTICAL, 3);
+
 	lilcolsizer->Add (lilrowsizer, 0, wxTOP|wxEXPAND, 0);
 
 	lilrowsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1038,6 +1047,17 @@ LooperPanel::update_controls()
 		_solo_button->set_active(val > 0.0f);
 	}
 
+	if (_loop_control->is_updated(_index, wxT("name"))) {
+		wxString prop;
+		_loop_control->get_property(_index, wxT("name"), prop);
+		if (prop.IsEmpty()) {
+			wxString tmpname = wxString::Format(wxT("LOOP %d"), _index+1);
+			_name_text->SetValue(tmpname);
+		} else {
+			_name_text->SetValue(prop);
+		}
+	}
+
 	for (int i=0; i < _chan_count; ++i) {
 		wxString panstr = wxString::Format(wxT("pan_%d"), i+1);
 		if (_loop_control->is_updated(_index, panstr)) {
@@ -1092,7 +1112,6 @@ LooperPanel::update_state()
 	_loop_control->get_value(_index, wxT("waiting"), val);
 	_loop_control->get_value(_index, wxT("is_soloed"), soloed);
 	_waiting = (val > 0.0f) ? true : false;
-
 
 	if (!_waiting && _flashing_button) {
 		// clear flashing
@@ -1324,6 +1343,19 @@ LooperPanel::on_flash_timer (wxTimerEvent &ev)
 
 	if (_flashing_button) {
 		_flashing_button->set_active (!_flashing_button->get_active());
+	}
+}
+
+void
+LooperPanel::on_text_event (wxCommandEvent &ev)
+{
+	if (ev.GetEventType() == wxEVT_COMMAND_TEXT_ENTER) {
+		cerr << "Got text event" << endl;
+
+		// commit change
+		_loop_control->post_property_change(_index, wxT("name"), _name_text->GetValue());
+
+		_time_panel->SetFocus();
 	}
 }
 

@@ -108,7 +108,7 @@ struct OptionInfo
 
 static void usage(char *argv0)
 {
-	fprintf(stderr, "SooperLooper %s\nCopyright 2004-2021 Jesse Chappell\nSooperLooper comes with ABSOLUTELY NO WARRANTY\n", sooperlooper_version);
+	fprintf(stderr, "SooperLooper %s\nCopyright 2004-2023 Jesse Chappell\nSooperLooper comes with ABSOLUTELY NO WARRANTY\n", sooperlooper_version);
 	fprintf(stderr, "This is free software, and you are welcome to redistribute it\n");
 	fprintf(stderr, "under certain conditions; see the file COPYING for details\n\n");
 
@@ -301,7 +301,7 @@ int main(int argc, char** argv)
 
 	
 	if (!option_info.quiet || option_info.show_version) {
-		cerr << "SooperLooper " << sooperlooper_version << endl << "Copyright 2004-2021 Jesse Chappell" << endl;
+		cerr << "SooperLooper " << sooperlooper_version << endl << "Copyright 2004-2023 Jesse Chappell" << endl;
 	}
 
 	if (option_info.show_version) {

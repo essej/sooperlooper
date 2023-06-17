@@ -1813,6 +1813,8 @@ Looper::get_state () const
 	snprintf(buf, sizeof(buf), "%d", _index);
 	node->add_property ("index", buf);
 
+	node->add_property ("name", _name);
+
 	snprintf(buf, sizeof(buf), "%d", _chan_count);
 	node->add_property ("channels", buf);
 
@@ -1921,6 +1923,9 @@ Looper::set_state (const XMLNode& node)
 	// initialize self
 	initialize (_index, _chan_count, _loopsecs, _have_discrete_io);
 
+	if ((prop = node.property ("name")) != 0) {
+		_name = prop->value();
+	}
 
     if ((prop = node.property ("discrete_prefader")) != 0) {
         _discrete_prefader = (prop->value() == "yes");

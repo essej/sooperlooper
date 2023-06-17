@@ -19,7 +19,7 @@ cp slgui.icns macdist/SooperLooper.app/Contents/Resources/
 
 
 cp ../OSC macdist/OSC.txt
-cp ../README macdist/README.txt
+cp ../README.md macdist/README.md
 cp ../COPYING macdist/COPYING.txt
 
 cp ../src/slregister macdist/slregister

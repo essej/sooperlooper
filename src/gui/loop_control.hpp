@@ -93,6 +93,8 @@ class LoopControl
 	bool post_ctrl_change (int index, wxString ctrl, float val);
 	bool post_global_ctrl_change (wxString ctrl, float val);
 
+	bool post_property_change (int index, wxString ctrl, wxString val);
+
 	bool post_add_loop(int channels=0, float secs=0.0f, bool discrete=true);
 	bool post_remove_loop();
 
@@ -150,6 +152,7 @@ class LoopControl
 	bool get_value (int index, wxString ctrl, float &retval);
 	bool get_state (int index, SooperLooper::LooperState & state, wxString & statestr);
 	bool get_next_state (int index, SooperLooper::LooperState & state, wxString & statestr);
+	bool get_property (int index, wxString prop, wxString & retval);
 
 	void pingtimer_expired();
 
@@ -171,6 +174,11 @@ class LoopControl
 				    void *data, void *user_data);
 
 	int control_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+
+	static int _property_handler(const char *path, const char *types, lo_arg **argv, int argc,
+				    void *data, void *user_data);
+
+	int property_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 
 	static int _pingack_handler(const char *path, const char *types, lo_arg **argv, int argc,
 				    void *data, void *user_data);
@@ -207,14 +215,19 @@ class LoopControl
 
 	typedef std::map<wxString, float> ControlValMap;
 	typedef std::vector<ControlValMap> ControlValMapList;
-        ControlValMapList _params_val_map;
+	ControlValMapList _params_val_map;
 	ControlValMap     _global_val_map;
-	
+
+	typedef std::map<wxString, wxString> PropertyValMap;
+	typedef std::vector<PropertyValMap> PropertyValMapList;
+	PropertyValMapList _properties_val_map;
+
+
 	std::map<SooperLooper::LooperState, wxString> state_map;
 
-        typedef std::map<int, bool> RegisteredLoopMap;
-        RegisteredLoopMap  _registeredin_loop_map;
-        RegisteredLoopMap  _registeredauto_loop_map;
+	typedef std::map<int, bool> RegisteredLoopMap;
+	RegisteredLoopMap  _registeredin_loop_map;
+	RegisteredLoopMap  _registeredauto_loop_map;
 
 	typedef std::map<wxString, bool> UpdatedCtrlMap;
 	typedef std::vector<ControlValMap> UpdatedCtrlMapList;

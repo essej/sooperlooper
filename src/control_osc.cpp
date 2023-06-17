@@ -327,6 +327,12 @@ ControlOSC::on_loop_added (int instance, bool sendupdate)
 		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/get", instance);
 		lo_server_add_method(serv, tmpstr, "sss", ControlOSC::_get_handler, new CommandInfo(this, instance, Event::type_control_request));
 
+		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/set_prop", instance);
+		lo_server_add_method(serv, tmpstr, "ss", ControlOSC::_set_prop_handler, new CommandInfo(this, instance, Event::type_control_change));
+
+		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/get_prop", instance);
+		lo_server_add_method(serv, tmpstr, "sss", ControlOSC::_get_prop_handler, new CommandInfo(this, instance, Event::type_control_request));
+
 		// load loop:  s:filename  s:returl  s:retpath
 		snprintf(tmpstr, sizeof(tmpstr), "/sl/%d/load_loop", instance);
 		lo_server_add_method(serv, tmpstr, "sss", ControlOSC::_loadloop_handler, new CommandInfo(this, instance, Event::type_control_request));
@@ -566,6 +572,20 @@ int ControlOSC::_get_handler(const char *path, const char *types, lo_arg **argv,
 {
 	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
 	return cp->osc->get_handler (path, types, argv, argc, data, cp);
+}
+
+int ControlOSC::_set_prop_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
+	return cp->osc->set_prop_handler (path, types, argv, argc, data, cp);
+}
+
+int ControlOSC::_get_prop_handler(const char *path, const char *types, lo_arg **argv, int argc,
+			 void *data, void *user_data)
+{
+	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
+	return cp->osc->get_prop_handler (path, types, argv, argc, data, cp);
 }
 
 int ControlOSC::_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
@@ -1001,6 +1021,41 @@ int ControlOSC::set_handler(const char *path, const char *types, lo_arg **argv, 
 
 }
 
+int ControlOSC::get_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+{
+
+	// first arg is control string, 2nd is return URL string 3rd is retpath
+	string ctrl (&argv[0]->s);
+	string returl (&argv[1]->s);
+	string retpath (&argv[2]->s);
+
+	// cerr << "get prop " << ctrl << endl;
+
+	validate_returl(returl);
+
+	// push this onto a queue for the main event loop to process
+	_engine->push_nonrt_event ( new GetPropertyEvent (info->instance, ctrl, returl, retpath));
+
+	return 0;
+}
+
+int ControlOSC::set_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+{
+	// first arg is a control string, 2nd is string val
+
+	string ctrl(&argv[0]->s);
+	string val (&argv[1]->s);
+	lo_message msg = (lo_message) data;
+	lo_address srcaddr = lo_message_get_source (msg);
+	const char * sport = lo_address_get_port(srcaddr);
+	int srcport = atoi(sport);
+	// cerr << "set_prop " << ctrl << "  to val: " << val << endl;
+
+	_engine->push_nonrt_event ( new SetPropertyEvent (info->instance, ctrl, val));
+
+	return 0;
+}
+
 int ControlOSC::loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
 {
 	// 1st is an int #channels
@@ -1283,6 +1338,28 @@ ControlOSC::finish_get_event (GetParamEvent & event)
 	}
 	
 }
+
+void 
+ControlOSC::finish_get_property_event (GetPropertyEvent & event)
+{
+	// called from the main event loop (not osc thread)
+	string ctrl (event.property);
+	string returl (event.ret_url);
+	string retpath (event.ret_path);
+	lo_address addr;
+
+	addr = find_or_cache_addr (returl);
+	if (!addr) {
+		return;
+	}
+
+	// cerr << "sending prop to " << returl << "  path: " << retpath << "  ctrl: " << ctrl << "  val: " <<  event.ret_value << endl;
+
+	if (lo_send(addr, retpath.c_str(), "iss", event.instance, ctrl.c_str(), event.ret_value.c_str()) == -1) {
+		fprintf(stderr, "OSC error %d: %s\n", lo_address_errno(addr), lo_address_errstr(addr));
+	}
+}
+
 
 void
 ControlOSC::finish_global_get_event (GlobalGetEvent & event)

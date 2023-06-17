@@ -74,6 +74,7 @@ class ControlOSC
 	void finish_loop_config_event (ConfigLoopEvent &event);
 	void finish_global_get_event (GlobalGetEvent & event);
 	void finish_midi_binding_event (MidiBindingEvent & event);
+	void finish_get_property_event (GetPropertyEvent & event);
 	
 	
   private:
@@ -123,6 +124,8 @@ class ControlOSC
 	static int _updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _get_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _set_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _get_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _dummy_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
 	static int _unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
@@ -183,6 +186,8 @@ class ControlOSC
 	int updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo * info);
 	int set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
 	int get_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
+	int set_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
+	int get_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
 	int register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
 	int unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
 	int register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);

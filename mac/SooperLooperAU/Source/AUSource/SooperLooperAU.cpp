@@ -1495,11 +1495,11 @@ ComponentResult SooperLooperAU::RestoreState(CFPropertyListRef inData)
 		string sess_str((const char *)plaindata, plaindatasize);
 
 		if (_engine && _engine->is_ok()) {
-			//cerr << "RestoreState: " << sess_str << endl;
+			cerr << "RestoreState: " << sess_str << endl;
 			_engine->load_session ("", &sess_str);
 		}
 		else {
-			//cerr << "pending restore, will use: " << sess_str << endl;
+			cerr << "pending restore, will use: " << sess_str << endl;
 			_pending_restore = sess_str;
 		}
 	}
@@ -1520,7 +1520,12 @@ ComponentResult SooperLooperAU::RestoreState(CFPropertyListRef inData)
 		stringstream midisstr;
 		midisstr.write((const char *) plaindata, plaindatasize);
 		if (_midi_bridge) {
+            string midi_str((const char *)plaindata, plaindatasize);
+			cerr << "loading midi bindings from: " << midi_str << endl;
 			_midi_bridge->bindings().load_bindings (midisstr);
+		}
+		else {
+			cerr << "No midibridge yet can't load midi bindings" << endl;
 		}
 
 	}
