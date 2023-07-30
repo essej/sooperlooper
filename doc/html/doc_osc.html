@@ -177,6 +177,17 @@ GET PARAMETER VALUES
   out_peak_meter  :: absolute float sample value 0.0 -> 1.0 (or higher)
   is_soloed       :: 1 if soloed, 0 if not
 
+
+GET/SET loop instance string Properties
+
+/sl/#/get_prop  s:prop_name  s:return_url  s:return_path
+/sl/#/set_prop  s:prop_name  s:prop_value
+
+The only string property right now is:
+
+   name
+
+
 SAVE/LOAD
 
 /sl/#/load_loop   s:filename  s:return_url  s:error_path
