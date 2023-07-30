@@ -81,6 +81,7 @@ class LatencyPanel
 	wxCheckBox * _output_clock_check;
 
 	wxCheckBox * _slider_mousewheel_check;
+	wxCheckBox * _copy_loop_values_on_create_check;
 
 
     MainPanel * _parent;
