@@ -512,7 +512,7 @@ ControlOSC::osc_receiver()
 
 
 int ControlOSC::_dummy_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 #ifdef DEBUG
 	cerr << "got path: " << path << endl;
@@ -522,7 +522,7 @@ int ControlOSC::_dummy_handler(const char *path, const char *types, lo_arg **arg
 
 
 int ControlOSC::_quit_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->quit_handler (path, types, argv, argc, data);
@@ -530,7 +530,7 @@ int ControlOSC::_quit_handler(const char *path, const char *types, lo_arg **argv
 }
 
 int ControlOSC::_ping_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->ping_handler (path, types, argv, argc, data);
@@ -538,14 +538,14 @@ int ControlOSC::_ping_handler(const char *path, const char *types, lo_arg **argv
 }
 
 int ControlOSC::_global_set_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->global_set_handler (path, types, argv, argc, data);
 
 }
 int ControlOSC::_global_get_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->global_get_handler (path, types, argv, argc, data);
@@ -554,21 +554,21 @@ int ControlOSC::_global_get_handler(const char *path, const char *types, lo_arg 
 
 
 int ControlOSC::_updown_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
 	return cp->osc->updown_handler (path, types, argv, argc, data, cp);
 }
 
 int ControlOSC::_set_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
 	return cp->osc->set_handler (path, types, argv, argc, data, cp);
 }
 
 int ControlOSC::_get_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
 	return cp->osc->get_handler (path, types, argv, argc, data, cp);
@@ -589,105 +589,105 @@ int ControlOSC::_get_prop_handler(const char *path, const char *types, lo_arg **
 }
 
 int ControlOSC::_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
 	return cp->osc->register_update_handler (path, types, argv, argc, data, cp);
 }
 
 int ControlOSC::_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
 	return cp->osc->unregister_update_handler (path, types, argv, argc, data, cp);
 }
 
 int ControlOSC::_register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
 	return cp->osc->register_auto_update_handler (path, types, argv, argc, data, cp);
 }
 
 int ControlOSC::_unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
 	return cp->osc->unregister_auto_update_handler (path, types, argv, argc, data, cp);
 }
 
-int ControlOSC::_loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
+int ControlOSC::_loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->loop_add_handler (path, types, argv, argc, data);
 }
 
-int ControlOSC::_loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
+int ControlOSC::_loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->loop_del_handler (path, types, argv, argc, data);
 }
 
-int ControlOSC::_load_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
+int ControlOSC::_load_session_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->load_session_handler (path, types, argv, argc, data);
 }
-int ControlOSC::_save_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
+int ControlOSC::_save_session_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->save_session_handler (path, types, argv, argc, data);
 }
 
 int ControlOSC::_register_config_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->register_config_handler (path, types, argv, argc, data);
 }
 
 int ControlOSC::_unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->unregister_config_handler (path, types, argv, argc, data);
 }
 
-int ControlOSC::_loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
+int ControlOSC::_loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, void *user_data)
 {
 	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
 	return cp->osc->loadloop_handler (path, types, argv, argc, data, cp);
 }
 
-int ControlOSC::_saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
+int ControlOSC::_saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, void *user_data)
 {
 	CommandInfo * cp = static_cast<CommandInfo*> (user_data);
 	return cp->osc->saveloop_handler (path, types, argv, argc, data, cp);
 }
 
 int ControlOSC::_global_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->global_register_update_handler (path, types, argv, argc, data);
 }
 
 int ControlOSC::_global_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->global_unregister_update_handler (path, types, argv, argc, data);
 }
 
 int ControlOSC::_global_register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->global_register_auto_update_handler (path, types, argv, argc, data);
 }
 
 int ControlOSC::_global_unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->global_unregister_auto_update_handler (path, types, argv, argc, data);
@@ -695,27 +695,27 @@ int ControlOSC::_global_unregister_auto_update_handler(const char *path, const c
 
 
 int ControlOSC::_midi_start_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->midi_start_handler (path, types, argv, argc, data);
 }
 
 int ControlOSC::_midi_stop_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->midi_stop_handler (path, types, argv, argc, data);
 }
 
 int ControlOSC::_midi_tick_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message data, void *user_data)
 {
 	ControlOSC * osc = static_cast<ControlOSC*> (user_data);
 	return osc->midi_tick_handler (path, types, argv, argc, data);
 }
 
-int ControlOSC::_midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data)
+int ControlOSC::_midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, void *user_data)
 {
 	MidiBindCommand * cp = static_cast<MidiBindCommand*> (user_data);
 	return cp->osc->midi_binding_handler (path, types, argv, argc, data, cp);
@@ -724,14 +724,14 @@ int ControlOSC::_midi_binding_handler(const char *path, const char *types, lo_ar
 
 /* real callbacks */
 
-int ControlOSC::quit_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+int ControlOSC::quit_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	_engine->quit();
 	return 0;
 }
 
 
-int ControlOSC::ping_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+int ControlOSC::ping_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	string returl (&argv[0]->s);
 	string retpath (&argv[1]->s);
@@ -755,7 +755,7 @@ int ControlOSC::ping_handler(const char *path, const char *types, lo_arg **argv,
 }
 
 
-int ControlOSC::global_get_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data)
+int ControlOSC::global_get_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	// s: param  s: returl  s: retpath
 	string param (&argv[0]->s);
@@ -768,7 +768,7 @@ int ControlOSC::global_get_handler(const char *path, const char *types, lo_arg *
 	return 0;
 }
 
-int ControlOSC::global_set_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data)
+int ControlOSC::global_set_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	// s: param  f: val
 	string param(&argv[0]->s);
@@ -787,7 +787,7 @@ int ControlOSC::global_set_handler(const char *path, const char *types, lo_arg *
 }
 
 int
-ControlOSC::global_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+ControlOSC::global_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	// un/register_update args= s:ctrl s:returl s:retpath
 	string ctrl (&argv[0]->s);
@@ -804,7 +804,7 @@ ControlOSC::global_register_update_handler(const char *path, const char *types, 
 }
 
 int
-ControlOSC::global_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+ControlOSC::global_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	// 1st is return URL string 2nd is retpath
 	string ctrl (&argv[0]->s);
@@ -821,7 +821,7 @@ ControlOSC::global_unregister_update_handler(const char *path, const char *types
 }
 
 int
-ControlOSC::global_register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+ControlOSC::global_register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	// first arg is control string, 2nd is every int millisecs, 3rd is return URL string 4th is retpath
 	string ctrl (&argv[0]->s);
@@ -848,7 +848,7 @@ ControlOSC::global_register_auto_update_handler(const char *path, const char *ty
 }
 
 int
-ControlOSC::global_unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+ControlOSC::global_unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	// 1st is return URL string 2nd is retpath
 	string ctrl (&argv[0]->s);
@@ -869,7 +869,7 @@ ControlOSC::global_unregister_auto_update_handler(const char *path, const char *
 
 
 int
-ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, MidiBindCommand * info)
+ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, MidiBindCommand * info)
 {
 	if (info->command == MidiBindCommand::GetAllBinding)
 	{
@@ -967,7 +967,7 @@ ControlOSC::midi_binding_handler(const char *path, const char *types, lo_arg **a
 
 
 int
-ControlOSC::midi_start_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+ControlOSC::midi_start_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	_engine->push_sync_event (Event::MidiStart);
 	return 0;
@@ -975,7 +975,7 @@ ControlOSC::midi_start_handler(const char *path, const char *types, lo_arg **arg
 
 
 int
-ControlOSC::midi_stop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+ControlOSC::midi_stop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	_engine->push_sync_event (Event::MidiStop);
 	return 0;
@@ -983,14 +983,14 @@ ControlOSC::midi_stop_handler(const char *path, const char *types, lo_arg **argv
 
 
 int
-ControlOSC::midi_tick_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+ControlOSC::midi_tick_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	_engine->push_sync_event (Event::MidiTick);
 	return 0;
 }
 
 
-int ControlOSC::updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+int ControlOSC::updown_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, CommandInfo *info)
 {
 	// first arg is a string
 	
@@ -1002,7 +1002,7 @@ int ControlOSC::updown_handler(const char *path, const char *types, lo_arg **arg
 }
 
 
-int ControlOSC::set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+int ControlOSC::set_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, CommandInfo *info)
 {
 
 	// first arg is a control string, 2nd is float val
@@ -1021,7 +1021,7 @@ int ControlOSC::set_handler(const char *path, const char *types, lo_arg **argv, 
 
 }
 
-int ControlOSC::get_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+int ControlOSC::get_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, CommandInfo *info)
 {
 
 	// first arg is control string, 2nd is return URL string 3rd is retpath
@@ -1039,7 +1039,7 @@ int ControlOSC::get_prop_handler(const char *path, const char *types, lo_arg **a
 	return 0;
 }
 
-int ControlOSC::set_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+int ControlOSC::set_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, CommandInfo *info)
 {
 	// first arg is a control string, 2nd is string val
 
@@ -1056,7 +1056,7 @@ int ControlOSC::set_prop_handler(const char *path, const char *types, lo_arg **a
 	return 0;
 }
 
-int ControlOSC::loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+int ControlOSC::loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	// 1st is an int #channels
 	// 2nd is a float #bytes per channel (if 0, use engine default) 
@@ -1074,7 +1074,7 @@ int ControlOSC::loop_add_handler(const char *path, const char *types, lo_arg **a
 	return 0;
 }
 
-int ControlOSC::loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+int ControlOSC::loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	// 1st is index of loop to delete
 	
@@ -1086,7 +1086,7 @@ int ControlOSC::loop_del_handler(const char *path, const char *types, lo_arg **a
 }
 
 
-int ControlOSC::load_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+int ControlOSC::load_session_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 
 	// first arg is fname, 2nd is return URL string 3rd is retpath
@@ -1102,7 +1102,7 @@ int ControlOSC::load_session_handler(const char *path, const char *types, lo_arg
 	return 0;
 }
 
-int ControlOSC::save_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+int ControlOSC::save_session_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 
 	// first arg is fname, 2nd is return URL string 3rd is retpath
@@ -1124,7 +1124,7 @@ int ControlOSC::save_session_handler(const char *path, const char *types, lo_arg
 }
 
 
-int ControlOSC::loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+int ControlOSC::loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, CommandInfo *info)
 {
 
 	// first arg is fname, 2nd is return URL string 3rd is retpath
@@ -1140,7 +1140,7 @@ int ControlOSC::loadloop_handler(const char *path, const char *types, lo_arg **a
 	return 0;
 }
 
-int ControlOSC::saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+int ControlOSC::saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, CommandInfo *info)
 {
 	// save loop:  s:filename  s:format s:endian s:returl  s:retpath
 	string fname (&argv[0]->s);
@@ -1199,7 +1199,7 @@ ControlOSC::find_or_cache_addr(string returl)
 	return addr;
 }
 
-int ControlOSC::get_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+int ControlOSC::get_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, CommandInfo *info)
 {
 	// cerr << "get " << path << endl;
 
@@ -1216,7 +1216,7 @@ int ControlOSC::get_handler(const char *path, const char *types, lo_arg **argv, 
 	return 0;
 }
 
-int ControlOSC::register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+int ControlOSC::register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, CommandInfo *info)
 {
 	// first arg is control string, 2nd is return URL string 3rd is retpath
 	string ctrl (&argv[0]->s);
@@ -1232,7 +1232,7 @@ int ControlOSC::register_update_handler(const char *path, const char *types, lo_
 	return 0;
 }
 
-int ControlOSC::unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+int ControlOSC::unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, CommandInfo *info)
 {
 
 	// first arg is control string, 2nd is return URL string 3rd is retpath
@@ -1248,7 +1248,7 @@ int ControlOSC::unregister_update_handler(const char *path, const char *types, l
 	return 0;
 }
 
-int ControlOSC::register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+int ControlOSC::register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, CommandInfo *info)
 {
 	// first arg is control string, 2nd is every int millisecs, 3rd is return URL string 4th is retpath
 	string ctrl (&argv[0]->s);
@@ -1272,7 +1272,7 @@ int ControlOSC::register_auto_update_handler(const char *path, const char *types
 	return 0;
 }
 
-int ControlOSC::unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo *info)
+int ControlOSC::unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data, CommandInfo *info)
 {
 
 	// first arg is control string, 2nd is return URL string 3rd is retpath
@@ -1290,7 +1290,7 @@ int ControlOSC::unregister_auto_update_handler(const char *path, const char *typ
 
 
 int
-ControlOSC::register_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+ControlOSC::register_config_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	// 1st is return URL string 2nd is retpath
 	string returl (&argv[0]->s);
@@ -1304,7 +1304,7 @@ ControlOSC::register_config_handler(const char *path, const char *types, lo_arg 
 }
 
 int
-ControlOSC::unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+ControlOSC::unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message data)
 {
 	// 1st is return URL string 2nd is retpath
 	string returl (&argv[0]->s);
