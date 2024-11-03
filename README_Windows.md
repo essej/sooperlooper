@@ -18,6 +18,8 @@ Xming: https://sourceforge.net/projects/xming/files/latest/download
 winget install Cygwin.Cygwin
 # then, copy setup-x86_64.exe to C:\cygwin64
 .\setup-x86_64.exe -q -P gcc-g++,pkg-config,make,autoconf,automake,libtool,gettext,gettext-devel,dos2unix
+
+winget install winget install ZakKemble.avr-gcc
 ```
 
 
