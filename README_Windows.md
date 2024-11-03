@@ -76,8 +76,10 @@ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig
 TODO: cannot find any configure flag to disable JNI support
 
 ```bash
-wget https://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip
-unzip rubberband-4.0.0-gpl-executable-windows.zip
+winget install --id Microsoft.Powershell --exact
+winget install --id 7zip.7zip --exact
+curl -o rubberband-4.0.0-gpl-executable-windows.zip https://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip
+7z x rubberband-4.0.0-gpl-executable-windows.zip -o"rubberband-4.0.0"
 ```
 
 **liblo: Lightweight OSC implementation** (for SooperLooper)
