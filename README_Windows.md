@@ -33,6 +33,9 @@ Installing libsigc++ from apt-cyg results in version 2.10. SL will fail to compi
 ```bash
 wget http://cygwin.mirror.constant.com//x86_64/release/libsigc2.0/libsigc2.0-devel/libsigc2.0-devel-2.4.1-1.tar.xz
 tar -C / -xvf libsigc2.0-devel-2.4.1-1.tar.xz
+
+# test this first
+.\setup-x86_64.exe -q -P libsigc2.0-devel-2.4.1-1
 ```
 
 
@@ -46,6 +49,9 @@ wget http://www.ladspa.org/download/ladspa_sdk_1.15.tgz
 tar xvzf ladspa_sdk_1.15.tgz
 cd ladspa_sdk_1.15/src
 make && make install
+
+# test this first
+.\setup-x86_64.exe -q -P ladspa_sdk_1
 ```
 
 **The Vamp audio analysis plugin system** (for Rubber Band)
@@ -59,6 +65,9 @@ cd vamp-plugin-sdk-2.8.0
 make CXXFLAGS="-I. -fPIC -Wall -Wextra"
 make install
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig
+
+# test this first
+.\setup-x86_64.exe -q -P vamp-plugin-sdk-2.8.0
 ```
 
 **Rubber Band Audio Time Stretcher Library** (for SooperLooper)
@@ -73,6 +82,9 @@ make
 touch lib/librubberband-jni.so
 make install
 rm lib/librubberband-jni.so
+
+# test this first
+.\setup-x86_64.exe -q -P rubberband-1.8.2
 ```
 
 **liblo: Lightweight OSC implementation** (for SooperLooper)
@@ -83,6 +95,9 @@ tar xvzf liblo-0.29.tar.gz
 cd liblo-0.29
 ./configure --disable-shared --disable-examples
 make && make install
+
+# test this first
+.\setup-x86_64.exe -q -P liblo-0.29
 ```
 
 
