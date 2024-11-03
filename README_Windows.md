@@ -19,7 +19,7 @@ winget install Cygwin.Cygwin
 # then, copy setup-x86_64.exe to C:\cygwin64
 .\setup-x86_64.exe -q -P gcc-g++,pkg-config,make,autoconf,automake,libtool,gettext,gettext-devel,dos2unix
 
-winget install winget install ZakKemble.avr-gcc
+winget install --id GCC --exact --id msys2.msys2 --id GnuWin32.Make --id GnuWin32.Autoconf --id GnuWin32.Automake --id GnuWin32.LibTool --id GnuWin32.GetText --id GnuWin32.Dos2Unix
 ```
 
 
