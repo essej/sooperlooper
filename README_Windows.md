@@ -37,8 +37,9 @@ pacman -S mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libiconv mingw-w64-x86_64-nc
 Installing libsigc++ from apt-cyg results in version 2.10. SL will fail to compile because header object.h will be missing. Solution is to also install devel package an older libsigc++ version:
 
 ```bash
-wget https://github.com/libsigcplusplus/libsigcplusplus/releases/download/3.6.0/libsigc++-3.6.0.tar.xz
-tar -C / -xvf libsigc++-3.6.0.tar.xz
+winget install 7zip.7zip
+Invoke-WebRequest -Uri "https://github.com/libsigcplusplus/libsigcplusplus/releases/download/3.6.0/libsigc++-3.6.0.tar.xz" -OutFile "$env:TEMP\libsigc++-3.6.0.tar.xz"
+& "C:\Program Files\7-Zip\7z.exe" x "$env:TEMP\libsigc++-3.6.0.tar.xz" -o"C:\path\to\destination"
 ```
 
 
