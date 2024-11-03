@@ -15,9 +15,9 @@ Xming: https://sourceforge.net/projects/xming/files/latest/download
 ### 2. Install development toolchain
 
 ```bash
-wget http://rawgit.com/transcode-open/apt-cyg/master/apt-cyg
-install apt-cyg /bin
-apt-cyg install gcc-g++ pkg-config make autoconf automake libtool gettext gettext-devel dos2unix
+winget install Cygwin.Cygwin
+# then, copy setup-x86_64.exe to C:\cygwin64
+.\setup-x86_64.exe -q -P gcc-g++,pkg-config,make,autoconf,automake,libtool,gettext,gettext-devel,dos2unix
 ```
 
 
@@ -25,7 +25,7 @@ apt-cyg install gcc-g++ pkg-config make autoconf automake libtool gettext gettex
 ### 3. Install SooperLooper dependencies
 
 ```bash
-apt-cyg install libxml2-devel libiconv-devel libncurses-devel libsndfile-devel libsamplerate-devel libfftw3-devel libwx_baseu3.0-devel libwx_gtk3u3.0-devel libsigc2.0_0
+.\setup-x86_64.exe -q -P libxml2-devel,libiconv-devel,libncurses-devel,libsndfile-devel,libsamplerate-devel,libfftw3-devel,libwx_baseu3.0-devel,libwx_gtk3u3.0-devel,libsigc2.0_0
 ```
 
 Installing libsigc++ from apt-cyg results in version 2.10. SL will fail to compile because header object.h will be missing. Solution is to also install devel package an older libsigc++ version:
