@@ -104,10 +104,13 @@ vcpkg install liblo
 First allow linking against JACK dll:
 
 ```bash
-cp -R "/cygdrive/c/Program Files (x86)/Jack/includes/jack" /usr/local/include
-cp /cygdrive/c/Windows/libjack64.dll /usr/lib
-export JACK_CFLAGS=-I/usr/local/include/jack
-export JACK_LIBS=-ljack64
+cp -R "/c/Program Files (x86)/Jack/includes/jack" /usr/local/include
+mkdir -p /mingw64/include/jack
+cp -R "/c/Program Files (x86)/Jack/includes/jack" /mingw64/include
+cp "/c/Windows/libjack64.dll" /mingw64/bin
+echo 'export JACK_CFLAGS="-I/mingw64/include/jack"' >> ~/.bashrc
+echo 'export JACK_LIBS="-ljack64"' >> ~/.bashrc
+source ~/.bashrc
 ```
 
 Then finally compile:
