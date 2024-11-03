@@ -49,13 +49,13 @@ Invoke-WebRequest -Uri "https://github.com/libsigcplusplus/libsigcplusplus/relea
 **Linux Audio Developer's Simple Plugin API (LADSPA)** (for Rubber Band)
 
 ```bash
-wget http://www.ladspa.org/download/ladspa_sdk_1.17.tgz
-tar xvzf ladspa_sdk_1.15.tgz
-cd ladspa_sdk_1.15/src
-make && make install
-
-# test this first
-.\setup-x86_64.exe -q -P ladspa_sdk_1
+winget install GnuWin32.Make
+Invoke-WebRequest -Uri "http://www.ladspa.org/download/ladspa_sdk_1.17.tgz" -OutFile "$env:TEMP\ladspa_sdk_1.17.tgz"
+winget install 7zip.7zip
+& "C:\Program Files\7-Zip\7z.exe" x "$env:TEMP\ladspa_sdk_1.17.tgz" -o"$env:TEMP\ladspa_sdk"
+cd "$env:TEMP\ladspa_sdk\ladspa_sdk_1.17\src"
+make
+make install
 ```
 
 **The Vamp audio analysis plugin system** (for Rubber Band)
