@@ -85,14 +85,16 @@ curl -o rubberband-4.0.0-gpl-executable-windows.zip https://breakfastquay.com/fi
 **liblo: Lightweight OSC implementation** (for SooperLooper)
 
 ```bash
+winget install --id MSYS2.MSYS2 --exact
+pacman -Syu
+pacman -S base-devel mingw-w64-x86_64-gcc
 wget http://downloads.sourceforge.net/liblo/liblo-0.29.tar.gz
 tar xvzf liblo-0.29.tar.gz
 cd liblo-0.29
 ./configure --disable-shared --disable-examples
-make && make install
-
-# test this first
-.\setup-x86_64.exe -q -P liblo-0.29
+make
+make install
+vcpkg install liblo
 ```
 
 
