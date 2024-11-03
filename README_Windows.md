@@ -42,7 +42,7 @@ tar -C / -xvf libsigc++-3.6.0.tar.xz
 **Linux Audio Developer's Simple Plugin API (LADSPA)** (for Rubber Band)
 
 ```bash
-wget http://www.ladspa.org/download/ladspa_sdk_1.15.tgz
+wget http://www.ladspa.org/download/ladspa_sdk_1.17.tgz
 tar xvzf ladspa_sdk_1.15.tgz
 cd ladspa_sdk_1.15/src
 make && make install
