@@ -62,9 +62,6 @@ cd vamp-plugin-sdk-2.8.0
 make CXXFLAGS="-I. -fPIC -Wall -Wextra"
 make install
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig
-
-# test this first
-.\setup-x86_64.exe -q -P vamp-plugin-sdk-2.8.0
 ```
 
 **Rubber Band Audio Time Stretcher Library** (for SooperLooper)
