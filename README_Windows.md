@@ -156,9 +156,10 @@ tar xvjf wxWidgets-3.1.2.tar.bz2
 cd wxWidgets-3.1.2
 export CPPFLAGS='-w -fpermissive -D__USE_W32_SOCKETS'
 export LDFLAGS='-L /lib/w32api/'
-./configure --prefix=/usr/local --with-msw
-Makefile: add -lGL to EXTRALIBS_OPENGL 
-make && make install
+./configure --prefix=/mingw64 --with-msw
+sed -i 's/EXTRALIBS_OPENGL =/EXTRALIBS_OPENGL = -lGL/' Makefile
+make
+make install
 ```
 
 
