@@ -31,8 +31,8 @@ winget install Cygwin.Cygwin
 Installing libsigc++ from apt-cyg results in version 2.10. SL will fail to compile because header object.h will be missing. Solution is to also install devel package an older libsigc++ version:
 
 ```bash
-wget http://cygwin.mirror.constant.com//x86_64/release/libsigc2.0/libsigc2.0-devel/libsigc2.0-devel-2.4.1-1.tar.xz
-tar -C / -xvf libsigc2.0-devel-2.4.1-1.tar.xz
+wget https://github.com/libsigcplusplus/libsigcplusplus/releases/download/3.6.0/libsigc++-3.6.0.tar.xz
+tar -C / -xvf libsigc++-3.6.0.tar.xz
 
 # test this first
 .\setup-x86_64.exe -q -P libsigc2.0-devel-2.4.1-1
