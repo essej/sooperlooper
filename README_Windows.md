@@ -30,7 +30,8 @@ winget install --id GnuWin32.Dos2Unix
 ### 3. Install SooperLooper dependencies
 
 ```bash
-.\setup-x86_64.exe -q -P libxml2-devel,libiconv-devel,libncurses-devel,libsndfile-devel,libsamplerate-devel,libfftw3-devel,libwx_baseu3.0-devel,libwx_gtk3u3.0-devel,libsigc2.0_0
+winget install --id MSYS2.MSYS2 --exact
+pacman -S mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libiconv mingw-w64-x86_64-ncurses mingw-w64-x86_64-libsndfile mingw-w64-x86_64-libsamplerate mingw-w64-x86_64-fftw mingw-w64-x86_64-wxBase mingw-w64-x86_64-wxWidgets mingw-w64-x86_64-libsigc++
 ```
 
 Installing libsigc++ from apt-cyg results in version 2.10. SL will fail to compile because header object.h will be missing. Solution is to also install devel package an older libsigc++ version:
