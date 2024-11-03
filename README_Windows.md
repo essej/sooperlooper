@@ -62,6 +62,7 @@ make install
 TODO: cannot find a way to omit -std=c++89 from Makefile
 
 ```bash
+pacman -S base-devel mingw-w64-x86_64-gcc mingw-w64-x86_64-pkg-config wget
 wget https://code.soundsoftware.ac.uk/attachments/download/2450/vamp-plugin-sdk-2.8.0.tar.gz
 tar xvzf vamp-plugin-sdk-2.8.0.tar.gz
 cd vamp-plugin-sdk-2.8.0
