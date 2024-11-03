@@ -15,10 +15,6 @@ Xming: https://sourceforge.net/projects/xming/files/latest/download
 ### 2. Install development toolchain
 
 ```bash
-winget install Cygwin.Cygwin
-# then, copy setup-x86_64.exe to C:\cygwin64
-.\setup-x86_64.exe -q -P gcc-g++,pkg-config,make,autoconf,automake,libtool,gettext,gettext-devel,dos2unix
-
 winget install --id GCC --exact
 winget install --id msys2.msys2
 winget install --id GnuWin32.Make
