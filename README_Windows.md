@@ -4,7 +4,7 @@
 
 ### 1. Required Windows packages
 
-Cygwin 64 bits: https://cygwin.com/setup-x86_64.exe (do not forget to include package wget)
+MSYS64: https://www.msys2.org/
 
 JACK 64 bits: https://github.com/jackaudio/jackaudio.github.com/releases/download/1.9.11/Jack_v1.9.11_64_setup.exe
 
