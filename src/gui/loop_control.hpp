@@ -171,32 +171,32 @@ class LoopControl
   protected:
 	
 	static int _control_handler(const char *path, const char *types, lo_arg **argv, int argc,
-				    void *data, void *user_data);
+				    lo_message_ *data, void *user_data);
 
 	int control_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 
 	static int _property_handler(const char *path, const char *types, lo_arg **argv, int argc,
-				    void *data, void *user_data);
+				    lo_message_ *data, void *user_data);
 
 	int property_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 
 	static int _pingack_handler(const char *path, const char *types, lo_arg **argv, int argc,
-				    void *data, void *user_data);
+				    lo_message_ *data, void *user_data);
 
 	int pingack_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 
 	static int _midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc,
-				    void *data, void *user_data);
+				    lo_message_ *data, void *user_data);
 
 	int midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 
 	static int _alive_handler(const char *path, const char *types, lo_arg **argv, int argc,
-				    void *data, void *user_data);
+				    lo_message_ *data, void *user_data);
 
 	int alive_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 
 	static int _error_handler(const char *path, const char *types, lo_arg **argv, int argc,
-				    void *data, void *user_data);
+				    lo_message_ *data, void *user_data);
 
 	int error_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
 	
