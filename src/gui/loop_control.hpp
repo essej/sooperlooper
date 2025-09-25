@@ -171,34 +171,34 @@ class LoopControl
   protected:
 	
 	static int _control_handler(const char *path, const char *types, lo_arg **argv, int argc,
-				    void *data, void *user_data);
+				    lo_message msg, void *user_data);
 
-	int control_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int control_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
 
 	static int _property_handler(const char *path, const char *types, lo_arg **argv, int argc,
-				    void *data, void *user_data);
+				    lo_message msg, void *user_data);
 
-	int property_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int property_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
 
 	static int _pingack_handler(const char *path, const char *types, lo_arg **argv, int argc,
-				    void *data, void *user_data);
+				    lo_message msg, void *user_data);
 
-	int pingack_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int pingack_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
 
 	static int _midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc,
-				    void *data, void *user_data);
+				    lo_message msg, void *user_data);
 
-	int midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
 
 	static int _alive_handler(const char *path, const char *types, lo_arg **argv, int argc,
-				    void *data, void *user_data);
+				    lo_message msg, void *user_data);
 
-	int alive_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int alive_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
 
 	static int _error_handler(const char *path, const char *types, lo_arg **argv, int argc,
-				    void *data, void *user_data);
+				    lo_message msg, void *user_data);
 
-	int error_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int error_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
 	
 	static void * _osc_traffic(void * arg);
 	void osc_traffic();

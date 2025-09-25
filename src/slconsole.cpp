@@ -273,7 +273,7 @@ static int post_event(char cmd)
 }
 
 static int ctrl_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message msg, void *user_data)
 {
 	// 1st arg is instance, 2nd ctrl string, 3nd is float value
 	//int index = argv[0]->i;
@@ -288,7 +288,7 @@ static int ctrl_handler(const char *path, const char *types, lo_arg **argv, int 
 }
 
 static int pingack_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			 void *data, void *user_data)
+			 lo_message msg, void *user_data)
 {
 	// pingack expects: s:engine_url s:version i:loopcount
 	// 1st arg is instance, 2nd ctrl string, 3nd is float value

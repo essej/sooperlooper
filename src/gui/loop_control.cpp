@@ -663,14 +663,14 @@ bool LoopControl::spawn_looper()
 
 int
 LoopControl::_pingack_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			      void *data, void *user_data)
+			      lo_message msg, void *user_data)
 {
 	LoopControl * lc = static_cast<LoopControl*> (user_data);
-	return lc->pingack_handler (path, types, argv, argc, data);
+	return lc->pingack_handler (path, types, argv, argc, msg);
 }
 
 int
-LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg)
 {
 	// s:hosturl  s:version  i:loopcount
 
@@ -758,21 +758,21 @@ LoopControl::pingack_handler(const char *path, const char *types, lo_arg **argv,
 
 int
 LoopControl::_alive_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			      void *data, void *user_data)
+			      lo_message msg, void *user_data)
 {
 	LoopControl * lc = static_cast<LoopControl*> (user_data);
-	return lc->alive_handler (path, types, argv, argc, data);
+	return lc->alive_handler (path, types, argv, argc, msg);
 }
 
 int
-LoopControl::alive_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+LoopControl::alive_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg)
 {
 	// s:hosturl  s:version  i:loopcount [i:id]
 	if (argc > 3) {
 		int uid = argv[3]->i;
 		if (uid != _engine_id && uid != 0) {
 			cerr << "engine changed on us, redoing connections" << endl;
-			return pingack_handler(path, types, argv, argc, data);
+			return pingack_handler(path, types, argv, argc, msg);
 		}
 	}
 
@@ -782,14 +782,14 @@ LoopControl::alive_handler(const char *path, const char *types, lo_arg **argv, i
 
 int
 LoopControl::_error_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			      void *data, void *user_data)
+			      lo_message msg, void *user_data)
 {
 	LoopControl * lc = static_cast<LoopControl*> (user_data);
-	return lc->error_handler (path, types, argv, argc, data);
+	return lc->error_handler (path, types, argv, argc, msg);
 }
 
 int
-LoopControl::error_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+LoopControl::error_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg)
 {
 	// s:errstr
 	string errsrc(&argv[0]->s);
@@ -803,15 +803,15 @@ LoopControl::error_handler(const char *path, const char *types, lo_arg **argv, i
 
 int
 LoopControl::_control_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			      void *data, void *user_data)
+			      lo_message msg, void *user_data)
 {
 	LoopControl * lc = static_cast<LoopControl*> (user_data);
-	return lc->control_handler (path, types, argv, argc, data);
+	return lc->control_handler (path, types, argv, argc, msg);
 }
 
 
 int
-LoopControl::control_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+LoopControl::control_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg)
 {
 	// loop instance is 1st arg, 2nd is ctrl string, 3rd is float value
 
@@ -858,15 +858,15 @@ LoopControl::control_handler(const char *path, const char *types, lo_arg **argv,
 
 int
 LoopControl::_property_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			      void *data, void *user_data)
+			      lo_message msg, void *user_data)
 {
 	LoopControl * lc = static_cast<LoopControl*> (user_data);
-	return lc->property_handler (path, types, argv, argc, data);
+	return lc->property_handler (path, types, argv, argc, msg);
 }
 
 
 int
-LoopControl::property_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+LoopControl::property_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg)
 {
 // loop instance is 1st arg, 2nd is ctrl string, 3rd is float value
 
@@ -894,14 +894,14 @@ LoopControl::property_handler(const char *path, const char *types, lo_arg **argv
 
 int
 LoopControl::_midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc,
-			      void *data, void *user_data)
+			      lo_message msg, void *user_data)
 {
 	LoopControl * lc = static_cast<LoopControl*> (user_data);
-	return lc->midi_binding_handler (path, types, argv, argc, data);
+	return lc->midi_binding_handler (path, types, argv, argc, msg);
 }
 
 int
-LoopControl::midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data)
+LoopControl::midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg)
 {
 	// s:status s:serialized binding
 	string status(&argv[0]->s);

@@ -118,39 +118,39 @@ class ControlOSC
 	lo_address find_or_cache_addr(std::string returl);
 
 	
-	static int _quit_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _global_set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _global_get_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _get_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _set_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _get_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _dummy_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _ping_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _load_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _save_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _register_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _global_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _global_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _global_register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _global_unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _quit_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _global_set_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _global_get_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _updown_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _set_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _get_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _set_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _get_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _dummy_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _ping_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _load_session_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _save_session_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _register_config_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _global_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _global_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _global_register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _global_unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
 
 	
-	static int _midi_start_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _midi_stop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
-	static int _midi_tick_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _midi_start_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _midi_stop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
+	static int _midi_tick_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
 
-	static int _midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, void *user_data);
+	static int _midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, void *user_data);
 
 
 	bool init_osc_thread();
@@ -160,40 +160,40 @@ class ControlOSC
 	static void * _osc_receiver(void * arg);
 	void osc_receiver();
 	
-	int quit_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data);
-	int ping_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data);
-	int global_get_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data);
-	int global_set_handler(const char *path, const char *types, lo_arg **argv, int argc,void *data);
-	int loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
-	int loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
-	int load_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
-	int save_session_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
-	int register_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
-	int unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
+	int quit_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int ping_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int global_get_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int global_set_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int loop_add_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int loop_del_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int load_session_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int save_session_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int register_config_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int unregister_config_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
 
-	int global_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
-	int global_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
-	int global_register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
-	int global_unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
-
-	
-	int midi_start_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
-	int midi_stop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
-	int midi_tick_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data);
-	int midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, MidiBindCommand * info);
+	int global_register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int global_unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int global_register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int global_unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
 
 	
-	int updown_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data, CommandInfo * info);
-	int set_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
-	int get_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
-	int set_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
-	int get_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
-	int register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
-	int unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
-	int register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
-	int unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
-	int loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
-	int saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, void *data,  CommandInfo * info);
+	int midi_start_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int midi_stop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int midi_tick_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg);
+	int midi_binding_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, MidiBindCommand * info);
+
+	
+	int updown_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg, CommandInfo * info);
+	int set_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg,  CommandInfo * info);
+	int get_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg,  CommandInfo * info);
+	int set_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg,  CommandInfo * info);
+	int get_prop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg,  CommandInfo * info);
+	int register_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg,  CommandInfo * info);
+	int unregister_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg,  CommandInfo * info);
+	int register_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg,  CommandInfo * info);
+	int unregister_auto_update_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg,  CommandInfo * info);
+	int loadloop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg,  CommandInfo * info);
+	int saveloop_handler(const char *path, const char *types, lo_arg **argv, int argc, lo_message msg,  CommandInfo * info);
 
 	Event::command_t  to_command_t (std::string cmd);
 	std::string       to_command_str (Event::command_t cmd);
