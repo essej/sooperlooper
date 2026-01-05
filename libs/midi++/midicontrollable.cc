@@ -25,6 +25,11 @@
 #include <midi++/channel.h>
 #include <midi++/controllable.h>
 
+Transmitter error (Transmitter::Error);
+Transmitter info (Transmitter::Info);
+Transmitter warning (Transmitter::Warning);
+Transmitter fatal (Transmitter::Fatal);
+
 using namespace sigc;
 using namespace MIDI;
 
