@@ -342,11 +342,23 @@ then
         AM_CONDITIONAL(WITH_ALSA, test x$use_alsa_midi = xyes)
 
       dnl  AC_CHECK_FILE(/System/Library/Frameworks/CoreMIDI.framework/Headers/CoreMIDI.h, 
-	AC_CHECK_FILE(/System/Library/Frameworks/CoreMIDI.framework,       
-                      [use_coremidi=yes
-                       AUDIO_LIBS="-framework CoreMIDI -framework CoreFoundation -framework CoreServices -framework ApplicationServices -framework Accelerate"
-                       AC_DEFINE([WITH_COREMIDI], 1, [Have CoreMIDI Headers])],
-                       use_coremidi=no)
+       dnl CoreMIDI is macOS-only and AC_CHECK_FILE does not work when
+       dnl cross-compiling, so guard the check accordingly.
+       use_coremidi=no
+       if test "x$cross_compiling" != "xyes"; then
+         case "$host_os" in
+           darwin*)
+             AC_CHECK_FILE(/System/Library/Frameworks/CoreMIDI.framework,
+                           [use_coremidi=yes
+                            AUDIO_LIBS="-framework CoreMIDI -framework CoreFoundation -framework CoreServices -framework ApplicationServices -framework Accelerate"
+                            AC_DEFINE([WITH_COREMIDI], 1, [Have CoreMIDI Headers])],
+                            use_coremidi=no)
+             ;;
+           *)
+             use_coremidi=no
+             ;;
+         esac
+       fi
         AM_CONDITIONAL(WITH_COREMIDI, test x$use_coremidi = xyes)
         AC_SUBST(AUDIO_LIBS)
 
